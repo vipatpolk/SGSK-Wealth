@@ -105,6 +105,13 @@
             <path d="M11.767 19.089c4.924.868 6.14-6.025 1.216-6.894m-1.216 6.894L5.86 18.047m5.908 1.042-.347 1.97m1.563-8.864c4.924.869 6.14-6.025 1.215-6.893m-1.215 6.893-3.94-.694m5.155-6.2L8.29 4.26m5.908 1.042.348-1.97M7.48 20.364l3.126-17.727"></path>
           </svg>
         }
+        @if (tab.icon === 'fund') {
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
+            <path d="M2 17a5 5 0 0 0 10 0c0-2.76-2.24-5-5-5s-5 2.24-5 5Z"></path>
+            <path d="M12 17a5 5 0 0 0 10 0c0-2.76-2.24-5-5-5s-5 2.24-5 5Z"></path>
+            <path d="M7 7a5 5 0 0 0 10 0c0-2.76-2.24-5-5-5S7 4.24 7 7Z"></path>
+          </svg>
+        }
         <span class="tab-label">{{ tab.label }}</span>
       </button>
     }
@@ -233,7 +240,7 @@
         <button class="card-header" (click)="toggleExpand(summary.symbol)" [id]="'toggle-' + summary.symbol">
           <div class="card-header-left">
             <span class="symbol-badge" [style.background-color]="getSymbolColor(summary.symbol) + '18'" [style.color]="getSymbolColor(summary.symbol)" [style.border-color]="getSymbolColor(summary.symbol) + '30'">
-              {{ displaySymbol(summary.symbol) }}
+              {{ getDisplaySymbol(summary.symbol) }}
             </span>
             @if (getSymbolName(summary.symbol)) {
               <span class="symbol-name">{{ getSymbolName(summary.symbol) }}</span>
@@ -373,5 +380,5 @@
 </main>
 
 <footer class="footer">
-  <p>ShareLot &mdash; FIFO Share Lot Calculator &bull; Live data from Google Sheets &bull; Prices from Yahoo Finance &amp; CoinGecko</p>
+  <p>ShareLot &mdash; FIFO Share Lot Calculator &bull; Live data from Google Sheets &bull; Prices from Yahoo Finance, CoinGecko &amp; SEC Thailand</p>
 </footer>

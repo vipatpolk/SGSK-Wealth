@@ -7,12 +7,20 @@
       "^/api/finance": ""
     }
   },
-  "/api/coingecko": {
-    "target": "https://api.coingecko.com",
+  "/api/binance": {
+    "target": "https://api.binance.th",
     "secure": true,
     "changeOrigin": true,
     "pathRewrite": {
-      "^/api/coingecko": ""
+      "^/api/binance": ""
+    }
+  },
+  "/api/sec": {
+    "target": "https://api.sec.or.th",
+    "secure": true,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api/sec": ""
     }
   }
 }

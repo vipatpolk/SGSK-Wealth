@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin, of, map, catchError } from 'rxjs';
+import { NavService } from './nav.service';
 
 export interface PriceData {
   symbol: string;
@@ -9,10 +10,10 @@ export interface PriceData {
   currency: string;
 }
 
-/** Maps internal .CRYPTO symbols to CoinGecko IDs */
-const CRYPTO_COINGECKO_MAP: Record<string, { id: string; name: string }> = {
-  'BTC.CRYPTO': { id: 'bitcoin', name: 'Bitcoin' },
-  'PAXG.CRYPTO': { id: 'pax-gold', name: 'PAX Gold' },
+/** Maps internal .CRYPTO symbols to Binance TH symbols */
+const CRYPTO_BINANCE_MAP: Record<string, { symbol: string; name: string; currency: string }> = {
+  'BTC.CRYPTO': { symbol: 'BTCTHB', name: 'Bitcoin', currency: 'THB' },
+  'PAXG.CRYPTO': { symbol: 'PAXGUSDT', name: 'PAX Gold', currency: 'USD' },
 };
 
 @Injectable({
@@ -20,6 +21,7 @@ const CRYPTO_COINGECKO_MAP: Record<string, { id: string; name: string }> = {
 })
 export class PriceService {
   private readonly http = inject(HttpClient);
+  private readonly navService = inject(NavService);
 
   /** Fetch prices for all symbols AND the USD/THB exchange rate in parallel */
   fetchPricesAndRate(symbols: string[]): Observable<{ prices: Map<string, PriceData>; rate: number }> {
@@ -42,8 +44,9 @@ export class PriceService {
     if (symbols.length === 0) return of(new Map());
 
     const uniqueSymbols = [...new Set(symbols)];
-    const stockSymbols = uniqueSymbols.filter((s) => !s.endsWith('.CRYPTO'));
+    const stockSymbols = uniqueSymbols.filter((s) => !s.endsWith('.CRYPTO') && !this.isFundSymbol(s));
     const cryptoSymbols = uniqueSymbols.filter((s) => s.endsWith('.CRYPTO'));
+    const fundSymbols = uniqueSymbols.filter((s) => this.isFundSymbol(s));
 
     const requests: Observable<Map<string, PriceData>>[] = [];
 
@@ -53,6 +56,10 @@ export class PriceService {
 
     if (cryptoSymbols.length > 0) {
       requests.push(this.fetchCryptoPrices(cryptoSymbols));
+    }
+
+    if (fundSymbols.length > 0) {
+      requests.push(this.navService.fetchFundNAVs(fundSymbols));
     }
 
     if (requests.length === 0) return of(new Map());
@@ -66,6 +73,11 @@ export class PriceService {
         return merged;
       }),
     );
+  }
+
+  /** Check if a symbol is a mutual fund (SSF/fund naming convention) */
+  private isFundSymbol(symbol: string): boolean {
+    return symbol.includes('-SSF') || symbol.includes('-RMF') || symbol.includes('-LTF') || symbol.startsWith('ES-') || symbol.startsWith('UGSTAR-');
   }
 
   /** Fetch stock prices from Yahoo Finance via proxy */
@@ -102,31 +114,33 @@ export class PriceService {
   }
 
   /**
-   * Fetch crypto prices from CoinGecko in THB.
-   * Uses a single batch request for all crypto symbols.
+   * Fetch crypto prices from Binance TH.
    */
   private fetchCryptoPrices(symbols: string[]): Observable<Map<string, PriceData>> {
-    const ids = symbols
-      .map((s) => CRYPTO_COINGECKO_MAP[s]?.id)
-      .filter((id) => !!id);
+    const binanceSymbols = symbols
+      .map((s) => CRYPTO_BINANCE_MAP[s]?.symbol)
+      .filter((s) => !!s);
 
-    if (ids.length === 0) return of(new Map());
+    if (binanceSymbols.length === 0) return of(new Map());
 
-    const url = `/api/coingecko/api/v3/simple/price?ids=${ids.join(',')}&vs_currencies=thb`;
+    const url = `/api/binance/api/v1/ticker/price?symbols=${encodeURIComponent(JSON.stringify(binanceSymbols))}`;
 
-    return this.http.get<Record<string, { thb: number }>>(url).pipe(
+    return this.http.get<Array<{ symbol: string; price: string }>>(url).pipe(
       map((res) => {
         const priceMap = new Map<string, PriceData>();
 
         for (const symbol of symbols) {
-          const gecko = CRYPTO_COINGECKO_MAP[symbol];
-          if (gecko && res[gecko.id]?.thb) {
-            priceMap.set(symbol, {
-              symbol,
-              name: gecko.name,
-              price: res[gecko.id].thb,
-              currency: 'THB',
-            });
+          const config = CRYPTO_BINANCE_MAP[symbol];
+          if (config) {
+            const found = res.find((r) => r.symbol === config.symbol);
+            if (found && found.price) {
+              priceMap.set(symbol, {
+                symbol,
+                name: config.name,
+                price: parseFloat(found.price),
+                currency: config.currency,
+              });
+            }
           }
         }
 

@@ -11,6 +11,7 @@ export const SHEET_CONFIG: SheetConfig = {
     'us-stock': '1032243687',
     'thai-stock': '102823823',
     'crypto': '1822302220',
+    'mutual-fund': '359978839',
   }
 };
 
@@ -53,6 +54,13 @@ export const ASSET_TABS: AssetTab[] = [
     label: 'Cryptocurrency',
     icon: 'bitcoin',
     sheetGid: SHEET_CONFIG.gids['crypto'],
+    currency: 'THB',
+  },
+  {
+    id: 'mutual-fund',
+    label: 'Mutual Fund',
+    icon: 'fund',
+    sheetGid: SHEET_CONFIG.gids['mutual-fund'],
     currency: 'THB',
   },
 ];

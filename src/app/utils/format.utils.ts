@@ -23,6 +23,8 @@ export function getSymbolColor(symbol: string): string {
     'KTB.BK': '#06b6d4', 'ICHI.BK': '#ec4899', 'KKP.BK': '#10b981',
     // Crypto
     'BTC.CRYPTO': '#f7931a', 'PAXG.CRYPTO': '#e6b800',
+    // Mutual Funds
+    'ES-GTECHSSF': '#0891b2', 'SCBGOLDH-SSF': '#d97706', 'UGSTAR-SSF-D': '#7c3aed',
   };
   return colors[symbol] || '#6366f1';
 }

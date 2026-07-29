@@ -234,6 +234,14 @@ export class App {
     return this.prices().get(symbol)?.price ?? 0;
   }
 
+  getDisplaySymbol(symbol: string): string {
+    const priceData = this.prices().get(symbol);
+    if (priceData?.symbol && priceData.symbol !== symbol) {
+      return priceData.symbol;
+    }
+    return displaySymbol(symbol);
+  }
+
   getSymbolName(symbol: string): string {
     const rawName = this.prices().get(symbol)?.name || '';
     return getSymbolName(symbol, rawName);
