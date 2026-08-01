@@ -4,6 +4,7 @@ export interface Transaction {
   quantity: number;
   price: number;
   currency: string;
+  assetType: string;
 }
 
 export interface ShareLot {
@@ -12,6 +13,7 @@ export interface ShareLot {
   quantity: number;
   costBasis: number;
   totalCost: number;
+  assetType: string;
 }
 
 export interface SymbolSummary {
@@ -21,6 +23,7 @@ export interface SymbolSummary {
   averageCost: number;
   currency: string;
   lots: ShareLot[];
+  assetType: string;
 }
 
 

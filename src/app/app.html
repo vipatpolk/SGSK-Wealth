@@ -15,8 +15,7 @@
     @if (!loading() && !error() && result()) {
       <div class="header-stats">
         <!-- Currency Toggle -->
-        @if (hasRate()) {
-          <div class="currency-toggle" id="currency-toggle">
+        <div class="currency-toggle" id="currency-toggle">
             <button
               class="currency-btn"
               [class.currency-btn-active]="displayCurrency() === 'USD'"
@@ -30,8 +29,7 @@
               id="currency-thb"
             >฿</button>
           </div>
-          <div class="header-stat-divider"></div>
-        }
+        <div class="header-stat-divider"></div>
         <!-- Unified Totals -->
         <div class="header-stat">
           <span class="header-stat-label">Total Cost</span>
@@ -40,7 +38,7 @@
         @if (totalHoldingConverted() > 0) {
           <div class="header-stat">
             <span class="header-stat-label">Holding Value</span>
-            <span class="header-stat-value" [class.pl-positive]="totalPL() >= 0" [class.pl-negative]="totalPL() < 0">{{ totalHoldingConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
+            <span class="header-stat-value">{{ totalHoldingConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
           </div>
           <div class="header-stat">
             <span class="header-stat-label">P/L</span>
@@ -254,20 +252,20 @@
             <div class="card-metrics">
               <div class="card-metric">
                 <span class="card-metric-label">Avg Cost</span>
-                <span class="card-metric-value">{{ cx(summary.averageCost, summary.currency) | currency:dc():'symbol-narrow':getPriceFormat(summary.symbol) }}</span>
+                <span class="card-metric-value">{{ cx(summary.averageCost, summary.currency) | currency:dc(summary.currency):'symbol-narrow':getPriceFormat(summary.symbol) }}</span>
               </div>
               <div class="card-metric">
                 <span class="card-metric-label">Total Cost</span>
-                <span class="card-metric-value">{{ cx(summary.totalCost, summary.currency) | currency:dc():'symbol-narrow':'1.2-2' }}</span>
+                <span class="card-metric-value">{{ cx(summary.totalCost, summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}</span>
               </div>
               @if (hasPriceData(summary.symbol)) {
                 <div class="card-metric">
-                  <span class="card-metric-label">Mkt Price</span>
-                  <span class="card-metric-value">{{ cx(getCurrentPrice(summary.symbol), summary.currency) | currency:dc():'symbol-narrow':getPriceFormat(summary.symbol) }}</span>
+                  <span class="card-metric-label">{{ summary.assetType === 'mutual-fund' ? 'NAV' : 'Mkt Price' }}</span>
+                  <span class="card-metric-value">{{ cx(getCurrentPrice(summary.symbol), summary.currency) | currency:dc(summary.currency):'symbol-narrow':getPriceFormat(summary.symbol) }}</span>
                 </div>
                 <div class="card-metric">
                   <span class="card-metric-label">Holding Value</span>
-                  <span class="card-metric-value" [class.pl-positive]="getUnrealizedPL(summary) >= 0" [class.pl-negative]="getUnrealizedPL(summary) < 0">{{ cx(getHoldingValue(summary), summary.currency) | currency:dc():'symbol-narrow':'1.2-2' }}</span>
+                  <span class="card-metric-value">{{ cx(getHoldingValue(summary), summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}</span>
                 </div>
                 <div class="card-metric">
                   <span class="card-metric-label">P/L</span>
@@ -276,7 +274,7 @@
                     [class.pl-positive]="getUnrealizedPL(summary) >= 0"
                     [class.pl-negative]="getUnrealizedPL(summary) < 0"
                   >
-                    {{ getUnrealizedPL(summary) >= 0 ? '+' : '' }}{{ cx(getUnrealizedPL(summary), summary.currency) | currency:dc():'symbol-narrow':'1.2-2' }}
+                    {{ getUnrealizedPL(summary) >= 0 ? '+' : '' }}{{ cx(getUnrealizedPL(summary), summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}
                     <span class="pl-percent">({{ getUnrealizedPLPercent(summary) >= 0 ? '+' : '' }}{{ getUnrealizedPLPercent(summary) | number:'1.2-2' }}%)</span>
                   </span>
                 </div>
@@ -284,6 +282,15 @@
                 <div class="card-metric">
                   <span class="card-metric-label">Holding Value</span>
                   <span class="card-metric-value card-metric-shimmer">Loading…</span>
+                </div>
+              } @else {
+                <div class="card-metric">
+                  <span class="card-metric-label">{{ summary.assetType === 'mutual-fund' ? 'NAV' : 'Mkt Price' }}</span>
+                  <span class="card-metric-value">-</span>
+                </div>
+                <div class="card-metric">
+                  <span class="card-metric-label">Holding Value</span>
+                  <span class="card-metric-value">-</span>
                 </div>
               }
             </div>
@@ -324,18 +331,15 @@
                       </td>
                       <td class="lot-col-date">{{ lot.purchaseDate | date:'MMM d, y' }}</td>
                       <td class="lot-col-qty">{{ lot.quantity | number:getQuantityFormat(summary.symbol) }}</td>
-                      <td class="lot-col-cost">{{ cx(lot.costBasis, summary.currency) | currency:dc():'symbol-narrow':getPriceFormat(summary.symbol) }}</td>
-                      <td class="lot-col-total">{{ cx(lot.totalCost, summary.currency) | currency:dc():'symbol-narrow':'1.2-2' }}</td>
+                      <td class="lot-col-cost">{{ cx(lot.costBasis, summary.currency) | currency:dc(summary.currency):'symbol-narrow':getPriceFormat(summary.symbol) }}</td>
+                      <td class="lot-col-total">{{ cx(lot.totalCost, summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}</td>
                       @if (hasPriceData(summary.symbol)) {
-                        <td class="lot-col-total"
-                          [class.pl-positive]="lot.quantity * getCurrentPrice(summary.symbol) - lot.totalCost >= 0"
-                          [class.pl-negative]="lot.quantity * getCurrentPrice(summary.symbol) - lot.totalCost < 0"
-                        >{{ cx(lot.quantity * getCurrentPrice(summary.symbol), summary.currency) | currency:dc():'symbol-narrow':'1.2-2' }}</td>
+                        <td class="lot-col-total">{{ cx(lot.quantity * getCurrentPrice(summary.symbol), summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}</td>
                         <td class="lot-col-pl"
                           [class.pl-positive]="lot.quantity * getCurrentPrice(summary.symbol) - lot.totalCost >= 0"
                           [class.pl-negative]="lot.quantity * getCurrentPrice(summary.symbol) - lot.totalCost < 0"
                         >
-                          {{ (lot.quantity * getCurrentPrice(summary.symbol) - lot.totalCost) >= 0 ? '+' : '' }}{{ cx(lot.quantity * getCurrentPrice(summary.symbol) - lot.totalCost, summary.currency) | currency:dc():'symbol-narrow':'1.2-2' }}
+                          {{ (lot.quantity * getCurrentPrice(summary.symbol) - lot.totalCost) >= 0 ? '+' : '' }}{{ cx(lot.quantity * getCurrentPrice(summary.symbol) - lot.totalCost, summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}
                         </td>
                       }
                     </tr>
@@ -345,18 +349,15 @@
                   <tr class="lot-summary-row">
                     <td colspan="2" class="lot-summary-label">Total</td>
                     <td class="lot-col-qty lot-summary-value">{{ summary.totalShares | number:getQuantityFormat(summary.symbol) }}</td>
-                    <td class="lot-col-cost lot-summary-value">{{ cx(summary.averageCost, summary.currency) | currency:dc():'symbol-narrow':getPriceFormat(summary.symbol) }} avg</td>
-                    <td class="lot-col-total lot-summary-value">{{ cx(summary.totalCost, summary.currency) | currency:dc():'symbol-narrow':'1.2-2' }}</td>
+                    <td class="lot-col-cost lot-summary-value">{{ cx(summary.averageCost, summary.currency) | currency:dc(summary.currency):'symbol-narrow':getPriceFormat(summary.symbol) }} avg</td>
+                    <td class="lot-col-total lot-summary-value">{{ cx(summary.totalCost, summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}</td>
                     @if (hasPriceData(summary.symbol)) {
-                      <td class="lot-col-total lot-summary-value"
-                        [class.pl-positive]="getUnrealizedPL(summary) >= 0"
-                        [class.pl-negative]="getUnrealizedPL(summary) < 0"
-                      >{{ cx(getHoldingValue(summary), summary.currency) | currency:dc():'symbol-narrow':'1.2-2' }}</td>
+                      <td class="lot-col-total lot-summary-value">{{ cx(getHoldingValue(summary), summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}</td>
                       <td class="lot-col-pl lot-summary-value"
                         [class.pl-positive]="getUnrealizedPL(summary) >= 0"
                         [class.pl-negative]="getUnrealizedPL(summary) < 0"
                       >
-                        {{ getUnrealizedPL(summary) >= 0 ? '+' : '' }}{{ cx(getUnrealizedPL(summary), summary.currency) | currency:dc():'symbol-narrow':'1.2-2' }}
+                        {{ getUnrealizedPL(summary) >= 0 ? '+' : '' }}{{ cx(getUnrealizedPL(summary), summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}
                       </td>
                     }
                   </tr>
@@ -380,5 +381,5 @@
 </main>
 
 <footer class="footer">
-  <p>ShareLot &mdash; FIFO Share Lot Calculator &bull; Live data from Google Sheets &bull; Prices from Yahoo Finance, CoinGecko &amp; SEC Thailand</p>
+  <p>ShareLot &mdash; FIFO Share Lot Calculator &bull; Live data from Google Sheets &bull; Prices from Yahoo Finance, Binance TH &amp; SEC Thailand</p>
 </footer>

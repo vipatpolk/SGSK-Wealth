@@ -20,10 +20,12 @@ export class ShareLotService {
 
   fetchSheet(gid: string): Observable<SheetResult> {
     const url = getSheetExportUrl(gid);
+    const tab = ASSET_TABS.find(t => t.sheetGid === gid);
+    const assetType = tab ? tab.id : 'unknown';
 
     return this.http.get(url, { responseType: 'text' }).pipe(
       map((csv) => {
-        const transactions = this.parseCsv(csv);
+        const transactions = this.parseCsv(csv, assetType);
         const summaries = this.calculateFIFO(transactions);
         return this.buildResult(summaries);
       }),
@@ -44,7 +46,7 @@ export class ShareLotService {
 
     const requests = sheetTabs.map((tab) =>
       this.http.get(getSheetExportUrl(tab.sheetGid), { responseType: 'text' }).pipe(
-        map((csv) => this.parseCsv(csv)),
+        map((csv) => this.parseCsv(csv, tab.id)),
         catchError(() => of([] as Transaction[])),
       ),
     );
@@ -82,7 +84,7 @@ export class ShareLotService {
     };
   }
 
-  private parseCsv(csv: string): Transaction[] {
+  private parseCsv(csv: string, assetType: string): Transaction[] {
     const lines = csv
       .split('\n')
       .map((l) => l.trim())
@@ -104,7 +106,7 @@ export class ShareLotService {
 
       if (!symbol || isNaN(quantity) || isNaN(price)) continue;
 
-      transactions.push({ symbol, date, quantity, price, currency });
+      transactions.push({ symbol, date, quantity, price, currency, assetType });
     }
 
     return transactions;
@@ -161,6 +163,7 @@ export class ShareLotService {
       txs.sort((a, b) => a.date.localeCompare(b.date));
 
       const currency = txs[0].currency;
+      const assetType = txs[0].assetType;
       const lots: ShareLot[] = [];
 
       for (const tx of txs) {
@@ -171,6 +174,7 @@ export class ShareLotService {
             quantity: tx.quantity,
             costBasis: tx.price,
             totalCost: tx.quantity * tx.price,
+            assetType: tx.assetType,
           });
         } else {
           let remaining = Math.abs(tx.quantity);
@@ -206,6 +210,7 @@ export class ShareLotService {
         averageCost,
         currency,
         lots: remainingLots,
+        assetType,
       });
     }
 

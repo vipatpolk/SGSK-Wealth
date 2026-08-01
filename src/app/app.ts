@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { DecimalPipe, CurrencyPipe, DatePipe, KeyValuePipe } from '@angular/common';
+import { DecimalPipe, CurrencyPipe, DatePipe } from '@angular/common';
 import { ShareLotService, SheetResult } from './services/share-lot.service';
 import { PriceService, PriceData } from './services/price.service';
 import { SymbolSummary } from './models/transaction.model';
@@ -26,7 +26,7 @@ export class App {
   readonly pricesLoading = signal(false);
 
   /** Currency conversion */
-  readonly displayCurrency = signal<'USD' | 'THB'>('USD');
+  readonly displayCurrency = signal<'USD' | 'THB'>('THB');
   readonly exchangeRate = signal<number>(0); // USD → THB rate
 
   expandedSymbols = signal<Set<string>>(new Set());
@@ -45,7 +45,10 @@ export class App {
   readonly totalCostConverted = computed<number>(() => {
     const data = this.result();
     if (!data) return 0;
-    return data.summaries.reduce((sum, s) => sum + this.cx(s.totalCost, s.currency), 0);
+    return data.summaries.reduce((sum, s) => {
+      if (!this.hasRate() && s.currency !== this.displayCurrency()) return sum;
+      return sum + this.cx(s.totalCost, s.currency);
+    }, 0);
   });
 
   readonly totalHoldingConverted = computed<number>(() => {
@@ -57,6 +60,7 @@ export class App {
     for (const s of data.summaries) {
       const pd = priceMap.get(s.symbol);
       if (pd && pd.price > 0) {
+        if (!this.hasRate() && s.currency !== this.displayCurrency()) continue;
         total += this.cx(s.totalShares * pd.price, s.currency);
       }
     }
@@ -93,12 +97,11 @@ export class App {
     return amount;
   }
 
-  dc(): string {
+  dc(originalCurrency?: string): string {
+    if (!this.hasRate() && originalCurrency) {
+      return originalCurrency;
+    }
     return this.displayCurrency();
-  }
-
-  toggleCurrency(): void {
-    this.displayCurrency.set(this.displayCurrency() === 'USD' ? 'THB' : 'USD');
   }
 
   get filteredSummaries(): SymbolSummary[] {
@@ -190,11 +193,10 @@ export class App {
   }
 
   private fetchPricesForResult(result: SheetResult): void {
-    const symbols = result.summaries.map((s) => s.symbol);
-    if (symbols.length === 0) return;
+    if (result.summaries.length === 0) return;
 
     this.pricesLoading.set(true);
-    this.priceService.fetchPricesAndRate(symbols).subscribe(({ prices, rate }) => {
+    this.priceService.fetchPricesAndRate(result.summaries).subscribe(({ prices, rate }) => {
       this.prices.set(prices);
       if (rate > 0) this.exchangeRate.set(rate);
       this.pricesLoading.set(false);
@@ -269,10 +271,6 @@ export class App {
     return getQuantityFormat(symbol);
   }
 
-  displaySymbol(symbol: string): string {
-    return displaySymbol(symbol);
-  }
-
   getPriceFormat(symbol: string): string {
     return getPriceFormat(symbol);
   }
@@ -280,6 +278,4 @@ export class App {
   getSymbolColor(symbol: string): string {
     return getSymbolColor(symbol);
   }
-
-  originalOrder = (): number => 0;
 }

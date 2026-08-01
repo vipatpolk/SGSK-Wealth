@@ -473,15 +473,6 @@
   white-space: nowrap;
 }
 
-.card-metric-value.total-cost {
-  color: #6366f1;
-}
-
-.card-metric-value-accent {
-  color: #10b981;
-  font-weight: 700;
-}
-
 .pl-positive {
   color: #10b981 !important;
 }
@@ -507,10 +498,6 @@
 @keyframes shimmer {
   0%, 100% { opacity: 0.4; }
   50% { opacity: 1; }
-}
-
-.header-stat-value-accent {
-  color: #10b981;
 }
 
 .chevron-icon {
@@ -807,6 +794,10 @@
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 1rem;
+  }
+
+  .header-stat-divider {
+    display: none;
   }
 
   .header-stat {

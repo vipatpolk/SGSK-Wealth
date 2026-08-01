@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Observable, of, map, catchError, delay, concatMap, from, toArray } from 'rxjs';
 import { PriceData } from './price.service';
 
@@ -7,14 +7,7 @@ import { PriceData } from './price.service';
 const SEC_API_CONFIG = {
   /** Replace with your SEC Open Data subscription key */
   subscriptionKey: 'your_sec_subscription_key_here',
-  baseUrl: '/api/sec/v2/fund/daily-info/nav',
-};
-
-/** Maps fund symbols to SEC proj_id values */
-const FUND_PROJ_ID_MAP: Record<string, { projId: string; name: string }> = {
-  'ES-GTECHSSF': { projId: 'M0499_2563', name: 'Eastspring Global Technology SSF' },
-  'SCBGOLDH-SSF': { projId: 'M0856_2553', name: 'SCB GOLD THB HEDGED OPEN END FUND' },
-  'UGSTAR-SSF-D': { projId: 'M0232_2563', name: 'United Global Stars Equity Fund' },
+  baseUrl: '/api/sec/v2/fund',
 };
 
 @Injectable({
@@ -33,7 +26,7 @@ export class NavService {
       return of(new Map());
     }
 
-    const uniqueSymbols = [...new Set(symbols)].filter((s) => FUND_PROJ_ID_MAP[s]);
+    const uniqueSymbols = [...new Set(symbols)];
     if (uniqueSymbols.length === 0) return of(new Map());
 
     const headers = new HttpHeaders({
@@ -43,47 +36,74 @@ export class NavService {
     // Fetch NAVs sequentially with a small delay to respect rate limits (max 5 req/sec)
     return from(uniqueSymbols).pipe(
       concatMap((symbol) => {
-        const fund = FUND_PROJ_ID_MAP[symbol];
-        
-        const end = new Date();
-        const start = new Date();
-        start.setDate(end.getDate() - 14); // Fetch last 14 days to ensure we get a recent NAV
-        const fmtDate = (d: Date) => d.toISOString().split('T')[0];
-        
-        const url = `${SEC_API_CONFIG.baseUrl}?proj_id=${encodeURIComponent(fund.projId)}&start_nav_date=${fmtDate(start)}&end_nav_date=${fmtDate(end)}`;
+        // Step 1: Fetch profile dynamically
+        return this.http.get<any>(`${SEC_API_CONFIG.baseUrl}/general-info/profiles?fund_class_name=${encodeURIComponent(symbol)}`, { headers, observe: 'response' }).pipe(
+          concatMap((res: HttpResponse<any>) => {
+            // If 204 No Content, fallback to project_info
+            if (res.status === 204 || !res.body || !res.body.items || res.body.items.length === 0) {
+              return this.http.get<any>(`${SEC_API_CONFIG.baseUrl}/general-info/profiles?project_info=${encodeURIComponent(symbol)}`, { headers }).pipe(
+                map(res2 => res2?.items?.[0])
+              );
+            }
+            return of(res.body?.items?.[0]);
+          }),
+          concatMap((profile) => {
+            if (!profile || !profile.proj_id) {
+              console.warn(`[NavService] Could not find profile for ${symbol}`);
+              return of({ symbol, name: symbol, price: 0, currency: 'THB' } as PriceData);
+            }
+            
+            const fund = {
+              projId: profile.proj_id,
+              name: profile.proj_name_en || profile.proj_name_th || symbol
+            };
+            
+            // Step 2: Fetch NAV using dynamically obtained proj_id
+            const end = new Date();
+            const start = new Date();
+            start.setDate(end.getDate() - 14); // Fetch last 14 days to ensure we get a recent NAV
+            const fmtDate = (d: Date) => d.toISOString().split('T')[0];
+            
+            const url = `${SEC_API_CONFIG.baseUrl}/daily-info/nav?proj_id=${encodeURIComponent(fund.projId)}&start_nav_date=${fmtDate(start)}&end_nav_date=${fmtDate(end)}`;
 
-        return this.http.get<any>(url, { headers }).pipe(
-          map((res) => {
-            const data = res?.items ?? res; // Handle both {items: [...]} and [...] responses
-            
-            if (!data || !Array.isArray(data) || data.length === 0) {
-              return { symbol, name: fund.name, price: 0, currency: 'THB' } as PriceData;
-            }
-            
-            // Filter by class name if there are multiple classes (matches the symbol)
-            let filteredData = data.filter((d: any) => d.fund_class_name === symbol);
-            if (filteredData.length === 0) {
-              filteredData = data; // Fallback for single-class funds like 'main'
-            }
-            
-            // Sort by nav_date descending to get the latest
-            filteredData.sort((a, b) => new Date(b.nav_date).getTime() - new Date(a.nav_date).getTime());
-            const latest = filteredData[0];
-            const nav = latest.last_val ?? 0;
-            
-            return {
-              originalSymbol: symbol,
-              symbol: latest.fund_class_name && latest.fund_class_name !== 'main' ? latest.fund_class_name : symbol,
-              name: fund.name,
-              price: typeof nav === 'string' ? parseFloat(nav) : nav,
-              currency: 'THB',
-            } as any;
+            return this.http.get<any>(url, { headers }).pipe(
+              map((res) => {
+                const data = res?.items ?? res; // Handle both {items: [...]} and [...] responses
+                
+                if (!data || !Array.isArray(data) || data.length === 0) {
+                  return { symbol, name: fund.name, price: 0, currency: 'THB' } as PriceData;
+                }
+                
+                // Filter by class name if there are multiple classes (matches the symbol)
+                let filteredData = data.filter((d: any) => d.fund_class_name === symbol);
+                if (filteredData.length === 0) {
+                  filteredData = data; // Fallback for single-class funds like 'main'
+                }
+                
+                // Sort by nav_date descending to get the latest
+                filteredData.sort((a, b) => new Date(b.nav_date).getTime() - new Date(a.nav_date).getTime());
+                const latest = filteredData[0];
+                const nav = latest.last_val ?? 0;
+                
+                return {
+                  originalSymbol: symbol,
+                  symbol: latest.fund_class_name && latest.fund_class_name !== 'main' ? latest.fund_class_name : symbol,
+                  name: fund.name,
+                  price: typeof nav === 'string' ? parseFloat(nav) : nav,
+                  currency: 'THB',
+                } as any;
+              }),
+              catchError((err) => {
+                console.warn(`[NavService] Failed to fetch NAV for ${symbol}:`, err?.status);
+                return of({ originalSymbol: symbol, symbol, name: fund.name, price: 0, currency: 'THB' } as any);
+              })
+            );
           }),
           catchError((err) => {
-            console.warn(`[NavService] Failed to fetch NAV for ${symbol}:`, err?.status);
-            return of({ originalSymbol: symbol, symbol, name: fund.name, price: 0, currency: 'THB' } as any);
+            console.warn(`[NavService] Failed to fetch profile data for ${symbol}:`, err?.status);
+            return of({ originalSymbol: symbol, symbol, name: symbol, price: 0, currency: 'THB' } as any);
           }),
-          delay(250), // 250ms delay between requests
+          delay(250) // 250ms delay between requests
         );
       }),
       toArray(),
@@ -91,12 +111,12 @@ export class NavService {
         const priceMap = new Map<string, PriceData>();
         for (const r of results) {
           if (r.price > 0) {
-            priceMap.set(r.originalSymbol, r as PriceData);
+            priceMap.set(r.originalSymbol || r.symbol, r as PriceData);
             delete r.originalSymbol;
           }
         }
         return priceMap;
-      }),
+      })
     );
   }
 }

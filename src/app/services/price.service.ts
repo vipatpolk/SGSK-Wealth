@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin, of, map, catchError } from 'rxjs';
 import { NavService } from './nav.service';
+import { SymbolSummary } from '../models/transaction.model';
 
 export interface PriceData {
   symbol: string;
@@ -24,9 +25,9 @@ export class PriceService {
   private readonly navService = inject(NavService);
 
   /** Fetch prices for all symbols AND the USD/THB exchange rate in parallel */
-  fetchPricesAndRate(symbols: string[]): Observable<{ prices: Map<string, PriceData>; rate: number }> {
+  fetchPricesAndRate(summaries: SymbolSummary[]): Observable<{ prices: Map<string, PriceData>; rate: number }> {
     return forkJoin({
-      prices: this.fetchPrices(symbols),
+      prices: this.fetchPrices(summaries),
       rate: this.fetchExchangeRate(),
     });
   }
@@ -40,13 +41,12 @@ export class PriceService {
     );
   }
 
-  fetchPrices(symbols: string[]): Observable<Map<string, PriceData>> {
-    if (symbols.length === 0) return of(new Map());
+  fetchPrices(summaries: SymbolSummary[]): Observable<Map<string, PriceData>> {
+    if (summaries.length === 0) return of(new Map());
 
-    const uniqueSymbols = [...new Set(symbols)];
-    const stockSymbols = uniqueSymbols.filter((s) => !s.endsWith('.CRYPTO') && !this.isFundSymbol(s));
-    const cryptoSymbols = uniqueSymbols.filter((s) => s.endsWith('.CRYPTO'));
-    const fundSymbols = uniqueSymbols.filter((s) => this.isFundSymbol(s));
+    const stockSymbols = [...new Set(summaries.filter(s => s.assetType !== 'mutual-fund' && !s.symbol.endsWith('.CRYPTO')).map(s => s.symbol))];
+    const cryptoSymbols = [...new Set(summaries.filter(s => s.assetType === 'crypto' || s.symbol.endsWith('.CRYPTO')).map(s => s.symbol))];
+    const fundSymbols = [...new Set(summaries.filter(s => s.assetType === 'mutual-fund').map(s => s.symbol))];
 
     const requests: Observable<Map<string, PriceData>>[] = [];
 
@@ -75,10 +75,7 @@ export class PriceService {
     );
   }
 
-  /** Check if a symbol is a mutual fund (SSF/fund naming convention) */
-  private isFundSymbol(symbol: string): boolean {
-    return symbol.includes('-SSF') || symbol.includes('-RMF') || symbol.includes('-LTF') || symbol.startsWith('ES-') || symbol.startsWith('UGSTAR-');
-  }
+
 
   /** Fetch stock prices from Yahoo Finance via proxy */
   private fetchStockPrices(symbols: string[]): Observable<Map<string, PriceData>> {
