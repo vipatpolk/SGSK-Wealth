@@ -16,6 +16,21 @@ export interface ShareLot {
   assetType: string;
 }
 
+export interface ClosedShareLot {
+  symbol: string;
+  purchaseDate: string;
+  closeDate: string;
+  quantity: number;
+  costBasis: number;
+  sellPrice: number;
+  totalCost: number;
+  totalProceeds: number;
+  realizedPL: number;
+  realizedPLPercent: number;
+  currency: string;
+  assetType: string;
+}
+
 export interface SymbolSummary {
   symbol: string;
   totalShares: number;
@@ -26,4 +41,17 @@ export interface SymbolSummary {
   assetType: string;
 }
 
-
+export interface ClosedSymbolSummary {
+  symbol: string;
+  totalShares: number;
+  closedShares: number;
+  totalCost: number;
+  totalProceeds: number;
+  realizedPL: number;
+  realizedPLPercent: number;
+  averageBuyPrice: number;
+  averageSellPrice: number;
+  currency: string;
+  lots: ClosedShareLot[];
+  assetType: string;
+}

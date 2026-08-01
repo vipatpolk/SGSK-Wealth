@@ -50,7 +50,7 @@ export class NavService {
           concatMap((profile) => {
             if (!profile || !profile.proj_id) {
               console.warn(`[NavService] Could not find profile for ${symbol}`);
-              return of({ symbol, name: symbol, price: 0, currency: 'THB' } as PriceData);
+              return of({ originalSymbol: symbol, data: { symbol, name: symbol, price: 0, currency: 'THB' } });
             }
             
             const fund = {
@@ -71,7 +71,7 @@ export class NavService {
                 const data = res?.items ?? res; // Handle both {items: [...]} and [...] responses
                 
                 if (!data || !Array.isArray(data) || data.length === 0) {
-                  return { symbol, name: fund.name, price: 0, currency: 'THB' } as PriceData;
+                  return { originalSymbol: symbol, data: { symbol, name: fund.name, price: 0, currency: 'THB' } };
                 }
                 
                 // Filter by class name if there are multiple classes (matches the symbol)
@@ -87,21 +87,23 @@ export class NavService {
                 
                 return {
                   originalSymbol: symbol,
-                  symbol: latest.fund_class_name && latest.fund_class_name !== 'main' ? latest.fund_class_name : symbol,
-                  name: fund.name,
-                  price: typeof nav === 'string' ? parseFloat(nav) : nav,
-                  currency: 'THB',
-                } as any;
+                  data: {
+                    symbol: latest.fund_class_name && latest.fund_class_name !== 'main' ? latest.fund_class_name : symbol,
+                    name: fund.name,
+                    price: typeof nav === 'string' ? parseFloat(nav) : nav,
+                    currency: 'THB',
+                  },
+                };
               }),
               catchError((err) => {
                 console.warn(`[NavService] Failed to fetch NAV for ${symbol}:`, err?.status);
-                return of({ originalSymbol: symbol, symbol, name: fund.name, price: 0, currency: 'THB' } as any);
+                return of({ originalSymbol: symbol, data: { symbol, name: fund.name, price: 0, currency: 'THB' } });
               })
             );
           }),
           catchError((err) => {
             console.warn(`[NavService] Failed to fetch profile data for ${symbol}:`, err?.status);
-            return of({ originalSymbol: symbol, symbol, name: symbol, price: 0, currency: 'THB' } as any);
+            return of({ originalSymbol: symbol, data: { symbol, name: symbol, price: 0, currency: 'THB' } });
           }),
           delay(250) // 250ms delay between requests
         );
@@ -110,9 +112,8 @@ export class NavService {
       map((results) => {
         const priceMap = new Map<string, PriceData>();
         for (const r of results) {
-          if (r.price > 0) {
-            priceMap.set(r.originalSymbol || r.symbol, r as PriceData);
-            delete r.originalSymbol;
+          if (r.data.price > 0) {
+            priceMap.set(r.originalSymbol, r.data);
           }
         }
         return priceMap;

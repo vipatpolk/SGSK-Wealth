@@ -1,14 +1,14 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { DecimalPipe, CurrencyPipe, DatePipe } from '@angular/common';
+import { DecimalPipe, CurrencyPipe, DatePipe, NgTemplateOutlet } from '@angular/common';
 import { ShareLotService, SheetResult } from './services/share-lot.service';
 import { PriceService, PriceData } from './services/price.service';
-import { SymbolSummary } from './models/transaction.model';
+import { SymbolSummary, ClosedSymbolSummary } from './models/transaction.model';
 import { AssetTab, ASSET_TABS } from './config/sheet.config';
 import { getQuantityFormat, displaySymbol, getPriceFormat, getSymbolColor, getSymbolName } from './utils/format.utils';
 
 @Component({
   selector: 'app-root',
-  imports: [DecimalPipe, CurrencyPipe, DatePipe],
+  imports: [DecimalPipe, CurrencyPipe, DatePipe, NgTemplateOutlet],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -34,7 +34,10 @@ export class App {
   sortField = signal<string>('totalCost');
   sortDirection = signal<'asc' | 'desc'>('desc');
 
-  readonly sortOptions = [
+  readonly isClosedTab = computed<boolean>(() => this.activeTab().id === 'closed-position');
+  readonly isAllTab = computed<boolean>(() => this.activeTab().id === 'all');
+
+  readonly openSortOptions = [
     { field: 'symbol', label: 'Symbol' },
     { field: 'totalCost', label: 'Total Cost' },
     { field: 'avgCost', label: 'Avg Cost' },
@@ -42,19 +45,67 @@ export class App {
     { field: 'pl', label: 'P/L %' },
   ];
 
+  readonly closedSortOptions = [
+    { field: 'symbol', label: 'Symbol' },
+    { field: 'pl', label: 'Realized P/L %' },
+    { field: 'realizedPL', label: 'Realized P/L $' },
+    { field: 'totalCost', label: 'Total Cost' },
+    { field: 'totalProceeds', label: 'Total Proceeds' },
+    { field: 'closedShares', label: 'Closed Shares' },
+  ];
+
+  readonly sortOptions = computed(() => {
+    return this.isClosedTab() ? this.closedSortOptions : this.openSortOptions;
+  });
+
   readonly totalCostConverted = computed<number>(() => {
     const data = this.result();
     if (!data) return 0;
+    if (this.isClosedTab()) {
+      return data.closedSummaries.reduce((sum, s) => {
+        if (!this.hasRate() && s.currency !== this.displayCurrency()) return sum;
+        return sum + this.cx(s.totalCost, s.currency);
+      }, 0);
+    }
     return data.summaries.reduce((sum, s) => {
       if (!this.hasRate() && s.currency !== this.displayCurrency()) return sum;
       return sum + this.cx(s.totalCost, s.currency);
     }, 0);
   });
 
+  readonly totalProceedsConverted = computed<number>(() => {
+    const data = this.result();
+    if (!data) return 0;
+    return data.closedSummaries.reduce((sum, s) => {
+      if (!this.hasRate() && s.currency !== this.displayCurrency()) return sum;
+      return sum + this.cx(s.totalProceeds, s.currency);
+    }, 0);
+  });
+
+  readonly totalRealizedPLConverted = computed<number>(() => {
+    const data = this.result();
+    if (!data) return 0;
+    return data.closedSummaries.reduce((sum, s) => {
+      if (!this.hasRate() && s.currency !== this.displayCurrency()) return sum;
+      return sum + this.cx(s.realizedPL, s.currency);
+    }, 0);
+  });
+
+  readonly totalRealizedPLPercent = computed<number>(() => {
+    const data = this.result();
+    if (!data) return 0;
+    const closedCost = data.closedSummaries.reduce((sum, s) => {
+      if (!this.hasRate() && s.currency !== this.displayCurrency()) return sum;
+      return sum + this.cx(s.totalCost, s.currency);
+    }, 0);
+    if (closedCost === 0) return 0;
+    return (this.totalRealizedPLConverted() / closedCost) * 100;
+  });
+
   readonly totalHoldingConverted = computed<number>(() => {
     const data = this.result();
     const priceMap = this.prices();
-    if (!data) return 0;
+    if (!data || this.isClosedTab()) return 0;
 
     let total = 0;
     for (const s of data.summaries) {
@@ -68,6 +119,9 @@ export class App {
   });
 
   readonly totalPL = computed<number>(() => {
+    if (this.isClosedTab()) {
+      return this.totalProceedsConverted() - this.totalCostConverted();
+    }
     return this.totalHoldingConverted() - this.totalCostConverted();
   });
 
@@ -104,12 +158,12 @@ export class App {
     return this.displayCurrency();
   }
 
-  get filteredSummaries(): SymbolSummary[] {
+  readonly filteredSummaries = computed<SymbolSummary[]>(() => {
     const data = this.result();
     if (!data) return [];
-    const query = this.searchQuery().toUpperCase();
+    const query = this.searchQuery().trim().toUpperCase();
     let list = query
-      ? data.summaries.filter((s) => s.symbol.includes(query))
+      ? data.summaries.filter((s) => s.symbol.toUpperCase().includes(query) || this.getSymbolName(s.symbol).toUpperCase().includes(query))
       : [...data.summaries];
 
     const field = this.sortField();
@@ -140,13 +194,75 @@ export class App {
           va = this.getUnrealizedPLPercent(a);
           vb = this.getUnrealizedPLPercent(b);
           break;
+        default:
+          va = this.cx(a.totalCost, a.currency);
+          vb = this.cx(b.totalCost, b.currency);
+          break;
       }
 
       return dir * ((va as number) - (vb as number));
     });
 
     return list;
-  }
+  });
+
+  readonly filteredClosedSummaries = computed<ClosedSymbolSummary[]>(() => {
+    const data = this.result();
+    if (!data || !data.closedSummaries) return [];
+    const query = this.searchQuery().trim().toUpperCase();
+    let list = query
+      ? data.closedSummaries.filter((s) => s.symbol.toUpperCase().includes(query) || this.getSymbolName(s.symbol).toUpperCase().includes(query))
+      : [...data.closedSummaries];
+
+    const field = this.sortField();
+    const dir = this.sortDirection() === 'asc' ? 1 : -1;
+
+    list.sort((a, b) => {
+      let va: number | string = 0;
+      let vb: number | string = 0;
+
+      switch (field) {
+        case 'symbol':
+          va = a.symbol;
+          vb = b.symbol;
+          return dir * (va < vb ? -1 : va > vb ? 1 : 0);
+        case 'totalCost':
+          va = this.cx(a.totalCost, a.currency);
+          vb = this.cx(b.totalCost, b.currency);
+          break;
+        case 'avgCost':
+          va = this.cx(a.averageBuyPrice, a.currency);
+          vb = this.cx(b.averageBuyPrice, b.currency);
+          break;
+        case 'holdingValue':
+        case 'totalProceeds':
+          va = this.cx(a.totalProceeds, a.currency);
+          vb = this.cx(b.totalProceeds, b.currency);
+          break;
+        case 'realizedPL':
+          va = this.cx(a.realizedPL, a.currency);
+          vb = this.cx(b.realizedPL, b.currency);
+          break;
+        case 'pl':
+          va = a.realizedPLPercent;
+          vb = b.realizedPLPercent;
+          break;
+        case 'totalShares':
+        case 'closedShares':
+          va = a.closedShares;
+          vb = b.closedShares;
+          break;
+        default:
+          va = this.cx(a.realizedPL, a.currency);
+          vb = this.cx(b.realizedPL, b.currency);
+          break;
+      }
+
+      return dir * ((va as number) - (vb as number));
+    });
+
+    return list;
+  });
 
   setSort(field: string): void {
     if (this.sortField() === field) {
@@ -157,15 +273,18 @@ export class App {
     }
   }
 
-  get isAllTab(): boolean {
-    return this.activeTab().id === 'all';
-  }
-
   selectTab(tab: AssetTab): void {
     if (tab.id === this.activeTab().id) return;
     this.activeTab.set(tab);
     this.searchQuery.set('');
     this.expandedSymbols.set(new Set());
+    if (tab.id === 'closed-position') {
+      this.sortField.set('realizedPL');
+      this.sortDirection.set('desc');
+    } else {
+      this.sortField.set('totalCost');
+      this.sortDirection.set('desc');
+    }
     this.loadTab(tab);
   }
 
@@ -193,7 +312,12 @@ export class App {
   }
 
   private fetchPricesForResult(result: SheetResult): void {
-    if (result.summaries.length === 0) return;
+    if (this.isClosedTab() || result.summaries.length === 0) {
+      this.priceService.fetchExchangeRate().subscribe((rate) => {
+        if (rate > 0) this.exchangeRate.set(rate);
+      });
+      return;
+    }
 
     this.pricesLoading.set(true);
     this.priceService.fetchPricesAndRate(result.summaries).subscribe(({ prices, rate }) => {
@@ -224,8 +348,18 @@ export class App {
   expandAll(): void {
     const data = this.result();
     if (!data) return;
-    const all = new Set(data.summaries.map((s) => s.symbol));
-    this.expandedSymbols.set(all);
+    if (this.isClosedTab()) {
+      const all = new Set(data.closedSummaries.map((s) => s.symbol));
+      this.expandedSymbols.set(all);
+    } else if (this.isAllTab()) {
+      const all = new Set<string>();
+      data.summaries.forEach((s) => all.add(s.symbol));
+      data.closedSummaries.forEach((s) => all.add(s.symbol));
+      this.expandedSymbols.set(all);
+    } else {
+      const all = new Set(data.summaries.map((s) => s.symbol));
+      this.expandedSymbols.set(all);
+    }
   }
 
   collapseAll(): void {

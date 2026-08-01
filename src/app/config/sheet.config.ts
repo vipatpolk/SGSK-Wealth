@@ -12,6 +12,7 @@ export const SHEET_CONFIG: SheetConfig = {
     'thai-stock': '102823823',
     'crypto': '1822302220',
     'mutual-fund': '359978839',
+    'closed-position': '273600915',
   }
 };
 
@@ -62,5 +63,12 @@ export const ASSET_TABS: AssetTab[] = [
     icon: 'fund',
     sheetGid: SHEET_CONFIG.gids['mutual-fund'],
     currency: 'THB',
+  },
+  {
+    id: 'closed-position',
+    label: 'Closed Position',
+    icon: 'check-circle',
+    sheetGid: SHEET_CONFIG.gids['closed-position'],
+    currency: '',
   },
 ];

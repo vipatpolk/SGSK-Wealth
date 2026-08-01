@@ -348,6 +348,81 @@
   height: 0.875rem;
 }
 
+/* ===== SECTION DIVIDER ===== */
+.section-divider {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1.75rem 0 0.875rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.section-divider:first-of-type {
+  margin-top: 0.5rem;
+}
+
+.section-divider-closed {
+  margin-top: 2.5rem;
+}
+
+.section-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.section-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.open-pill {
+  background: #10b98115;
+  color: #34d399;
+  border: 1px solid #10b98130;
+}
+
+.closed-pill {
+  background: #6366f115;
+  color: #818cf8;
+  border: 1px solid #6366f130;
+}
+
+.section-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.section-count {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.section-summary-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.section-stat-label {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.section-stat-val {
+  font-weight: 600;
+}
+
 /* ===== SYMBOL CARD ===== */
 .symbol-card {
   background: var(--color-surface-raised);
