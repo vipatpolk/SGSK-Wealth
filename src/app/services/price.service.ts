@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin, of, map, catchError } from 'rxjs';
 import { NavService } from './nav.service';
-import { SymbolSummary } from '../models/transaction.model';
+import { isCryptoSymbol } from '../utils/format.utils';
 
 export interface PriceData {
   symbol: string;
@@ -11,11 +11,30 @@ export interface PriceData {
   currency: string;
 }
 
-/** Maps internal .CRYPTO symbols to Binance TH symbols */
-const CRYPTO_BINANCE_MAP: Record<string, { symbol: string; name: string; currency: string }> = {
-  'BTC.CRYPTO': { symbol: 'BTCTHB', name: 'Bitcoin', currency: 'THB' },
-  'PAXG.CRYPTO': { symbol: 'PAXGUSDT', name: 'PAX Gold', currency: 'USD' },
+export interface CryptoMeta {
+  binanceSymbol: string;
+  name: string;
+  currency: string;
+}
+
+/** Maps cryptocurrency symbols to Binance TH symbols and metadata */
+const CRYPTO_CONFIG_MAP: Record<string, CryptoMeta> = {
+  BTC: { binanceSymbol: 'BTCTHB', name: 'Bitcoin', currency: 'THB' },
+  ETH: { binanceSymbol: 'ETHTHB', name: 'Ethereum', currency: 'THB' },
+  BNB: { binanceSymbol: 'BNBTHB', name: 'BNB', currency: 'THB' },
+  ADA: { binanceSymbol: 'ADATHB', name: 'Cardano', currency: 'THB' },
+  DOT: { binanceSymbol: 'DOTTHB', name: 'Polkadot', currency: 'THB' },
+  PAXG: { binanceSymbol: 'PAXGUSDT', name: 'PAX Gold', currency: 'USD' },
+  SOL: { binanceSymbol: 'SOLTHB', name: 'Solana', currency: 'THB' },
+  XRP: { binanceSymbol: 'XRPTHB', name: 'Ripple', currency: 'THB' },
+  DOGE: { binanceSymbol: 'DOGETHB', name: 'Dogecoin', currency: 'THB' },
+  USDT: { binanceSymbol: 'USDTTHB', name: 'Tether', currency: 'THB' },
 };
+
+function getCryptoConfig(symbol: string): CryptoMeta | undefined {
+  const base = symbol.toUpperCase().replace(/\.CRYPTO$/, '');
+  return CRYPTO_CONFIG_MAP[base];
+}
 
 @Injectable({
   providedIn: 'root',
@@ -44,9 +63,15 @@ export class PriceService {
   fetchPrices(summaries: { symbol: string; assetType?: string }[]): Observable<Map<string, PriceData>> {
     if (summaries.length === 0) return of(new Map());
 
-    const stockSymbols = [...new Set(summaries.filter(s => s.assetType !== 'mutual-fund' && !s.symbol.endsWith('.CRYPTO')).map(s => s.symbol))];
-    const cryptoSymbols = [...new Set(summaries.filter(s => s.assetType === 'crypto' || s.symbol.endsWith('.CRYPTO')).map(s => s.symbol))];
-    const fundSymbols = [...new Set(summaries.filter(s => s.assetType === 'mutual-fund').map(s => s.symbol))];
+    const isCrypto = (s: { symbol: string; assetType?: string }) =>
+      s.assetType === 'crypto' || isCryptoSymbol(s.symbol);
+
+    const isFund = (s: { symbol: string; assetType?: string }) =>
+      s.assetType === 'mutual-fund';
+
+    const stockSymbols = [...new Set(summaries.filter(s => !isFund(s) && !isCrypto(s)).map(s => s.symbol))];
+    const cryptoSymbols = [...new Set(summaries.filter(s => isCrypto(s)).map(s => s.symbol))];
+    const fundSymbols = [...new Set(summaries.filter(s => isFund(s)).map(s => s.symbol))];
 
     const requests: Observable<Map<string, PriceData>>[] = [];
 
@@ -111,11 +136,32 @@ export class PriceService {
    * Fetch crypto prices from Binance TH.
    */
   private fetchCryptoPrices(symbols: string[]): Observable<Map<string, PriceData>> {
-    const binanceSymbols = symbols
-      .map((s) => CRYPTO_BINANCE_MAP[s]?.symbol)
-      .filter((s) => !!s);
+    const symbolConfigMap = new Map<string, CryptoMeta>();
 
-    if (binanceSymbols.length === 0) return of(new Map());
+    for (const s of symbols) {
+      const config = getCryptoConfig(s);
+      if (config) {
+        symbolConfigMap.set(s, config);
+      }
+    }
+
+    const binanceSymbols = [...new Set(Array.from(symbolConfigMap.values()).map((c) => c.binanceSymbol))];
+
+    if (binanceSymbols.length === 0) {
+      const fallbackMap = new Map<string, PriceData>();
+      for (const s of symbols) {
+        const config = getCryptoConfig(s);
+        if (config) {
+          fallbackMap.set(s, {
+            symbol: s,
+            name: config.name,
+            price: 0,
+            currency: config.currency,
+          });
+        }
+      }
+      return of(fallbackMap);
+    }
 
     const url = `/api/binance/api/v1/ticker/price?symbols=${encodeURIComponent(JSON.stringify(binanceSymbols))}`;
 
@@ -124,23 +170,35 @@ export class PriceService {
         const priceMap = new Map<string, PriceData>();
 
         for (const symbol of symbols) {
-          const config = CRYPTO_BINANCE_MAP[symbol];
+          const config = symbolConfigMap.get(symbol);
           if (config) {
-            const found = res.find((r) => r.symbol === config.symbol);
-            if (found && found.price) {
-              priceMap.set(symbol, {
-                symbol,
-                name: config.name,
-                price: parseFloat(found.price),
-                currency: config.currency,
-              });
-            }
+            const found = res.find((r) => r.symbol === config.binanceSymbol);
+            priceMap.set(symbol, {
+              symbol,
+              name: config.name,
+              price: found && found.price ? parseFloat(found.price) : 0,
+              currency: config.currency,
+            });
           }
         }
 
         return priceMap;
       }),
-      catchError(() => of(new Map<string, PriceData>())),
+      catchError(() => {
+        const fallbackMap = new Map<string, PriceData>();
+        for (const s of symbols) {
+          const config = symbolConfigMap.get(s);
+          if (config) {
+            fallbackMap.set(s, {
+              symbol: s,
+              name: config.name,
+              price: 0,
+              currency: config.currency,
+            });
+          }
+        }
+        return of(fallbackMap);
+      }),
     );
   }
 }

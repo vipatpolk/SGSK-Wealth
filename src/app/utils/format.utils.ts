@@ -1,5 +1,14 @@
+export const KNOWN_CRYPTO_SYMBOLS = new Set([
+  'BTC', 'ETH', 'BNB', 'ADA', 'DOT', 'PAXG', 'SOL', 'XRP', 'DOGE', 'USDT',
+]);
+
+export function isCryptoSymbol(symbol: string): boolean {
+  if (!symbol) return false;
+  return symbol.endsWith('.CRYPTO') || KNOWN_CRYPTO_SYMBOLS.has(symbol.toUpperCase().replace(/\.CRYPTO$/, ''));
+}
+
 export function getQuantityFormat(symbol: string): string {
-  return symbol.endsWith('.CRYPTO') ? '1.0-10' : '1.0-7';
+  return isCryptoSymbol(symbol) ? '1.0-10' : '1.0-7';
 }
 
 export function displaySymbol(symbol: string): string {
@@ -7,7 +16,7 @@ export function displaySymbol(symbol: string): string {
 }
 
 export function getPriceFormat(symbol: string): string {
-  return symbol.endsWith('.CRYPTO') ? '1.2-2' : '1.2-4';
+  return isCryptoSymbol(symbol) ? '1.2-2' : '1.2-4';
 }
 
 export function getSymbolColor(symbol: string): string {
@@ -31,11 +40,20 @@ export function getSymbolColor(symbol: string): string {
     'SC.BK': '#0d9488', 'DIF.BK': '#dc2626', 'TTW.BK': '#059669',
     'LH.BK': '#f59e0b', 'CPF.BK': '#ef4444', 'CPAXT.BK': '#10b981',
     // Crypto
-    'BTC.CRYPTO': '#f7931a', 'PAXG.CRYPTO': '#e6b800',
+    BTC: '#f7931a', 'BTC.CRYPTO': '#f7931a',
+    ETH: '#627eea', 'ETH.CRYPTO': '#627eea',
+    BNB: '#f3ba2f', 'BNB.CRYPTO': '#f3ba2f',
+    ADA: '#0033ad', 'ADA.CRYPTO': '#0033ad',
+    DOT: '#e6007a', 'DOT.CRYPTO': '#e6007a',
+    PAXG: '#e6b800', 'PAXG.CRYPTO': '#e6b800',
+    SOL: '#14f195', 'SOL.CRYPTO': '#14f195',
+    XRP: '#23292f', 'XRP.CRYPTO': '#23292f',
+    DOGE: '#c2a633', 'DOGE.CRYPTO': '#c2a633',
+    USDT: '#26a17b', 'USDT.CRYPTO': '#26a17b',
     // Mutual Funds
     'ES-GTECHSSF': '#0891b2', 'SCBGOLDH-SSF': '#d97706', 'UGSTAR-SSF-D': '#7c3aed',
   };
-  return colors[symbol] || '#6366f1';
+  return colors[symbol] || colors[symbol.toUpperCase()] || '#6366f1';
 }
 
 const STATIC_NAMES: Record<string, string> = {
@@ -71,6 +89,27 @@ const STATIC_NAMES: Record<string, string> = {
   'LH.BK': 'Land and Houses PCL',
   'CPF.BK': 'Charoen Pokphand Foods PCL',
   'CPAXT.BK': 'CP Axtra PCL',
+  // Crypto
+  BTC: 'Bitcoin',
+  'BTC.CRYPTO': 'Bitcoin',
+  ETH: 'Ethereum',
+  'ETH.CRYPTO': 'Ethereum',
+  BNB: 'BNB',
+  'BNB.CRYPTO': 'BNB',
+  ADA: 'Cardano',
+  'ADA.CRYPTO': 'Cardano',
+  DOT: 'Polkadot',
+  'DOT.CRYPTO': 'Polkadot',
+  PAXG: 'PAX Gold',
+  'PAXG.CRYPTO': 'PAX Gold',
+  SOL: 'Solana',
+  'SOL.CRYPTO': 'Solana',
+  XRP: 'Ripple',
+  'XRP.CRYPTO': 'Ripple',
+  DOGE: 'Dogecoin',
+  'DOGE.CRYPTO': 'Dogecoin',
+  USDT: 'Tether',
+  'USDT.CRYPTO': 'Tether',
   // Mutual Funds
   'ES-GTECHSSF': 'Eastspring Global Technology SSF',
   'SCBGOLDH-SSF': 'SCB Gold Hedged SSF',
@@ -151,7 +190,7 @@ export function getAssetType(assetType?: string, symbol?: string): string {
   }
   if (symbol) {
     if (symbol.endsWith('.BK')) return 'thai-stock';
-    if (symbol.endsWith('.CRYPTO')) return 'crypto';
+    if (isCryptoSymbol(symbol)) return 'crypto';
     if (
       symbol.includes('SSF') ||
       symbol.includes('RMF') ||
@@ -184,4 +223,3 @@ export function getAssetTypeClass(assetType?: string, symbol?: string): string {
   const type = getAssetType(assetType, symbol);
   return ASSET_TYPE_CONFIG[type]?.cssClass ?? ASSET_TYPE_CONFIG[DEFAULT_ASSET_TYPE].cssClass;
 }
-
