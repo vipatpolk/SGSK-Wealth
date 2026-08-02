@@ -36,16 +36,36 @@ export class NavService {
     // Fetch NAVs sequentially with a small delay to respect rate limits (max 5 req/sec)
     return from(uniqueSymbols).pipe(
       concatMap((symbol) => {
+        const symUpper = symbol.toUpperCase();
+
         // Step 1: Fetch profile dynamically
         return this.http.get<any>(`${SEC_API_CONFIG.baseUrl}/general-info/profiles?fund_class_name=${encodeURIComponent(symbol)}`, { headers, observe: 'response' }).pipe(
           concatMap((res: HttpResponse<any>) => {
-            // If 204 No Content, fallback to project_info
-            if (res.status === 204 || !res.body || !res.body.items || res.body.items.length === 0) {
-              return this.http.get<any>(`${SEC_API_CONFIG.baseUrl}/general-info/profiles?project_info=${encodeURIComponent(symbol)}`, { headers }).pipe(
-                map(res2 => res2?.items?.[0])
-              );
+            const classItems: any[] = res.body?.items || [];
+            // Check if any returned item is an exact match for this symbol
+            const classMatch = classItems.find(
+              (i: any) => i.fund_class_name?.toUpperCase() === symUpper || i.proj_abbr_name?.toUpperCase() === symUpper
+            );
+
+            if (classMatch) {
+              return of(classMatch);
             }
-            return of(res.body?.items?.[0]);
+
+            // If no exact match or 204 No Content, fallback to project_info query
+            return this.http.get<any>(`${SEC_API_CONFIG.baseUrl}/general-info/profiles?project_info=${encodeURIComponent(symbol)}`, { headers }).pipe(
+              map((res2) => {
+                const projItems: any[] = res2?.items || [];
+                if (projItems.length === 0) return null;
+                // Prioritize exact matches
+                return (
+                  projItems.find((i: any) => i.proj_abbr_name?.toUpperCase() === symUpper && i.fund_class_name === 'main') ||
+                  projItems.find((i: any) => i.fund_class_name?.toUpperCase() === symUpper) ||
+                  projItems.find((i: any) => i.proj_abbr_name?.toUpperCase() === symUpper) ||
+                  projItems[0]
+                );
+              }),
+              catchError(() => of(null))
+            );
           }),
           concatMap((profile) => {
             if (!profile || !profile.proj_id) {
@@ -55,13 +75,14 @@ export class NavService {
             
             const fund = {
               projId: profile.proj_id,
-              name: profile.proj_name_en || profile.proj_name_th || symbol
+              name: profile.proj_name_en || profile.proj_name_th || symbol,
+              targetClass: profile.fund_class_name,
             };
             
             // Step 2: Fetch NAV using dynamically obtained proj_id
             const end = new Date();
             const start = new Date();
-            start.setDate(end.getDate() - 14); // Fetch last 14 days to ensure we get a recent NAV
+            start.setDate(end.getDate() - 30); // Fetch last 30 days to ensure recent NAV across weekends & holidays
             const fmtDate = (d: Date) => d.toISOString().split('T')[0];
             
             const url = `${SEC_API_CONFIG.baseUrl}/daily-info/nav?proj_id=${encodeURIComponent(fund.projId)}&start_nav_date=${fmtDate(start)}&end_nav_date=${fmtDate(end)}`;
@@ -74,21 +95,29 @@ export class NavService {
                   return { originalSymbol: symbol, data: { symbol, name: fund.name, price: 0, currency: 'THB' } };
                 }
                 
-                // Filter by class name if there are multiple classes (matches the symbol)
-                let filteredData = data.filter((d: any) => d.fund_class_name === symbol);
+                // Filter by matching class name
+                let filteredData = data.filter(
+                  (d: any) => d.fund_class_name?.toUpperCase() === (fund.targetClass || symbol).toUpperCase()
+                );
+                if (filteredData.length === 0 && fund.targetClass !== 'main') {
+                  filteredData = data.filter((d: any) => d.fund_class_name?.toUpperCase() === symUpper);
+                }
                 if (filteredData.length === 0) {
-                  filteredData = data; // Fallback for single-class funds like 'main'
+                  filteredData = data.filter((d: any) => d.fund_class_name === 'main');
+                }
+                if (filteredData.length === 0) {
+                  filteredData = data; // Fallback
                 }
                 
                 // Sort by nav_date descending to get the latest
                 filteredData.sort((a, b) => new Date(b.nav_date).getTime() - new Date(a.nav_date).getTime());
                 const latest = filteredData[0];
-                const nav = latest.last_val ?? 0;
+                const nav = latest?.last_val ?? 0;
                 
                 return {
                   originalSymbol: symbol,
                   data: {
-                    symbol: latest.fund_class_name && latest.fund_class_name !== 'main' ? latest.fund_class_name : symbol,
+                    symbol: symbol,
                     name: fund.name,
                     price: typeof nav === 'string' ? parseFloat(nav) : nav,
                     currency: 'THB',

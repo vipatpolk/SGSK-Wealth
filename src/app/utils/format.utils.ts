@@ -141,7 +141,7 @@ const STATIC_NAMES: Record<string, string> = {
   'tsp5-gogetter-SSF': 'TMB Smart Port 5 Go-Getter SSF',
   'T-ES-GSBOND': 'Eastspring Global Short Duration Bond Fund',
   'UOBSD-SSF': 'UOB Smart Dividend SSF',
-  'SCBSFF': 'SCB Smart Fixed Income SSF',
+  'SCBSFF': 'SCB Short Term Fixed Income Fund',
   'ES-GDIV': 'Eastspring Global Dividend Equity Fund',
   'ES-CASH': 'Eastspring Daily Cash Management Fund',
   'TCMF': 'Thai Cash Management Fund',
