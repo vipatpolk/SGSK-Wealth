@@ -1,6 +1,7 @@
 import {
   getQuantityFormat,
   displaySymbol,
+  toYahooSymbol,
   getPriceFormat,
   getSymbolColor,
   getSymbolName,
@@ -22,6 +23,38 @@ describe('FormatUtils', () => {
     it('should format stock quantities with up to 7 decimals', () => {
       expect(getQuantityFormat('AAPL')).toBe('1.0-7');
       expect(getQuantityFormat('PTT.BK')).toBe('1.0-7');
+    });
+  });
+
+  describe('toYahooSymbol', () => {
+    it('should convert dot share classes to hyphens for US stocks', () => {
+      expect(toYahooSymbol('BRK.B')).toBe('BRK-B');
+      expect(toYahooSymbol('BRK.A')).toBe('BRK-A');
+      expect(toYahooSymbol('BF.B')).toBe('BF-B');
+      expect(toYahooSymbol('BF.A')).toBe('BF-A');
+    });
+
+    it('should convert slash share classes to hyphens', () => {
+      expect(toYahooSymbol('BRK/B')).toBe('BRK-B');
+    });
+
+    it('should preserve Thai stock .BK suffix', () => {
+      expect(toYahooSymbol('PTT.BK')).toBe('PTT.BK');
+      expect(toYahooSymbol('3BBIF.BK')).toBe('3BBIF.BK');
+      expect(toYahooSymbol('CPF.BK')).toBe('CPF.BK');
+    });
+
+    it('should preserve regular stock symbols', () => {
+      expect(toYahooSymbol('AAPL')).toBe('AAPL');
+      expect(toYahooSymbol('VOO')).toBe('VOO');
+      expect(toYahooSymbol('NVDA')).toBe('NVDA');
+      expect(toYahooSymbol('USDTHB=X')).toBe('USDTHB=X');
+      expect(toYahooSymbol('^GSPC')).toBe('^GSPC');
+    });
+
+    it('should handle empty or whitespace symbols', () => {
+      expect(toYahooSymbol('')).toBe('');
+      expect(toYahooSymbol('   ')).toBe('');
     });
   });
 

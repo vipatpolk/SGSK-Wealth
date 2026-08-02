@@ -31,6 +31,65 @@ describe('App', () => {
     expect(closedTab?.sheetGid).toBe('273600915');
   });
 
+  it('should handle tab dropdown change on mobile select', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+    const mockEvent = {
+      target: { value: 'closed-position' },
+    } as unknown as Event;
+
+    app.onTabDropdownChange(mockEvent);
+
+    expect(app.activeTab().id).toBe('closed-position');
+  });
+
+  it('should toggle between dark and light themes', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    app.setTheme('dark');
+    expect(app.theme()).toBe('dark');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+
+    app.toggleTheme();
+    expect(app.theme()).toBe('light');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+
+    app.toggleTheme();
+    expect(app.theme()).toBe('dark');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+  });
+
+  it('should handle sort dropdown change and sort direction toggle on mobile', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    const mockEvent = {
+      target: { value: 'symbol' },
+    } as unknown as Event;
+
+    app.onSortDropdownChange(mockEvent);
+    expect(app.sortField()).toBe('symbol');
+
+    // Default direction is desc, toggle to asc
+    app.toggleSortDirection();
+    expect(app.sortDirection()).toBe('asc');
+    app.toggleSortDirection();
+    expect(app.sortDirection()).toBe('desc');
+  });
+
+  it('should handle asset filter dropdown change on mobile', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    const mockEvent = {
+      target: { value: 'crypto' },
+    } as unknown as Event;
+
+    app.onClosedAssetTypeChange(mockEvent);
+    expect(app.selectedClosedAssetType()).toBe('crypto');
+  });
+
   it('should filter closed summaries by asset type', () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;

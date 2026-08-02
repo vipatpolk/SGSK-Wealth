@@ -15,6 +15,18 @@ export function displaySymbol(symbol: string): string {
   return symbol.replace(/\.(BK|CRYPTO)$/, '');
 }
 
+export function toYahooSymbol(symbol: string): string {
+  if (!symbol) return '';
+  const trimmed = symbol.trim();
+  if (trimmed.toUpperCase().endsWith('.BK')) {
+    return trimmed;
+  }
+  if (trimmed.toUpperCase().endsWith('.CRYPTO')) {
+    return trimmed.replace(/\.CRYPTO$/i, '');
+  }
+  return trimmed.replace(/[./]/g, '-');
+}
+
 export function getPriceFormat(symbol: string): string {
   return isCryptoSymbol(symbol) ? '1.2-2' : '1.2-4';
 }
@@ -28,7 +40,9 @@ export function getSymbolColor(symbol: string): string {
     MU: '#22c55e', GPIQ: '#eab308', BNDW: '#64748b', ASML: '#0284c7',
     AAPL: '#94a3b8', AMZN: '#f97316', MSFT: '#0284c7', TSLA: '#e11d48',
     AMD: '#ef4444', INTC: '#0284c7', SBUX: '#059669', JNJ: '#dc2626',
-    'BRK.B': '#475569', V: '#2563eb', GLD: '#d97706', TLT: '#7c3aed',
+    'BRK.B': '#475569', 'BRK-B': '#475569', 'BRK.A': '#475569', 'BRK-A': '#475569',
+    'BF.B': '#78716c', 'BF-B': '#78716c',
+    V: '#2563eb', GLD: '#d97706', TLT: '#7c3aed',
     BND: '#4f46e5', QQQM: '#9333ea', QQQI: '#c026d3', SPYI: '#db2777',
     JEPQ: '#ea580c', SMH: '#059669', SGOV: '#16a34a', VIG: '#0d9488',
     VYM: '#0284c7', PFFD: '#4f46e5',
@@ -66,6 +80,11 @@ const STATIC_NAMES: Record<string, string> = {
   SBUX: 'Starbucks Corporation',
   JNJ: 'Johnson & Johnson',
   'BRK.B': 'Berkshire Hathaway Inc.',
+  'BRK-B': 'Berkshire Hathaway Inc.',
+  'BRK.A': 'Berkshire Hathaway Inc.',
+  'BRK-A': 'Berkshire Hathaway Inc.',
+  'BF.B': 'Brown-Forman Corporation',
+  'BF-B': 'Brown-Forman Corporation',
   V: 'Visa Inc.',
   GLD: 'SPDR Gold Shares',
   TLT: 'iShares 20+ Year Treasury Bond ETF',

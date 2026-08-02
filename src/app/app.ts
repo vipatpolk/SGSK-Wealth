@@ -38,6 +38,9 @@ export class App {
   readonly displayCurrency = signal<'USD' | 'THB'>('THB');
   readonly exchangeRate = signal<number>(0); // USD → THB rate
 
+  /** Theme (dark/light) */
+  readonly theme = signal<'dark' | 'light'>('dark');
+
   readonly expandedSymbols = signal<Set<string>>(new Set());
   readonly searchQuery = signal('');
   readonly sortField = signal<string>('totalCost');
@@ -156,7 +159,44 @@ export class App {
   readonly hasRate = computed<boolean>(() => this.exchangeRate() > 0);
 
   constructor() {
+    this.initTheme();
     this.loadTab(this.activeTab());
+  }
+
+  private initTheme(): void {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedTheme = localStorage.getItem('sharelot_theme') as 'dark' | 'light' | null;
+        if (savedTheme === 'light' || savedTheme === 'dark') {
+          this.setTheme(savedTheme);
+        } else if (window.matchMedia?.('(prefers-color-scheme: light)').matches) {
+          this.setTheme('light');
+        } else {
+          this.setTheme('dark');
+        }
+      } catch {
+        this.setTheme('dark');
+      }
+    }
+  }
+
+  toggleTheme(): void {
+    const nextTheme = this.theme() === 'dark' ? 'light' : 'dark';
+    this.setTheme(nextTheme);
+  }
+
+  setTheme(theme: 'dark' | 'light'): void {
+    this.theme.set(theme);
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem('sharelot_theme', theme);
+      } catch {
+        // Ignore localStorage errors (e.g. incognito/sandboxed)
+      }
+    }
   }
 
   private sumConverted<T extends { currency: string }>(items: T[], valueGetter: (item: T) => number): number {
@@ -315,6 +355,20 @@ export class App {
     }
   }
 
+  toggleSortDirection(): void {
+    this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
+  }
+
+  onSortDropdownChange(event: Event): void {
+    const field = (event.target as HTMLSelectElement).value;
+    this.sortField.set(field);
+  }
+
+  onClosedAssetTypeChange(event: Event): void {
+    const type = (event.target as HTMLSelectElement).value;
+    this.setClosedAssetTypeFilter(type);
+  }
+
   selectTab(tab: AssetTab): void {
     if (tab.id === this.activeTab().id) return;
     this.activeTab.set(tab);
@@ -329,6 +383,14 @@ export class App {
       this.sortDirection.set('desc');
     }
     this.loadTab(tab);
+  }
+
+  onTabDropdownChange(event: Event): void {
+    const selectedId = (event.target as HTMLSelectElement).value;
+    const tab = this.tabs.find((t) => t.id === selectedId);
+    if (tab) {
+      this.selectTab(tab);
+    }
   }
 
   loadTab(tab: AssetTab): void {

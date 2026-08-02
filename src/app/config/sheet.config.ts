@@ -60,7 +60,7 @@ export const ASSET_TABS: AssetTab[] = [
   {
     id: 'mutual-fund',
     label: 'Mutual Fund',
-    icon: 'fund',
+    icon: 'pie-chart',
     sheetGid: SHEET_CONFIG.gids['mutual-fund'],
     currency: 'THB',
   },

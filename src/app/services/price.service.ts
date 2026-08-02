@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin, of, map, catchError } from 'rxjs';
 import { NavService } from './nav.service';
-import { isCryptoSymbol } from '../utils/format.utils';
+import { isCryptoSymbol, toYahooSymbol } from '../utils/format.utils';
 
 export interface PriceData {
   symbol: string;
@@ -103,7 +103,8 @@ export class PriceService {
   /** Fetch stock prices from Yahoo Finance via proxy */
   private fetchStockPrices(symbols: string[]): Observable<Map<string, PriceData>> {
     const requests = symbols.map((symbol) => {
-      const url = `/api/finance/v8/finance/chart/${encodeURIComponent(symbol)}?range=1d&interval=1d&includePrePost=false`;
+      const yahooSymbol = toYahooSymbol(symbol);
+      const url = `/api/finance/v8/finance/chart/${encodeURIComponent(yahooSymbol)}?range=1d&interval=1d&includePrePost=false`;
 
       return this.http.get<any>(url).pipe(
         map((res) => {
