@@ -71,12 +71,43 @@ const STATIC_NAMES: Record<string, string> = {
   'LH.BK': 'Land and Houses PCL',
   'CPF.BK': 'Charoen Pokphand Foods PCL',
   'CPAXT.BK': 'CP Axtra PCL',
+  // Mutual Funds
+  'ES-GTECHSSF': 'Eastspring Global Technology SSF',
+  'SCBGOLDH-SSF': 'SCB Gold Hedged SSF',
+  'UGSTAR-SSF-D': 'UOB Global Stars SSF (Dividends)',
+  'tsp1-preserver-SSF': 'TMB Smart Port 1 Preserver SSF',
+  'tsp3-balancer': 'TMB Smart Port 3 Balancer',
+  'tsp4-explorer': 'TMB Smart Port 4 Explorer',
+  'tsp4-explorer-SSF': 'TMB Smart Port 4 Explorer SSF',
+  'tsp5-gogetter': 'TMB Smart Port 5 Go-Getter',
+  'tsp5-gogetter-SSF': 'TMB Smart Port 5 Go-Getter SSF',
+  'T-ES-GSBOND': 'Eastspring Global Short Duration Bond Fund',
+  'UOBSD-SSF': 'UOB Smart Dividend SSF',
+  'SCBSFF': 'SCB Smart Fixed Income SSF',
+  'ES-GDIV': 'Eastspring Global Dividend Equity Fund',
+  'ES-CASH': 'Eastspring Daily Cash Management Fund',
+  'TCMF': 'Thai Cash Management Fund',
 };
 
+/** Pre-computed case-insensitive lookup for STATIC_NAMES */
+const STATIC_NAMES_UPPER = new Map<string, string>(
+  Object.entries(STATIC_NAMES).map(([k, v]) => [k.toUpperCase(), v])
+);
+
+function toProperCase(text: string): string {
+  return text
+    .split(' ')
+    .filter(word => word.length > 0)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
 export function getSymbolName(symbol: string, rawName: string = ''): string {
-  if (STATIC_NAMES[symbol]) {
-    return STATIC_NAMES[symbol];
-  }
+  const staticName = STATIC_NAMES[symbol] || STATIC_NAMES_UPPER.get(symbol.toUpperCase());
+  if (staticName) return staticName;
+
+  if (!rawName) return '';
+
   let name = rawName;
   if (symbol.endsWith('.BK')) {
     const prefix = symbol.replace('.BK', '').toUpperCase() + '_';
@@ -84,10 +115,73 @@ export function getSymbolName(symbol: string, rawName: string = ''): string {
       name = name.substring(prefix.length);
     }
   }
-  
-  // Convert to Proper Case
-  return name.split(' ')
-    .filter(word => word.length > 0)
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
+  return toProperCase(name);
 }
+
+export function normalizeAssetType(rawType?: string): string | null {
+  if (!rawType) return null;
+  const normalized = rawType.trim().toLowerCase();
+  if (normalized === 'thai-stock' || normalized.includes('thai') || normalized === 'th') {
+    return 'thai-stock';
+  }
+  if (
+    normalized === 'us-stock' ||
+    normalized.includes('u.s') ||
+    normalized.includes('us stock') ||
+    normalized.includes('united states')
+  ) {
+    return 'us-stock';
+  }
+  if (normalized === 'crypto' || normalized.includes('crypto')) {
+    return 'crypto';
+  }
+  if (normalized === 'mutual-fund' || normalized.includes('fund') || normalized.includes('mutual')) {
+    return 'mutual-fund';
+  }
+  return null;
+}
+
+const NON_ASSET_TYPES = new Set(['closed-position', 'all', 'unknown']);
+
+export function getAssetType(assetType?: string, symbol?: string): string {
+  if (assetType && !NON_ASSET_TYPES.has(assetType)) {
+    const normalized = normalizeAssetType(assetType);
+    if (normalized) return normalized;
+    return assetType;
+  }
+  if (symbol) {
+    if (symbol.endsWith('.BK')) return 'thai-stock';
+    if (symbol.endsWith('.CRYPTO')) return 'crypto';
+    if (
+      symbol.includes('SSF') ||
+      symbol.includes('RMF') ||
+      symbol.endsWith('-D') ||
+      symbol.startsWith('SCB') ||
+      symbol.startsWith('ES-') ||
+      symbol.startsWith('UGSTAR')
+    ) {
+      return 'mutual-fund';
+    }
+  }
+  return 'us-stock';
+}
+
+const ASSET_TYPE_CONFIG: Record<string, { label: string; cssClass: string }> = {
+  'us-stock': { label: 'U.S. Stock', cssClass: 'asset-type-tag asset-type-us-stock' },
+  'thai-stock': { label: 'Thai Stock', cssClass: 'asset-type-tag asset-type-thai-stock' },
+  'crypto': { label: 'Cryptocurrency', cssClass: 'asset-type-tag asset-type-crypto' },
+  'mutual-fund': { label: 'Mutual Fund', cssClass: 'asset-type-tag asset-type-mutual-fund' },
+};
+
+const DEFAULT_ASSET_TYPE = 'us-stock';
+
+export function getAssetTypeLabel(assetType?: string, symbol?: string): string {
+  const type = getAssetType(assetType, symbol);
+  return ASSET_TYPE_CONFIG[type]?.label ?? ASSET_TYPE_CONFIG[DEFAULT_ASSET_TYPE].label;
+}
+
+export function getAssetTypeClass(assetType?: string, symbol?: string): string {
+  const type = getAssetType(assetType, symbol);
+  return ASSET_TYPE_CONFIG[type]?.cssClass ?? ASSET_TYPE_CONFIG[DEFAULT_ASSET_TYPE].cssClass;
+}
+

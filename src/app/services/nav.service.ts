@@ -112,7 +112,7 @@ export class NavService {
       map((results) => {
         const priceMap = new Map<string, PriceData>();
         for (const r of results) {
-          if (r.data.price > 0) {
+          if (r.data.price > 0 || (r.data.name && r.data.name !== r.originalSymbol)) {
             priceMap.set(r.originalSymbol, r.data);
           }
         }

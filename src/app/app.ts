@@ -4,7 +4,16 @@ import { ShareLotService, SheetResult } from './services/share-lot.service';
 import { PriceService, PriceData } from './services/price.service';
 import { SymbolSummary, ClosedSymbolSummary } from './models/transaction.model';
 import { AssetTab, ASSET_TABS } from './config/sheet.config';
-import { getQuantityFormat, displaySymbol, getPriceFormat, getSymbolColor, getSymbolName } from './utils/format.utils';
+import {
+  getQuantityFormat,
+  displaySymbol,
+  getPriceFormat,
+  getSymbolColor,
+  getSymbolName,
+  getAssetType,
+  getAssetTypeLabel,
+  getAssetTypeClass,
+} from './utils/format.utils';
 
 @Component({
   selector: 'app-root',
@@ -29,13 +38,44 @@ export class App {
   readonly displayCurrency = signal<'USD' | 'THB'>('THB');
   readonly exchangeRate = signal<number>(0); // USD → THB rate
 
-  expandedSymbols = signal<Set<string>>(new Set());
-  searchQuery = signal('');
-  sortField = signal<string>('totalCost');
-  sortDirection = signal<'asc' | 'desc'>('desc');
+  readonly expandedSymbols = signal<Set<string>>(new Set());
+  readonly searchQuery = signal('');
+  readonly sortField = signal<string>('totalCost');
+  readonly sortDirection = signal<'asc' | 'desc'>('desc');
+  readonly selectedClosedAssetType = signal<string>('all');
 
   readonly isClosedTab = computed<boolean>(() => this.activeTab().id === 'closed-position');
   readonly isAllTab = computed<boolean>(() => this.activeTab().id === 'all');
+
+  readonly closedAssetTypeOptions = computed(() => {
+    const data = this.result();
+    const list = data?.closedSummaries || [];
+
+    const countByType: Record<string, number> = {
+      all: list.length,
+      'us-stock': 0,
+      'thai-stock': 0,
+      crypto: 0,
+      'mutual-fund': 0,
+    };
+
+    for (const item of list) {
+      const type = getAssetType(item.assetType, item.symbol);
+      if (countByType[type] !== undefined) {
+        countByType[type]++;
+      } else {
+        countByType[type] = 1;
+      }
+    }
+
+    return [
+      { id: 'all', label: 'All Types', count: countByType['all'] },
+      { id: 'us-stock', label: 'U.S. Stock', count: countByType['us-stock'] },
+      { id: 'thai-stock', label: 'Thai Stock', count: countByType['thai-stock'] },
+      { id: 'crypto', label: 'Cryptocurrency', count: countByType['crypto'] },
+      { id: 'mutual-fund', label: 'Mutual Fund', count: countByType['mutual-fund'] },
+    ].filter((opt) => opt.id === 'all' || opt.count > 0);
+  });
 
   readonly openSortOptions = [
     { field: 'symbol', label: 'Symbol' },
@@ -62,42 +102,24 @@ export class App {
     const data = this.result();
     if (!data) return 0;
     if (this.isClosedTab()) {
-      return data.closedSummaries.reduce((sum, s) => {
-        if (!this.hasRate() && s.currency !== this.displayCurrency()) return sum;
-        return sum + this.cx(s.totalCost, s.currency);
-      }, 0);
+      return this.sumConverted(this.filteredClosedSummaries(), s => s.totalCost);
     }
-    return data.summaries.reduce((sum, s) => {
-      if (!this.hasRate() && s.currency !== this.displayCurrency()) return sum;
-      return sum + this.cx(s.totalCost, s.currency);
-    }, 0);
+    return this.sumConverted(data.summaries, s => s.totalCost);
   });
 
   readonly totalProceedsConverted = computed<number>(() => {
-    const data = this.result();
-    if (!data) return 0;
-    return data.closedSummaries.reduce((sum, s) => {
-      if (!this.hasRate() && s.currency !== this.displayCurrency()) return sum;
-      return sum + this.cx(s.totalProceeds, s.currency);
-    }, 0);
+    if (!this.result()) return 0;
+    return this.sumConverted(this.filteredClosedSummaries(), s => s.totalProceeds);
   });
 
   readonly totalRealizedPLConverted = computed<number>(() => {
-    const data = this.result();
-    if (!data) return 0;
-    return data.closedSummaries.reduce((sum, s) => {
-      if (!this.hasRate() && s.currency !== this.displayCurrency()) return sum;
-      return sum + this.cx(s.realizedPL, s.currency);
-    }, 0);
+    if (!this.result()) return 0;
+    return this.sumConverted(this.filteredClosedSummaries(), s => s.realizedPL);
   });
 
   readonly totalRealizedPLPercent = computed<number>(() => {
-    const data = this.result();
-    if (!data) return 0;
-    const closedCost = data.closedSummaries.reduce((sum, s) => {
-      if (!this.hasRate() && s.currency !== this.displayCurrency()) return sum;
-      return sum + this.cx(s.totalCost, s.currency);
-    }, 0);
+    if (!this.result()) return 0;
+    const closedCost = this.sumConverted(this.filteredClosedSummaries(), s => s.totalCost);
     if (closedCost === 0) return 0;
     return (this.totalRealizedPLConverted() / closedCost) * 100;
   });
@@ -135,6 +157,13 @@ export class App {
 
   constructor() {
     this.loadTab(this.activeTab());
+  }
+
+  private sumConverted<T extends { currency: string }>(items: T[], valueGetter: (item: T) => number): number {
+    return items.reduce((sum, s) => {
+      if (!this.hasRate() && s.currency !== this.displayCurrency()) return sum;
+      return sum + this.cx(valueGetter(s), s.currency);
+    }, 0);
   }
 
   /** Convert an amount from `fromCurrency` to the display currency */
@@ -209,10 +238,19 @@ export class App {
   readonly filteredClosedSummaries = computed<ClosedSymbolSummary[]>(() => {
     const data = this.result();
     if (!data || !data.closedSummaries) return [];
+
+    let list = [...data.closedSummaries];
+
+    // Filter by Asset Type on Closed Position tab
+    const typeFilter = this.selectedClosedAssetType();
+    if (this.isClosedTab() && typeFilter !== 'all') {
+      list = list.filter((s) => getAssetType(s.assetType, s.symbol) === typeFilter);
+    }
+
     const query = this.searchQuery().trim().toUpperCase();
-    let list = query
-      ? data.closedSummaries.filter((s) => s.symbol.toUpperCase().includes(query) || this.getSymbolName(s.symbol).toUpperCase().includes(query))
-      : [...data.closedSummaries];
+    if (query) {
+      list = list.filter((s) => s.symbol.toUpperCase().includes(query) || this.getSymbolName(s.symbol).toUpperCase().includes(query));
+    }
 
     const field = this.sortField();
     const dir = this.sortDirection() === 'asc' ? 1 : -1;
@@ -264,6 +302,10 @@ export class App {
     return list;
   });
 
+  setClosedAssetTypeFilter(type: string): void {
+    this.selectedClosedAssetType.set(type);
+  }
+
   setSort(field: string): void {
     if (this.sortField() === field) {
       this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
@@ -277,6 +319,7 @@ export class App {
     if (tab.id === this.activeTab().id) return;
     this.activeTab.set(tab);
     this.searchQuery.set('');
+    this.selectedClosedAssetType.set('all');
     this.expandedSymbols.set(new Set());
     if (tab.id === 'closed-position') {
       this.sortField.set('realizedPL');
@@ -312,7 +355,12 @@ export class App {
   }
 
   private fetchPricesForResult(result: SheetResult): void {
-    if (this.isClosedTab() || result.summaries.length === 0) {
+    const allSummaries: { symbol: string; assetType?: string }[] = [
+      ...result.summaries,
+      ...result.closedSummaries,
+    ];
+
+    if (allSummaries.length === 0) {
       this.priceService.fetchExchangeRate().subscribe((rate) => {
         if (rate > 0) this.exchangeRate.set(rate);
       });
@@ -320,7 +368,7 @@ export class App {
     }
 
     this.pricesLoading.set(true);
-    this.priceService.fetchPricesAndRate(result.summaries).subscribe(({ prices, rate }) => {
+    this.priceService.fetchPricesAndRate(allSummaries).subscribe(({ prices, rate }) => {
       this.prices.set(prices);
       if (rate > 0) this.exchangeRate.set(rate);
       this.pricesLoading.set(false);
@@ -348,18 +396,14 @@ export class App {
   expandAll(): void {
     const data = this.result();
     if (!data) return;
-    if (this.isClosedTab()) {
-      const all = new Set(data.closedSummaries.map((s) => s.symbol));
-      this.expandedSymbols.set(all);
-    } else if (this.isAllTab()) {
-      const all = new Set<string>();
-      data.summaries.forEach((s) => all.add(s.symbol));
-      data.closedSummaries.forEach((s) => all.add(s.symbol));
-      this.expandedSymbols.set(all);
-    } else {
-      const all = new Set(data.summaries.map((s) => s.symbol));
-      this.expandedSymbols.set(all);
+    const symbols = new Set<string>();
+    if (!this.isClosedTab()) {
+      data.summaries.forEach(s => symbols.add(s.symbol));
     }
+    if (this.isClosedTab() || this.isAllTab()) {
+      data.closedSummaries.forEach(s => symbols.add(s.symbol));
+    }
+    this.expandedSymbols.set(symbols);
   }
 
   collapseAll(): void {
@@ -411,5 +455,13 @@ export class App {
 
   getSymbolColor(symbol: string): string {
     return getSymbolColor(symbol);
+  }
+
+  getAssetTypeLabel(assetType?: string, symbol?: string): string {
+    return getAssetTypeLabel(assetType, symbol);
+  }
+
+  getAssetTypeClass(assetType?: string, symbol?: string): string {
+    return getAssetTypeClass(assetType, symbol);
   }
 }

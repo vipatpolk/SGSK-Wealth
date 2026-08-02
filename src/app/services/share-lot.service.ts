@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Transaction, ShareLot, SymbolSummary, ClosedShareLot, ClosedSymbolSummary } from '../models/transaction.model';
 import { Observable, map, catchError, of, forkJoin } from 'rxjs';
 import { getSheetExportUrl, ASSET_TABS } from '../config/sheet.config';
+import { normalizeAssetType, getAssetType } from '../utils/format.utils';
 
 export interface SheetResult {
   summaries: SymbolSummary[];
@@ -140,35 +141,45 @@ export class ShareLotService {
 
     if (lines.length < 2) return [];
 
+    const header = this.parseCsvLine(lines[0]).map((h) => h.trim().toLowerCase());
+    const symFound = this.findColumnIndex(header, 'symbol');
+    const symbolIdx = symFound !== -1 ? symFound : 0;
+    const dateFound = this.findColumnIndex(header, 'date');
+    const dateIdx = dateFound !== -1 ? dateFound : 1;
+    const qtyFound = this.findColumnIndex(header, 'quantity', 'qty');
+    const qtyIdx = qtyFound !== -1 ? qtyFound : 2;
+    const priceFound = this.findColumnIndex(header, 'price');
+    const priceIdx = priceFound !== -1 ? priceFound : 3;
+    const currFound = this.findColumnIndex(header, 'currency', 'curr');
+    const currIdx = currFound !== -1 ? currFound : 4;
+    const typeIdx = this.findColumnIndex(header, 'type', 'asset', 'assettype', 'asset type');
+
     const transactions: Transaction[] = [];
 
     for (let i = 1; i < lines.length; i++) {
       const fields = this.parseCsvLine(lines[i]);
       if (fields.length < 5) continue;
 
-      const symbol = fields[0].trim();
-      const date = fields[1].trim();
-      const quantity = parseFloat(fields[2].trim());
-      const price = parseFloat(fields[3].trim().replace(/,/g, ''));
-      const currency = fields[4].trim();
+      const symbol = fields[symbolIdx]?.trim();
+      const date = fields[dateIdx]?.trim();
+      const quantity = parseFloat(fields[qtyIdx]?.trim());
+      const price = parseFloat(fields[priceIdx]?.trim().replace(/,/g, ''));
+      const currency = fields[currIdx]?.trim() || 'USD';
 
       if (!symbol || isNaN(quantity) || isNaN(price)) continue;
 
-      let assetType = tabAssetType;
-      if (tabAssetType === 'closed-position') {
-        if (symbol.endsWith('.BK')) {
-          assetType = 'thai-stock';
-        } else if (symbol.endsWith('.CRYPTO')) {
-          assetType = 'crypto';
-        } else {
-          assetType = 'us-stock';
-        }
-      }
+      const rawType = (typeIdx !== -1 && fields[typeIdx]) ? fields[typeIdx].trim() : (fields.length > 5 ? fields[5].trim() : '');
+      const parsedType = rawType ? normalizeAssetType(rawType) : null;
+      const assetType = parsedType || getAssetType(tabAssetType, symbol);
 
       transactions.push({ symbol, date, quantity, price, currency, assetType });
     }
 
     return transactions;
+  }
+
+  private findColumnIndex(header: string[], ...names: string[]): number {
+    return header.findIndex(h => names.some(n => n === h || h.includes(n)));
   }
 
   private parseCsvLine(line: string): string[] {
@@ -281,43 +292,9 @@ export class ShareLotService {
       const remainingLots = openLots.filter((lot) => lot.quantity > EPSILON);
 
       if (remainingLots.length > 0) {
-        const totalShares = remainingLots.reduce((sum, lot) => sum + lot.quantity, 0);
-        const totalCost = remainingLots.reduce((sum, lot) => sum + lot.totalCost, 0);
-        const averageCost = totalShares > 0 ? totalCost / totalShares : 0;
-
-        summaries.push({
-          symbol,
-          totalShares,
-          totalCost,
-          averageCost,
-          currency,
-          lots: remainingLots,
-          assetType,
-        });
+        summaries.push(this.createOpenSummary(symbol, currency, assetType, remainingLots));
       } else if (closedLots.length > 0) {
-        const closedShares = closedLots.reduce((sum, lot) => sum + lot.quantity, 0);
-        const totalShares = 0;
-        const totalCost = closedLots.reduce((sum, lot) => sum + lot.totalCost, 0);
-        const totalProceeds = closedLots.reduce((sum, lot) => sum + lot.totalProceeds, 0);
-        const realizedPL = totalProceeds - totalCost;
-        const realizedPLPercent = totalCost > 0 ? (realizedPL / totalCost) * 100 : 0;
-        const averageBuyPrice = closedShares > 0 ? totalCost / closedShares : 0;
-        const averageSellPrice = closedShares > 0 ? totalProceeds / closedShares : 0;
-
-        closedSummaries.push({
-          symbol,
-          totalShares,
-          closedShares,
-          totalCost,
-          totalProceeds,
-          realizedPL,
-          realizedPLPercent,
-          averageBuyPrice,
-          averageSellPrice,
-          currency,
-          lots: closedLots,
-          assetType,
-        });
+        closedSummaries.push(this.createClosedSummary(symbol, currency, assetType, closedLots));
       }
     }
 
@@ -325,5 +302,46 @@ export class ShareLotService {
     closedSummaries.sort((a, b) => b.realizedPL - a.realizedPL);
 
     return { summaries, closedSummaries };
+  }
+  private createOpenSummary(symbol: string, currency: string, assetType: string, lots: ShareLot[]): SymbolSummary {
+    const totalShares = lots.reduce((sum, lot) => sum + lot.quantity, 0);
+    const totalCost = lots.reduce((sum, lot) => sum + lot.totalCost, 0);
+    const averageCost = totalShares > 0 ? totalCost / totalShares : 0;
+
+    return {
+      symbol,
+      totalShares,
+      totalCost,
+      averageCost,
+      currency,
+      lots,
+      assetType,
+    };
+  }
+
+  private createClosedSummary(symbol: string, currency: string, assetType: string, lots: ClosedShareLot[]): ClosedSymbolSummary {
+    const closedShares = lots.reduce((sum, lot) => sum + lot.quantity, 0);
+    const totalShares = 0;
+    const totalCost = lots.reduce((sum, lot) => sum + lot.totalCost, 0);
+    const totalProceeds = lots.reduce((sum, lot) => sum + lot.totalProceeds, 0);
+    const realizedPL = totalProceeds - totalCost;
+    const realizedPLPercent = totalCost > 0 ? (realizedPL / totalCost) * 100 : 0;
+    const averageBuyPrice = closedShares > 0 ? totalCost / closedShares : 0;
+    const averageSellPrice = closedShares > 0 ? totalProceeds / closedShares : 0;
+
+    return {
+      symbol,
+      totalShares,
+      closedShares,
+      totalCost,
+      totalProceeds,
+      realizedPL,
+      realizedPLPercent,
+      averageBuyPrice,
+      averageSellPrice,
+      currency,
+      lots,
+      assetType,
+    };
   }
 }

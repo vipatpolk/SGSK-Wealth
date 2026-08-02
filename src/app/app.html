@@ -264,6 +264,27 @@
       }
     </div>
 
+    <!-- Asset Type Filter Bar (Closed Position Tab) -->
+    @if (isClosedTab()) {
+      <div class="asset-filter-bar" id="closed-asset-filter-bar">
+        <span class="asset-filter-label">Asset Type</span>
+        <div class="asset-filter-pills">
+          @for (opt of closedAssetTypeOptions(); track opt.id) {
+            <button
+              class="asset-filter-pill"
+              [class.asset-filter-pill-active]="selectedClosedAssetType() === opt.id"
+              [class]="'asset-filter-pill-' + opt.id"
+              (click)="setClosedAssetTypeFilter(opt.id)"
+              [id]="'filter-asset-' + opt.id"
+            >
+              <span class="asset-filter-pill-name">{{ opt.label }}</span>
+              <span class="asset-filter-pill-count">{{ opt.count }}</span>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
     <!-- Price Loading Indicator -->
     @if (pricesLoading()) {
       <div class="price-loading-bar">
@@ -368,6 +389,11 @@
               <span class="symbol-name">{{ getSymbolName(summary.symbol) }}</span>
             }
             <div class="card-header-info">
+              @if (isAllTab() || isClosedTab()) {
+                <span [class]="getAssetTypeClass(summary.assetType, summary.symbol)">
+                  {{ getAssetTypeLabel(summary.assetType, summary.symbol) }}
+                </span>
+              }
               <span class="card-shares">{{ summary.totalShares | number:getQuantityFormat(summary.symbol) }} shares</span>
               <span class="card-lots-count">{{ summary.lots.length }} {{ summary.lots.length === 1 ? 'lot' : 'lots' }}</span>
             </div>
@@ -506,8 +532,13 @@
               <span class="symbol-name">{{ getSymbolName(summary.symbol) }}</span>
             }
             <div class="card-header-info">
+              @if (isAllTab() || isClosedTab()) {
+                <span [class]="getAssetTypeClass(summary.assetType, summary.symbol)">
+                  {{ getAssetTypeLabel(summary.assetType, summary.symbol) }}
+                </span>
+              }
               <span class="card-shares">0 shares</span>
-              <span class="card-lots-count">0 lots</span>
+              <span class="card-lots-count">{{ summary.lots.length }} closed {{ summary.lots.length === 1 ? 'lot' : 'lots' }}</span>
             </div>
           </div>
           <div class="card-header-right">

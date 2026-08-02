@@ -25,7 +25,7 @@ export class PriceService {
   private readonly navService = inject(NavService);
 
   /** Fetch prices for all symbols AND the USD/THB exchange rate in parallel */
-  fetchPricesAndRate(summaries: SymbolSummary[]): Observable<{ prices: Map<string, PriceData>; rate: number }> {
+  fetchPricesAndRate(summaries: { symbol: string; assetType?: string }[]): Observable<{ prices: Map<string, PriceData>; rate: number }> {
     return forkJoin({
       prices: this.fetchPrices(summaries),
       rate: this.fetchExchangeRate(),
@@ -41,7 +41,7 @@ export class PriceService {
     );
   }
 
-  fetchPrices(summaries: SymbolSummary[]): Observable<Map<string, PriceData>> {
+  fetchPrices(summaries: { symbol: string; assetType?: string }[]): Observable<Map<string, PriceData>> {
     if (summaries.length === 0) return of(new Map());
 
     const stockSymbols = [...new Set(summaries.filter(s => s.assetType !== 'mutual-fund' && !s.symbol.endsWith('.CRYPTO')).map(s => s.symbol))];
@@ -98,7 +98,7 @@ export class PriceService {
       map((results) => {
         const priceMap = new Map<string, PriceData>();
         for (const r of results) {
-          if (r.price > 0) {
+          if (r.price > 0 || r.name) {
             priceMap.set(r.symbol, r);
           }
         }

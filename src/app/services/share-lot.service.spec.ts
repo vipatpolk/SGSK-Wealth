@@ -63,6 +63,31 @@ TSLA,2024-02-10,-5,250,USD
     expect(closedSummary.lots.length).toBe(1);
   });
 
+  it('should parse Type column when provided in Closed Position CSV', async () => {
+    const mockCsv = `Symbol,Date,Quantity,Price,Price Currency,Type
+3BBIF.BK,2025-06-19,45.0000000,6.6000,THB,Thai Stock
+3BBIF.BK,2025-11-03,-45.0000000,6.7400,THB,Thai Stock
+QQQI,2025-09-18,1.4391767,54.4200,USD,U.S. Stock
+QQQI,2025-10-31,-1.4391767,55.5317,USD,U.S. Stock
+`;
+
+    const promise = firstValueFrom(service.fetchSheet('273600915'));
+    const req = httpMock.expectOne((r) => r.url.includes('gid=273600915'));
+    req.flush(mockCsv);
+
+    const result = await promise;
+    expect(result.error).toBeNull();
+    expect(result.closedSummaries.length).toBe(2);
+
+    const thaiStock = result.closedSummaries.find((s) => s.symbol === '3BBIF.BK');
+    expect(thaiStock).toBeDefined();
+    expect(thaiStock?.assetType).toBe('thai-stock');
+
+    const usStock = result.closedSummaries.find((s) => s.symbol === 'QQQI');
+    expect(usStock).toBeDefined();
+    expect(usStock?.assetType).toBe('us-stock');
+  });
+
   it('should handle network errors gracefully', async () => {
     const promise = firstValueFrom(service.fetchSheet('invalid-gid'));
     const req = httpMock.expectOne((r) => r.url.includes('gid=invalid-gid'));
