@@ -134,16 +134,6 @@ export function getAssetType(assetType?: string, symbol?: string): string {
   if (symbol) {
     if (symbol.endsWith('.BK')) return 'thai-stock';
     if (isCryptoSymbol(symbol)) return 'crypto';
-    if (
-      symbol.includes('SSF') ||
-      symbol.includes('RMF') ||
-      symbol.endsWith('-D') ||
-      symbol.startsWith('SCB') ||
-      symbol.startsWith('ES-') ||
-      symbol.startsWith('UGSTAR')
-    ) {
-      return 'mutual-fund';
-    }
   }
   return 'us-stock';
 }

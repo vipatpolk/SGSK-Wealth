@@ -140,9 +140,13 @@ describe('FormatUtils', () => {
       expect(getAssetType(undefined, 'ETH.CRYPTO')).toBe('crypto');
       expect(getAssetType(undefined, 'ETH')).toBe('crypto');
       expect(getAssetType(undefined, 'ADA')).toBe('crypto');
-      expect(getAssetType(undefined, 'SCBGOLDH-SSF')).toBe('mutual-fund');
-      expect(getAssetType(undefined, 'ES-GTECHSSF')).toBe('mutual-fund');
-      expect(getAssetType(undefined, 'UGSTAR-SSF-D')).toBe('mutual-fund');
+    });
+
+    it('should correctly identify mutual funds when assetType is provided from data source', () => {
+      expect(getAssetType('mutual-fund', 'SCBGOLDH-SSF')).toBe('mutual-fund');
+      expect(getAssetType('mutual-fund', 'ES-GTECHSSF')).toBe('mutual-fund');
+      expect(getAssetType('Mutual Fund', 'UGSTAR-SSF-D')).toBe('mutual-fund');
+      expect(getAssetType('fund', 'SCBSFF')).toBe('mutual-fund');
     });
 
     it('should return appropriate labels for display', () => {
