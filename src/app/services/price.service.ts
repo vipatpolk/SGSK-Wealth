@@ -111,7 +111,7 @@ export class PriceService {
           const meta = res?.chart?.result?.[0]?.meta;
           return {
             symbol,
-            name: meta?.shortName || meta?.longName || '',
+            name: meta?.longName || meta?.shortName || '',
             price: meta?.regularMarketPrice ?? 0,
             currency: meta?.currency ?? 'USD',
           } as PriceData;

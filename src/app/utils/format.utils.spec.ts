@@ -103,22 +103,26 @@ describe('FormatUtils', () => {
   });
 
   describe('getSymbolName', () => {
-    it('should return static name when available', () => {
-      expect(getSymbolName('AAPL')).toBe('Apple Inc.');
-      expect(getSymbolName('tsp3-balancer')).toBe('TMB Smart Port 3 Balancer');
-      expect(getSymbolName('TSP4-EXPLORER')).toBe('TMB Smart Port 4 Explorer');
-      expect(getSymbolName('ES-GTECHSSF')).toBe('Eastspring Global Technology SSF');
-      expect(getSymbolName('UOBSD-SSF')).toBe('UOB Smart Dividend SSF');
-      expect(getSymbolName('ETH')).toBe('Ethereum');
-      expect(getSymbolName('ADA')).toBe('Cardano');
-      expect(getSymbolName('BNB')).toBe('BNB');
-      expect(getSymbolName('DOT')).toBe('Polkadot');
-      expect(getSymbolName('BTC.CRYPTO')).toBe('Bitcoin');
-      expect(getSymbolName('PAXG')).toBe('PAX Gold');
+    it('should return empty string when rawName is empty or missing', () => {
+      expect(getSymbolName('AAPL')).toBe('');
+      expect(getSymbolName('AAPL', '')).toBe('');
+      expect(getSymbolName('AAPL', '   ')).toBe('');
     });
 
-    it('should format raw name with prefix stripping and proper case', () => {
+    it('should preserve formatted raw name provided from API', () => {
+      expect(getSymbolName('AAPL', 'Apple Inc.')).toBe('Apple Inc.');
+      expect(getSymbolName('SCBSFF', 'SCB Short Term Fixed Income Fund')).toBe('SCB Short Term Fixed Income Fund');
+      expect(getSymbolName('BTC', 'Bitcoin')).toBe('Bitcoin');
+    });
+
+    it('should format all-caps raw names to proper case', () => {
+      expect(getSymbolName('TSLA', 'TESLA, INC.')).toBe('Tesla, Inc.');
+      expect(getSymbolName('NVDA', 'NVIDIA CORPORATION')).toBe('Nvidia Corporation');
+    });
+
+    it('should format raw name with prefix stripping for Thai stocks', () => {
       expect(getSymbolName('PTT.BK', 'PTT_PETROLEUM PUBLIC')).toBe('Petroleum Public');
+      expect(getSymbolName('TISCO.BK', 'TISCO_TISCO FINANCIAL GROUP')).toBe('Tisco Financial Group');
     });
   });
 

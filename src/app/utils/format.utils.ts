@@ -70,88 +70,6 @@ export function getSymbolColor(symbol: string): string {
   return colors[symbol] || colors[symbol.toUpperCase()] || '#6366f1';
 }
 
-const STATIC_NAMES: Record<string, string> = {
-  AAPL: 'Apple Inc.',
-  AMZN: 'Amazon.com Inc.',
-  MSFT: 'Microsoft Corporation',
-  TSLA: 'Tesla, Inc.',
-  AMD: 'Advanced Micro Devices, Inc.',
-  INTC: 'Intel Corporation',
-  SBUX: 'Starbucks Corporation',
-  JNJ: 'Johnson & Johnson',
-  'BRK.B': 'Berkshire Hathaway Inc.',
-  'BRK-B': 'Berkshire Hathaway Inc.',
-  'BRK.A': 'Berkshire Hathaway Inc.',
-  'BRK-A': 'Berkshire Hathaway Inc.',
-  'BF.B': 'Brown-Forman Corporation',
-  'BF-B': 'Brown-Forman Corporation',
-  V: 'Visa Inc.',
-  GLD: 'SPDR Gold Shares',
-  TLT: 'iShares 20+ Year Treasury Bond ETF',
-  BND: 'Vanguard Total Bond Market ETF',
-  QQQM: 'Invesco NASDAQ 100 ETF',
-  QQQI: 'NEOS Nasdaq-100 High Income ETF',
-  SPYI: 'NEOS S&P 500 High Income ETF',
-  JEPQ: 'JPMorgan NASDAQ Equity Premium Income ETF',
-  SMH: 'VanEck Semiconductor ETF',
-  SGOV: 'iShares 0-3 Month Treasury Bond ETF',
-  VIG: 'Vanguard Dividend Appreciation ETF',
-  VYM: 'Vanguard High Dividend Yield ETF',
-  PFFD: 'Global X U.S. Preferred ETF',
-  AVGO: 'Broadcom Inc.',
-  '3BBIF.BK': '3BB Internet Infrastructure Fund',
-  'TISCO.BK': 'TISCO Financial Group PCL',
-  'TTB.BK': 'TMBThanachart Bank PCL',
-  'SC.BK': 'SC Asset Corporation PCL',
-  'DIF.BK': 'Digital Telecommunications Infrastructure Fund',
-  'TTW.BK': 'TTW PCL',
-  'LH.BK': 'Land and Houses PCL',
-  'CPF.BK': 'Charoen Pokphand Foods PCL',
-  'CPAXT.BK': 'CP Axtra PCL',
-  // Crypto
-  BTC: 'Bitcoin',
-  'BTC.CRYPTO': 'Bitcoin',
-  ETH: 'Ethereum',
-  'ETH.CRYPTO': 'Ethereum',
-  BNB: 'BNB',
-  'BNB.CRYPTO': 'BNB',
-  ADA: 'Cardano',
-  'ADA.CRYPTO': 'Cardano',
-  DOT: 'Polkadot',
-  'DOT.CRYPTO': 'Polkadot',
-  PAXG: 'PAX Gold',
-  'PAXG.CRYPTO': 'PAX Gold',
-  SOL: 'Solana',
-  'SOL.CRYPTO': 'Solana',
-  XRP: 'Ripple',
-  'XRP.CRYPTO': 'Ripple',
-  DOGE: 'Dogecoin',
-  'DOGE.CRYPTO': 'Dogecoin',
-  USDT: 'Tether',
-  'USDT.CRYPTO': 'Tether',
-  // Mutual Funds
-  'ES-GTECHSSF': 'Eastspring Global Technology SSF',
-  'SCBGOLDH-SSF': 'SCB Gold Hedged SSF',
-  'UGSTAR-SSF-D': 'UOB Global Stars SSF (Dividends)',
-  'tsp1-preserver-SSF': 'TMB Smart Port 1 Preserver SSF',
-  'tsp3-balancer': 'TMB Smart Port 3 Balancer',
-  'tsp4-explorer': 'TMB Smart Port 4 Explorer',
-  'tsp4-explorer-SSF': 'TMB Smart Port 4 Explorer SSF',
-  'tsp5-gogetter': 'TMB Smart Port 5 Go-Getter',
-  'tsp5-gogetter-SSF': 'TMB Smart Port 5 Go-Getter SSF',
-  'T-ES-GSBOND': 'Eastspring Global Short Duration Bond Fund',
-  'UOBSD-SSF': 'UOB Smart Dividend SSF',
-  'SCBSFF': 'SCB Short Term Fixed Income Fund',
-  'ES-GDIV': 'Eastspring Global Dividend Equity Fund',
-  'ES-CASH': 'Eastspring Daily Cash Management Fund',
-  'TCMF': 'Thai Cash Management Fund',
-};
-
-/** Pre-computed case-insensitive lookup for STATIC_NAMES */
-const STATIC_NAMES_UPPER = new Map<string, string>(
-  Object.entries(STATIC_NAMES).map(([k, v]) => [k.toUpperCase(), v])
-);
-
 function toProperCase(text: string): string {
   return text
     .split(' ')
@@ -161,19 +79,25 @@ function toProperCase(text: string): string {
 }
 
 export function getSymbolName(symbol: string, rawName: string = ''): string {
-  const staticName = STATIC_NAMES[symbol] || STATIC_NAMES_UPPER.get(symbol.toUpperCase());
-  if (staticName) return staticName;
-
   if (!rawName) return '';
 
-  let name = rawName;
+  let name = rawName.trim();
+  if (!name) return '';
+
   if (symbol.endsWith('.BK')) {
     const prefix = symbol.replace('.BK', '').toUpperCase() + '_';
     if (name.toUpperCase().startsWith(prefix)) {
       name = name.substring(prefix.length);
     }
   }
-  return toProperCase(name);
+
+  name = name.replace(/\([R|TM|r|tm]\)/g, '').trim();
+
+  if (name === name.toUpperCase() && name !== name.toLowerCase()) {
+    return toProperCase(name);
+  }
+
+  return name;
 }
 
 export function normalizeAssetType(rawType?: string): string | null {
