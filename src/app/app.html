@@ -14,25 +14,45 @@
     </div>
 
     @if (!loading() && !error() && result()) {
-      <div class="header-stats">
-        <!-- Financial Stats -->
-        <div class="header-stat">
-          <span class="header-stat-label">Total Cost</span>
-          <span class="header-stat-value">{{ totalCostConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
-        </div>
-        @if (isClosedTab()) {
+      <div class="header-stats-wrapper">
+        <div class="header-financial-stats" [class.grid-4-items]="isAllTab() && totalHoldingConverted() > 0 && totalRealizedPLConverted() !== 0">
           <div class="header-stat">
-            <span class="header-stat-label">Total Proceeds</span>
-            <span class="header-stat-value">{{ totalProceedsConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
+            <span class="header-stat-label">Total Cost</span>
+            <span class="header-stat-value">{{ totalCostConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
           </div>
-          <div class="header-stat">
-            <span class="header-stat-label">Realized P/L</span>
-            <span class="header-stat-value" [class.pl-positive]="totalPL() >= 0" [class.pl-negative]="totalPL() < 0">
-              {{ totalPL() >= 0 ? '+' : '' }}{{ totalPLPercent() | number:'1.2-2' }}%
-            </span>
-          </div>
-        } @else if (isAllTab()) {
-          @if (totalHoldingConverted() > 0) {
+          @if (isClosedTab()) {
+            <div class="header-stat">
+              <span class="header-stat-label">Total Proceeds</span>
+              <span class="header-stat-value">{{ totalProceedsConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
+            </div>
+            <div class="header-stat">
+              <span class="header-stat-label">Realized P/L</span>
+              <span class="header-stat-value" [class.pl-positive]="totalPL() >= 0" [class.pl-negative]="totalPL() < 0">
+                {{ totalPL() >= 0 ? '+' : '' }}{{ totalPLPercent() | number:'1.2-2' }}%
+              </span>
+            </div>
+          } @else if (isAllTab()) {
+            @if (totalHoldingConverted() > 0) {
+              <div class="header-stat">
+                <span class="header-stat-label">Holding Value</span>
+                <span class="header-stat-value">{{ totalHoldingConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
+              </div>
+              <div class="header-stat">
+                <span class="header-stat-label">P/L</span>
+                <span class="header-stat-value" [class.pl-positive]="totalPL() >= 0" [class.pl-negative]="totalPL() < 0">
+                  {{ totalPL() >= 0 ? '+' : '' }}{{ totalPLPercent() | number:'1.2-2' }}%
+                </span>
+              </div>
+            }
+            @if (totalRealizedPLConverted() !== 0) {
+              <div class="header-stat">
+                <span class="header-stat-label">Realized P/L</span>
+                <span class="header-stat-value" [class.pl-positive]="totalRealizedPLConverted() >= 0" [class.pl-negative]="totalRealizedPLConverted() < 0">
+                  {{ totalRealizedPLConverted() >= 0 ? '+' : '' }}{{ totalRealizedPLPercent() | number:'1.2-2' }}%
+                </span>
+              </div>
+            }
+          } @else if (totalHoldingConverted() > 0) {
             <div class="header-stat">
               <span class="header-stat-label">Holding Value</span>
               <span class="header-stat-value">{{ totalHoldingConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
@@ -44,26 +64,7 @@
               </span>
             </div>
           }
-          @if (totalRealizedPLConverted() !== 0) {
-            <div class="header-stat">
-              <span class="header-stat-label">Realized P/L</span>
-              <span class="header-stat-value" [class.pl-positive]="totalRealizedPLConverted() >= 0" [class.pl-negative]="totalRealizedPLConverted() < 0">
-                {{ totalRealizedPLConverted() >= 0 ? '+' : '' }}{{ totalRealizedPLPercent() | number:'1.2-2' }}%
-              </span>
-            </div>
-          }
-        } @else if (totalHoldingConverted() > 0) {
-          <div class="header-stat">
-            <span class="header-stat-label">Holding Value</span>
-            <span class="header-stat-value">{{ totalHoldingConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
-          </div>
-          <div class="header-stat">
-            <span class="header-stat-label">P/L</span>
-            <span class="header-stat-value" [class.pl-positive]="totalPL() >= 0" [class.pl-negative]="totalPL() < 0">
-              {{ totalPL() >= 0 ? '+' : '' }}{{ totalPLPercent() | number:'1.2-2' }}%
-            </span>
-          </div>
-        }
+        </div>
         <div class="header-stat-divider desktop-only"></div>
         <!-- Meta Stats -->
         <div class="header-meta-stats">
