@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin, of, map, catchError } from 'rxjs';
 import { NavService } from './nav.service';
-import { isCryptoSymbol, toYahooSymbol } from '../utils/format.utils';
+import { toYahooSymbol } from '../utils/format.utils';
 
 export interface PriceData {
   symbol: string;
@@ -64,7 +64,7 @@ export class PriceService {
     if (summaries.length === 0) return of(new Map());
 
     const isCrypto = (s: { symbol: string; assetType?: string }) =>
-      s.assetType === 'crypto' || isCryptoSymbol(s.symbol);
+      s.assetType === 'crypto' || s.symbol.endsWith('.CRYPTO');
 
     const isFund = (s: { symbol: string; assetType?: string }) =>
       s.assetType === 'mutual-fund';

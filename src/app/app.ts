@@ -507,12 +507,12 @@ export class App {
     return this.prices().has(symbol) && this.getCurrentPrice(symbol) > 0;
   }
 
-  getQuantityFormat(symbol: string): string {
-    return getQuantityFormat(symbol);
+  getQuantityFormat(symbol: string, assetType?: string): string {
+    return getQuantityFormat(symbol, assetType);
   }
 
-  getPriceFormat(symbol: string): string {
-    return getPriceFormat(symbol);
+  getPriceFormat(symbol: string, assetType?: string): string {
+    return getPriceFormat(symbol, assetType);
   }
 
   getSymbolColor(symbol: string): string {

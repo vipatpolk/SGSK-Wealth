@@ -9,15 +9,14 @@ import {
   getAssetTypeLabel,
   getAssetTypeClass,
   normalizeAssetType,
-  isCryptoSymbol,
 } from './format.utils';
 
 describe('FormatUtils', () => {
   describe('getQuantityFormat', () => {
     it('should format crypto quantities with up to 10 decimals', () => {
       expect(getQuantityFormat('BTC.CRYPTO')).toBe('1.0-10');
-      expect(getQuantityFormat('ETH')).toBe('1.0-10');
-      expect(getQuantityFormat('ADA')).toBe('1.0-10');
+      expect(getQuantityFormat('ETH.CRYPTO')).toBe('1.0-10');
+      expect(getQuantityFormat('ADA', 'crypto')).toBe('1.0-10');
     });
 
     it('should format stock quantities with up to 7 decimals', () => {
@@ -78,8 +77,8 @@ describe('FormatUtils', () => {
   describe('getPriceFormat', () => {
     it('should return 1.2-2 for crypto', () => {
       expect(getPriceFormat('BTC.CRYPTO')).toBe('1.2-2');
-      expect(getPriceFormat('ETH')).toBe('1.2-2');
-      expect(getPriceFormat('ADA')).toBe('1.2-2');
+      expect(getPriceFormat('ETH.CRYPTO')).toBe('1.2-2');
+      expect(getPriceFormat('ADA', 'crypto')).toBe('1.2-2');
     });
 
     it('should return 1.2-4 for stocks', () => {
@@ -138,11 +137,12 @@ describe('FormatUtils', () => {
       expect(getAssetType(undefined, 'AAPL')).toBe('us-stock');
       expect(getAssetType(undefined, 'CPALL.BK')).toBe('thai-stock');
       expect(getAssetType(undefined, 'ETH.CRYPTO')).toBe('crypto');
-      expect(getAssetType(undefined, 'ETH')).toBe('crypto');
-      expect(getAssetType(undefined, 'ADA')).toBe('crypto');
     });
 
-    it('should correctly identify mutual funds when assetType is provided from data source', () => {
+    it('should correctly identify asset types when assetType is provided from data source', () => {
+      expect(getAssetType('crypto', 'BTC')).toBe('crypto');
+      expect(getAssetType('crypto', 'ETH')).toBe('crypto');
+      expect(getAssetType('crypto', 'ADA')).toBe('crypto');
       expect(getAssetType('mutual-fund', 'SCBGOLDH-SSF')).toBe('mutual-fund');
       expect(getAssetType('mutual-fund', 'ES-GTECHSSF')).toBe('mutual-fund');
       expect(getAssetType('Mutual Fund', 'UGSTAR-SSF-D')).toBe('mutual-fund');
@@ -155,7 +155,7 @@ describe('FormatUtils', () => {
       expect(getAssetTypeLabel('crypto')).toBe('Cryptocurrency');
       expect(getAssetTypeLabel('mutual-fund')).toBe('Mutual Fund');
       expect(getAssetTypeLabel(undefined, 'BTC.CRYPTO')).toBe('Cryptocurrency');
-      expect(getAssetTypeLabel(undefined, 'ADA')).toBe('Cryptocurrency');
+      expect(getAssetTypeLabel('crypto', 'ADA')).toBe('Cryptocurrency');
     });
 
     it('should return appropriate CSS classes', () => {
@@ -178,14 +178,6 @@ describe('FormatUtils', () => {
       expect(getAssetType('U.S. Stock')).toBe('us-stock');
       expect(getAssetType('Cryptocurrency')).toBe('crypto');
       expect(getAssetType('Mutual Fund')).toBe('mutual-fund');
-    });
-
-    it('should detect crypto symbols via isCryptoSymbol', () => {
-      expect(isCryptoSymbol('BTC.CRYPTO')).toBe(true);
-      expect(isCryptoSymbol('ETH')).toBe(true);
-      expect(isCryptoSymbol('ADA')).toBe(true);
-      expect(isCryptoSymbol('AAPL')).toBe(false);
-      expect(isCryptoSymbol('PTT.BK')).toBe(false);
     });
   });
 });

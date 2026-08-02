@@ -1,14 +1,5 @@
-export const KNOWN_CRYPTO_SYMBOLS = new Set([
-  'BTC', 'ETH', 'BNB', 'ADA', 'DOT', 'PAXG', 'SOL', 'XRP', 'DOGE', 'USDT',
-]);
-
-export function isCryptoSymbol(symbol: string): boolean {
-  if (!symbol) return false;
-  return symbol.endsWith('.CRYPTO') || KNOWN_CRYPTO_SYMBOLS.has(symbol.toUpperCase().replace(/\.CRYPTO$/, ''));
-}
-
-export function getQuantityFormat(symbol: string): string {
-  return isCryptoSymbol(symbol) ? '1.0-10' : '1.0-7';
+export function getQuantityFormat(symbol: string, assetType?: string): string {
+  return symbol.endsWith('.CRYPTO') || assetType === 'crypto' ? '1.0-10' : '1.0-7';
 }
 
 export function displaySymbol(symbol: string): string {
@@ -27,8 +18,8 @@ export function toYahooSymbol(symbol: string): string {
   return trimmed.replace(/[./]/g, '-');
 }
 
-export function getPriceFormat(symbol: string): string {
-  return isCryptoSymbol(symbol) ? '1.2-2' : '1.2-4';
+export function getPriceFormat(symbol: string, assetType?: string): string {
+  return symbol.endsWith('.CRYPTO') || assetType === 'crypto' ? '1.2-2' : '1.2-4';
 }
 
 export function getSymbolColor(symbol: string): string {
@@ -133,7 +124,7 @@ export function getAssetType(assetType?: string, symbol?: string): string {
   }
   if (symbol) {
     if (symbol.endsWith('.BK')) return 'thai-stock';
-    if (isCryptoSymbol(symbol)) return 'crypto';
+    if (symbol.endsWith('.CRYPTO')) return 'crypto';
   }
   return 'us-stock';
 }
