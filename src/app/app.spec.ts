@@ -173,5 +173,91 @@ describe('App', () => {
     expect(app.filteredClosedSummaries().length).toBe(1);
     expect(app.filteredClosedSummaries()[0].symbol).toBe('TISCO.BK');
   });
+
+  it('should correctly calculate holding value and P/L for crypto paired with USDT when transactions are in THB', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    // Set exchange rate: 1 USD = 33.0 THB
+    app.exchangeRate.set(33.0);
+    app.displayCurrency.set('THB');
+
+    // Price data for PAXG.CRYPTO is in USD (USDT pair from Binance TH: price $4,000 USD)
+    const priceMap = new Map();
+    priceMap.set('PAXG.CRYPTO', {
+      symbol: 'PAXG.CRYPTO',
+      name: 'PAX Gold',
+      price: 4000,
+      currency: 'USD',
+    });
+    app.prices.set(priceMap);
+
+    // Summary has transactions in THB: 0.01 shares bought at 130,000 THB each = 1,300 THB totalCost
+    const paxgSummary = {
+      symbol: 'PAXG.CRYPTO',
+      totalShares: 0.01,
+      totalCost: 1300,
+      averageCost: 130000,
+      currency: 'THB',
+      assetType: 'crypto',
+      lots: [
+        {
+          symbol: 'PAXG.CRYPTO',
+          purchaseDate: '2026-01-01',
+          quantity: 0.01,
+          costBasis: 130000,
+          totalCost: 1300,
+          assetType: 'crypto',
+        },
+      ],
+    };
+
+    app.result.set({
+      summaries: [paxgSummary],
+      closedSummaries: [],
+      totalCostByCurrency: { THB: 1300 },
+      totalProceedsByCurrency: {},
+      totalRealizedPLByCurrency: {},
+      totalSymbols: 1,
+      totalLots: 1,
+      error: null,
+    });
+
+    // 1. Current Price in summary currency (THB): 4000 USD * 33 = 132,000 THB
+    expect(app.getCurrentPriceInSummaryCurrency(paxgSummary)).toBe(132000);
+
+    // 2. Current Price converted to display currency (THB): 132,000 THB
+    expect(app.getCurrentPriceConverted(paxgSummary)).toBe(132000);
+
+    // 3. Holding Value in summary currency (THB): 0.01 * 132,000 = 1,320 THB
+    expect(app.getHoldingValue(paxgSummary)).toBe(1320);
+
+    // 4. Unrealized P/L in summary currency (THB): 1,320 - 1,300 = +20 THB
+    expect(app.getUnrealizedPL(paxgSummary)).toBe(20);
+    expect(app.getUnrealizedPLPercent(paxgSummary)).toBeCloseTo(1.538, 2);
+
+    // 5. Lot holding value & P/L
+    expect(app.getLotHoldingValue(paxgSummary.lots[0], paxgSummary)).toBe(1320);
+    expect(app.getLotUnrealizedPL(paxgSummary.lots[0], paxgSummary)).toBe(20);
+    expect(app.getLotUnrealizedPLPercent(paxgSummary.lots[0], paxgSummary)).toBeCloseTo(1.538, 2);
+
+    // 6. Portfolio Totals in THB
+    expect(app.totalHoldingConverted()).toBe(1320);
+    expect(app.totalCostConverted()).toBe(1300);
+    expect(app.totalPL()).toBe(20);
+
+    // 7. Toggle display currency to USD
+    app.displayCurrency.set('USD');
+    // Price converted to USD display currency: $4,000
+    expect(app.getCurrentPriceConverted(paxgSummary)).toBe(4000);
+    // Holding converted to USD: 1320 / 33 = $40
+    expect(app.cx(app.getHoldingValue(paxgSummary), paxgSummary.currency)).toBe(40);
+    // Total holding in USD: $40
+    expect(app.totalHoldingConverted()).toBeCloseTo(40, 2);
+    // Total cost in USD: 1300 / 33 = $39.39
+    expect(app.totalCostConverted()).toBeCloseTo(39.3939, 2);
+    // Total P/L in USD: 20 / 33 = $0.606
+    expect(app.totalPL()).toBeCloseTo(0.606, 2);
+  });
 });
 

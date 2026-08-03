@@ -82,6 +82,11 @@ export function getSymbolName(symbol: string, rawName: string = ''): string {
     }
   }
 
+  // Strip trailing currency / pair suffixes (e.g. "Bitcoin USD" -> "Bitcoin", "PAX Gold USD" -> "PAX Gold")
+  if (symbol.endsWith('.CRYPTO') || /\s+(USD|USDT|THB|USDC)$/i.test(name)) {
+    name = name.replace(/\s+(USD|USDT|THB|USDC)$/i, '').trim();
+  }
+
   name = name.replace(/\([R|TM|r|tm]\)/g, '').trim();
 
   if (name === name.toUpperCase() && name !== name.toLowerCase()) {

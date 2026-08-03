@@ -123,6 +123,14 @@ describe('FormatUtils', () => {
       expect(getSymbolName('PTT.BK', 'PTT_PETROLEUM PUBLIC')).toBe('Petroleum Public');
       expect(getSymbolName('TISCO.BK', 'TISCO_TISCO FINANCIAL GROUP')).toBe('Tisco Financial Group');
     });
+
+    it('should strip pair and currency suffixes from crypto names', () => {
+      expect(getSymbolName('BTC.CRYPTO', 'Bitcoin USD')).toBe('Bitcoin');
+      expect(getSymbolName('PAXG.CRYPTO', 'PAX Gold USD')).toBe('PAX Gold');
+      expect(getSymbolName('ADA.CRYPTO', 'Cardano USD')).toBe('Cardano');
+      expect(getSymbolName('USDT.CRYPTO', 'Tether USD')).toBe('Tether');
+      expect(getSymbolName('DOT.CRYPTO', 'Polkadot USDT')).toBe('Polkadot');
+    });
   });
 
   describe('getAssetType and labels', () => {

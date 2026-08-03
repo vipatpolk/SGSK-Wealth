@@ -530,7 +530,7 @@
               @if (hasPriceData(summary.symbol)) {
                 <div class="card-metric">
                   <span class="card-metric-label">{{ summary.assetType === 'mutual-fund' ? 'NAV' : 'Mkt Price' }}</span>
-                  <span class="card-metric-value">{{ cx(getCurrentPrice(summary.symbol), summary.currency) | currency:dc(summary.currency):'symbol-narrow':getPriceFormat(summary.symbol) }}</span>
+                  <span class="card-metric-value">{{ getCurrentPriceConverted(summary) | currency:dc(summary.currency):'symbol-narrow':getPriceFormat(summary.symbol) }}</span>
                 </div>
                 <div class="card-metric">
                   <span class="card-metric-label">Holding Value</span>
@@ -603,12 +603,12 @@
                       <td class="lot-col-cost">{{ cx(lot.costBasis, summary.currency) | currency:dc(summary.currency):'symbol-narrow':getPriceFormat(summary.symbol) }}</td>
                       <td class="lot-col-total">{{ cx(lot.totalCost, summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}</td>
                       @if (hasPriceData(summary.symbol)) {
-                        <td class="lot-col-total">{{ cx(lot.quantity * getCurrentPrice(summary.symbol), summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}</td>
+                        <td class="lot-col-total">{{ cx(getLotHoldingValue(lot, summary), summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}</td>
                         <td class="lot-col-pl"
-                          [class.pl-positive]="lot.quantity * getCurrentPrice(summary.symbol) - lot.totalCost >= 0"
-                          [class.pl-negative]="lot.quantity * getCurrentPrice(summary.symbol) - lot.totalCost < 0"
+                          [class.pl-positive]="getLotUnrealizedPL(lot, summary) >= 0"
+                          [class.pl-negative]="getLotUnrealizedPL(lot, summary) < 0"
                         >
-                          {{ (lot.quantity * getCurrentPrice(summary.symbol) - lot.totalCost) >= 0 ? '+' : '' }}{{ cx(lot.quantity * getCurrentPrice(summary.symbol) - lot.totalCost, summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}
+                          {{ getLotUnrealizedPL(lot, summary) >= 0 ? '+' : '' }}{{ cx(getLotUnrealizedPL(lot, summary), summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}
                         </td>
                       }
                     </tr>

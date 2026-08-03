@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin, of, map, catchError } from 'rxjs';
 import { NavService } from './nav.service';
-import { toYahooSymbol } from '../utils/format.utils';
+import { toYahooSymbol, displaySymbol } from '../utils/format.utils';
 
 export interface PriceData {
   symbol: string;
@@ -11,29 +11,62 @@ export interface PriceData {
   currency: string;
 }
 
-export interface CryptoMeta {
-  binanceSymbol: string;
-  name: string;
-  currency: string;
+interface BinanceTicker {
+  symbol: string;
+  price: string;
 }
 
-/** Maps cryptocurrency symbols to Binance TH symbols and metadata */
-const CRYPTO_CONFIG_MAP: Record<string, CryptoMeta> = {
-  BTC: { binanceSymbol: 'BTCTHB', name: 'Bitcoin', currency: 'THB' },
-  ETH: { binanceSymbol: 'ETHTHB', name: 'Ethereum', currency: 'THB' },
-  BNB: { binanceSymbol: 'BNBTHB', name: 'BNB', currency: 'THB' },
-  ADA: { binanceSymbol: 'ADATHB', name: 'Cardano', currency: 'THB' },
-  DOT: { binanceSymbol: 'DOTTHB', name: 'Polkadot', currency: 'THB' },
-  PAXG: { binanceSymbol: 'PAXGUSDT', name: 'PAX Gold', currency: 'USD' },
-  SOL: { binanceSymbol: 'SOLTHB', name: 'Solana', currency: 'THB' },
-  XRP: { binanceSymbol: 'XRPTHB', name: 'Ripple', currency: 'THB' },
-  DOGE: { binanceSymbol: 'DOGETHB', name: 'Dogecoin', currency: 'THB' },
-  USDT: { binanceSymbol: 'USDTTHB', name: 'Tether', currency: 'THB' },
-};
+/**
+ * Dynamically resolves the market price and native quote currency from Binance TH tickers.
+ * Matches available pairs (e.g. THB, USDT, USDC, FDUSD) dynamically without any hardcoded coin dictionary.
+ */
+function resolveCryptoPrice(
+  rawSymbol: string,
+  tickers: BinanceTicker[]
+): { price: number; currency: string } {
+  const base = rawSymbol.toUpperCase().replace(/\.CRYPTO$/, '').trim();
+  if (!base) return { price: 0, currency: 'USD' };
 
-function getCryptoConfig(symbol: string): CryptoMeta | undefined {
-  const base = symbol.toUpperCase().replace(/\.CRYPTO$/, '');
-  return CRYPTO_CONFIG_MAP[base];
+  // Common quote preferences and their standard currency representation
+  const quotePreferences: Array<{ quote: string; currency: string }> = [
+    { quote: 'THB', currency: 'THB' },
+    { quote: 'USDT', currency: 'USD' },
+    { quote: 'USDC', currency: 'USD' },
+    { quote: 'FDUSD', currency: 'USD' },
+    { quote: 'BUSD', currency: 'USD' },
+  ];
+
+  // 1. Try matching preferred quote pairs (e.g. BTCTHB, PAXGUSDT, ADAUSDT)
+  for (const pref of quotePreferences) {
+    const targetSymbol = `${base}${pref.quote}`;
+    const match = tickers.find((t) => t.symbol.toUpperCase() === targetSymbol);
+    if (match && match.price) {
+      return { price: parseFloat(match.price) || 0, currency: pref.currency };
+    }
+  }
+
+  // 2. Direct exact match (e.g. if the symbol itself is a pair like USDTTHB)
+  const exactMatch = tickers.find((t) => t.symbol.toUpperCase() === base);
+  if (exactMatch && exactMatch.price) {
+    const suffix = quotePreferences.find((p) => exactMatch.symbol.toUpperCase().endsWith(p.quote));
+    return {
+      price: parseFloat(exactMatch.price) || 0,
+      currency: suffix ? suffix.currency : 'USD',
+    };
+  }
+
+  // 3. Dynamic prefix match (for any other pair suffixes)
+  const prefixMatch = tickers.find((t) => t.symbol.toUpperCase().startsWith(base));
+  if (prefixMatch && prefixMatch.price) {
+    const quote = prefixMatch.symbol.toUpperCase().substring(base.length);
+    const suffix = quotePreferences.find((p) => quote.endsWith(p.quote));
+    return {
+      price: parseFloat(prefixMatch.price) || 0,
+      currency: suffix ? suffix.currency : (quote === 'THB' ? 'THB' : 'USD'),
+    };
+  }
+
+  return { price: 0, currency: 'USD' };
 }
 
 @Injectable({
@@ -134,69 +167,63 @@ export class PriceService {
   }
 
   /**
-   * Fetch crypto prices from Binance TH.
+   * Fetch crypto prices and full names dynamically.
+   * Prices come dynamically from Binance TH, and full asset names come dynamically from Yahoo Finance.
    */
   private fetchCryptoPrices(symbols: string[]): Observable<Map<string, PriceData>> {
-    const symbolConfigMap = new Map<string, CryptoMeta>();
+    const binanceUrl = '/api/binance/api/v1/ticker/price';
+    const binanceReq$ = this.http.get<BinanceTicker[]>(binanceUrl).pipe(
+      catchError(() => of([] as BinanceTicker[])),
+    );
 
-    for (const s of symbols) {
-      const config = getCryptoConfig(s);
-      if (config) {
-        symbolConfigMap.set(s, config);
-      }
-    }
+    const nameRequests$ = forkJoin(
+      symbols.map((symbol) => {
+        const base = symbol.toUpperCase().replace(/\.CRYPTO$/, '').trim();
+        const yahooSymbol = `${base}-USD`;
+        const url = `/api/finance/v8/finance/chart/${encodeURIComponent(yahooSymbol)}?range=1d&interval=1d&includePrePost=false`;
 
-    const binanceSymbols = [...new Set(Array.from(symbolConfigMap.values()).map((c) => c.binanceSymbol))];
+        return this.http.get<any>(url).pipe(
+          map((res) => {
+            const meta = res?.chart?.result?.[0]?.meta;
+            return {
+              symbol,
+              name: meta?.longName || meta?.shortName || '',
+            };
+          }),
+          catchError(() => of({ symbol, name: '' })),
+        );
+      }),
+    );
 
-    if (binanceSymbols.length === 0) {
-      const fallbackMap = new Map<string, PriceData>();
-      for (const s of symbols) {
-        const config = getCryptoConfig(s);
-        if (config) {
-          fallbackMap.set(s, {
-            symbol: s,
-            name: config.name,
-            price: 0,
-            currency: config.currency,
-          });
-        }
-      }
-      return of(fallbackMap);
-    }
-
-    const url = `/api/binance/api/v1/ticker/price?symbols=${encodeURIComponent(JSON.stringify(binanceSymbols))}`;
-
-    return this.http.get<Array<{ symbol: string; price: string }>>(url).pipe(
-      map((res) => {
+    return forkJoin({ tickers: binanceReq$, names: nameRequests$ }).pipe(
+      map(({ tickers, names }) => {
         const priceMap = new Map<string, PriceData>();
+        const tickerList = Array.isArray(tickers) ? tickers : [];
+        const nameMap = new Map<string, string>(names.map((n) => [n.symbol, n.name]));
 
         for (const symbol of symbols) {
-          const config = symbolConfigMap.get(symbol);
-          if (config) {
-            const found = res.find((r) => r.symbol === config.binanceSymbol);
-            priceMap.set(symbol, {
-              symbol,
-              name: config.name,
-              price: found && found.price ? parseFloat(found.price) : 0,
-              currency: config.currency,
-            });
-          }
+          const resolved = resolveCryptoPrice(symbol, tickerList);
+          const dynamicName = nameMap.get(symbol) || '';
+
+          priceMap.set(symbol, {
+            symbol,
+            name: dynamicName,
+            price: resolved.price,
+            currency: resolved.currency,
+          });
         }
 
         return priceMap;
       }),
       catchError(() => {
         const fallbackMap = new Map<string, PriceData>();
-        for (const s of symbols) {
-          const config = symbolConfigMap.get(s);
-          if (config) {
-            fallbackMap.set(s, {
-              symbol: s,
-              name: config.name,
-              price: 0,
-              currency: config.currency,
-            });
-          }
+        for (const symbol of symbols) {
+          fallbackMap.set(symbol, {
+            symbol,
+            name: '',
+            price: 0,
+            currency: 'USD',
+          });
         }
         return of(fallbackMap);
       }),

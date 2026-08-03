@@ -2,7 +2,7 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { DecimalPipe, CurrencyPipe, DatePipe, NgTemplateOutlet } from '@angular/common';
 import { ShareLotService, SheetResult } from './services/share-lot.service';
 import { PriceService, PriceData } from './services/price.service';
-import { SymbolSummary, ClosedSymbolSummary } from './models/transaction.model';
+import { SymbolSummary, ClosedSymbolSummary, ShareLot } from './models/transaction.model';
 import { AssetTab, ASSET_TABS } from './config/sheet.config';
 import {
   getQuantityFormat,
@@ -137,7 +137,8 @@ export class App {
       const pd = priceMap.get(s.symbol);
       if (pd && pd.price > 0) {
         if (!this.hasRate() && s.currency !== this.displayCurrency()) continue;
-        total += this.cx(s.totalShares * pd.price, s.currency);
+        const holdingValInSummary = this.getHoldingValue(s);
+        total += this.cx(holdingValInSummary, s.currency);
       }
     }
     return total;
@@ -201,28 +202,36 @@ export class App {
 
   private sumConverted<T extends { currency: string }>(items: T[], valueGetter: (item: T) => number): number {
     return items.reduce((sum, s) => {
-      if (!this.hasRate() && s.currency !== this.displayCurrency()) return sum;
+      const normCurrency = s.currency === 'USDT' ? 'USD' : s.currency;
+      if (!this.hasRate() && normCurrency !== this.displayCurrency()) return sum;
       return sum + this.cx(valueGetter(s), s.currency);
     }, 0);
   }
 
-  /** Convert an amount from `fromCurrency` to the display currency */
-  cx(amount: number, fromCurrency: string): number {
-    const target = this.displayCurrency();
-    if (fromCurrency === target) return amount;
+  /** Convert an amount from `fromCurrency` to `toCurrency` using the exchange rate */
+  convertCurrency(amount: number, fromCurrency: string, toCurrency: string): number {
+    const normFrom = fromCurrency === 'USDT' ? 'USD' : fromCurrency;
+    const normTo = toCurrency === 'USDT' ? 'USD' : toCurrency;
+
+    if (normFrom === normTo) return amount;
 
     const rate = this.exchangeRate();
     if (rate <= 0) return amount;
 
-    if (fromCurrency === 'USD' && target === 'THB') return amount * rate;
-    if (fromCurrency === 'THB' && target === 'USD') return amount / rate;
+    if (normFrom === 'USD' && normTo === 'THB') return amount * rate;
+    if (normFrom === 'THB' && normTo === 'USD') return amount / rate;
 
     return amount;
   }
 
+  /** Convert an amount from `fromCurrency` to the display currency */
+  cx(amount: number, fromCurrency: string): number {
+    return this.convertCurrency(amount, fromCurrency, this.displayCurrency());
+  }
+
   dc(originalCurrency?: string): string {
     if (!this.hasRate() && originalCurrency) {
-      return originalCurrency;
+      return originalCurrency === 'USDT' ? 'USD' : originalCurrency;
     }
     return this.displayCurrency();
   }
@@ -476,6 +485,19 @@ export class App {
     return this.prices().get(symbol)?.price ?? 0;
   }
 
+  getCurrentPriceInSummaryCurrency(summary: SymbolSummary): number {
+    const pd = this.prices().get(summary.symbol);
+    if (!pd || pd.price <= 0) return 0;
+    return this.convertCurrency(pd.price, pd.currency, summary.currency);
+  }
+
+  getCurrentPriceConverted(summary: SymbolSummary): number {
+    const pd = this.prices().get(summary.symbol);
+    if (!pd || pd.price <= 0) return 0;
+    const target = this.dc(summary.currency);
+    return this.convertCurrency(pd.price, pd.currency, target);
+  }
+
   getDisplaySymbol(symbol: string): string {
     const priceData = this.prices().get(symbol);
     if (priceData?.symbol && priceData.symbol !== symbol) {
@@ -490,8 +512,8 @@ export class App {
   }
 
   getHoldingValue(summary: SymbolSummary): number {
-    const price = this.getCurrentPrice(summary.symbol);
-    return summary.totalShares * price;
+    const priceInSummary = this.getCurrentPriceInSummaryCurrency(summary);
+    return summary.totalShares * priceInSummary;
   }
 
   getUnrealizedPL(summary: SymbolSummary): number {
@@ -501,6 +523,20 @@ export class App {
   getUnrealizedPLPercent(summary: SymbolSummary): number {
     if (summary.totalCost === 0) return 0;
     return (this.getUnrealizedPL(summary) / summary.totalCost) * 100;
+  }
+
+  getLotHoldingValue(lot: ShareLot, summary: SymbolSummary): number {
+    const priceInSummary = this.getCurrentPriceInSummaryCurrency(summary);
+    return lot.quantity * priceInSummary;
+  }
+
+  getLotUnrealizedPL(lot: ShareLot, summary: SymbolSummary): number {
+    return this.getLotHoldingValue(lot, summary) - lot.totalCost;
+  }
+
+  getLotUnrealizedPLPercent(lot: ShareLot, summary: SymbolSummary): number {
+    if (lot.totalCost === 0) return 0;
+    return (this.getLotUnrealizedPL(lot, summary) / lot.totalCost) * 100;
   }
 
   hasPriceData(symbol: string): boolean {
