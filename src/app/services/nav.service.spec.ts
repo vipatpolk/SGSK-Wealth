@@ -115,4 +115,43 @@ describe('NavService', () => {
     const data = result.get('SCBGOLDH-SSF');
     expect(data.price).toBe(15.3633);
   });
+
+  it('should strip .BKFUND suffix before requesting SEC API and map results back to original symbol', async () => {
+    let result: any;
+    service.fetchFundNAVs(['ES-GTECHSSF.BKFUND']).subscribe((res) => {
+      result = res;
+    });
+
+    // 1. fund_class_name search should request ES-GTECHSSF (without .BKFUND)
+    const req1 = httpMock.expectOne((req) => req.url.includes('fund_class_name=ES-GTECHSSF') && !req.url.includes('.BKFUND'));
+    expect(req1.request.method).toBe('GET');
+    req1.flush({
+      items: [
+        {
+          proj_id: 'M0518_2563',
+          proj_abbr_name: 'ES-GTECH',
+          proj_name_en: 'Eastspring Global Technology SSF',
+          fund_class_name: 'ES-GTECHSSF',
+        },
+      ],
+    });
+
+    // 2. NavService fetches daily NAV for M0518_2563
+    const req2 = httpMock.expectOne((req) => req.url.includes('proj_id=M0518_2563'));
+    expect(req2.request.method).toBe('GET');
+    req2.flush({
+      items: [
+        { proj_id: 'M0518_2563', fund_class_name: 'ES-GTECHSSF', nav_date: '2026-07-31', last_val: 18.2541 },
+      ],
+    });
+
+    await new Promise((r) => setTimeout(r, 350));
+
+    expect(result).toBeDefined();
+    expect(result.has('ES-GTECHSSF.BKFUND')).toBe(true);
+    const data = result.get('ES-GTECHSSF.BKFUND');
+    expect(data.price).toBe(18.2541);
+    expect(data.name).toBe('Eastspring Global Technology SSF');
+    expect(data.currency).toBe('THB');
+  });
 });

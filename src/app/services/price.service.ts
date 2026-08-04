@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin, of, map, catchError } from 'rxjs';
 import { NavService } from './nav.service';
-import { toYahooSymbol, displaySymbol } from '../utils/format.utils';
+import { toYahooSymbol } from '../utils/format.utils';
 
 export interface PriceData {
   symbol: string;
@@ -17,56 +17,64 @@ interface BinanceTicker {
 }
 
 /**
- * Dynamically resolves the market price and native quote currency from Binance TH tickers.
- * Matches available pairs (e.g. THB, USDT, USDC, FDUSD) dynamically without any hardcoded coin dictionary.
+ * Dynamically resolves the standard currency for any quote asset string without hardcoded tables.
+ * e.g. 'THB' -> 'THB', USD-family ('USDT', 'USDC', 'FDUSD', 'BUSD', 'TUSD', 'USD', 'DAI', 'RLUSD') -> 'USD',
+ * and any other fiat or crypto quote asset directly to its ticker (e.g. 'EUR', 'GBP', 'BTC').
+ */
+function resolveQuoteCurrency(quote: string): string {
+  if (!quote) return '';
+  const q = quote.toUpperCase();
+  if (q === 'THB') return 'THB';
+  if (q.includes('USD') || q === 'DAI') return 'USD';
+  return q;
+}
+
+/**
+ * Dynamically resolves the market price and quote currency from Binance TH tickers.
+ * Matches any pair dynamically without any hardcoded coin dictionary or static quote lists.
  */
 function resolveCryptoPrice(
   rawSymbol: string,
   tickers: BinanceTicker[]
 ): { price: number; currency: string } {
   const base = rawSymbol.toUpperCase().replace(/\.CRYPTO$/, '').trim();
-  if (!base) return { price: 0, currency: 'USD' };
+  if (!base || !Array.isArray(tickers) || tickers.length === 0) {
+    return { price: 0, currency: '' };
+  }
 
-  // Common quote preferences and their standard currency representation
-  const quotePreferences: Array<{ quote: string; currency: string }> = [
-    { quote: 'THB', currency: 'THB' },
-    { quote: 'USDT', currency: 'USD' },
-    { quote: 'USDC', currency: 'USD' },
-    { quote: 'FDUSD', currency: 'USD' },
-    { quote: 'BUSD', currency: 'USD' },
-  ];
+  // Find all tickers matching this base asset dynamically
+  const matches: Array<{ ticker: BinanceTicker; quote: string; currency: string; price: number }> = [];
 
-  // 1. Try matching preferred quote pairs (e.g. BTCTHB, PAXGUSDT, ADAUSDT)
-  for (const pref of quotePreferences) {
-    const targetSymbol = `${base}${pref.quote}`;
-    const match = tickers.find((t) => t.symbol.toUpperCase() === targetSymbol);
-    if (match && match.price) {
-      return { price: parseFloat(match.price) || 0, currency: pref.currency };
+  for (const t of tickers) {
+    if (!t.symbol || !t.price) continue;
+    const sym = t.symbol.toUpperCase();
+    const price = parseFloat(t.price);
+    if (isNaN(price) || price <= 0) continue;
+
+    if (sym === base) {
+      // Exact match (e.g. if the symbol itself is already a pair like USDTTHB)
+      const quote = sym.endsWith('THB') ? 'THB' : (sym.includes('USD') ? 'USD' : '');
+      matches.push({ ticker: t, quote, currency: quote ? resolveQuoteCurrency(quote) : '', price });
+    } else if (sym.startsWith(base)) {
+      const quote = sym.substring(base.length);
+      matches.push({ ticker: t, quote, currency: resolveQuoteCurrency(quote), price });
     }
   }
 
-  // 2. Direct exact match (e.g. if the symbol itself is a pair like USDTTHB)
-  const exactMatch = tickers.find((t) => t.symbol.toUpperCase() === base);
-  if (exactMatch && exactMatch.price) {
-    const suffix = quotePreferences.find((p) => exactMatch.symbol.toUpperCase().endsWith(p.quote));
-    return {
-      price: parseFloat(exactMatch.price) || 0,
-      currency: suffix ? suffix.currency : 'USD',
-    };
+  if (matches.length === 0) {
+    return { price: 0, currency: '' };
   }
 
-  // 3. Dynamic prefix match (for any other pair suffixes)
-  const prefixMatch = tickers.find((t) => t.symbol.toUpperCase().startsWith(base));
-  if (prefixMatch && prefixMatch.price) {
-    const quote = prefixMatch.symbol.toUpperCase().substring(base.length);
-    const suffix = quotePreferences.find((p) => quote.endsWith(p.quote));
-    return {
-      price: parseFloat(prefixMatch.price) || 0,
-      currency: suffix ? suffix.currency : (quote === 'THB' ? 'THB' : 'USD'),
-    };
-  }
+  // Dynamically select match: prefer direct THB pricing (local exchange primary fiat), then USD-family, then any pair
+  const bestMatch =
+    matches.find((m) => m.currency === 'THB') ||
+    matches.find((m) => m.currency === 'USD') ||
+    matches[0];
 
-  return { price: 0, currency: 'USD' };
+  return {
+    price: bestMatch.price,
+    currency: bestMatch.currency || 'USD',
+  };
 }
 
 @Injectable({
@@ -77,18 +85,27 @@ export class PriceService {
   private readonly navService = inject(NavService);
 
   /** Fetch prices for all symbols AND the USD/THB exchange rate in parallel */
-  fetchPricesAndRate(summaries: { symbol: string; assetType?: string }[]): Observable<{ prices: Map<string, PriceData>; rate: number }> {
+  fetchPricesAndRate(
+    summaries: { symbol: string; assetType?: string }[],
+  ): Observable<{ prices: Map<string, PriceData>; rate: number }> {
     return forkJoin({
       prices: this.fetchPrices(summaries),
       rate: this.fetchExchangeRate(),
     });
   }
 
-  /** Fetch the live USD→THB exchange rate from Yahoo Finance */
-  fetchExchangeRate(): Observable<number> {
-    const url = `/api/finance/v8/finance/chart/${encodeURIComponent('USDTHB=X')}?range=1d&interval=1d&includePrePost=false`;
+  /** Fetch the live exchange rate dynamically from Yahoo Finance */
+  fetchExchangeRate(fromCurrency: string = 'USD', toCurrency: string = 'THB'): Observable<number> {
+    if (fromCurrency === toCurrency) {
+      return of(1);
+    }
+    const pair = `${fromCurrency}${toCurrency}=X`;
+    const url = `/api/finance/v8/finance/chart/${encodeURIComponent(pair)}?range=1d&interval=1d&includePrePost=false`;
     return this.http.get<any>(url).pipe(
-      map((res) => res?.chart?.result?.[0]?.meta?.regularMarketPrice ?? 0),
+      map((res) => {
+        const meta = res?.chart?.result?.[0]?.meta;
+        return meta?.regularMarketPrice ?? meta?.chartPreviousClose ?? meta?.previousClose ?? 0;
+      }),
       catchError(() => of(0)),
     );
   }
@@ -97,14 +114,14 @@ export class PriceService {
     if (summaries.length === 0) return of(new Map());
 
     const isCrypto = (s: { symbol: string; assetType?: string }) =>
-      s.assetType === 'crypto' || s.symbol.endsWith('.CRYPTO');
+      s.assetType === 'crypto' || s.symbol.toUpperCase().endsWith('.CRYPTO');
 
     const isFund = (s: { symbol: string; assetType?: string }) =>
-      s.assetType === 'mutual-fund';
+      s.assetType === 'mutual-fund' || s.symbol.toUpperCase().endsWith('.BKFUND');
 
-    const stockSymbols = [...new Set(summaries.filter(s => !isFund(s) && !isCrypto(s)).map(s => s.symbol))];
-    const cryptoSymbols = [...new Set(summaries.filter(s => isCrypto(s)).map(s => s.symbol))];
-    const fundSymbols = [...new Set(summaries.filter(s => isFund(s)).map(s => s.symbol))];
+    const stockSymbols = [...new Set(summaries.filter((s) => !isFund(s) && !isCrypto(s)).map((s) => s.symbol))];
+    const cryptoSymbols = [...new Set(summaries.filter((s) => isCrypto(s)).map((s) => s.symbol))];
+    const fundSymbols = [...new Set(summaries.filter((s) => isFund(s)).map((s) => s.symbol))];
 
     const requests: Observable<Map<string, PriceData>>[] = [];
 
@@ -133,7 +150,7 @@ export class PriceService {
     );
   }
 
-  /** Fetch stock prices from Yahoo Finance via proxy */
+  /** Fetch stock prices from Yahoo Finance dynamically via proxy */
   private fetchStockPrices(symbols: string[]): Observable<Map<string, PriceData>> {
     const requests = symbols.map((symbol) => {
       const yahooSymbol = toYahooSymbol(symbol);
@@ -142,11 +159,12 @@ export class PriceService {
       return this.http.get<any>(url).pipe(
         map((res) => {
           const meta = res?.chart?.result?.[0]?.meta;
+          const price = meta?.regularMarketPrice ?? meta?.chartPreviousClose ?? meta?.previousClose ?? 0;
           return {
             symbol,
             name: meta?.longName || meta?.shortName || '',
-            price: meta?.regularMarketPrice ?? 0,
-            currency: meta?.currency ?? 'USD',
+            price,
+            currency: meta?.currency || '',
           } as PriceData;
         }),
         catchError(() => of({ symbol, name: '', price: 0, currency: '' } as PriceData)),
@@ -222,7 +240,7 @@ export class PriceService {
             symbol,
             name: '',
             price: 0,
-            currency: 'USD',
+            currency: '',
           });
         }
         return of(fallbackMap);

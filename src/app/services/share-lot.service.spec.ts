@@ -63,12 +63,17 @@ TSLA,2024-02-10,-5,250,USD
     expect(closedSummary.lots.length).toBe(1);
   });
 
-  it('should parse Type column when provided in Closed Position CSV', async () => {
-    const mockCsv = `Symbol,Date,Quantity,Price,Price Currency,Type
-3BBIF.BK,2025-06-19,45.0000000,6.6000,THB,Thai Stock
-3BBIF.BK,2025-11-03,-45.0000000,6.7400,THB,Thai Stock
-QQQI,2025-09-18,1.4391767,54.4200,USD,U.S. Stock
-QQQI,2025-10-31,-1.4391767,55.5317,USD,U.S. Stock
+  it('should dynamically identify asset types from symbol suffixes when Type column is absent in Closed Position CSV', async () => {
+    // CSV without Type column (5 columns: Symbol, Date, Quantity, Price, Currency)
+    const mockCsv = `Symbol,Date,Quantity,Price,Price Currency
+3BBIF.BK,2025-06-19,45.0000000,6.6000,THB
+3BBIF.BK,2025-11-03,-45.0000000,6.7400,THB
+QQQI,2025-09-18,1.4391767,54.4200,USD
+QQQI,2025-10-31,-1.4391767,55.5317,USD
+ES-GTECHSSF.BKFUND,2025-01-10,100.0,10.5000,THB
+ES-GTECHSSF.BKFUND,2025-05-15,-100.0,11.2000,THB
+BTC.CRYPTO,2025-02-01,0.01,2000000,THB
+BTC.CRYPTO,2025-06-01,-0.01,2200000,THB
 `;
 
     const promise = firstValueFrom(service.fetchSheet('273600915'));
@@ -77,7 +82,7 @@ QQQI,2025-10-31,-1.4391767,55.5317,USD,U.S. Stock
 
     const result = await promise;
     expect(result.error).toBeNull();
-    expect(result.closedSummaries.length).toBe(2);
+    expect(result.closedSummaries.length).toBe(4);
 
     const thaiStock = result.closedSummaries.find((s) => s.symbol === '3BBIF.BK');
     expect(thaiStock).toBeDefined();
@@ -86,6 +91,14 @@ QQQI,2025-10-31,-1.4391767,55.5317,USD,U.S. Stock
     const usStock = result.closedSummaries.find((s) => s.symbol === 'QQQI');
     expect(usStock).toBeDefined();
     expect(usStock?.assetType).toBe('us-stock');
+
+    const fund = result.closedSummaries.find((s) => s.symbol === 'ES-GTECHSSF.BKFUND');
+    expect(fund).toBeDefined();
+    expect(fund?.assetType).toBe('mutual-fund');
+
+    const crypto = result.closedSummaries.find((s) => s.symbol === 'BTC.CRYPTO');
+    expect(crypto).toBeDefined();
+    expect(crypto?.assetType).toBe('crypto');
   });
 
   it('should handle network errors gracefully', async () => {

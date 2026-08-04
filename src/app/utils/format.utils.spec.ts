@@ -22,6 +22,7 @@ describe('FormatUtils', () => {
     it('should format stock quantities with up to 7 decimals', () => {
       expect(getQuantityFormat('AAPL')).toBe('1.0-7');
       expect(getQuantityFormat('PTT.BK')).toBe('1.0-7');
+      expect(getQuantityFormat('ES-GTECHSSF.BKFUND')).toBe('1.0-7');
     });
   });
 
@@ -41,6 +42,12 @@ describe('FormatUtils', () => {
       expect(toYahooSymbol('PTT.BK')).toBe('PTT.BK');
       expect(toYahooSymbol('3BBIF.BK')).toBe('3BBIF.BK');
       expect(toYahooSymbol('CPF.BK')).toBe('CPF.BK');
+    });
+
+    it('should strip .BKFUND and .CRYPTO suffixes', () => {
+      expect(toYahooSymbol('ES-GTECHSSF.BKFUND')).toBe('ES-GTECHSSF');
+      expect(toYahooSymbol('SCBSFF.BKFUND')).toBe('SCBSFF');
+      expect(toYahooSymbol('BTC.CRYPTO')).toBe('BTC');
     });
 
     it('should preserve regular stock symbols', () => {
@@ -66,6 +73,13 @@ describe('FormatUtils', () => {
       expect(displaySymbol('BTC.CRYPTO')).toBe('BTC');
     });
 
+    it('should strip .BKFUND suffix', () => {
+      expect(displaySymbol('ES-GTECHSSF.BKFUND')).toBe('ES-GTECHSSF');
+      expect(displaySymbol('SCBSFF.BKFUND')).toBe('SCBSFF');
+      expect(displaySymbol('SCBGOLDH-SSF.BKFUND')).toBe('SCBGOLDH-SSF');
+      expect(displaySymbol('UGSTAR-SSF-D.BKFUND')).toBe('UGSTAR-SSF-D');
+    });
+
     it('should leave regular symbols intact', () => {
       expect(displaySymbol('AAPL')).toBe('AAPL');
       expect(displaySymbol('VOO')).toBe('VOO');
@@ -81,23 +95,32 @@ describe('FormatUtils', () => {
       expect(getPriceFormat('ADA', 'crypto')).toBe('1.2-2');
     });
 
-    it('should return 1.2-4 for stocks', () => {
+    it('should return 1.2-4 for stocks and funds', () => {
       expect(getPriceFormat('AAPL')).toBe('1.2-4');
+      expect(getPriceFormat('ES-GTECHSSF.BKFUND')).toBe('1.2-4');
     });
   });
 
   describe('getSymbolColor', () => {
-    it('should return configured colors for known symbols', () => {
-      expect(getSymbolColor('AAPL')).toBe('#94a3b8');
-      expect(getSymbolColor('BTC.CRYPTO')).toBe('#f7931a');
-      expect(getSymbolColor('ETH')).toBe('#627eea');
-      expect(getSymbolColor('ADA')).toBe('#0033ad');
-      expect(getSymbolColor('BNB')).toBe('#f3ba2f');
-      expect(getSymbolColor('DOT')).toBe('#e6007a');
+    it('should return a valid 6-digit hex color for any symbol', () => {
+      const hexPattern = /^#[0-9a-f]{6}$/i;
+      expect(getSymbolColor('AAPL')).toMatch(hexPattern);
+      expect(getSymbolColor('BTC.CRYPTO')).toMatch(hexPattern);
+      expect(getSymbolColor('PTT.BK')).toMatch(hexPattern);
+      expect(getSymbolColor('ES-GTECHSSF.BKFUND')).toMatch(hexPattern);
+      expect(getSymbolColor('UNKNOWN_SYM_12345')).toMatch(hexPattern);
     });
 
-    it('should fallback to default color for unknown symbols', () => {
-      expect(getSymbolColor('UNKNOWN_SYM')).toBe('#6366f1');
+    it('should be deterministic and consistent for the same symbol regardless of suffix or casing', () => {
+      expect(getSymbolColor('BTC.CRYPTO')).toBe(getSymbolColor('BTC'));
+      expect(getSymbolColor('btc.crypto')).toBe(getSymbolColor('BTC'));
+      expect(getSymbolColor('PTT.BK')).toBe(getSymbolColor('PTT'));
+      expect(getSymbolColor('ES-GTECHSSF.BKFUND')).toBe(getSymbolColor('ES-GTECHSSF'));
+      expect(getSymbolColor('AAPL')).toBe(getSymbolColor('aapl'));
+    });
+
+    it('should fallback gracefully for empty symbols', () => {
+      expect(getSymbolColor('')).toBe('#6366f1');
     });
   });
 
@@ -111,6 +134,7 @@ describe('FormatUtils', () => {
     it('should preserve formatted raw name provided from API', () => {
       expect(getSymbolName('AAPL', 'Apple Inc.')).toBe('Apple Inc.');
       expect(getSymbolName('SCBSFF', 'SCB Short Term Fixed Income Fund')).toBe('SCB Short Term Fixed Income Fund');
+      expect(getSymbolName('SCBSFF.BKFUND', 'SCB Short Term Fixed Income Fund')).toBe('SCB Short Term Fixed Income Fund');
       expect(getSymbolName('BTC', 'Bitcoin')).toBe('Bitcoin');
     });
 
@@ -145,6 +169,8 @@ describe('FormatUtils', () => {
       expect(getAssetType(undefined, 'AAPL')).toBe('us-stock');
       expect(getAssetType(undefined, 'CPALL.BK')).toBe('thai-stock');
       expect(getAssetType(undefined, 'ETH.CRYPTO')).toBe('crypto');
+      expect(getAssetType(undefined, 'ES-GTECHSSF.BKFUND')).toBe('mutual-fund');
+      expect(getAssetType(undefined, 'SCBSFF.BKFUND')).toBe('mutual-fund');
     });
 
     it('should correctly identify asset types when assetType is provided from data source', () => {
@@ -155,6 +181,7 @@ describe('FormatUtils', () => {
       expect(getAssetType('mutual-fund', 'ES-GTECHSSF')).toBe('mutual-fund');
       expect(getAssetType('Mutual Fund', 'UGSTAR-SSF-D')).toBe('mutual-fund');
       expect(getAssetType('fund', 'SCBSFF')).toBe('mutual-fund');
+      expect(getAssetType('Mutual Fund', 'SCBSFF.BKFUND')).toBe('mutual-fund');
     });
 
     it('should return appropriate labels for display', () => {
@@ -163,6 +190,7 @@ describe('FormatUtils', () => {
       expect(getAssetTypeLabel('crypto')).toBe('Cryptocurrency');
       expect(getAssetTypeLabel('mutual-fund')).toBe('Mutual Fund');
       expect(getAssetTypeLabel(undefined, 'BTC.CRYPTO')).toBe('Cryptocurrency');
+      expect(getAssetTypeLabel(undefined, 'ES-GTECHSSF.BKFUND')).toBe('Mutual Fund');
       expect(getAssetTypeLabel('crypto', 'ADA')).toBe('Cryptocurrency');
     });
 
@@ -171,6 +199,7 @@ describe('FormatUtils', () => {
       expect(getAssetTypeClass('thai-stock')).toBe('asset-type-tag asset-type-thai-stock');
       expect(getAssetTypeClass('crypto')).toBe('asset-type-tag asset-type-crypto');
       expect(getAssetTypeClass('mutual-fund')).toBe('asset-type-tag asset-type-mutual-fund');
+      expect(getAssetTypeClass(undefined, 'ES-GTECHSSF.BKFUND')).toBe('asset-type-tag asset-type-mutual-fund');
     });
 
     it('should normalize raw type strings from Google Sheets', () => {

@@ -106,11 +106,11 @@ describe('PriceService', () => {
     expect(pttData?.price).toBe(32.5);
   });
 
-  it('should fetch live exchange rate for USDTHB=X', async () => {
-    const promise = firstValueFrom(service.fetchExchangeRate());
+  it('should fetch live exchange rate dynamically for USDTHB=X and custom pairs', async () => {
+    const promise1 = firstValueFrom(service.fetchExchangeRate());
 
-    const req = httpMock.expectOne((r) => r.url.includes('/api/finance/v8/finance/chart/USDTHB%3DX'));
-    req.flush({
+    const req1 = httpMock.expectOne((r) => r.url.includes('/api/finance/v8/finance/chart/USDTHB%3DX'));
+    req1.flush({
       chart: {
         result: [
           {
@@ -123,8 +123,12 @@ describe('PriceService', () => {
       },
     });
 
-    const rate = await promise;
-    expect(rate).toBe(34.25);
+    const rate1 = await promise1;
+    expect(rate1).toBe(34.25);
+
+    // Identical currencies return 1 immediately without network request
+    const sameRate = await firstValueFrom(service.fetchExchangeRate('USD', 'USD'));
+    expect(sameRate).toBe(1);
   });
 
   it('should fetch cryptocurrency prices with THB and USDT pairs and dynamic names correctly', async () => {
@@ -186,6 +190,7 @@ describe('PriceService', () => {
       { symbol: 'SUI.CRYPTO', assetType: 'crypto' },
       { symbol: 'SOL.CRYPTO', assetType: 'crypto' },
       { symbol: 'USDC_TOKEN.CRYPTO', assetType: 'crypto' },
+      { symbol: 'NEWCOIN.CRYPTO', assetType: 'crypto' },
     ];
 
     const promise = firstValueFrom(service.fetchPrices(summaries));
@@ -195,6 +200,7 @@ describe('PriceService', () => {
       { symbol: 'SUIUSDT', price: '3.45' },
       { symbol: 'SOLTHB', price: '4500.00' },
       { symbol: 'USDC_TOKENUSDC', price: '1.00' },
+      { symbol: 'NEWCOINEUR', price: '12.34' },
     ]);
 
     const suiNameReq = httpMock.expectOne((r) => r.url.includes('/api/finance/v8/finance/chart/SUI-USD'));
@@ -206,8 +212,11 @@ describe('PriceService', () => {
     const usdcNameReq = httpMock.expectOne((r) => r.url.includes('/api/finance/v8/finance/chart/USDC_TOKEN-USD'));
     usdcNameReq.flush({ chart: { result: [{ meta: { longName: 'USD Coin USD' } }] } });
 
+    const newcoinNameReq = httpMock.expectOne((r) => r.url.includes('/api/finance/v8/finance/chart/NEWCOIN-USD'));
+    newcoinNameReq.flush({ chart: { result: [{ meta: { longName: 'New Coin Project' } }] } });
+
     const prices = await promise;
-    expect(prices.size).toBe(3);
+    expect(prices.size).toBe(4);
 
     const sui = prices.get('SUI.CRYPTO');
     expect(sui?.price).toBe(3.45);
@@ -223,5 +232,10 @@ describe('PriceService', () => {
     expect(usdcToken?.price).toBe(1);
     expect(usdcToken?.currency).toBe('USD');
     expect(usdcToken?.name).toBe('USD Coin USD');
+
+    const newCoin = prices.get('NEWCOIN.CRYPTO');
+    expect(newCoin?.price).toBe(12.34);
+    expect(newCoin?.currency).toBe('EUR');
+    expect(newCoin?.name).toBe('New Coin Project');
   });
 });

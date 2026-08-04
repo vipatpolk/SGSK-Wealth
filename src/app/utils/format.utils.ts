@@ -1,14 +1,17 @@
 export function getQuantityFormat(symbol: string, assetType?: string): string {
-  return symbol.endsWith('.CRYPTO') || assetType === 'crypto' ? '1.0-10' : '1.0-7';
+  return symbol.toUpperCase().endsWith('.CRYPTO') || assetType === 'crypto' ? '1.0-10' : '1.0-7';
 }
 
 export function displaySymbol(symbol: string): string {
-  return symbol.replace(/\.(BK|CRYPTO)$/, '');
+  return symbol.replace(/\.(BKFUND|BK|CRYPTO)$/i, '');
 }
 
 export function toYahooSymbol(symbol: string): string {
   if (!symbol) return '';
   const trimmed = symbol.trim();
+  if (trimmed.toUpperCase().endsWith('.BKFUND')) {
+    return trimmed.replace(/\.BKFUND$/i, '');
+  }
   if (trimmed.toUpperCase().endsWith('.BK')) {
     return trimmed;
   }
@@ -19,53 +22,50 @@ export function toYahooSymbol(symbol: string): string {
 }
 
 export function getPriceFormat(symbol: string, assetType?: string): string {
-  return symbol.endsWith('.CRYPTO') || assetType === 'crypto' ? '1.2-2' : '1.2-4';
+  return symbol.toUpperCase().endsWith('.CRYPTO') || assetType === 'crypto' ? '1.2-2' : '1.2-4';
 }
 
-export function getSymbolColor(symbol: string): string {
-  const colors: Record<string, string> = {
-    // U.S. Stocks & ETFs
-    VOO: '#6366f1', GOOGL: '#10b981', NVDA: '#84cc16', JEPI: '#f59e0b',
-    SCHD: '#06b6d4', VXUS: '#8b5cf6', O: '#ec4899', TSM: '#14b8a6',
-    AVGO: '#f43f5e', LLY: '#a855f7', COST: '#0ea5e9', KO: '#ef4444',
-    MU: '#22c55e', GPIQ: '#eab308', BNDW: '#64748b', ASML: '#0284c7',
-    AAPL: '#94a3b8', AMZN: '#f97316', MSFT: '#0284c7', TSLA: '#e11d48',
-    AMD: '#ef4444', INTC: '#0284c7', SBUX: '#059669', JNJ: '#dc2626',
-    'BRK.B': '#475569', 'BRK-B': '#475569', 'BRK.A': '#475569', 'BRK-A': '#475569',
-    'BF.B': '#78716c', 'BF-B': '#78716c',
-    V: '#2563eb', GLD: '#d97706', TLT: '#7c3aed',
-    BND: '#4f46e5', QQQM: '#9333ea', QQQI: '#c026d3', SPYI: '#db2777',
-    JEPQ: '#ea580c', SMH: '#059669', SGOV: '#16a34a', VIG: '#0d9488',
-    VYM: '#0284c7', PFFD: '#4f46e5',
-    // Thai Stocks
-    'PTT.BK': '#3b82f6', 'HMPRO.BK': '#f97316', 'WHA.BK': '#14b8a6',
-    'TRUE.BK': '#ef4444', 'GULF.BK': '#6366f1', 'SCB.BK': '#8b5cf6',
-    'KTB.BK': '#06b6d4', 'ICHI.BK': '#ec4899', 'KKP.BK': '#10b981',
-    '3BBIF.BK': '#f97316', 'TISCO.BK': '#0284c7', 'TTB.BK': '#2563eb',
-    'SC.BK': '#0d9488', 'DIF.BK': '#dc2626', 'TTW.BK': '#059669',
-    'LH.BK': '#f59e0b', 'CPF.BK': '#ef4444', 'CPAXT.BK': '#10b981',
-    // Crypto
-    BTC: '#f7931a', 'BTC.CRYPTO': '#f7931a',
-    ETH: '#627eea', 'ETH.CRYPTO': '#627eea',
-    BNB: '#f3ba2f', 'BNB.CRYPTO': '#f3ba2f',
-    ADA: '#0033ad', 'ADA.CRYPTO': '#0033ad',
-    DOT: '#e6007a', 'DOT.CRYPTO': '#e6007a',
-    PAXG: '#e6b800', 'PAXG.CRYPTO': '#e6b800',
-    SOL: '#14f195', 'SOL.CRYPTO': '#14f195',
-    XRP: '#23292f', 'XRP.CRYPTO': '#23292f',
-    DOGE: '#c2a633', 'DOGE.CRYPTO': '#c2a633',
-    USDT: '#26a17b', 'USDT.CRYPTO': '#26a17b',
-    // Mutual Funds
-    'ES-GTECHSSF': '#0891b2', 'SCBGOLDH-SSF': '#d97706', 'UGSTAR-SSF-D': '#7c3aed',
+/**
+ * Helper to convert HSL components to standard 6-digit hex string (#rrggbb).
+ */
+function hslToHex(h: number, s: number, l: number): string {
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color)
+      .toString(16)
+      .padStart(2, '0');
   };
-  return colors[symbol] || colors[symbol.toUpperCase()] || '#6366f1';
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+/**
+ * Dynamically computes a consistent, vibrant brand color for any symbol.
+ * Uses a deterministic string hash mapped to the HSL color space without any hardcoded dictionary.
+ */
+export function getSymbolColor(symbol: string): string {
+  const clean = displaySymbol(symbol || '').toUpperCase().trim();
+  if (!clean) return '#6366f1';
+
+  let hash = 0;
+  for (let i = 0; i < clean.length; i++) {
+    hash = clean.charCodeAt(i) + ((hash << 5) - hash);
+    hash = hash & hash;
+  }
+
+  const hue = Math.abs(hash) % 360;
+  const sat = 0.65 + (Math.abs(hash >> 3) % 20) / 100;
+  const light = 0.45 + (Math.abs(hash >> 7) % 10) / 100;
+
+  return hslToHex(hue, sat, light);
 }
 
 function toProperCase(text: string): string {
   return text
     .split(' ')
-    .filter(word => word.length > 0)
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .filter((word) => word.length > 0)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
 }
 
@@ -75,15 +75,15 @@ export function getSymbolName(symbol: string, rawName: string = ''): string {
   let name = rawName.trim();
   if (!name) return '';
 
-  if (symbol.endsWith('.BK')) {
-    const prefix = symbol.replace('.BK', '').toUpperCase() + '_';
+  if (symbol.toUpperCase().endsWith('.BK')) {
+    const prefix = symbol.replace(/\.BK$/i, '').toUpperCase() + '_';
     if (name.toUpperCase().startsWith(prefix)) {
       name = name.substring(prefix.length);
     }
   }
 
   // Strip trailing currency / pair suffixes (e.g. "Bitcoin USD" -> "Bitcoin", "PAX Gold USD" -> "PAX Gold")
-  if (symbol.endsWith('.CRYPTO') || /\s+(USD|USDT|THB|USDC)$/i.test(name)) {
+  if (symbol.toUpperCase().endsWith('.CRYPTO') || /\s+(USD|USDT|THB|USDC)$/i.test(name)) {
     name = name.replace(/\s+(USD|USDT|THB|USDC)$/i, '').trim();
   }
 
@@ -128,8 +128,10 @@ export function getAssetType(assetType?: string, symbol?: string): string {
     return assetType;
   }
   if (symbol) {
-    if (symbol.endsWith('.BK')) return 'thai-stock';
-    if (symbol.endsWith('.CRYPTO')) return 'crypto';
+    const sym = symbol.toUpperCase();
+    if (sym.endsWith('.BKFUND')) return 'mutual-fund';
+    if (sym.endsWith('.BK')) return 'thai-stock';
+    if (sym.endsWith('.CRYPTO')) return 'crypto';
   }
   return 'us-stock';
 }

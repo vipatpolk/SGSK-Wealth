@@ -131,7 +131,7 @@ describe('App', () => {
           lots: [],
         },
         {
-          symbol: 'tsp3-balancer',
+          symbol: 'ES-GTECHSSF.BKFUND',
           totalShares: 0,
           closedShares: 500,
           totalCost: 5000,
@@ -161,7 +161,7 @@ describe('App', () => {
     // Filter by mutual-fund
     app.setClosedAssetTypeFilter('mutual-fund');
     expect(app.filteredClosedSummaries().length).toBe(1);
-    expect(app.filteredClosedSummaries()[0].symbol).toBe('tsp3-balancer');
+    expect(app.filteredClosedSummaries()[0].symbol).toBe('ES-GTECHSSF.BKFUND');
 
     // Filter by us-stock
     app.setClosedAssetTypeFilter('us-stock');
@@ -258,6 +258,17 @@ describe('App', () => {
     expect(app.totalCostConverted()).toBeCloseTo(39.3939, 2);
     // Total P/L in USD: 20 / 33 = $0.606
     expect(app.totalPL()).toBeCloseTo(0.606, 2);
+  });
+
+  it('should format display symbols correctly stripping .BKFUND, .BK, and .CRYPTO suffixes', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    expect(app.getDisplaySymbol('ES-GTECHSSF.BKFUND')).toBe('ES-GTECHSSF');
+    expect(app.getDisplaySymbol('SCBSFF.BKFUND')).toBe('SCBSFF');
+    expect(app.getDisplaySymbol('PTT.BK')).toBe('PTT');
+    expect(app.getDisplaySymbol('BTC.CRYPTO')).toBe('BTC');
+    expect(app.getDisplaySymbol('AAPL')).toBe('AAPL');
   });
 });
 

@@ -168,7 +168,7 @@ export class ShareLotService {
 
       if (!symbol || isNaN(quantity) || isNaN(price)) continue;
 
-      const rawType = (typeIdx !== -1 && fields[typeIdx]) ? fields[typeIdx].trim() : (fields.length > 5 ? fields[5].trim() : '');
+      const rawType = typeIdx !== -1 && fields[typeIdx] ? fields[typeIdx].trim() : '';
       const parsedType = rawType ? normalizeAssetType(rawType) : null;
       const assetType = parsedType || getAssetType(tabAssetType, symbol);
 
