@@ -101,6 +101,65 @@ BTC.CRYPTO,2025-06-01,-0.01,2200000,THB
     expect(crypto?.assetType).toBe('crypto');
   });
 
+  it('should calculate complete transaction histories with running balance and realized P/L', async () => {
+    const mockCsv = `Symbol,Date,Quantity,Price,Currency
+AAPL,2024-01-01,10,150,USD
+AAPL,2024-02-01,10,160,USD
+AAPL,2024-03-01,-15,180,USD
+TSLA,2024-01-10,5,200,USD
+TSLA,2024-02-10,-5,250,USD
+`;
+
+    const promise = firstValueFrom(service.fetchSheet('1032243687'));
+    const req = httpMock.expectOne((r) => r.url.includes('gid=1032243687'));
+    req.flush(mockCsv);
+
+    const result = await promise;
+    expect(result.transactionSummaries).toBeDefined();
+    expect(result.transactionSummaries?.length).toBe(2);
+
+    const aapl = result.transactionSummaries?.find((s) => s.symbol === 'AAPL');
+    expect(aapl).toBeDefined();
+    expect(aapl?.totalTransactions).toBe(3);
+    expect(aapl?.buyCount).toBe(2);
+    expect(aapl?.sellCount).toBe(1);
+    expect(aapl?.totalBuyShares).toBe(20);
+    expect(aapl?.totalSellShares).toBe(15);
+    expect(aapl?.totalBuyAmount).toBe(3100); // 10*150 + 10*160 = 1500 + 1600 = 3100
+    expect(aapl?.totalSellAmount).toBe(2700); // 15*180 = 2700
+    expect(aapl?.netShares).toBe(5);
+    expect(aapl?.netInvested).toBe(800); // 5 remaining from 2nd lot @ 160
+    expect(aapl?.currentStatus).toBe('OPEN');
+    // Realized PL on selling 15 shares (10 @ 150 + 5 @ 160): Proceeds 2700 - Cost (1500 + 800 = 2300) = 400
+    expect(aapl?.realizedPL).toBe(400);
+
+    const tx1 = aapl?.transactions[0];
+    expect(tx1?.type).toBe('BUY');
+    expect(tx1?.quantity).toBe(10);
+    expect(tx1?.runningShares).toBe(10);
+    expect(tx1?.runningTotalCost).toBe(1500);
+
+    const tx2 = aapl?.transactions[1];
+    expect(tx2?.type).toBe('BUY');
+    expect(tx2?.quantity).toBe(10);
+    expect(tx2?.runningShares).toBe(20);
+    expect(tx2?.runningTotalCost).toBe(3100);
+
+    const tx3 = aapl?.transactions[2];
+    expect(tx3?.type).toBe('SELL');
+    expect(tx3?.quantity).toBe(15);
+    expect(tx3?.runningShares).toBe(5);
+    expect(tx3?.runningTotalCost).toBe(800);
+    expect(tx3?.realizedPL).toBe(400);
+
+    const tsla = result.transactionSummaries?.find((s) => s.symbol === 'TSLA');
+    expect(tsla).toBeDefined();
+    expect(tsla?.currentStatus).toBe('CLOSED');
+    expect(tsla?.netShares).toBe(0);
+    expect(tsla?.netInvested).toBe(0);
+    expect(tsla?.realizedPL).toBe(250);
+  });
+
   it('should handle network errors gracefully', async () => {
     const promise = firstValueFrom(service.fetchSheet('invalid-gid'));
     const req = httpMock.expectOne((r) => r.url.includes('gid=invalid-gid'));
@@ -112,3 +171,4 @@ BTC.CRYPTO,2025-06-01,-0.01,2200000,THB
     expect(result.closedSummaries.length).toBe(0);
   });
 });
+

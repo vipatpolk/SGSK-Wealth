@@ -1,0 +1,753 @@
+<div class="tx-history-container" id="tx-history-container">
+  <!-- Top Navigation & Controls Bar -->
+  <div class="tx-nav-bar">
+    <div class="tx-nav-left">
+      <button class="btn btn-secondary back-btn" (click)="backToHoldings.emit()" id="btn-back-to-holdings" type="button">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        <span>Holdings</span>
+      </button>
+
+      @if (currentSymbol()) {
+        <button class="btn btn-ghost all-feed-btn" (click)="clearSymbolSelection()" id="btn-all-symbols-feed" type="button" title="View all transactions across all symbols">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <span>All Symbols</span>
+        </button>
+      }
+
+      <!-- Symbol Selector Combobox -->
+      <div class="symbol-selector-wrapper">
+        <button
+          class="symbol-selector-btn"
+          (click)="toggleSymbolDropdown()"
+          id="symbol-selector-btn"
+          type="button"
+          [class.has-selection]="!!activeSummary()"
+        >
+          @if (activeSummary()) {
+            <span
+              class="symbol-badge symbol-badge-sm"
+              [style.background-color]="getSymbolColor(activeSummary()!.symbol) + '18'"
+              [style.color]="getSymbolColor(activeSummary()!.symbol)"
+              [style.border-color]="getSymbolColor(activeSummary()!.symbol) + '30'"
+            >
+              {{ getDisplaySymbol(activeSummary()!.symbol) }}
+            </span>
+            <span class="symbol-selector-text">
+              {{ getSymbolName(activeSummary()!.symbol) || getDisplaySymbol(activeSummary()!.symbol) }}
+            </span>
+            <span class="symbol-count-pill">{{ activeSummary()!.totalTransactions }} trades</span>
+          } @else {
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="selector-icon">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+            <span class="symbol-selector-text">All Symbols Feed</span>
+            <span class="symbol-count-pill">{{ totalTxCount() }} trades</span>
+          }
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chevron-arrow" [class.chevron-open]="isSymbolDropdownOpen()">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+
+        <!-- Dropdown Menu -->
+        @if (isSymbolDropdownOpen()) {
+          <div class="symbol-dropdown-menu" id="symbol-dropdown-menu">
+            <div class="dropdown-search-wrap">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon-sm">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input
+                type="text"
+                class="dropdown-search-input"
+                placeholder="Search symbol or name..."
+                [value]="symbolSearchQuery()"
+                (input)="symbolSearchQuery.set($any($event.target).value)"
+                id="symbol-search-input"
+                autoFocus
+              />
+            </div>
+
+            <!-- Asset Type filter inside dropdown -->
+            <div class="dropdown-asset-filters">
+              <button
+                class="dropdown-asset-pill"
+                [class.active]="assetFilter() === 'all'"
+                (click)="assetFilter.set('all')"
+                type="button"
+              >All</button>
+              <button
+                class="dropdown-asset-pill"
+                [class.active]="assetFilter() === 'us-stock'"
+                (click)="assetFilter.set('us-stock')"
+                type="button"
+              >U.S.</button>
+              <button
+                class="dropdown-asset-pill"
+                [class.active]="assetFilter() === 'thai-stock'"
+                (click)="assetFilter.set('thai-stock')"
+                type="button"
+              >Thai</button>
+              <button
+                class="dropdown-asset-pill"
+                [class.active]="assetFilter() === 'crypto'"
+                (click)="assetFilter.set('crypto')"
+                type="button"
+              >Crypto</button>
+              <button
+                class="dropdown-asset-pill"
+                [class.active]="assetFilter() === 'mutual-fund'"
+                (click)="assetFilter.set('mutual-fund')"
+                type="button"
+              >Fund</button>
+            </div>
+
+            <div class="dropdown-list">
+              <!-- All Symbols Feed option -->
+              <button
+                class="dropdown-item"
+                [class.selected]="!currentSymbol()"
+                (click)="clearSymbolSelection()"
+                id="dropdown-item-all-symbols"
+                type="button"
+              >
+                <div class="dropdown-item-left">
+                  <div class="dropdown-item-icon-globe">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="2" y1="12" x2="22" y2="12"></line>
+                    </svg>
+                  </div>
+                  <div>
+                    <span class="dropdown-item-symbol">All Symbols Feed</span>
+                    <span class="dropdown-item-sub">Unified transaction log</span>
+                  </div>
+                </div>
+                <span class="dropdown-item-count">{{ totalTxCount() }} trades</span>
+              </button>
+
+              @for (item of availableSymbols(); track item.symbol) {
+                <button
+                  class="dropdown-item"
+                  [class.selected]="currentSymbol() === item.symbol"
+                  (click)="selectSymbol(item.symbol)"
+                  [id]="'dropdown-item-' + item.symbol"
+                  type="button"
+                >
+                  <div class="dropdown-item-left">
+                    <div class="dropdown-item-details">
+                      <div class="dropdown-item-symbol-row">
+                        <span
+                          class="symbol-badge symbol-badge-xs"
+                          [style.background-color]="getSymbolColor(item.symbol) + '18'"
+                          [style.color]="getSymbolColor(item.symbol)"
+                          [style.border-color]="getSymbolColor(item.symbol) + '30'"
+                        >
+                          {{ getDisplaySymbol(item.symbol) }}
+                        </span>
+                        <span [class]="getAssetTypeClass(item.assetType, item.symbol) + ' dropdown-asset-tag'">
+                          {{ getAssetTypeLabel(item.assetType, item.symbol) }}
+                        </span>
+                      </div>
+                      @if (getSymbolName(item.symbol)) {
+                        <span class="dropdown-item-name">{{ getSymbolName(item.symbol) }}</span>
+                      }
+                    </div>
+                  </div>
+                  <div class="dropdown-item-right">
+                    <span class="badge-status" [class.badge-open]="item.currentStatus === 'OPEN'" [class.badge-closed]="item.currentStatus === 'CLOSED'">
+                      {{ item.currentStatus }}
+                    </span>
+                    <span class="dropdown-item-count">{{ item.totalTransactions }} trades</span>
+                  </div>
+                </button>
+              } @empty {
+                <div class="dropdown-empty">
+                  <span>No symbols match "{{ symbolSearchQuery() }}"</span>
+                </div>
+              }
+            </div>
+          </div>
+          <!-- Backdrop overlay to dismiss dropdown -->
+          <div class="dropdown-backdrop" (click)="closeSymbolDropdown()"></div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Selected Symbol Deep-Dive Hero Summary Card -->
+  @if (activeSummary()) {
+    <div class="symbol-hero-card" id="symbol-hero-card">
+      <div class="symbol-hero-header">
+        <div class="symbol-hero-identity">
+          <span
+            class="symbol-badge symbol-badge-lg"
+            [style.background-color]="getSymbolColor(activeSummary()!.symbol) + '1c'"
+            [style.color]="getSymbolColor(activeSummary()!.symbol)"
+            [style.border-color]="getSymbolColor(activeSummary()!.symbol) + '40'"
+          >
+            {{ getDisplaySymbol(activeSummary()!.symbol) }}
+          </span>
+          <div class="symbol-hero-title-group">
+            <div class="symbol-hero-title-row">
+              <h2 class="symbol-hero-title">{{ getDisplaySymbol(activeSummary()!.symbol) }}</h2>
+              <span [class]="getAssetTypeClass(activeSummary()!.assetType, activeSummary()!.symbol)">
+                {{ getAssetTypeLabel(activeSummary()!.assetType, activeSummary()!.symbol) }}
+              </span>
+              <span
+                class="status-pill"
+                [class.status-open]="activeSummary()!.currentStatus === 'OPEN'"
+                [class.status-closed]="activeSummary()!.currentStatus === 'CLOSED'"
+              >
+                @if (activeSummary()!.currentStatus === 'OPEN') {
+                  <span class="status-dot status-dot-open"></span> Open Position
+                } @else {
+                  <span class="status-dot status-dot-closed"></span> Closed Position
+                }
+              </span>
+            </div>
+            @if (getSymbolName(activeSummary()!.symbol)) {
+              <p class="symbol-hero-subtitle">{{ getSymbolName(activeSummary()!.symbol) }}</p>
+            }
+          </div>
+        </div>
+
+        <!-- Date Range & Activity Pill -->
+        <div class="symbol-hero-meta">
+          <div class="meta-item">
+            <span class="meta-label">First Trade</span>
+            <span class="meta-value">{{ activeSummary()!.firstTradeDate | date:'mediumDate' }}</span>
+          </div>
+          <div class="meta-divider">→</div>
+          <div class="meta-item">
+            <span class="meta-label">Latest Trade</span>
+            <span class="meta-value">{{ activeSummary()!.lastTradeDate | date:'mediumDate' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6-Metric Highlights Grid -->
+      <div class="symbol-metrics-grid">
+        <!-- 1. Current Holding -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Current Holding</span>
+            <span class="metric-tag">{{ activeSummary()!.currentStatus === 'OPEN' ? 'Active' : 'Closed' }}</span>
+          </div>
+          <div class="metric-main-value">
+            {{ activeSummary()!.netShares | number:getQuantityFormat(activeSummary()!.symbol, activeSummary()!.assetType) }}
+            <span class="metric-unit">shares</span>
+          </div>
+          @if (activeSummary()!.netShares > 0 && activeHoldingValueConverted() > 0) {
+            <div class="metric-sub-value">
+              {{ activeHoldingValueConverted() | currency:dc(activeSummary()!.currency):'symbol-narrow':'1.2-2' }}
+              @if (activeUnrealizedPL() !== 0) {
+                <span class="metric-pl" [class.pl-positive]="activeUnrealizedPL() >= 0" [class.pl-negative]="activeUnrealizedPL() < 0">
+                  ({{ activeUnrealizedPL() >= 0 ? '+' : '' }}{{ activeUnrealizedPLPercent() | number:'1.2-2' }}%)
+                </span>
+              }
+            </div>
+          } @else {
+            <div class="metric-sub-value muted-text">
+              Cost basis: {{ cx(activeSummary()!.netInvested, activeSummary()!.currency) | currency:dc(activeSummary()!.currency):'symbol-narrow':'1.2-2' }}
+            </div>
+          }
+        </div>
+
+        <!-- 2. Avg Buy Price -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Avg Buy Price</span>
+            <span class="metric-tag tag-buy">{{ activeSummary()!.buyCount }} buys</span>
+          </div>
+          <div class="metric-main-value">
+            {{ cx(activeSummary()!.averageBuyPrice, activeSummary()!.currency) | currency:dc(activeSummary()!.currency):'symbol-narrow':getPriceFormat(activeSummary()!.symbol, activeSummary()!.assetType) }}
+          </div>
+          <div class="metric-sub-value">
+            Total bought: {{ activeSummary()!.totalBuyShares | number:getQuantityFormat(activeSummary()!.symbol, activeSummary()!.assetType) }} shares
+          </div>
+        </div>
+
+        <!-- 3. Avg Sell Price -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Avg Sell Price</span>
+            <span class="metric-tag tag-sell">{{ activeSummary()!.sellCount }} sells</span>
+          </div>
+          <div class="metric-main-value">
+            @if (activeSummary()!.sellCount > 0) {
+              {{ cx(activeSummary()!.averageSellPrice, activeSummary()!.currency) | currency:dc(activeSummary()!.currency):'symbol-narrow':getPriceFormat(activeSummary()!.symbol, activeSummary()!.assetType) }}
+            } @else {
+              <span class="muted-text">—</span>
+            }
+          </div>
+          <div class="metric-sub-value">
+            @if (activeSummary()!.sellCount > 0) {
+              Total sold: {{ activeSummary()!.totalSellShares | number:getQuantityFormat(activeSummary()!.symbol, activeSummary()!.assetType) }} shares
+            } @else {
+              No sell transactions yet
+            }
+          </div>
+        </div>
+
+        <!-- 4. Total Capital Invested -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Total Capital Invested</span>
+          </div>
+          <div class="metric-main-value">
+            {{ cx(activeSummary()!.totalBuyAmount, activeSummary()!.currency) | currency:dc(activeSummary()!.currency):'symbol-narrow':'1.2-2' }}
+          </div>
+          <div class="metric-sub-value">
+            Cumulative buy volume
+          </div>
+        </div>
+
+        <!-- 5. Total Proceeds -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Total Proceeds</span>
+          </div>
+          <div class="metric-main-value">
+            {{ cx(activeSummary()!.totalSellAmount, activeSummary()!.currency) | currency:dc(activeSummary()!.currency):'symbol-narrow':'1.2-2' }}
+          </div>
+          <div class="metric-sub-value">
+            Cumulative sell volume
+          </div>
+        </div>
+
+        <!-- 6. Realized P/L -->
+        <div class="metric-card" [class.card-pl-pos]="activeSummary()!.realizedPL > 0" [class.card-pl-neg]="activeSummary()!.realizedPL < 0">
+          <div class="metric-header">
+            <span class="metric-label">Realized P/L</span>
+            @if (activeSummary()!.sellCount > 0) {
+              <span class="metric-tag tag-pl" [class.tag-pl-pos]="activeSummary()!.realizedPL >= 0" [class.tag-pl-neg]="activeSummary()!.realizedPL < 0">
+                {{ activeSummary()!.realizedPL >= 0 ? '+' : '' }}{{ activeSummary()!.realizedPLPercent | number:'1.2-2' }}%
+              </span>
+            }
+          </div>
+          <div class="metric-main-value" [class.pl-positive]="activeSummary()!.realizedPL >= 0" [class.pl-negative]="activeSummary()!.realizedPL < 0">
+            @if (activeSummary()!.sellCount > 0) {
+              {{ activeSummary()!.realizedPL >= 0 ? '+' : '' }}{{ cx(activeSummary()!.realizedPL, activeSummary()!.currency) | currency:dc(activeSummary()!.currency):'symbol-narrow':'1.2-2' }}
+            } @else {
+              <span class="muted-text">—</span>
+            }
+          </div>
+          <div class="metric-sub-value">
+            @if (activeSummary()!.sellCount > 0) {
+              Net gain/loss locked in
+            } @else {
+              Position unclosed
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <!-- All Symbols Unified Feed Header Banner -->
+    <div class="all-symbols-hero-card" id="all-symbols-hero-card">
+      <div class="all-symbols-hero-header">
+        <div class="all-symbols-hero-content">
+          <div class="all-symbols-icon-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+          </div>
+          <div>
+            <div class="all-symbols-title-row">
+              <h2 class="all-symbols-title">All Transactions Feed</h2>
+              <span class="all-symbols-count-badge">{{ filteredSummaries().length }} Symbols</span>
+            </div>
+            <p class="all-symbols-subtitle">
+              Unified chronological trade stream across your portfolio. Click any symbol badge in the table to inspect its individual ledger.
+            </p>
+          </div>
+        </div>
+
+        <!-- Asset Filter Tabs -->
+        <div class="all-symbols-asset-tabs">
+          <button
+            class="asset-tab-btn"
+            [class.active]="assetFilter() === 'all'"
+            (click)="setAssetFilter('all')"
+            type="button"
+          >All ({{ transactionSummaries().length }})</button>
+          <button
+            class="asset-tab-btn"
+            [class.active]="assetFilter() === 'us-stock'"
+            (click)="setAssetFilter('us-stock')"
+            type="button"
+          >U.S. Stocks</button>
+          <button
+            class="asset-tab-btn"
+            [class.active]="assetFilter() === 'thai-stock'"
+            (click)="setAssetFilter('thai-stock')"
+            type="button"
+          >Thai Stocks</button>
+          <button
+            class="asset-tab-btn"
+            [class.active]="assetFilter() === 'crypto'"
+            (click)="setAssetFilter('crypto')"
+            type="button"
+          >Crypto</button>
+          <button
+            class="asset-tab-btn"
+            [class.active]="assetFilter() === 'mutual-fund'"
+            (click)="setAssetFilter('mutual-fund')"
+            type="button"
+          >Mutual Funds</button>
+        </div>
+      </div>
+
+      <!-- 4 High-Level Metrics for All Symbols -->
+      <div class="symbol-metrics-grid all-symbols-metrics-grid">
+        <!-- 1. Total Trades -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Total Trades</span>
+            <span class="metric-tag">{{ filteredSummaries().length }} symbols</span>
+          </div>
+          <div class="metric-main-value">
+            {{ totalTxCount() }}
+            <span class="metric-unit">trades</span>
+          </div>
+          <div class="metric-sub-value">
+            <span class="tag-buy-text">{{ buyCount() }} buys</span> · <span class="tag-sell-text">{{ sellCount() }} sells</span>
+          </div>
+        </div>
+
+        <!-- 2. Traded Volume -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Total Traded Volume</span>
+            <span class="metric-tag">{{ displayCurrency() }}</span>
+          </div>
+          <div class="metric-main-value">
+            {{ allSymbolsTradedVolume() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+          </div>
+          <div class="metric-sub-value muted-text">
+            Gross combined buys & sells
+          </div>
+        </div>
+
+        <!-- 3. Realized P/L -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Portfolio Realized P/L</span>
+            <span class="metric-tag tag-pl" [class.tag-pl-pos]="allSymbolsRealizedPL() >= 0" [class.tag-pl-neg]="allSymbolsRealizedPL() < 0">
+              {{ allSymbolsRealizedPL() >= 0 ? '+' : '' }}{{ (allSymbolsRealizedPL() >= 0 ? 'Profit' : 'Loss') }}
+            </span>
+          </div>
+          <div class="metric-main-value" [class.pl-positive]="allSymbolsRealizedPL() >= 0" [class.pl-negative]="allSymbolsRealizedPL() < 0">
+            {{ allSymbolsRealizedPL() >= 0 ? '+' : '' }}{{ allSymbolsRealizedPL() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+          </div>
+          <div class="metric-sub-value">
+            Cumulative closed profit / loss
+          </div>
+        </div>
+
+        <!-- 4. Active vs Closed Assets -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Holdings Status</span>
+            <span class="metric-tag">Portfolio</span>
+          </div>
+          <div class="metric-main-value">
+            {{ allSymbolsOpenCount() }} <span class="metric-unit">Open</span>
+          </div>
+          <div class="metric-sub-value">
+            {{ allSymbolsClosedCount() }} fully closed positions
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Transactions Table Section & Filter Toolbar -->
+  <div class="tx-table-section">
+    <div class="tx-toolbar">
+      <!-- Left: Type Filter Pills -->
+      <div class="type-filter-group">
+        <button
+          class="type-pill"
+          [class.active]="typeFilter() === 'all'"
+          (click)="typeFilter.set('all')"
+          id="filter-type-all"
+          type="button"
+        >
+          All ({{ filteredTransactions().length }})
+        </button>
+        <button
+          class="type-pill type-pill-buy"
+          [class.active]="typeFilter() === 'buy'"
+          (click)="typeFilter.set('buy')"
+          id="filter-type-buy"
+          type="button"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="pill-icon">
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Buys ({{ buyCount() }})
+        </button>
+        <button
+          class="type-pill type-pill-sell"
+          [class.active]="typeFilter() === 'sell'"
+          (click)="typeFilter.set('sell')"
+          id="filter-type-sell"
+          type="button"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="pill-icon">
+            <polyline points="17 14 12 9 7 14"></polyline>
+            <line x1="12" y1="9" x2="12" y2="21"></line>
+          </svg>
+          Sells ({{ sellCount() }})
+        </button>
+      </div>
+
+      <!-- Right: Search within transactions & Sort order -->
+      <div class="tx-toolbar-right">
+        <div class="tx-search-box">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon-sm">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input
+            type="text"
+            class="tx-search-input"
+            placeholder="Filter date, price..."
+            [value]="searchQuery()"
+            (input)="searchQuery.set($any($event.target).value)"
+            id="tx-search-input"
+          />
+        </div>
+
+        <button
+          class="btn-sort-toggle"
+          (click)="toggleSort()"
+          id="btn-toggle-sort"
+          type="button"
+          [title]="sortOrder() === 'desc' ? 'Showing Newest First (click for Oldest)' : 'Showing Oldest First (click for Newest)'"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sort-icon" [class.sort-asc]="sortOrder() === 'asc'">
+            <path d="m3 16 4 4 4-4"></path>
+            <path d="M7 20V4"></path>
+            <path d="m21 8-4-4-4 4"></path>
+            <path d="M17 4v16"></path>
+          </svg>
+          <span>{{ sortOrder() === 'desc' ? 'Newest First' : 'Oldest First' }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Desktop Ledger Table -->
+    <div class="tx-table-card">
+      <div class="tx-table-wrapper">
+        <table class="tx-table" id="tx-table">
+          <thead>
+            <tr>
+              <th class="col-num">#</th>
+              @if (!activeSummary()) {
+                <th class="col-symbol">Symbol</th>
+              }
+              <th class="col-date">Date</th>
+              <th class="col-type">Type</th>
+              <th class="col-qty">Quantity</th>
+              <th class="col-price">Price / Unit</th>
+              <th class="col-amount">Total Value</th>
+              <th class="col-pl">Realized P/L</th>
+              <th class="col-running-shares">Position After</th>
+              <th class="col-running-cost">Running Cost</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (tx of filteredTransactions(); track tx.id; let i = $index) {
+              <tr class="tx-row" [class.tx-row-buy]="tx.type === 'BUY'" [class.tx-row-sell]="tx.type === 'SELL'">
+                <!-- # Index -->
+                <td class="col-num">
+                  <span class="tx-index-badge">{{ sortOrder() === 'desc' ? filteredTransactions().length - i : i + 1 }}</span>
+                </td>
+
+                <!-- Symbol (if in unified feed) -->
+                @if (!activeSummary()) {
+                  <td class="col-symbol">
+                    <button class="symbol-link-btn" (click)="selectSymbol(tx.symbol)" type="button">
+                      <span
+                        class="symbol-badge symbol-badge-xs"
+                        [style.background-color]="getSymbolColor(tx.symbol) + '18'"
+                        [style.color]="getSymbolColor(tx.symbol)"
+                        [style.border-color]="getSymbolColor(tx.symbol) + '30'"
+                      >
+                        {{ getDisplaySymbol(tx.symbol) }}
+                      </span>
+                    </button>
+                  </td>
+                }
+
+                <!-- Date -->
+                <td class="col-date">
+                  <span class="date-text">{{ tx.date | date:'MMM d, y' }}</span>
+                </td>
+
+                <!-- Type -->
+                <td class="col-type">
+                  @if (tx.type === 'BUY') {
+                    <span class="type-tag tag-buy">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="type-icon">
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                      </svg>
+                      BUY
+                    </span>
+                  } @else {
+                    <span class="type-tag tag-sell">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="type-icon">
+                        <polyline points="17 14 12 9 7 14"></polyline>
+                        <line x1="12" y1="9" x2="12" y2="21"></line>
+                      </svg>
+                      SELL
+                    </span>
+                  }
+                </td>
+
+                <!-- Quantity -->
+                <td class="col-qty" [class.qty-buy]="tx.type === 'BUY'" [class.qty-sell]="tx.type === 'SELL'">
+                  {{ tx.type === 'BUY' ? '+' : '-' }}{{ tx.quantity | number:getQuantityFormat(tx.symbol, tx.assetType) }}
+                </td>
+
+                <!-- Price / Unit -->
+                <td class="col-price">
+                  {{ cx(tx.price, tx.currency) | currency:dc(tx.currency):'symbol-narrow':getPriceFormat(tx.symbol, tx.assetType) }}
+                </td>
+
+                <!-- Total Amount -->
+                <td class="col-amount">
+                  <span class="amount-val">{{ cx(tx.totalAmount, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }}</span>
+                </td>
+
+                <!-- Realized P/L (for Sells) -->
+                <td class="col-pl">
+                  @if (tx.type === 'SELL' && tx.realizedPL !== undefined) {
+                    <span
+                      class="pl-badge"
+                      [class.pl-positive]="tx.realizedPL >= 0"
+                      [class.pl-negative]="tx.realizedPL < 0"
+                    >
+                      {{ tx.realizedPL >= 0 ? '+' : '' }}{{ cx(tx.realizedPL, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }}
+                      <span class="pl-percent-sub">({{ tx.realizedPL >= 0 ? '+' : '' }}{{ tx.realizedPLPercent | number:'1.2-2' }}%)</span>
+                    </span>
+                  } @else {
+                    <span class="muted-text">—</span>
+                  }
+                </td>
+
+                <!-- Position After Trade (Running Shares & Avg Cost) -->
+                <td class="col-running-shares">
+                  <div class="running-shares-wrap">
+                    <span class="running-shares-num">{{ tx.runningShares | number:getQuantityFormat(tx.symbol, tx.assetType) }}</span>
+                    @if (tx.runningShares > 0 && tx.runningAverageCost > 0) {
+                      <span class="running-avg-cost">@ {{ cx(tx.runningAverageCost, tx.currency) | currency:dc(tx.currency):'symbol-narrow':getPriceFormat(tx.symbol, tx.assetType) }}</span>
+                    }
+                  </div>
+                </td>
+
+                <!-- Cumulative Invested Cost Basis -->
+                <td class="col-running-cost">
+                  <span class="running-cost-num">{{ cx(tx.runningTotalCost, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }}</span>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td [attr.colspan]="activeSummary() ? 9 : 10" class="empty-table-cell">
+                  <div class="empty-table-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="empty-table-icon">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <p class="empty-table-text">No transactions found matching your filter.</p>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Mobile Transaction Cards View (Visible on small screens) -->
+    <div class="tx-mobile-cards">
+      @for (tx of filteredTransactions(); track tx.id; let i = $index) {
+        <div class="tx-mobile-card" [class.mobile-card-buy]="tx.type === 'BUY'" [class.mobile-card-sell]="tx.type === 'SELL'">
+          <div class="mobile-card-header">
+            <div class="mobile-card-header-left">
+              @if (!activeSummary()) {
+                <button class="symbol-link-btn" (click)="selectSymbol(tx.symbol)" type="button">
+                  <span
+                    class="symbol-badge symbol-badge-xs"
+                    [style.background-color]="getSymbolColor(tx.symbol) + '18'"
+                    [style.color]="getSymbolColor(tx.symbol)"
+                    [style.border-color]="getSymbolColor(tx.symbol) + '30'"
+                  >
+                    {{ getDisplaySymbol(tx.symbol) }}
+                  </span>
+                </button>
+              }
+              <span class="mobile-tx-type" [class.type-buy]="tx.type === 'BUY'" [class.type-sell]="tx.type === 'SELL'">
+                {{ tx.type }}
+              </span>
+              <span class="mobile-tx-date">{{ tx.date | date:'MMM d, y' }}</span>
+            </div>
+            <span class="mobile-tx-num">#{{ sortOrder() === 'desc' ? filteredTransactions().length - i : i + 1 }}</span>
+          </div>
+
+          <div class="mobile-card-body">
+            <div class="mobile-metric-row">
+              <div class="mobile-metric-col">
+                <span class="mobile-label">Quantity</span>
+                <span class="mobile-val" [class.qty-buy]="tx.type === 'BUY'" [class.qty-sell]="tx.type === 'SELL'">
+                  {{ tx.type === 'BUY' ? '+' : '-' }}{{ tx.quantity | number:getQuantityFormat(tx.symbol, tx.assetType) }}
+                </span>
+              </div>
+              <div class="mobile-metric-col">
+                <span class="mobile-label">Unit Price</span>
+                <span class="mobile-val">{{ cx(tx.price, tx.currency) | currency:dc(tx.currency):'symbol-narrow':getPriceFormat(tx.symbol, tx.assetType) }}</span>
+              </div>
+              <div class="mobile-metric-col">
+                <span class="mobile-label">Total Value</span>
+                <span class="mobile-val bold">{{ cx(tx.totalAmount, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }}</span>
+              </div>
+            </div>
+
+            @if (tx.type === 'SELL' && tx.realizedPL !== undefined) {
+              <div class="mobile-pl-banner" [class.pl-positive]="tx.realizedPL >= 0" [class.pl-negative]="tx.realizedPL < 0">
+                <span class="mobile-label">Realized P/L:</span>
+                <span class="mobile-val">
+                  {{ tx.realizedPL >= 0 ? '+' : '' }}{{ cx(tx.realizedPL, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }}
+                  ({{ tx.realizedPL >= 0 ? '+' : '' }}{{ tx.realizedPLPercent | number:'1.2-2' }}%)
+                </span>
+              </div>
+            }
+
+            <div class="mobile-footer-row">
+              <span class="mobile-footer-label">Holding After:</span>
+              <span class="mobile-footer-val">{{ tx.runningShares | number:getQuantityFormat(tx.symbol, tx.assetType) }} shares ({{ cx(tx.runningTotalCost, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }})</span>
+            </div>
+          </div>
+        </div>
+      } @empty {
+        <div class="empty-state-mobile">
+          <p>No transactions match your current search.</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>

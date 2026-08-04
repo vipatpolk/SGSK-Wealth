@@ -138,17 +138,17 @@ describe('FormatUtils', () => {
       expect(getSymbolName('BTC', 'Bitcoin')).toBe('Bitcoin');
     });
 
-    it('should format all-caps raw names to proper case', () => {
+    it('should format all-caps raw names to proper case dynamically', () => {
       expect(getSymbolName('TSLA', 'TESLA, INC.')).toBe('Tesla, Inc.');
       expect(getSymbolName('NVDA', 'NVIDIA CORPORATION')).toBe('Nvidia Corporation');
     });
 
-    it('should format raw name with prefix stripping for Thai stocks', () => {
+    it('should format raw name with prefix stripping for Thai stocks dynamically', () => {
       expect(getSymbolName('PTT.BK', 'PTT_PETROLEUM PUBLIC')).toBe('Petroleum Public');
       expect(getSymbolName('TISCO.BK', 'TISCO_TISCO FINANCIAL GROUP')).toBe('Tisco Financial Group');
     });
 
-    it('should strip pair and currency suffixes from crypto names', () => {
+    it('should dynamically strip pair and currency suffixes from crypto names', () => {
       expect(getSymbolName('BTC.CRYPTO', 'Bitcoin USD')).toBe('Bitcoin');
       expect(getSymbolName('PAXG.CRYPTO', 'PAX Gold USD')).toBe('PAX Gold');
       expect(getSymbolName('ADA.CRYPTO', 'Cardano USD')).toBe('Cardano');

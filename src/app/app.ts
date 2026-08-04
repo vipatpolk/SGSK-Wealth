@@ -4,6 +4,7 @@ import { ShareLotService, SheetResult } from './services/share-lot.service';
 import { PriceService, PriceData } from './services/price.service';
 import { SymbolSummary, ClosedSymbolSummary, ShareLot } from './models/transaction.model';
 import { AssetTab, ASSET_TABS } from './config/sheet.config';
+import { TransactionHistoryComponent } from './components/transaction-history/transaction-history.component';
 import {
   getQuantityFormat,
   displaySymbol,
@@ -17,7 +18,7 @@ import {
 
 @Component({
   selector: 'app-root',
-  imports: [DecimalPipe, CurrencyPipe, DatePipe, NgTemplateOutlet],
+  imports: [DecimalPipe, CurrencyPipe, DatePipe, NgTemplateOutlet, TransactionHistoryComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -27,6 +28,10 @@ export class App {
 
   readonly tabs = ASSET_TABS;
   readonly activeTab = signal<AssetTab>(ASSET_TABS[0]);
+
+  /** View Mode: Holdings / Positions vs Transactions History */
+  readonly currentView = signal<'holdings' | 'transactions'>('holdings');
+  readonly selectedHistorySymbol = signal<string>('');
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -49,6 +54,22 @@ export class App {
 
   readonly isClosedTab = computed<boolean>(() => this.activeTab().id === 'closed-position');
   readonly isAllTab = computed<boolean>(() => this.activeTab().id === 'all');
+
+  openTransactionHistory(symbol: string = ''): void {
+    this.selectedHistorySymbol.set(symbol);
+    this.currentView.set('transactions');
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  openHoldingsView(): void {
+    this.currentView.set('holdings');
+  }
+
+  setView(view: 'holdings' | 'transactions'): void {
+    this.currentView.set(view);
+  }
 
   readonly closedAssetTypeOptions = computed(() => {
     const data = this.result();
@@ -426,10 +447,21 @@ export class App {
   }
 
   private fetchPricesForResult(result: SheetResult): void {
-    const allSummaries: { symbol: string; assetType?: string }[] = [
-      ...result.summaries,
-      ...result.closedSummaries,
+    const seen = new Set<string>();
+    const allSummaries: { symbol: string; assetType?: string }[] = [];
+
+    const candidates = [
+      ...(result.summaries || []),
+      ...(result.closedSummaries || []),
+      ...(result.transactionSummaries || []),
     ];
+
+    for (const item of candidates) {
+      if (item.symbol && !seen.has(item.symbol)) {
+        seen.add(item.symbol);
+        allSummaries.push({ symbol: item.symbol, assetType: item.assetType });
+      }
+    }
 
     if (allSummaries.length === 0) {
       this.priceService.fetchExchangeRate().subscribe((rate) => {

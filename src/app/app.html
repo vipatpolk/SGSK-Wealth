@@ -90,6 +90,39 @@
 
     <div class="header-right">
       @if (!loading() && !error() && result()) {
+        <div class="view-toggle" id="view-toggle">
+          <button
+            class="view-toggle-btn"
+            [class.view-toggle-btn-active]="currentView() === 'holdings'"
+            (click)="setView('holdings')"
+            id="view-toggle-holdings"
+            type="button"
+            title="View holdings and share lots"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span class="view-toggle-label">Holdings</span>
+          </button>
+          <button
+            class="view-toggle-btn"
+            [class.view-toggle-btn-active]="currentView() === 'transactions'"
+            (click)="setView('transactions')"
+            id="view-toggle-transactions"
+            type="button"
+            title="View transactions history & trade ledger"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 14 14"></polyline>
+            </svg>
+            <span class="view-toggle-label">Transactions</span>
+          </button>
+        </div>
+
         <div class="currency-toggle" id="currency-toggle">
           <button
             class="currency-btn"
@@ -136,6 +169,7 @@
 </header>
 
 <!-- Tab Bar -->
+@if (currentView() === 'holdings') {
 <nav class="tab-bar" id="tab-bar">
   <select
     class="tab-dropdown"
@@ -212,6 +246,7 @@
     }
   </div>
 </nav>
+}
 
 <main class="main-content">
   <!-- Loading State -->
@@ -258,6 +293,18 @@
 
   <!-- Data Loaded -->
   @if (!loading() && !error() && result()) {
+    @if (currentView() === 'transactions') {
+      <app-transaction-history
+        [transactionSummaries]="result()?.transactionSummaries || []"
+        [openSummaries]="result()?.summaries || []"
+        [prices]="prices()"
+        [displayCurrency]="displayCurrency()"
+        [exchangeRate]="exchangeRate()"
+        [selectedSymbol]="selectedHistorySymbol()"
+        (symbolSelected)="selectedHistorySymbol.set($event)"
+        (backToHoldings)="openHoldingsView()"
+      ></app-transaction-history>
+    } @else {
     <!-- Toolbar -->
     <div class="toolbar">
       <div class="search-container">
@@ -494,6 +541,7 @@
         </div>
       }
     }
+    }
 
     <!-- ================= TEMPLATE: OPEN POSITION CARD ================= -->
     <ng-template #openCardTpl let-summary>
@@ -518,6 +566,19 @@
             </div>
           </div>
           <div class="card-header-right">
+            <button
+              class="card-trades-btn"
+              (click)="$event.stopPropagation(); openTransactionHistory(summary.symbol)"
+              [id]="'btn-trades-' + summary.symbol"
+              [title]="'View transaction history for ' + summary.symbol"
+              type="button"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="trades-btn-icon">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 14 14"></polyline>
+              </svg>
+              <span>Transactions</span>
+            </button>
             <div class="card-metrics">
               <div class="card-metric">
                 <span class="card-metric-label">Avg Cost</span>
@@ -661,6 +722,19 @@
             </div>
           </div>
           <div class="card-header-right">
+            <button
+              class="card-trades-btn"
+              (click)="$event.stopPropagation(); openTransactionHistory(summary.symbol)"
+              [id]="'btn-trades-' + summary.symbol"
+              [title]="'View transaction history for ' + summary.symbol"
+              type="button"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="trades-btn-icon">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 14 14"></polyline>
+              </svg>
+              <span>Transactions</span>
+            </button>
             <div class="card-metrics">
               <div class="card-metric">
                 <span class="card-metric-label">Avg Buy</span>

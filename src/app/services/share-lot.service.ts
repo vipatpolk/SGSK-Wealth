@@ -1,6 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Transaction, ShareLot, SymbolSummary, ClosedShareLot, ClosedSymbolSummary } from '../models/transaction.model';
+import {
+  Transaction,
+  ShareLot,
+  SymbolSummary,
+  ClosedShareLot,
+  ClosedSymbolSummary,
+  SymbolTransaction,
+  SymbolTransactionSummary,
+} from '../models/transaction.model';
 import { Observable, map, catchError, of, forkJoin } from 'rxjs';
 import { getSheetExportUrl, ASSET_TABS } from '../config/sheet.config';
 import { normalizeAssetType, getAssetType } from '../utils/format.utils';
@@ -8,6 +16,8 @@ import { normalizeAssetType, getAssetType } from '../utils/format.utils';
 export interface SheetResult {
   summaries: SymbolSummary[];
   closedSummaries: ClosedSymbolSummary[];
+  transactionSummaries?: SymbolTransactionSummary[];
+  rawTransactions?: Transaction[];
   totalCostByCurrency: Record<string, number>;
   totalProceedsByCurrency: Record<string, number>;
   totalRealizedPLByCurrency: Record<string, number>;
@@ -33,7 +43,8 @@ export class ShareLotService {
       map((csv) => {
         const transactions = this.parseCsv(csv, assetType);
         const { summaries, closedSummaries } = this.calculateFIFO(transactions);
-        return this.buildResult(summaries, closedSummaries, isClosed);
+        const transactionSummaries = this.calculateTransactionSummaries(transactions);
+        return this.buildResult(summaries, closedSummaries, transactionSummaries, transactions, isClosed);
       }),
       catchError(() =>
         of(
@@ -60,7 +71,8 @@ export class ShareLotService {
       map((results) => {
         const allTransactions = results.flat();
         const { summaries, closedSummaries } = this.calculateFIFO(allTransactions);
-        return this.buildResult(summaries, closedSummaries, false);
+        const transactionSummaries = this.calculateTransactionSummaries(allTransactions);
+        return this.buildResult(summaries, closedSummaries, transactionSummaries, allTransactions, false);
       }),
       catchError(() =>
         of(this.createEmptyResult('Failed to fetch data from Google Sheets.', false)),
@@ -72,6 +84,8 @@ export class ShareLotService {
     return {
       summaries: [],
       closedSummaries: [],
+      transactionSummaries: [],
+      rawTransactions: [],
       totalCostByCurrency: {},
       totalProceedsByCurrency: {},
       totalRealizedPLByCurrency: {},
@@ -85,6 +99,8 @@ export class ShareLotService {
   private buildResult(
     summaries: SymbolSummary[],
     closedSummaries: ClosedSymbolSummary[],
+    transactionSummaries: SymbolTransactionSummary[],
+    rawTransactions: Transaction[],
     isClosed: boolean,
   ): SheetResult {
     const totalCostByCurrency: Record<string, number> = {};
@@ -101,6 +117,8 @@ export class ShareLotService {
       return {
         summaries,
         closedSummaries,
+        transactionSummaries,
+        rawTransactions,
         totalCostByCurrency,
         totalProceedsByCurrency,
         totalRealizedPLByCurrency,
@@ -123,6 +141,8 @@ export class ShareLotService {
     return {
       summaries,
       closedSummaries,
+      transactionSummaries,
+      rawTransactions,
       totalCostByCurrency,
       totalProceedsByCurrency,
       totalRealizedPLByCurrency,
@@ -343,5 +363,159 @@ export class ShareLotService {
       lots,
       assetType,
     };
+  }
+
+  public calculateTransactionSummaries(transactions: Transaction[]): SymbolTransactionSummary[] {
+    const symbolMap = new Map<string, Transaction[]>();
+
+    for (const tx of transactions) {
+      if (!symbolMap.has(tx.symbol)) {
+        symbolMap.set(tx.symbol, []);
+      }
+      symbolMap.get(tx.symbol)!.push(tx);
+    }
+
+    const summaries: SymbolTransactionSummary[] = [];
+    const EPSILON = 1e-7;
+
+    for (const [symbol, txs] of symbolMap) {
+      // Sort chronologically
+      txs.sort((a, b) => a.date.localeCompare(b.date));
+
+      const currency = txs[0].currency;
+      const assetType = txs[0].assetType;
+      const openLots: { purchaseDate: string; quantity: number; costBasis: number }[] = [];
+      const processedTxList: SymbolTransaction[] = [];
+
+      let runningShares = 0;
+      let runningTotalCost = 0;
+      let totalBuyShares = 0;
+      let totalSellShares = 0;
+      let totalBuyAmount = 0;
+      let totalSellAmount = 0;
+      let buyCount = 0;
+      let sellCount = 0;
+      let totalRealizedPL = 0;
+      let totalRealizedCostBasis = 0;
+
+      for (let i = 0; i < txs.length; i++) {
+        const tx = txs[i];
+        const isBuy = tx.quantity > 0;
+        const qty = Math.abs(tx.quantity);
+        const price = tx.price;
+        const totalAmount = qty * price;
+        const txId = `${symbol}-${tx.date}-${i + 1}`;
+
+        if (isBuy) {
+          buyCount++;
+          totalBuyShares += qty;
+          totalBuyAmount += totalAmount;
+          runningShares += qty;
+          runningTotalCost += totalAmount;
+          const runningAvg = runningShares > 0 ? runningTotalCost / runningShares : 0;
+
+          openLots.push({
+            purchaseDate: tx.date,
+            quantity: qty,
+            costBasis: price,
+          });
+
+          processedTxList.push({
+            id: txId,
+            symbol: tx.symbol,
+            date: tx.date,
+            type: 'BUY',
+            quantity: qty,
+            rawQuantity: tx.quantity,
+            price,
+            totalAmount,
+            currency: tx.currency,
+            assetType: tx.assetType,
+            runningShares,
+            runningTotalCost,
+            runningAverageCost: runningAvg,
+          });
+        } else {
+          sellCount++;
+          totalSellShares += qty;
+          totalSellAmount += totalAmount;
+
+          let remainingToSell = qty;
+          let matchedCost = 0;
+
+          for (let j = 0; j < openLots.length && remainingToSell > EPSILON; j++) {
+            const lot = openLots[j];
+            if (lot.quantity <= EPSILON) continue;
+
+            const matchedQty = Math.min(lot.quantity, remainingToSell);
+            matchedCost += matchedQty * lot.costBasis;
+            lot.quantity -= matchedQty;
+            remainingToSell -= matchedQty;
+          }
+
+          const realizedPL = totalAmount - matchedCost;
+          const realizedPLPercent = matchedCost > 0 ? (realizedPL / matchedCost) * 100 : 0;
+          totalRealizedPL += realizedPL;
+          totalRealizedCostBasis += matchedCost;
+
+          runningShares = Math.max(0, runningShares - qty);
+          runningTotalCost = openLots.reduce((sum, l) => sum + l.quantity * l.costBasis, 0);
+          if (runningShares <= EPSILON) {
+            runningShares = 0;
+            runningTotalCost = 0;
+          }
+          const runningAvg = runningShares > 0 ? runningTotalCost / runningShares : 0;
+
+          processedTxList.push({
+            id: txId,
+            symbol: tx.symbol,
+            date: tx.date,
+            type: 'SELL',
+            quantity: qty,
+            rawQuantity: tx.quantity,
+            price,
+            totalAmount,
+            currency: tx.currency,
+            assetType: tx.assetType,
+            runningShares,
+            runningTotalCost,
+            runningAverageCost: runningAvg,
+            realizedPL,
+            realizedPLPercent,
+          });
+        }
+      }
+
+      const averageBuyPrice = totalBuyShares > 0 ? totalBuyAmount / totalBuyShares : 0;
+      const averageSellPrice = totalSellShares > 0 ? totalSellAmount / totalSellShares : 0;
+      const realizedPLPercent = totalRealizedCostBasis > 0 ? (totalRealizedPL / totalRealizedCostBasis) * 100 : 0;
+      const currentStatus: 'OPEN' | 'CLOSED' = runningShares > EPSILON ? 'OPEN' : 'CLOSED';
+
+      summaries.push({
+        symbol,
+        assetType,
+        currency,
+        totalTransactions: txs.length,
+        buyCount,
+        sellCount,
+        totalBuyShares,
+        totalSellShares,
+        totalBuyAmount,
+        totalSellAmount,
+        averageBuyPrice,
+        averageSellPrice,
+        netShares: runningShares,
+        netInvested: runningTotalCost,
+        currentStatus,
+        realizedPL: totalRealizedPL,
+        realizedPLPercent,
+        firstTradeDate: txs[0].date,
+        lastTradeDate: txs[txs.length - 1].date,
+        transactions: processedTxList,
+      });
+    }
+
+    summaries.sort((a, b) => b.totalTransactions - a.totalTransactions || a.symbol.localeCompare(b.symbol));
+    return summaries;
   }
 }

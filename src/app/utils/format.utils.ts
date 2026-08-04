@@ -75,20 +75,25 @@ export function getSymbolName(symbol: string, rawName: string = ''): string {
   let name = rawName.trim();
   if (!name) return '';
 
-  if (symbol.toUpperCase().endsWith('.BK')) {
+  const symUpper = symbol.toUpperCase().trim();
+
+  // Strip Thai stock prefix (e.g. "PTT_PETROLEUM..." -> "PETROLEUM...")
+  if (symUpper.endsWith('.BK')) {
     const prefix = symbol.replace(/\.BK$/i, '').toUpperCase() + '_';
     if (name.toUpperCase().startsWith(prefix)) {
       name = name.substring(prefix.length);
     }
   }
 
-  // Strip trailing currency / pair suffixes (e.g. "Bitcoin USD" -> "Bitcoin", "PAX Gold USD" -> "PAX Gold")
-  if (symbol.toUpperCase().endsWith('.CRYPTO') || /\s+(USD|USDT|THB|USDC)$/i.test(name)) {
+  // Strip trailing quote currency / pair suffixes (e.g. "Bitcoin USD" -> "Bitcoin", "PAX Gold USD" -> "PAX Gold")
+  if (symUpper.endsWith('.CRYPTO') || /\s+(USD|USDT|THB|USDC)$/i.test(name)) {
     name = name.replace(/\s+(USD|USDT|THB|USDC)$/i, '').trim();
   }
 
+  // Strip copyright / trademark symbols
   name = name.replace(/\([R|TM|r|tm]\)/g, '').trim();
 
+  // Convert ALL-CAPS names to Proper Case dynamically
   if (name === name.toUpperCase() && name !== name.toLowerCase()) {
     return toProperCase(name);
   }
@@ -143,14 +148,18 @@ const ASSET_TYPE_CONFIG: Record<string, { label: string; cssClass: string }> = {
   'mutual-fund': { label: 'Mutual Fund', cssClass: 'asset-type-tag asset-type-mutual-fund' },
 };
 
-const DEFAULT_ASSET_TYPE = 'us-stock';
-
 export function getAssetTypeLabel(assetType?: string, symbol?: string): string {
   const type = getAssetType(assetType, symbol);
-  return ASSET_TYPE_CONFIG[type]?.label ?? ASSET_TYPE_CONFIG[DEFAULT_ASSET_TYPE].label;
+  if (ASSET_TYPE_CONFIG[type]) {
+    return ASSET_TYPE_CONFIG[type].label;
+  }
+  return toProperCase(type.replace(/[-_]/g, ' '));
 }
 
 export function getAssetTypeClass(assetType?: string, symbol?: string): string {
   const type = getAssetType(assetType, symbol);
-  return ASSET_TYPE_CONFIG[type]?.cssClass ?? ASSET_TYPE_CONFIG[DEFAULT_ASSET_TYPE].cssClass;
+  if (ASSET_TYPE_CONFIG[type]) {
+    return ASSET_TYPE_CONFIG[type].cssClass;
+  }
+  return `asset-type-tag asset-type-${type.replace(/[^a-zA-Z0-9_-]/g, '').toLowerCase()}`;
 }

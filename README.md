@@ -31,16 +31,22 @@
   - Computes remaining open lots, weighted average cost basis, and date of acquisition.
   - Analyzes closed positions with realized gains/losses, hold durations, and sell prices.
 
-- 🏷️ **Asset Type Classification & Filtering**:
-  - **Color-Coded Asset Tags**: Clear visual badges (`U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`) displayed on **All** and **Closed Position** card headers.
-  - **Closed Position Filter Bar**: Interactive filter pills to filter closed positions by asset type with real-time item count badges and dynamic portfolio metrics recalculation.
-  - **Flexible CSV Type Matching**: Automatically detects explicit `Type` / `Asset Type` CSV columns with fallback to symbol patterns (`.BK`, `.CRYPTO`, SSF/RMF fund codes).
+- 📜 **Full Transaction History Ledger**:
+  - **All Symbols Feed & Symbol-Specific Views**: Unified cross-portfolio activity stream or dedicated per-symbol transaction drill-down.
+  - **Transaction Filtering & Sorting**: Filter by transaction type (`All`, `Buy`, `Sell`), asset class, or text search; smart symbol dropdown sorting open positions first followed by alphabetical order.
+  - **Realized P/L Tracking**: Displays matched lots, gain/loss per sale, hold duration, and buy/sell execution prices.
+  - **Responsive Dual-Mode Display**: High-density table on desktop and touch-optimized card layout on mobile devices.
+
+- 🏷️ **Dynamic Asset Classification & Filtering**:
+  - **Color-Coded Asset Badges**: Visual indicators (`U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`, and custom asset classes).
+  - **Interactive Filter Bars**: Dynamic filter pills with real-time counts and portfolio metric recalculation.
+  - **Zero Hardcoding Architecture**: 100% dynamic, data-driven symbol names, asset type categorization, and currency resolution without static lookup tables.
 
 - 🌐 **Multi-Asset Class Support**:
-  - **U.S. Stocks**: Live market quotes via Yahoo Finance API (`USD`).
-  - **Thai Stocks**: Stock Exchange of Thailand (`.BK`) quotes via Yahoo Finance (`THB`).
+  - **U.S. Stocks**: Live market quotes and metadata via Yahoo Finance API (`USD`).
+  - **Thai Stocks**: Stock Exchange of Thailand (`.BK`) quotes and profiles via Yahoo Finance (`THB`).
   - **Cryptocurrencies**: Live orderbook prices via Binance TH API (`THB`/`USD`).
-  - **Thai Mutual Funds**: Daily NAV lookups & complete fund profile matching via SEC Thailand APIs (`THB`).
+  - **Thai Mutual Funds**: Daily NAV lookups and fund profile matching via SEC Thailand APIs (`THB`).
   - **Closed Positions**: Historical realized gain/loss ledger with asset-type metadata and fund name lookups.
   - **Unified "All" View**: Combined cross-asset portfolio overview.
 
@@ -59,7 +65,7 @@
 
 - 🎨 **Modern Dark UI**:
   - Built with Angular Standalone Components, Signals, and modern control-flow syntax (`@if`, `@for`).
-  - Tailwind CSS v4 design system with custom glassmorphism and gradient accents.
+  - Custom design system with glassmorphism and gradient accents.
   - Responsive layout optimized for desktop and mobile viewports.
 
 ---
@@ -69,7 +75,7 @@
 | Layer | Technology |
 | :--- | :--- |
 | **Framework** | [Angular 21](https://angular.dev/) (Standalone Components, Signals, RxJS) |
-| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) & Custom CSS Variables |
+| **Styling** | Custom Design System with Modern CSS & Tailwind CSS |
 | **Market Data APIs** | Yahoo Finance, Binance TH API, SEC Thailand API |
 | **Data Source** | Google Sheets CSV Export |
 | **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom |
@@ -89,6 +95,8 @@ ShareLot/
 │   └── icon-512.png            # PWA manifest 512x512 icon
 ├── src/
 │   ├── app/
+│   │   ├── components/         # Reusable UI feature components
+│   │   │   └── transaction-history/  # Dedicated transaction ledger component
 │   │   ├── config/             # Google Sheets GIDs and asset tab definitions
 │   │   │   └── sheet.config.ts
 │   │   ├── models/             # Domain models (Transaction, ShareLot, SymbolSummary)
@@ -97,14 +105,14 @@ ShareLot/
 │   │   │   ├── share-lot.service.ts  # FIFO queue calculation & CSV parsing
 │   │   │   ├── price.service.ts      # Multi-source live pricing & FX rates
 │   │   │   └── nav.service.ts        # Thai Mutual Fund NAV lookups
-│   │   ├── utils/              # Formatting helpers (currencies, quantities, colors)
+│   │   ├── utils/              # Dynamic formatting helpers (currencies, quantities, colors)
 │   │   │   └── format.utils.ts
 │   │   ├── app.ts              # Root component logic & signal state
 │   │   ├── app.html            # Dashboard layout & template
 │   │   └── app.css             # Component styling & animations
 │   ├── index.html              # HTML entry point with favicon metadata
 │   ├── main.ts                 # Application bootstrapping
-│   └── styles.css              # Global styles & Tailwind theme config
+│   └── styles.css              # Global styles & theme tokens
 ├── angular.json                # Angular CLI configuration
 ├── proxy.conf.json             # Dev server reverse proxies (CORS bypass)
 ├── vercel.json                 # Production API rewrites for Vercel
