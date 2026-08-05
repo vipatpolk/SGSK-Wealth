@@ -16,6 +16,21 @@ interface BinanceTicker {
   price: string;
 }
 
+export interface YahooChartResponse {
+  chart?: {
+    result?: Array<{
+      meta?: {
+        regularMarketPrice?: number;
+        chartPreviousClose?: number;
+        previousClose?: number;
+        longName?: string;
+        shortName?: string;
+        currency?: string;
+      };
+    }>;
+  };
+}
+
 /**
  * Dynamically resolves the standard currency for any quote asset string without hardcoded tables.
  * e.g. 'THB' -> 'THB', USD-family ('USDT', 'USDC', 'FDUSD', 'BUSD', 'TUSD', 'USD', 'DAI', 'RLUSD') -> 'USD',
@@ -101,7 +116,7 @@ export class PriceService {
     }
     const pair = `${fromCurrency}${toCurrency}=X`;
     const url = `/api/finance/v8/finance/chart/${encodeURIComponent(pair)}?range=1d&interval=1d&includePrePost=false`;
-    return this.http.get<any>(url).pipe(
+    return this.http.get<YahooChartResponse>(url).pipe(
       map((res) => {
         const meta = res?.chart?.result?.[0]?.meta;
         return meta?.regularMarketPrice ?? meta?.chartPreviousClose ?? meta?.previousClose ?? 0;
@@ -156,7 +171,7 @@ export class PriceService {
       const yahooSymbol = toYahooSymbol(symbol);
       const url = `/api/finance/v8/finance/chart/${encodeURIComponent(yahooSymbol)}?range=1d&interval=1d&includePrePost=false`;
 
-      return this.http.get<any>(url).pipe(
+      return this.http.get<YahooChartResponse>(url).pipe(
         map((res) => {
           const meta = res?.chart?.result?.[0]?.meta;
           const price = meta?.regularMarketPrice ?? meta?.chartPreviousClose ?? meta?.previousClose ?? 0;
@@ -200,7 +215,7 @@ export class PriceService {
         const yahooSymbol = `${base}-USD`;
         const url = `/api/finance/v8/finance/chart/${encodeURIComponent(yahooSymbol)}?range=1d&interval=1d&includePrePost=false`;
 
-        return this.http.get<any>(url).pipe(
+        return this.http.get<YahooChartResponse>(url).pipe(
           map((res) => {
             const meta = res?.chart?.result?.[0]?.meta;
             return {

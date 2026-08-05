@@ -5,6 +5,8 @@ import {
   getPriceFormat,
   getSymbolColor,
   getSymbolName,
+  resolveSymbolName,
+  convertCurrency,
   getAssetType,
   getAssetTypeLabel,
   getAssetTypeClass,
@@ -154,6 +156,53 @@ describe('FormatUtils', () => {
       expect(getSymbolName('ADA.CRYPTO', 'Cardano USD')).toBe('Cardano');
       expect(getSymbolName('USDT.CRYPTO', 'Tether USD')).toBe('Tether');
       expect(getSymbolName('DOT.CRYPTO', 'Polkadot USDT')).toBe('Polkadot');
+    });
+  });
+
+  describe('resolveSymbolName', () => {
+    const pricesMap = new Map<string, { name?: string }>([
+      ['AAPL', { name: 'Apple Inc.' }],
+      ['PTT.BK', { name: 'PTT_PETROLEUM PUBLIC' }],
+      ['BTC.CRYPTO', { name: 'Bitcoin USD' }],
+      ['SCBSFF.BKFUND', { name: 'SCB Short Term Fixed Income Fund' }],
+    ]);
+
+    it('should resolve exact symbol name from price map', () => {
+      expect(resolveSymbolName('AAPL', pricesMap)).toBe('Apple Inc.');
+      expect(resolveSymbolName('PTT.BK', pricesMap)).toBe('Petroleum Public');
+    });
+
+    it('should resolve symbol name with suffix variations fallback', () => {
+      expect(resolveSymbolName('BTC', pricesMap)).toBe('Bitcoin');
+      expect(resolveSymbolName('SCBSFF', pricesMap)).toBe('SCB Short Term Fixed Income Fund');
+    });
+
+    it('should return empty string if map is missing or symbol not found', () => {
+      expect(resolveSymbolName('UNKNOWN', pricesMap)).toBe('');
+      expect(resolveSymbolName('AAPL', undefined)).toBe('');
+      expect(resolveSymbolName('', pricesMap)).toBe('');
+    });
+  });
+
+  describe('convertCurrency', () => {
+    it('should return same amount if from and to currencies match or both normalize to USD', () => {
+      expect(convertCurrency(100, 'USD', 'USD', 35)).toBe(100);
+      expect(convertCurrency(100, 'THB', 'THB', 35)).toBe(100);
+      expect(convertCurrency(100, 'USDT', 'USD', 35)).toBe(100);
+    });
+
+    it('should convert USD to THB using exchange rate', () => {
+      expect(convertCurrency(10, 'USD', 'THB', 35)).toBe(350);
+      expect(convertCurrency(10, 'USDT', 'THB', 35)).toBe(350);
+    });
+
+    it('should convert THB to USD using exchange rate', () => {
+      expect(convertCurrency(350, 'THB', 'USD', 35)).toBe(10);
+    });
+
+    it('should return original amount if exchange rate is invalid', () => {
+      expect(convertCurrency(100, 'USD', 'THB', 0)).toBe(100);
+      expect(convertCurrency(100, 'USD', 'THB', -1)).toBe(100);
     });
   });
 

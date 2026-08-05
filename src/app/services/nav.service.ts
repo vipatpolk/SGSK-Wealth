@@ -10,6 +10,20 @@ const SEC_API_CONFIG = {
   baseUrl: '/api/sec/v2/fund',
 };
 
+export interface SecProfileItem {
+  proj_id?: string;
+  proj_name_en?: string;
+  proj_name_th?: string;
+  proj_abbr_name?: string;
+  fund_class_name?: string;
+}
+
+export interface SecNavRecord {
+  nav_date: string;
+  last_val?: number | string;
+  fund_class_name?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -41,16 +55,16 @@ export class NavService {
 
         // Step 1: Fetch profile dynamically using clean symbol
         return this.http
-          .get<any>(
+          .get<{ items?: SecProfileItem[] }>(
             `${SEC_API_CONFIG.baseUrl}/general-info/profiles?fund_class_name=${encodeURIComponent(cleanSymbol)}`,
             { headers, observe: 'response' }
           )
           .pipe(
-            concatMap((res: HttpResponse<any>) => {
-              const classItems: any[] = res.body?.items || [];
+            concatMap((res: HttpResponse<{ items?: SecProfileItem[] }>) => {
+              const classItems: SecProfileItem[] = res.body?.items || [];
               // Check if any returned item is an exact match for this clean symbol
               const classMatch = classItems.find(
-                (i: any) =>
+                (i) =>
                   i.fund_class_name?.toUpperCase() === symUpper ||
                   i.proj_abbr_name?.toUpperCase() === symUpper
               );
@@ -61,23 +75,23 @@ export class NavService {
 
               // If no exact match or 204 No Content, fallback to project_info query
               return this.http
-                .get<any>(
+                .get<{ items?: SecProfileItem[] }>(
                   `${SEC_API_CONFIG.baseUrl}/general-info/profiles?project_info=${encodeURIComponent(cleanSymbol)}`,
                   { headers }
                 )
                 .pipe(
                   map((res2) => {
-                    const projItems: any[] = res2?.items || [];
+                    const projItems: SecProfileItem[] = res2?.items || [];
                     if (projItems.length === 0) return null;
                     // Prioritize exact matches
                     return (
                       projItems.find(
-                        (i: any) =>
+                        (i) =>
                           i.proj_abbr_name?.toUpperCase() === symUpper &&
                           i.fund_class_name === 'main'
                       ) ||
-                      projItems.find((i: any) => i.fund_class_name?.toUpperCase() === symUpper) ||
-                      projItems.find((i: any) => i.proj_abbr_name?.toUpperCase() === symUpper) ||
+                      projItems.find((i) => i.fund_class_name?.toUpperCase() === symUpper) ||
+                      projItems.find((i) => i.proj_abbr_name?.toUpperCase() === symUpper) ||
                       projItems[0]
                     );
                   }),
@@ -107,11 +121,11 @@ export class NavService {
 
               const url = `${SEC_API_CONFIG.baseUrl}/daily-info/nav?proj_id=${encodeURIComponent(fund.projId)}&start_nav_date=${fmtDate(start)}&end_nav_date=${fmtDate(end)}`;
 
-              return this.http.get<any>(url, { headers }).pipe(
+              return this.http.get<{ items?: SecNavRecord[] } | SecNavRecord[]>(url, { headers }).pipe(
                 map((res) => {
-                  const data = res?.items ?? res; // Handle both {items: [...]} and [...] responses
+                  const data: SecNavRecord[] = Array.isArray(res) ? res : res?.items ?? [];
 
-                  if (!data || !Array.isArray(data) || data.length === 0) {
+                  if (!Array.isArray(data) || data.length === 0) {
                     return {
                       originalSymbol: symbol,
                       data: { symbol, name: fund.name, price: 0, currency: 'THB' },
@@ -120,14 +134,14 @@ export class NavService {
 
                   // Filter by matching class name
                   let filteredData = data.filter(
-                    (d: any) =>
+                    (d) =>
                       d.fund_class_name?.toUpperCase() === (fund.targetClass || cleanSymbol).toUpperCase()
                   );
                   if (filteredData.length === 0 && fund.targetClass !== 'main') {
-                    filteredData = data.filter((d: any) => d.fund_class_name?.toUpperCase() === symUpper);
+                    filteredData = data.filter((d) => d.fund_class_name?.toUpperCase() === symUpper);
                   }
                   if (filteredData.length === 0) {
-                    filteredData = data.filter((d: any) => d.fund_class_name === 'main');
+                    filteredData = data.filter((d) => d.fund_class_name === 'main');
                   }
                   if (filteredData.length === 0) {
                     filteredData = data; // Fallback

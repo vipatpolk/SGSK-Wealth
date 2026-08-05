@@ -223,7 +223,7 @@ describe('TransactionHistoryComponent', () => {
     expect(sellTxs.every((t) => t.type === 'SELL')).toBe(true);
   });
 
-  it('should filter by asset category tab', () => {
+  it('should filter by asset category tab and dropdown change', () => {
     component.setAssetFilter('thai-stock');
     expect(component.filteredSummaries().length).toBe(1);
     expect(component.filteredSummaries()[0].symbol).toBe('PTT.BK');
@@ -231,8 +231,12 @@ describe('TransactionHistoryComponent', () => {
     component.setAssetFilter('us-stock');
     expect(component.filteredSummaries().length).toBe(2);
 
-    component.setAssetFilter('all');
+    const mockSelectEvent = {
+      target: { value: 'all' },
+    } as unknown as Event;
+    component.onAssetTypeChange(mockSelectEvent);
     expect(component.filteredSummaries().length).toBe(3);
+    expect(component.assetFilter()).toBe('all');
   });
 
   it('should select specific symbol and emit symbolSelected output', () => {
@@ -275,4 +279,18 @@ describe('TransactionHistoryComponent', () => {
     component.closeSymbolDropdown();
     expect(component.isSymbolDropdownOpen()).toBe(false);
   });
+
+  it('should dynamically retrieve and display symbol names from prices map', () => {
+    const pricesMap = new Map([
+      ['AAPL', { symbol: 'AAPL', name: 'Apple Inc.', price: 175, currency: 'USD' }],
+      ['TSLA', { symbol: 'TSLA', name: 'Tesla, Inc.', price: 200, currency: 'USD' }],
+    ]);
+    fixture.componentRef.setInput('prices', pricesMap);
+    fixture.detectChanges();
+
+    expect(component.getSymbolName('AAPL')).toBe('Apple Inc.');
+    expect(component.getSymbolName('TSLA')).toBe('Tesla, Inc.');
+    expect(component.getSymbolName('UNKNOWN')).toBe('');
+  });
 });
+

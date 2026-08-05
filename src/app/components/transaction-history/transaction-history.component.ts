@@ -23,6 +23,8 @@ import {
   getPriceFormat,
   getSymbolColor,
   getSymbolName,
+  resolveSymbolName,
+  convertCurrency,
   getAssetType,
   getAssetTypeLabel,
   getAssetTypeClass,
@@ -93,6 +95,11 @@ export class TransactionHistoryComponent {
     this.assetFilter.set(filter);
   }
 
+  onAssetTypeChange(event: Event): void {
+    const type = (event.target as HTMLSelectElement).value;
+    this.setAssetFilter(type);
+  }
+
   toggleSymbolDropdown(): void {
     this.isSymbolDropdownOpen.set(!this.isSymbolDropdownOpen());
     if (this.isSymbolDropdownOpen()) {
@@ -103,6 +110,34 @@ export class TransactionHistoryComponent {
   closeSymbolDropdown(): void {
     this.isSymbolDropdownOpen.set(false);
   }
+
+  readonly assetTypeOptions = computed(() => {
+    const list = this.transactionSummaries();
+    const countByType: Record<string, number> = {
+      all: list.length,
+      'us-stock': 0,
+      'thai-stock': 0,
+      crypto: 0,
+      'mutual-fund': 0,
+    };
+
+    for (const item of list) {
+      const type = getAssetType(item.assetType, item.symbol);
+      if (countByType[type] !== undefined) {
+        countByType[type]++;
+      } else {
+        countByType[type] = 1;
+      }
+    }
+
+    return [
+      { id: 'all', label: 'All Types', count: countByType['all'] },
+      { id: 'us-stock', label: 'U.S. Stock', count: countByType['us-stock'] },
+      { id: 'thai-stock', label: 'Thai Stock', count: countByType['thai-stock'] },
+      { id: 'crypto', label: 'Cryptocurrency', count: countByType['crypto'] },
+      { id: 'mutual-fund', label: 'Mutual Fund', count: countByType['mutual-fund'] },
+    ].filter((opt) => opt.id === 'all' || opt.count > 0);
+  });
 
   /** Matched summaries based on assetFilter */
   readonly filteredSummaries = computed<SymbolTransactionSummary[]>(() => {
@@ -124,6 +159,7 @@ export class TransactionHistoryComponent {
       filtered = filtered.filter(
         (s) =>
           s.symbol.toUpperCase().includes(query) ||
+          this.getDisplaySymbol(s.symbol).toUpperCase().includes(query) ||
           this.getSymbolName(s.symbol).toUpperCase().includes(query)
       );
     }
@@ -299,18 +335,7 @@ export class TransactionHistoryComponent {
     fromCurrency: string,
     toCurrency: string
   ): number {
-    const normFrom = fromCurrency === 'USDT' ? 'USD' : fromCurrency;
-    const normTo = toCurrency === 'USDT' ? 'USD' : toCurrency;
-
-    if (normFrom === normTo) return amount;
-
-    const rate = this.exchangeRate();
-    if (rate <= 0) return amount;
-
-    if (normFrom === 'USD' && normTo === 'THB') return amount * rate;
-    if (normFrom === 'THB' && normTo === 'USD') return amount / rate;
-
-    return amount;
+    return convertCurrency(amount, fromCurrency, toCurrency, this.exchangeRate());
   }
 
   cx(amount: number, fromCurrency: string): number {
@@ -334,8 +359,7 @@ export class TransactionHistoryComponent {
   }
 
   getSymbolName(symbol: string): string {
-    const rawName = this.prices().get(symbol)?.name || '';
-    return getSymbolName(symbol, rawName);
+    return resolveSymbolName(symbol, this.prices());
   }
 
   getSymbolColor(symbol: string): string {

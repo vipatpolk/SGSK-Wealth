@@ -65,7 +65,15 @@ function toProperCase(text: string): string {
   return text
     .split(' ')
     .filter((word) => word.length > 0)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .map((word) => {
+      const firstLetterIdx = word.search(/[a-zA-Z]/);
+      if (firstLetterIdx === -1) return word;
+      return (
+        word.slice(0, firstLetterIdx) +
+        word.charAt(firstLetterIdx).toUpperCase() +
+        word.slice(firstLetterIdx + 1).toLowerCase()
+      );
+    })
     .join(' ');
 }
 
@@ -99,6 +107,49 @@ export function getSymbolName(symbol: string, rawName: string = ''): string {
   }
 
   return name;
+}
+
+/**
+ * Dynamically resolves the formatted symbol name from a price data map,
+ * checking standard suffix variants (.CRYPTO, .BKFUND, .BK).
+ */
+export function resolveSymbolName(
+  symbol: string,
+  pricesMap?: Map<string, { name?: string }>
+): string {
+  if (!symbol || !pricesMap) return '';
+  const rawName =
+    pricesMap.get(symbol)?.name ||
+    pricesMap.get(symbol + '.CRYPTO')?.name ||
+    pricesMap.get(symbol.replace(/\.CRYPTO$/i, ''))?.name ||
+    pricesMap.get(symbol + '.BKFUND')?.name ||
+    pricesMap.get(symbol.replace(/\.BKFUND$/i, ''))?.name ||
+    pricesMap.get(symbol + '.BK')?.name ||
+    pricesMap.get(symbol.replace(/\.BK$/i, ''))?.name ||
+    '';
+  return getSymbolName(symbol, rawName);
+}
+
+/**
+ * Converts a monetary amount between currencies (USD <-> THB) using a provided exchange rate.
+ * Normalizes USDT to USD.
+ */
+export function convertCurrency(
+  amount: number,
+  fromCurrency: string,
+  toCurrency: string,
+  exchangeRate: number
+): number {
+  const normFrom = fromCurrency === 'USDT' ? 'USD' : fromCurrency;
+  const normTo = toCurrency === 'USDT' ? 'USD' : toCurrency;
+
+  if (normFrom === normTo) return amount;
+  if (exchangeRate <= 0) return amount;
+
+  if (normFrom === 'USD' && normTo === 'THB') return amount * exchangeRate;
+  if (normFrom === 'THB' && normTo === 'USD') return amount / exchangeRate;
+
+  return amount;
 }
 
 export function normalizeAssetType(rawType?: string): string | null {

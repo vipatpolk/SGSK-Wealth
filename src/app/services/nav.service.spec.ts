@@ -3,6 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { NavService } from './nav.service';
+import { PriceData } from './price.service';
 
 describe('NavService', () => {
   let service: NavService;
@@ -30,7 +31,7 @@ describe('NavService', () => {
   });
 
   it('should resolve SCBSFF correctly by falling back to project_info when class search returns non-matching items', async () => {
-    let result: any;
+    let result: Map<string, PriceData> | undefined;
     service.fetchFundNAVs(['SCBSFF']).subscribe((res) => {
       result = res;
     });
@@ -73,14 +74,14 @@ describe('NavService', () => {
     await new Promise((r) => setTimeout(r, 350));
 
     expect(result).toBeDefined();
-    expect(result.has('SCBSFF')).toBe(true);
-    const data = result.get('SCBSFF');
-    expect(data.price).toBe(21.7135);
-    expect(data.name).toBe('SCB Short Term Fixed Income Fund');
+    expect(result!.has('SCBSFF')).toBe(true);
+    const data = result!.get('SCBSFF');
+    expect(data!.price).toBe(21.7135);
+    expect(data!.name).toBe('SCB Short Term Fixed Income Fund');
   });
 
   it('should resolve multi-class funds with exact fund_class_name match', async () => {
-    let result: any;
+    let result: Map<string, PriceData> | undefined;
     service.fetchFundNAVs(['SCBGOLDH-SSF']).subscribe((res) => {
       result = res;
     });
@@ -111,13 +112,13 @@ describe('NavService', () => {
     await new Promise((r) => setTimeout(r, 350));
 
     expect(result).toBeDefined();
-    expect(result.has('SCBGOLDH-SSF')).toBe(true);
-    const data = result.get('SCBGOLDH-SSF');
-    expect(data.price).toBe(15.3633);
+    expect(result!.has('SCBGOLDH-SSF')).toBe(true);
+    const data = result!.get('SCBGOLDH-SSF');
+    expect(data!.price).toBe(15.3633);
   });
 
   it('should strip .BKFUND suffix before requesting SEC API and map results back to original symbol', async () => {
-    let result: any;
+    let result: Map<string, PriceData> | undefined;
     service.fetchFundNAVs(['ES-GTECHSSF.BKFUND']).subscribe((res) => {
       result = res;
     });
@@ -148,10 +149,10 @@ describe('NavService', () => {
     await new Promise((r) => setTimeout(r, 350));
 
     expect(result).toBeDefined();
-    expect(result.has('ES-GTECHSSF.BKFUND')).toBe(true);
-    const data = result.get('ES-GTECHSSF.BKFUND');
-    expect(data.price).toBe(18.2541);
-    expect(data.name).toBe('Eastspring Global Technology SSF');
-    expect(data.currency).toBe('THB');
+    expect(result!.has('ES-GTECHSSF.BKFUND')).toBe(true);
+    const data = result!.get('ES-GTECHSSF.BKFUND');
+    expect(data!.price).toBe(18.2541);
+    expect(data!.name).toBe('Eastspring Global Technology SSF');
+    expect(data!.currency).toBe('THB');
   });
 });

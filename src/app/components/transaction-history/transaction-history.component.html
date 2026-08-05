@@ -21,7 +21,7 @@
       }
 
       <!-- Symbol Selector Combobox -->
-      <div class="symbol-selector-wrapper">
+      <div class="symbol-selector-wrapper" [class.dropdown-is-open]="isSymbolDropdownOpen()">
         <button
           class="symbol-selector-btn"
           (click)="toggleSymbolDropdown()"
@@ -71,7 +71,7 @@
                 [value]="symbolSearchQuery()"
                 (input)="symbolSearchQuery.set($any($event.target).value)"
                 id="symbol-search-input"
-                autoFocus
+                autofocus
               />
             </div>
 
@@ -80,31 +80,31 @@
               <button
                 class="dropdown-asset-pill"
                 [class.active]="assetFilter() === 'all'"
-                (click)="assetFilter.set('all')"
+                (click)="setAssetFilter('all')"
                 type="button"
               >All</button>
               <button
                 class="dropdown-asset-pill"
                 [class.active]="assetFilter() === 'us-stock'"
-                (click)="assetFilter.set('us-stock')"
+                (click)="setAssetFilter('us-stock')"
                 type="button"
               >U.S.</button>
               <button
                 class="dropdown-asset-pill"
                 [class.active]="assetFilter() === 'thai-stock'"
-                (click)="assetFilter.set('thai-stock')"
+                (click)="setAssetFilter('thai-stock')"
                 type="button"
               >Thai</button>
               <button
                 class="dropdown-asset-pill"
                 [class.active]="assetFilter() === 'crypto'"
-                (click)="assetFilter.set('crypto')"
+                (click)="setAssetFilter('crypto')"
                 type="button"
               >Crypto</button>
               <button
                 class="dropdown-asset-pill"
                 [class.active]="assetFilter() === 'mutual-fund'"
-                (click)="assetFilter.set('mutual-fund')"
+                (click)="setAssetFilter('mutual-fund')"
                 type="button"
               >Fund</button>
             </div>
@@ -373,38 +373,45 @@
           </div>
         </div>
 
-        <!-- Asset Filter Tabs -->
-        <div class="all-symbols-asset-tabs">
-          <button
-            class="asset-tab-btn"
-            [class.active]="assetFilter() === 'all'"
-            (click)="setAssetFilter('all')"
-            type="button"
-          >All ({{ transactionSummaries().length }})</button>
-          <button
-            class="asset-tab-btn"
-            [class.active]="assetFilter() === 'us-stock'"
-            (click)="setAssetFilter('us-stock')"
-            type="button"
-          >U.S. Stocks</button>
-          <button
-            class="asset-tab-btn"
-            [class.active]="assetFilter() === 'thai-stock'"
-            (click)="setAssetFilter('thai-stock')"
-            type="button"
-          >Thai Stocks</button>
-          <button
-            class="asset-tab-btn"
-            [class.active]="assetFilter() === 'crypto'"
-            (click)="setAssetFilter('crypto')"
-            type="button"
-          >Crypto</button>
-          <button
-            class="asset-tab-btn"
-            [class.active]="assetFilter() === 'mutual-fund'"
-            (click)="setAssetFilter('mutual-fund')"
-            type="button"
-          >Mutual Funds</button>
+        <!-- Desktop Asset Filter Bar (Same style as Holdings > Closed Position) -->
+        <div class="asset-filter-bar desktop-asset-filter-bar" id="history-asset-filter-bar">
+          <span class="asset-filter-label">Asset Type</span>
+          <div class="asset-filter-pills">
+            @for (opt of assetTypeOptions(); track opt.id) {
+              <button
+                class="asset-filter-pill"
+                [class.asset-filter-pill-active]="assetFilter() === opt.id"
+                [class]="'asset-filter-pill-' + opt.id"
+                (click)="setAssetFilter(opt.id)"
+                [id]="'tx-filter-asset-' + opt.id"
+                type="button"
+              >
+                <span class="asset-filter-pill-name">{{ opt.label }}</span>
+                <span class="asset-filter-pill-count">{{ opt.count }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Mobile Asset Filter Control (Same dropdown style as Closed Position Tab) -->
+        <div class="mobile-controls-bar tx-mobile-asset-filter" id="tx-mobile-asset-filter">
+          <div class="mobile-control-field">
+            <div class="mobile-control-icon-wrap">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mobile-control-icon">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+              </svg>
+            </div>
+            <select
+              class="mobile-control-select"
+              id="mobile-tx-filter-select"
+              [value]="assetFilter()"
+              (change)="onAssetTypeChange($event)"
+            >
+              @for (opt of assetTypeOptions(); track opt.id) {
+                <option [value]="opt.id">Filter: {{ opt.label }} ({{ opt.count }})</option>
+              }
+            </select>
+          </div>
         </div>
       </div>
 
@@ -589,6 +596,9 @@
                       >
                         {{ getDisplaySymbol(tx.symbol) }}
                       </span>
+                      @if (getSymbolName(tx.symbol)) {
+                        <span class="tx-symbol-name">{{ getSymbolName(tx.symbol) }}</span>
+                      }
                     </button>
                   </td>
                 }
@@ -699,6 +709,9 @@
                   >
                     {{ getDisplaySymbol(tx.symbol) }}
                   </span>
+                  @if (getSymbolName(tx.symbol)) {
+                    <span class="mobile-tx-symbol-name">{{ getSymbolName(tx.symbol) }}</span>
+                  }
                 </button>
               }
               <span class="mobile-tx-type" [class.type-buy]="tx.type === 'BUY'" [class.type-sell]="tx.type === 'SELL'">

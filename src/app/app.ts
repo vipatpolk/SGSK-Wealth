@@ -11,6 +11,8 @@ import {
   getPriceFormat,
   getSymbolColor,
   getSymbolName,
+  resolveSymbolName,
+  convertCurrency,
   getAssetType,
   getAssetTypeLabel,
   getAssetTypeClass,
@@ -231,18 +233,7 @@ export class App {
 
   /** Convert an amount from `fromCurrency` to `toCurrency` using the exchange rate */
   convertCurrency(amount: number, fromCurrency: string, toCurrency: string): number {
-    const normFrom = fromCurrency === 'USDT' ? 'USD' : fromCurrency;
-    const normTo = toCurrency === 'USDT' ? 'USD' : toCurrency;
-
-    if (normFrom === normTo) return amount;
-
-    const rate = this.exchangeRate();
-    if (rate <= 0) return amount;
-
-    if (normFrom === 'USD' && normTo === 'THB') return amount * rate;
-    if (normFrom === 'THB' && normTo === 'USD') return amount / rate;
-
-    return amount;
+    return convertCurrency(amount, fromCurrency, toCurrency, this.exchangeRate());
   }
 
   /** Convert an amount from `fromCurrency` to the display currency */
@@ -539,8 +530,7 @@ export class App {
   }
 
   getSymbolName(symbol: string): string {
-    const rawName = this.prices().get(symbol)?.name || '';
-    return getSymbolName(symbol, rawName);
+    return resolveSymbolName(symbol, this.prices());
   }
 
   getHoldingValue(summary: SymbolSummary): number {
