@@ -11,6 +11,7 @@ import {
   CurrencyPipe,
   DatePipe,
 } from '@angular/common';
+import { DateRangePickerComponent, DateRange } from '../date-range-picker/date-range-picker.component';
 import {
   SymbolTransaction,
   SymbolTransactionSummary,
@@ -35,7 +36,7 @@ export type SortOrder = 'desc' | 'asc';
 
 @Component({
   selector: 'app-transaction-history',
-  imports: [DecimalPipe, CurrencyPipe, DatePipe],
+  imports: [DecimalPipe, CurrencyPipe, DatePipe, DateRangePickerComponent],
   templateUrl: './transaction-history.component.html',
   styleUrl: './transaction-history.component.css',
 })
@@ -67,7 +68,8 @@ export class TransactionHistoryComponent {
   readonly typeFilter = signal<TxTypeFilter>('all');
   readonly assetFilter = signal<string>('all');
   readonly sortOrder = signal<SortOrder>('desc');
-  readonly searchQuery = signal<string>('');
+  readonly startDate = signal<string>('');
+  readonly endDate = signal<string>('');
   readonly symbolSearchQuery = signal<string>('');
   readonly isSymbolDropdownOpen = signal<boolean>(false);
 
@@ -81,14 +83,24 @@ export class TransactionHistoryComponent {
     this.currentSymbol.set(symbol);
     this.symbolSelected.emit(symbol);
     this.isSymbolDropdownOpen.set(false);
-    this.searchQuery.set('');
+    this.clearDateRange();
   }
 
   clearSymbolSelection(): void {
     this.currentSymbol.set('');
     this.symbolSelected.emit('');
     this.isSymbolDropdownOpen.set(false);
-    this.searchQuery.set('');
+    this.clearDateRange();
+  }
+
+  clearDateRange(): void {
+    this.startDate.set('');
+    this.endDate.set('');
+  }
+
+  onDateRangeChange(range: DateRange): void {
+    this.startDate.set(range.startDate);
+    this.endDate.set(range.endDate);
   }
 
   setAssetFilter(filter: string): void {
@@ -214,19 +226,14 @@ export class TransactionHistoryComponent {
       txs = txs.filter((t) => t.type === 'SELL');
     }
 
-    // Filter by search query (symbol, date, price, qty, type)
-    const q = this.searchQuery().trim().toLowerCase();
-    if (q) {
-      txs = txs.filter(
-        (t) =>
-          t.symbol.toLowerCase().includes(q) ||
-          this.getDisplaySymbol(t.symbol).toLowerCase().includes(q) ||
-          this.getSymbolName(t.symbol).toLowerCase().includes(q) ||
-          t.date.toLowerCase().includes(q) ||
-          t.price.toString().includes(q) ||
-          t.quantity.toString().includes(q) ||
-          t.type.toLowerCase().includes(q)
-      );
+    // Filter by date range (startDate <= date <= endDate)
+    const start = this.startDate().trim();
+    const end = this.endDate().trim();
+    if (start) {
+      txs = txs.filter((t) => (t.date ? t.date >= start : true));
+    }
+    if (end) {
+      txs = txs.filter((t) => (t.date ? t.date <= end : true));
     }
 
     // Sort order

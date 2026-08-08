@@ -263,13 +263,27 @@ describe('TransactionHistoryComponent', () => {
     expect(component.sortOrder()).toBe('desc');
   });
 
-  it('should filter transactions by search query', () => {
-    component.searchQuery.set('TSLA');
-    expect(component.filteredTransactions().length).toBe(2);
+  it('should filter transactions by date range', () => {
+    // Total transactions: 6 (dates: 2024-01-01, 2024-01-10, 2024-01-15, 2024-02-01, 2024-02-10, 2024-03-01)
+    expect(component.filteredTransactions().length).toBe(6);
 
-    component.searchQuery.set('2024-01-01');
-    expect(component.filteredTransactions().length).toBe(1);
-    expect(component.filteredTransactions()[0].symbol).toBe('AAPL');
+    // Filter start date
+    component.startDate.set('2024-02-01');
+    const startFiltered = component.filteredTransactions();
+    // Expected on or after 2024-02-01: AAPL (2024-02-01), TSLA (2024-02-10), AAPL (2024-03-01) => 3 transactions
+    expect(startFiltered.length).toBe(3);
+
+    // Filter end date
+    component.endDate.set('2024-02-15');
+    const rangeFiltered = component.filteredTransactions();
+    // Expected between 2024-02-01 and 2024-02-15: AAPL (2024-02-01), TSLA (2024-02-10) => 2 transactions
+    expect(rangeFiltered.length).toBe(2);
+
+    // Clear date range
+    component.clearDateRange();
+    expect(component.startDate()).toBe('');
+    expect(component.endDate()).toBe('');
+    expect(component.filteredTransactions().length).toBe(6);
   });
 
   it('should toggle and close symbol dropdown', () => {

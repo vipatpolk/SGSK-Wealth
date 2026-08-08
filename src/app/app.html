@@ -248,27 +248,47 @@
 </nav>
 }
 
-<main class="main-content">
-  <!-- Loading State -->
-  @if (loading()) {
-    <div class="loading-state" id="loading-state">
-      <div class="loading-spinner">
-        <div class="spinner-ring"></div>
-        <div class="spinner-ring spinner-ring-inner"></div>
+<!-- Screen Loading Overlay (Hides contents while data is loading) -->
+@if (loading()) {
+  <div class="screen-loader" id="loading-state" role="status" aria-live="polite">
+    <div class="screen-loader-content">
+      <div class="screen-loader-brand">
+        <div class="screen-loader-logo-wrap">
+          <div class="screen-loader-glow"></div>
+          <div class="screen-loader-spinner">
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring spinner-ring-inner"></div>
+          </div>
+          <div class="screen-loader-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="logo-icon-lg">
+              <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+              <polyline points="16 7 22 7 22 13"></polyline>
+            </svg>
+          </div>
+        </div>
+        <div class="screen-loader-text-group">
+          <h2 class="screen-loader-title">Loading {{ activeTab().label }}</h2>
+          <p class="screen-loader-subtext">
+            @if (pricesLoading()) {
+              Fetching real-time market prices and currency rates…
+            } @else if (isAllTab()) {
+              Consolidating asset types and computing FIFO share lots…
+            } @else if (isClosedTab()) {
+              Calculating realized profits & losses across closed positions…
+            } @else {
+              Fetching transaction history and calculating FIFO lots…
+            }
+          </p>
+        </div>
       </div>
-      <p class="loading-text">Fetching {{ activeTab().label }} data…</p>
-      <p class="loading-subtext">
-        @if (isAllTab()) {
-          Loading all asset types and calculating FIFO lots
-        } @else if (isClosedTab()) {
-          Loading and calculating closed FIFO positions
-        } @else {
-          Parsing and calculating FIFO lots
-        }
-      </p>
+      <div class="screen-loader-progress">
+        <div class="screen-loader-bar"></div>
+      </div>
     </div>
-  }
+  </div>
+}
 
+<main class="main-content">
   <!-- Error State -->
   @if (error()) {
     <div class="error-state" id="error-state">
@@ -307,7 +327,7 @@
     } @else {
     <!-- Toolbar -->
     <div class="toolbar">
-      <div class="search-container">
+      <div class="search-container" [class.search-focused]="isSearchFocused() || isSearchDropdownOpen()">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon">
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -317,9 +337,106 @@
           class="search-input"
           placeholder="Search by symbol or name..."
           [value]="searchQuery()"
-          (input)="searchQuery.set($any($event.target).value)"
+          (input)="onSearchInput($any($event.target).value)"
+          (focus)="onSearchFocus()"
+          (keydown)="onSearchKeydown($event)"
           id="search-input"
+          #searchInput
+          autocomplete="off"
+          spellcheck="false"
         />
+        @if (searchQuery()) {
+          <button
+            class="btn-search-clear"
+            (mousedown)="$event.preventDefault(); clearSearchQuery(searchInput)"
+            type="button"
+            title="Clear search"
+            aria-label="Clear search"
+            id="search-clear-btn"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="clear-icon">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        }
+
+        <!-- Autocomplete Dropdown Panel -->
+        @if (isSearchDropdownOpen()) {
+          <div class="search-autocomplete-dropdown" id="search-autocomplete-dropdown">
+            <div class="autocomplete-header">
+              <span class="autocomplete-title">
+                @if (searchQuery()) {
+                  Matching Symbols ({{ autocompleteSuggestions().length }})
+                } @else {
+                  Available Symbols ({{ autocompleteSuggestions().length }})
+                }
+              </span>
+              <span class="autocomplete-hint">↑↓ navigate · ↵ select · esc</span>
+            </div>
+
+            <div class="autocomplete-list" role="listbox">
+              @for (item of autocompleteSuggestions(); track item.symbol; let i = $index) {
+                <div
+                  class="autocomplete-item"
+                  [class.active]="searchActiveIndex() === i"
+                  [id]="'autocomplete-item-' + i"
+                  role="option"
+                  [attr.aria-selected]="searchActiveIndex() === i"
+                  (mousedown)="$event.preventDefault(); selectAutocompleteItem(item)"
+                  (mouseenter)="searchActiveIndex.set(i)"
+                >
+                  <div class="item-left">
+                    <span
+                      class="symbol-badge symbol-badge-xs"
+                      [style.background-color]="item.color + '18'"
+                      [style.color]="item.color"
+                      [style.border-color]="item.color + '30'"
+                    >
+                      {{ item.displaySymbol }}
+                    </span>
+                    <div class="item-info">
+                      <div class="item-headline">
+                        <span [class]="getAssetTypeClass(item.assetType, item.symbol)">
+                          {{ item.assetTypeLabel }}
+                        </span>
+                        @if (item.isClosed) {
+                          <span class="closed-tag-badge">Closed</span>
+                        }
+                      </div>
+                      @if (item.name) {
+                        <span class="item-name" [title]="item.name">{{ item.name }}</span>
+                      }
+                    </div>
+                  </div>
+                </div>
+              } @empty {
+                <div class="autocomplete-empty">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="empty-search-icon">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                  <p>No symbols match "<strong>{{ searchQuery() }}</strong>"</p>
+                </div>
+              }
+            </div>
+
+            @if (searchQuery()) {
+              <div class="autocomplete-footer">
+                <button
+                  type="button"
+                  class="autocomplete-footer-btn"
+                  (mousedown)="$event.preventDefault(); closeSearchDropdown()"
+                >
+                  Show results in list ({{ (filteredSummaries().length + (isClosedTab() || isAllTab() ? filteredClosedSummaries().length : 0)) }})
+                </button>
+              </div>
+            }
+          </div>
+
+          <!-- Backdrop overlay to dismiss dropdown on click-outside -->
+          <div class="search-backdrop" (mousedown)="closeSearchDropdown()"></div>
+        }
       </div>
       <div class="toolbar-actions">
         <button class="btn btn-ghost" (click)="refresh()" id="refresh-btn">
@@ -549,12 +666,14 @@
         <!-- Card Header -->
         <button class="card-header" (click)="toggleExpand(summary.symbol)" [id]="'toggle-' + summary.symbol">
           <div class="card-header-left">
-            <span class="symbol-badge" [style.background-color]="getSymbolColor(summary.symbol) + '18'" [style.color]="getSymbolColor(summary.symbol)" [style.border-color]="getSymbolColor(summary.symbol) + '30'">
-              {{ getDisplaySymbol(summary.symbol) }}
-            </span>
-            @if (getSymbolName(summary.symbol)) {
-              <span class="symbol-name">{{ getSymbolName(summary.symbol) }}</span>
-            }
+            <div class="symbol-identity">
+              <span class="symbol-badge" [style.background-color]="getSymbolColor(summary.symbol) + '18'" [style.color]="getSymbolColor(summary.symbol)" [style.border-color]="getSymbolColor(summary.symbol) + '30'">
+                {{ getDisplaySymbol(summary.symbol) }}
+              </span>
+              @if (getSymbolName(summary.symbol)) {
+                <span class="symbol-name" [title]="getSymbolName(summary.symbol)">{{ getSymbolName(summary.symbol) }}</span>
+              }
+            </div>
             <div class="card-header-info">
               @if (isAllTab() || isClosedTab()) {
                 <span [class]="getAssetTypeClass(summary.assetType, summary.symbol)">
@@ -705,12 +824,14 @@
         <!-- Card Header -->
         <button class="card-header" (click)="toggleExpand(summary.symbol)" [id]="'toggle-' + summary.symbol">
           <div class="card-header-left">
-            <span class="symbol-badge" [style.background-color]="getSymbolColor(summary.symbol) + '18'" [style.color]="getSymbolColor(summary.symbol)" [style.border-color]="getSymbolColor(summary.symbol) + '30'">
-              {{ getDisplaySymbol(summary.symbol) }}
-            </span>
-            @if (getSymbolName(summary.symbol)) {
-              <span class="symbol-name">{{ getSymbolName(summary.symbol) }}</span>
-            }
+            <div class="symbol-identity">
+              <span class="symbol-badge" [style.background-color]="getSymbolColor(summary.symbol) + '18'" [style.color]="getSymbolColor(summary.symbol)" [style.border-color]="getSymbolColor(summary.symbol) + '30'">
+                {{ getDisplaySymbol(summary.symbol) }}
+              </span>
+              @if (getSymbolName(summary.symbol)) {
+                <span class="symbol-name" [title]="getSymbolName(summary.symbol)">{{ getSymbolName(summary.symbol) }}</span>
+              }
+            </div>
             <div class="card-header-info">
               @if (isAllTab() || isClosedTab()) {
                 <span [class]="getAssetTypeClass(summary.assetType, summary.symbol)">

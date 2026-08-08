@@ -270,5 +270,106 @@ describe('App', () => {
     expect(app.getDisplaySymbol('BTC.CRYPTO')).toBe('BTC');
     expect(app.getDisplaySymbol('AAPL')).toBe('AAPL');
   });
+
+  it('should provide autocomplete suggestions and handle item selection and keyboard navigation', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    app.result.set({
+      summaries: [
+        {
+          symbol: 'NVDA',
+          totalShares: 10,
+          totalCost: 1000,
+          averageCost: 100,
+          currency: 'USD',
+          assetType: 'us-stock',
+          lots: [],
+        },
+        {
+          symbol: 'BTC.CRYPTO',
+          totalShares: 0.5,
+          totalCost: 30000,
+          averageCost: 60000,
+          currency: 'USD',
+          assetType: 'crypto',
+          lots: [],
+        },
+      ],
+      closedSummaries: [
+        {
+          symbol: 'AAPL',
+          totalShares: 0,
+          closedShares: 20,
+          totalCost: 3000,
+          totalProceeds: 3600,
+          averageBuyPrice: 150,
+          averageSellPrice: 180,
+          realizedPL: 600,
+          realizedPLPercent: 20,
+          currency: 'USD',
+          assetType: 'us-stock',
+          lots: [],
+        },
+      ],
+      totalCostByCurrency: {},
+      totalProceedsByCurrency: {},
+      totalRealizedPLByCurrency: {},
+      totalSymbols: 3,
+      totalLots: 3,
+      error: null,
+    });
+
+    // 1. Initial state when query is empty on All tab -> suggests all available symbols
+    expect(app.autocompleteSuggestions().length).toBe(3);
+
+    // 2. Filter by search query 'NV'
+    app.onSearchInput('NV');
+    expect(app.isSearchDropdownOpen()).toBe(true);
+    const nvMatches = app.autocompleteSuggestions();
+    expect(nvMatches.length).toBe(1);
+    expect(nvMatches[0].symbol).toBe('NVDA');
+    expect(nvMatches[0].displaySymbol).toBe('NVDA');
+
+    // 3. Filter by search query 'BTC'
+    app.onSearchInput('BTC');
+    const btcMatches = app.autocompleteSuggestions();
+    expect(btcMatches.length).toBe(1);
+    expect(btcMatches[0].displaySymbol).toBe('BTC');
+
+    // 4. Keyboard navigation (ArrowDown, ArrowUp, Enter)
+    app.onSearchInput('');
+    expect(app.searchActiveIndex()).toBe(-1);
+
+    const downEvent = new KeyboardEvent('keydown', { key: 'ArrowDown' });
+    app.onSearchKeydown(downEvent);
+    expect(app.searchActiveIndex()).toBe(0);
+
+    app.onSearchKeydown(downEvent);
+    expect(app.searchActiveIndex()).toBe(1);
+
+    const upEvent = new KeyboardEvent('keydown', { key: 'ArrowUp' });
+    app.onSearchKeydown(upEvent);
+    expect(app.searchActiveIndex()).toBe(0);
+
+    // 5. Selecting an autocomplete item
+    const selectedItem = app.autocompleteSuggestions()[0];
+    app.selectAutocompleteItem(selectedItem);
+    expect(app.searchQuery()).toBe(selectedItem.displaySymbol);
+    expect(app.isSearchDropdownOpen()).toBe(false);
+    expect(app.isExpanded(selectedItem.symbol)).toBe(true);
+
+    // 6. Clear search query
+    app.clearSearchQuery();
+    expect(app.searchQuery()).toBe('');
+    expect(app.searchActiveIndex()).toBe(-1);
+
+    // 7. Escape key closes dropdown
+    app.onSearchFocus();
+    expect(app.isSearchDropdownOpen()).toBe(true);
+    const escEvent = new KeyboardEvent('keydown', { key: 'Escape' });
+    app.onSearchKeydown(escEvent);
+    expect(app.isSearchDropdownOpen()).toBe(false);
+  });
 });
 

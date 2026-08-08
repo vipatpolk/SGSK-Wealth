@@ -18,6 +18,25 @@ import {
   getAssetTypeClass,
 } from './utils/format.utils';
 
+export interface SymbolAutocompleteItem {
+  symbol: string;
+  displaySymbol: string;
+  name: string;
+  color: string;
+  assetType: string;
+  assetTypeLabel: string;
+  isClosed: boolean;
+  totalShares: number;
+  totalCost: number;
+  currency: string;
+  holdingValue?: number;
+  unrealizedPL?: number;
+  unrealizedPLPercent?: number;
+  realizedPL?: number;
+  realizedPLPercent?: number;
+  hasPrice?: boolean;
+}
+
 @Component({
   selector: 'app-root',
   imports: [DecimalPipe, CurrencyPipe, DatePipe, NgTemplateOutlet, TransactionHistoryComponent],
@@ -41,6 +60,14 @@ export class App {
   readonly prices = signal<Map<string, PriceData>>(new Map());
   readonly pricesLoading = signal(false);
 
+  /** Per-tab cache to avoid redundant network requests on tab switch */
+  private readonly tabCache = new Map<string, {
+    result: SheetResult;
+    prices: Map<string, PriceData>;
+    exchangeRate: number;
+    timestamp: number;
+  }>();
+
   /** Currency conversion */
   readonly displayCurrency = signal<'USD' | 'THB'>('THB');
   readonly exchangeRate = signal<number>(0); // USD → THB rate
@@ -50,6 +77,10 @@ export class App {
 
   readonly expandedSymbols = signal<Set<string>>(new Set());
   readonly searchQuery = signal('');
+  readonly isSearchFocused = signal<boolean>(false);
+  readonly isSearchDropdownOpen = signal<boolean>(false);
+  readonly searchActiveIndex = signal<number>(-1);
+
   readonly sortField = signal<string>('totalCost');
   readonly sortDirection = signal<'asc' | 'desc'>('desc');
   readonly selectedClosedAssetType = signal<string>('all');
@@ -363,6 +394,228 @@ export class App {
     return list;
   });
 
+  readonly autocompleteSuggestions = computed<SymbolAutocompleteItem[]>(() => {
+    const data = this.result();
+    if (!data) return [];
+
+    const query = this.searchQuery().trim().toUpperCase();
+    const isClosed = this.isClosedTab();
+    const isAll = this.isAllTab();
+
+    const items: SymbolAutocompleteItem[] = [];
+    const seenSymbols = new Set<string>();
+
+    // 1. Open positions
+    if (!isClosed || isAll) {
+      for (const s of data.summaries || []) {
+        const displaySym = this.getDisplaySymbol(s.symbol);
+        const name = this.getSymbolName(s.symbol);
+        const type = getAssetType(s.assetType, s.symbol);
+        const typeLabel = this.getAssetTypeLabel(s.assetType, s.symbol);
+
+        const matches =
+          !query ||
+          s.symbol.toUpperCase().includes(query) ||
+          displaySym.toUpperCase().includes(query) ||
+          name.toUpperCase().includes(query) ||
+          typeLabel.toUpperCase().includes(query);
+
+        if (matches) {
+          seenSymbols.add(s.symbol);
+          const hasPrice = this.hasPriceData(s.symbol);
+          const holdingVal = hasPrice ? this.getHoldingValue(s) : undefined;
+          const pl = hasPrice ? this.getUnrealizedPL(s) : undefined;
+          const plPercent = hasPrice ? this.getUnrealizedPLPercent(s) : undefined;
+
+          items.push({
+            symbol: s.symbol,
+            displaySymbol: displaySym,
+            name,
+            color: this.getSymbolColor(s.symbol),
+            assetType: type,
+            assetTypeLabel: typeLabel,
+            isClosed: false,
+            totalShares: s.totalShares,
+            totalCost: s.totalCost,
+            currency: s.currency,
+            holdingValue: holdingVal,
+            unrealizedPL: pl,
+            unrealizedPLPercent: plPercent,
+            hasPrice,
+          });
+        }
+      }
+    }
+
+    // 2. Closed positions
+    if (isClosed || isAll) {
+      for (const s of data.closedSummaries || []) {
+        if (seenSymbols.has(s.symbol)) continue;
+
+        const displaySym = this.getDisplaySymbol(s.symbol);
+        const name = this.getSymbolName(s.symbol);
+        const type = getAssetType(s.assetType, s.symbol);
+        const typeLabel = this.getAssetTypeLabel(s.assetType, s.symbol);
+
+        const matches =
+          !query ||
+          s.symbol.toUpperCase().includes(query) ||
+          displaySym.toUpperCase().includes(query) ||
+          name.toUpperCase().includes(query) ||
+          typeLabel.toUpperCase().includes(query);
+
+        if (matches) {
+          items.push({
+            symbol: s.symbol,
+            displaySymbol: displaySym,
+            name,
+            color: this.getSymbolColor(s.symbol),
+            assetType: type,
+            assetTypeLabel: typeLabel,
+            isClosed: true,
+            totalShares: s.closedShares,
+            totalCost: s.totalCost,
+            currency: s.currency,
+            realizedPL: s.realizedPL,
+            realizedPLPercent: s.realizedPLPercent,
+            hasPrice: false,
+          });
+        }
+      }
+    }
+
+    // Sort suggestions: exact matches first, then starts-with, then name matches
+    if (query) {
+      items.sort((a, b) => {
+        const aSym = a.symbol.toUpperCase();
+        const bSym = b.symbol.toUpperCase();
+        const aDisp = a.displaySymbol.toUpperCase();
+        const bDisp = b.displaySymbol.toUpperCase();
+        const aName = a.name.toUpperCase();
+        const bName = b.name.toUpperCase();
+
+        const aExact = aSym === query || aDisp === query;
+        const bExact = bSym === query || bDisp === query;
+        if (aExact && !bExact) return -1;
+        if (!aExact && bExact) return 1;
+
+        const aStarts = aSym.startsWith(query) || aDisp.startsWith(query);
+        const bStarts = bSym.startsWith(query) || bDisp.startsWith(query);
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+
+        const aNameStarts = aName.startsWith(query);
+        const bNameStarts = bName.startsWith(query);
+        if (aNameStarts && !bNameStarts) return -1;
+        if (!aNameStarts && bNameStarts) return 1;
+
+        return 0;
+      });
+    }
+
+    return items.slice(0, 10);
+  });
+
+  onSearchInput(value: string): void {
+    this.searchQuery.set(value);
+    this.isSearchDropdownOpen.set(true);
+    this.searchActiveIndex.set(-1);
+  }
+
+  onSearchFocus(): void {
+    this.isSearchFocused.set(true);
+    this.isSearchDropdownOpen.set(true);
+  }
+
+  closeSearchDropdown(): void {
+    this.isSearchDropdownOpen.set(false);
+    this.isSearchFocused.set(false);
+    this.searchActiveIndex.set(-1);
+  }
+
+  clearSearchQuery(inputEl?: HTMLInputElement): void {
+    this.searchQuery.set('');
+    this.searchActiveIndex.set(-1);
+    this.isSearchDropdownOpen.set(true);
+    if (inputEl) {
+      inputEl.focus();
+    }
+  }
+
+  selectAutocompleteItem(item: SymbolAutocompleteItem): void {
+    this.searchQuery.set(item.displaySymbol || item.symbol);
+    this.closeSearchDropdown();
+
+    // Expand the selected symbol's card
+    this.expandedSymbols.update((set) => {
+      const next = new Set(set);
+      next.add(item.symbol);
+      return next;
+    });
+
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        const cardId = item.isClosed ? `closed-card-${item.symbol}` : `card-${item.symbol}`;
+        const el = document.getElementById(cardId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 60);
+    }
+  }
+
+  onSearchKeydown(event: KeyboardEvent): void {
+    const suggestions = this.autocompleteSuggestions();
+    const isOpen = this.isSearchDropdownOpen();
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      if (!isOpen) {
+        this.isSearchDropdownOpen.set(true);
+        this.searchActiveIndex.set(0);
+        return;
+      }
+      if (suggestions.length > 0) {
+        const nextIndex = (this.searchActiveIndex() + 1) % suggestions.length;
+        this.searchActiveIndex.set(nextIndex);
+        this.scrollActiveSuggestionIntoView(nextIndex);
+      }
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (!isOpen) {
+        this.isSearchDropdownOpen.set(true);
+        this.searchActiveIndex.set(suggestions.length - 1);
+        return;
+      }
+      if (suggestions.length > 0) {
+        const nextIndex = this.searchActiveIndex() <= 0 ? suggestions.length - 1 : this.searchActiveIndex() - 1;
+        this.searchActiveIndex.set(nextIndex);
+        this.scrollActiveSuggestionIntoView(nextIndex);
+      }
+    } else if (event.key === 'Enter') {
+      if (isOpen && this.searchActiveIndex() >= 0 && this.searchActiveIndex() < suggestions.length) {
+        event.preventDefault();
+        this.selectAutocompleteItem(suggestions[this.searchActiveIndex()]);
+      } else {
+        this.closeSearchDropdown();
+      }
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      this.closeSearchDropdown();
+    }
+  }
+
+  private scrollActiveSuggestionIntoView(index: number): void {
+    if (typeof document !== 'undefined') {
+      setTimeout(() => {
+        const itemEl = document.getElementById(`autocomplete-item-${index}`);
+        if (itemEl) {
+          itemEl.scrollIntoView({ block: 'nearest' });
+        }
+      }, 10);
+    }
+  }
+
   setClosedAssetTypeFilter(type: string): void {
     this.selectedClosedAssetType.set(type);
   }
@@ -394,6 +647,7 @@ export class App {
     if (tab.id === this.activeTab().id) return;
     this.activeTab.set(tab);
     this.searchQuery.set('');
+    this.closeSearchDropdown();
     this.selectedClosedAssetType.set('all');
     this.expandedSymbols.set(new Set());
     if (tab.id === 'closed-position') {
@@ -403,6 +657,19 @@ export class App {
       this.sortField.set('totalCost');
       this.sortDirection.set('desc');
     }
+
+    // Restore from cache if available (instant tab switch)
+    const cached = this.tabCache.get(tab.id);
+    if (cached) {
+      this.error.set(null);
+      this.result.set(cached.result);
+      this.prices.set(cached.prices);
+      if (cached.exchangeRate > 0) this.exchangeRate.set(cached.exchangeRate);
+      this.loading.set(false);
+      this.pricesLoading.set(false);
+      return;
+    }
+
     this.loadTab(tab);
   }
 
@@ -425,19 +692,24 @@ export class App {
         ? this.shareLotService.fetchAllSheets()
         : this.shareLotService.fetchSheet(tab.sheetGid);
 
-    obs.subscribe((res) => {
-      if (res.error) {
-        this.error.set(res.error);
+    obs.subscribe({
+      next: (res) => {
+        if (res.error) {
+          this.error.set(res.error);
+          this.loading.set(false);
+        } else {
+          this.result.set(res);
+          this.fetchPricesForResult(tab.id, res);
+        }
+      },
+      error: (err) => {
+        this.error.set(err?.message || 'Failed to load sheet data');
         this.loading.set(false);
-      } else {
-        this.result.set(res);
-        this.loading.set(false);
-        this.fetchPricesForResult(res);
-      }
+      },
     });
   }
 
-  private fetchPricesForResult(result: SheetResult): void {
+  private fetchPricesForResult(tabId: string, result: SheetResult): void {
     const seen = new Set<string>();
     const allSummaries: { symbol: string; assetType?: string }[] = [];
 
@@ -455,21 +727,53 @@ export class App {
     }
 
     if (allSummaries.length === 0) {
-      this.priceService.fetchExchangeRate().subscribe((rate) => {
-        if (rate > 0) this.exchangeRate.set(rate);
+      this.priceService.fetchExchangeRate().subscribe({
+        next: (rate) => {
+          if (rate > 0) this.exchangeRate.set(rate);
+          this.cacheTabData(tabId, result, new Map(), this.exchangeRate());
+          this.loading.set(false);
+        },
+        error: () => {
+          this.loading.set(false);
+        },
       });
       return;
     }
 
     this.pricesLoading.set(true);
-    this.priceService.fetchPricesAndRate(allSummaries).subscribe(({ prices, rate }) => {
-      this.prices.set(prices);
-      if (rate > 0) this.exchangeRate.set(rate);
-      this.pricesLoading.set(false);
+    this.priceService.fetchPricesAndRate(allSummaries).subscribe({
+      next: ({ prices, rate }) => {
+        this.prices.set(prices);
+        if (rate > 0) this.exchangeRate.set(rate);
+        this.cacheTabData(tabId, result, prices, this.exchangeRate());
+        this.pricesLoading.set(false);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.pricesLoading.set(false);
+        this.loading.set(false);
+      },
+    });
+  }
+
+  /** Store fetched data in per-tab cache */
+  private cacheTabData(
+    tabId: string,
+    result: SheetResult,
+    prices: Map<string, PriceData>,
+    exchangeRate: number
+  ): void {
+    this.tabCache.set(tabId, {
+      result,
+      prices,
+      exchangeRate,
+      timestamp: Date.now(),
     });
   }
 
   refresh(): void {
+    // Clear cache for the active tab so loadTab fetches fresh data
+    this.tabCache.delete(this.activeTab().id);
     this.loadTab(this.activeTab());
   }
 

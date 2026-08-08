@@ -521,22 +521,13 @@
         </button>
       </div>
 
-      <!-- Right: Search within transactions & Sort order -->
+      <!-- Right: Date Range Picker & Sort order -->
       <div class="tx-toolbar-right">
-        <div class="tx-search-box">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon-sm">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <input
-            type="text"
-            class="tx-search-input"
-            placeholder="Filter date, price..."
-            [value]="searchQuery()"
-            (input)="searchQuery.set($any($event.target).value)"
-            id="tx-search-input"
-          />
-        </div>
+        <app-date-range-picker
+          [startDate]="startDate()"
+          [endDate]="endDate()"
+          (rangeChange)="onDateRangeChange($event)"
+        />
 
         <button
           class="btn-sort-toggle"
@@ -758,7 +749,7 @@
         </div>
       } @empty {
         <div class="empty-state-mobile">
-          <p>No transactions match your current search.</p>
+          <p>No transactions match your current filter.</p>
         </div>
       }
     </div>
