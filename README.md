@@ -33,9 +33,17 @@
 
 - 📜 **Full Transaction History Ledger**:
   - **All Symbols Feed & Symbol-Specific Views**: Unified cross-portfolio activity stream or dedicated per-symbol transaction drill-down.
+  - **Interactive Date Range Filter**: Custom date range picker component with presets (`YTD`, `1M`, `3M`, `6M`, `1Y`, `All Time`, or custom date bounds).
+  - **Pagination Controls**: Configurable page size options (10, 50, or 100 transactions per page) with full first/prev/page/next/last navigation and dynamic count indicators.
   - **Transaction Filtering & Sorting**: Filter by transaction type (`All`, `Buy`, `Sell`), asset class, or text search; smart symbol dropdown sorting open positions first followed by alphabetical order.
   - **Realized P/L Tracking**: Displays matched lots, gain/loss per sale, hold duration, and buy/sell execution prices.
+  - **Expanded Symbol Display**: Generous space and smart truncation for long fund and company names with hover tooltips.
   - **Responsive Dual-Mode Display**: High-density table on desktop and touch-optimized card layout on mobile devices.
+
+- 📱 **Mobile-First Responsive Experience**:
+  - **Dedicated Mobile Transaction Cards**: Left-accented trade badges (Emerald for `BUY`, Rose for `SELL`), 2-column financial execution metrics, realized P/L highlight banners, and running share positions after trades.
+  - **Adaptive Header & Toolbar**: Touch-friendly navigation buttons (`← Holdings`, `All Symbols`, and `Symbol Selector`), compact date range picker, and 2-row mobile pagination bar.
+  - **Optimized Performance**: Smooth transitions and touch-friendly controls across all screen sizes.
 
 - 🏷️ **Dynamic Asset Classification & Filtering**:
   - **Color-Coded Asset Badges**: Visual indicators (`U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`, and custom asset classes).
@@ -58,7 +66,7 @@
   - Zero-backend transactional database.
   - Fetches and parses published CSV sheets on-the-fly with dynamic column header detection and parallel tab loading.
 
-- 🔍 **Interactive Filtering & Sorting**:
+- 🔍 **Interactive Holdings Dashboard**:
   - Instant search across symbols and company/fund names.
   - Sort by Symbol, Total Cost, Average Cost, Holding Value, Realized P/L, and P/L percentage.
   - Expandable symbol cards displaying individual lot breakdown tiers.
@@ -66,7 +74,7 @@
 - 🎨 **Modern Dark UI**:
   - Built with Angular Standalone Components, Signals, and modern control-flow syntax (`@if`, `@for`).
   - Custom design system with glassmorphism and gradient accents.
-  - Responsive layout optimized for desktop and mobile viewports.
+  - Responsive layout optimized for desktop, tablet, and mobile viewports.
 
 ---
 
@@ -96,7 +104,8 @@ ShareLot/
 ├── src/
 │   ├── app/
 │   │   ├── components/         # Reusable UI feature components
-│   │   │   └── transaction-history/  # Dedicated transaction ledger component
+│   │   │   ├── date-range-picker/    # Interactive date range selector component
+│   │   │   └── transaction-history/  # Dedicated transaction ledger component with pagination & mobile cards
 │   │   ├── config/             # Google Sheets GIDs and asset tab definitions
 │   │   │   └── sheet.config.ts
 │   │   ├── models/             # Domain models (Transaction, ShareLot, SymbolSummary)
@@ -185,12 +194,11 @@ To connect your own Google Sheet:
 ### Sheet Column Format
 
 Each sheet tab should contain transaction records with standard columns (order-independent):
-- **Symbol** (e.g. `AAPL`, `PTT.BK`, `BTC.CRYPTO`, `tsp3-balancer`)
+- **Symbol** (e.g. `AAPL`, `PTT.BK`, `BTC.CRYPTO`, `tsp3-balancer.BKFUND`)
 - **Date** (e.g. `YYYY-MM-DD`)
 - **Quantity / Qty** (Positive for Buy, Negative for Sell)
 - **Price** (Price per share / NAV)
 - **Currency** (`USD` or `THB`)
-- **Type / Asset Type** *(Optional)* (e.g. `U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`)
 
 ---
 

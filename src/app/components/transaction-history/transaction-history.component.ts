@@ -73,9 +73,23 @@ export class TransactionHistoryComponent {
   readonly symbolSearchQuery = signal<string>('');
   readonly isSymbolDropdownOpen = signal<boolean>(false);
 
+  /** Pagination State */
+  readonly pageSizeOptions = [10, 50, 100] as const;
+  readonly pageSize = signal<number>(50);
+  readonly currentPage = signal<number>(1);
+
   constructor() {
     effect(() => {
       this.currentSymbol.set(this.selectedSymbol());
+    });
+
+    // Guard: clamp currentPage when totalPages decreases
+    effect(() => {
+      const total = this.totalPages();
+      const current = this.currentPage();
+      if (current > total && total > 0) {
+        this.currentPage.set(total);
+      }
     });
   }
 
@@ -84,6 +98,7 @@ export class TransactionHistoryComponent {
     this.symbolSelected.emit(symbol);
     this.isSymbolDropdownOpen.set(false);
     this.clearDateRange();
+    this.currentPage.set(1);
   }
 
   clearSymbolSelection(): void {
@@ -91,20 +106,29 @@ export class TransactionHistoryComponent {
     this.symbolSelected.emit('');
     this.isSymbolDropdownOpen.set(false);
     this.clearDateRange();
+    this.currentPage.set(1);
   }
 
   clearDateRange(): void {
     this.startDate.set('');
     this.endDate.set('');
+    this.currentPage.set(1);
   }
 
   onDateRangeChange(range: DateRange): void {
     this.startDate.set(range.startDate);
     this.endDate.set(range.endDate);
+    this.currentPage.set(1);
+  }
+
+  setTypeFilter(type: TxTypeFilter): void {
+    this.typeFilter.set(type);
+    this.currentPage.set(1);
   }
 
   setAssetFilter(filter: string): void {
     this.assetFilter.set(filter);
+    this.currentPage.set(1);
   }
 
   onAssetTypeChange(event: Event): void {
@@ -389,7 +413,113 @@ export class TransactionHistoryComponent {
     return getAssetTypeClass(assetType, symbol);
   }
 
+  /** Pagination Computeds */
+  readonly totalPages = computed<number>(() => {
+    const total = this.filteredTransactions().length;
+    const size = this.pageSize();
+    return Math.max(1, Math.ceil(total / size));
+  });
+
+  /** Paginated transactions subset for current page */
+  readonly paginatedTransactions = computed<SymbolTransaction[]>(() => {
+    const txs = this.filteredTransactions();
+    const page = this.currentPage();
+    const size = this.pageSize();
+    const startIndex = (page - 1) * size;
+    return txs.slice(startIndex, startIndex + size);
+  });
+
+  readonly startIndex = computed<number>(() => {
+    if (this.filteredTransactions().length === 0) return 0;
+    return (this.currentPage() - 1) * this.pageSize() + 1;
+  });
+
+  readonly endIndex = computed<number>(() => {
+    return Math.min(this.currentPage() * this.pageSize(), this.filteredTransactions().length);
+  });
+
+  /** Page number items for rendering (with ellipsis for large page counts) */
+  readonly displayedPageNumbers = computed<(number | '...')[]>(() => {
+    const current = this.currentPage();
+    const total = this.totalPages();
+    if (total <= 7) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+
+    const pages: (number | '...')[] = [];
+    if (current <= 4) {
+      for (let i = 1; i <= 5; i++) pages.push(i);
+      pages.push('...');
+      pages.push(total);
+    } else if (current >= total - 3) {
+      pages.push(1);
+      pages.push('...');
+      for (let i = total - 4; i <= total; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      pages.push('...');
+      pages.push(current - 1);
+      pages.push(current);
+      pages.push(current + 1);
+      pages.push('...');
+      pages.push(total);
+    }
+    return pages;
+  });
+
+  /** Pagination Methods */
+  setPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+      this.scrollToTableTop();
+    }
+  }
+
+  setPageSize(size: number | string): void {
+    const numSize = Number(size);
+    if ([10, 50, 100].includes(numSize)) {
+      this.pageSize.set(numSize);
+      this.currentPage.set(1);
+      this.scrollToTableTop();
+    }
+  }
+
+  onPageSizeChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    this.setPageSize(value);
+  }
+
+  nextPage(): void {
+    if (this.currentPage() < this.totalPages()) {
+      this.setPage(this.currentPage() + 1);
+    }
+  }
+
+  prevPage(): void {
+    if (this.currentPage() > 1) {
+      this.setPage(this.currentPage() - 1);
+    }
+  }
+
+  firstPage(): void {
+    this.setPage(1);
+  }
+
+  lastPage(): void {
+    this.setPage(this.totalPages());
+  }
+
+  private scrollToTableTop(): void {
+    if (typeof document !== 'undefined') {
+      const el = document.getElementById('tx-table-section');
+      if (el && typeof el.scrollIntoView === 'function') {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }
+
   toggleSort(): void {
     this.sortOrder.set(this.sortOrder() === 'desc' ? 'asc' : 'desc');
+    this.currentPage.set(1);
   }
 }

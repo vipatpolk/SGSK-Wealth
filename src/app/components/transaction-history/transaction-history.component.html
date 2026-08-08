@@ -480,14 +480,14 @@
   }
 
   <!-- Transactions Table Section & Filter Toolbar -->
-  <div class="tx-table-section">
+  <div class="tx-table-section" id="tx-table-section">
     <div class="tx-toolbar">
       <!-- Left: Type Filter Pills -->
       <div class="type-filter-group">
         <button
           class="type-pill"
           [class.active]="typeFilter() === 'all'"
-          (click)="typeFilter.set('all')"
+          (click)="setTypeFilter('all')"
           id="filter-type-all"
           type="button"
         >
@@ -496,7 +496,7 @@
         <button
           class="type-pill type-pill-buy"
           [class.active]="typeFilter() === 'buy'"
-          (click)="typeFilter.set('buy')"
+          (click)="setTypeFilter('buy')"
           id="filter-type-buy"
           type="button"
         >
@@ -509,7 +509,7 @@
         <button
           class="type-pill type-pill-sell"
           [class.active]="typeFilter() === 'sell'"
-          (click)="typeFilter.set('sell')"
+          (click)="setTypeFilter('sell')"
           id="filter-type-sell"
           type="button"
         >
@@ -568,17 +568,17 @@
             </tr>
           </thead>
           <tbody>
-            @for (tx of filteredTransactions(); track tx.id; let i = $index) {
+            @for (tx of paginatedTransactions(); track tx.id; let i = $index) {
               <tr class="tx-row" [class.tx-row-buy]="tx.type === 'BUY'" [class.tx-row-sell]="tx.type === 'SELL'">
                 <!-- # Index -->
                 <td class="col-num">
-                  <span class="tx-index-badge">{{ sortOrder() === 'desc' ? filteredTransactions().length - i : i + 1 }}</span>
+                  <span class="tx-index-badge">{{ sortOrder() === 'desc' ? filteredTransactions().length - ((currentPage() - 1) * pageSize() + i) : (currentPage() - 1) * pageSize() + i + 1 }}</span>
                 </td>
 
                 <!-- Symbol (if in unified feed) -->
                 @if (!activeSummary()) {
                   <td class="col-symbol">
-                    <button class="symbol-link-btn" (click)="selectSymbol(tx.symbol)" type="button">
+                    <button class="symbol-link-btn" (click)="selectSymbol(tx.symbol)" type="button" [title]="getSymbolName(tx.symbol) || getDisplaySymbol(tx.symbol)">
                       <span
                         class="symbol-badge symbol-badge-xs"
                         [style.background-color]="getSymbolColor(tx.symbol) + '18'"
@@ -588,7 +588,7 @@
                         {{ getDisplaySymbol(tx.symbol) }}
                       </span>
                       @if (getSymbolName(tx.symbol)) {
-                        <span class="tx-symbol-name">{{ getSymbolName(tx.symbol) }}</span>
+                        <span class="tx-symbol-name" [title]="getSymbolName(tx.symbol)">{{ getSymbolName(tx.symbol) }}</span>
                       }
                     </button>
                   </td>
@@ -686,12 +686,13 @@
 
     <!-- Mobile Transaction Cards View (Visible on small screens) -->
     <div class="tx-mobile-cards">
-      @for (tx of filteredTransactions(); track tx.id; let i = $index) {
+      @for (tx of paginatedTransactions(); track tx.id; let i = $index) {
         <div class="tx-mobile-card" [class.mobile-card-buy]="tx.type === 'BUY'" [class.mobile-card-sell]="tx.type === 'SELL'">
+          <!-- Top Row: Identity (Symbol / Type) + Date + Trade # -->
           <div class="mobile-card-header">
-            <div class="mobile-card-header-left">
+            <div class="mobile-card-identity">
               @if (!activeSummary()) {
-                <button class="symbol-link-btn" (click)="selectSymbol(tx.symbol)" type="button">
+                <button class="symbol-link-btn mobile-symbol-link" (click)="selectSymbol(tx.symbol)" type="button" [title]="getSymbolName(tx.symbol) || getDisplaySymbol(tx.symbol)">
                   <span
                     class="symbol-badge symbol-badge-xs"
                     [style.background-color]="getSymbolColor(tx.symbol) + '18'"
@@ -700,58 +701,232 @@
                   >
                     {{ getDisplaySymbol(tx.symbol) }}
                   </span>
-                  @if (getSymbolName(tx.symbol)) {
-                    <span class="mobile-tx-symbol-name">{{ getSymbolName(tx.symbol) }}</span>
-                  }
+                  <div class="mobile-symbol-text-wrap">
+                    <span class="mobile-symbol-code">{{ getDisplaySymbol(tx.symbol) }}</span>
+                    @if (getSymbolName(tx.symbol)) {
+                      <span class="mobile-tx-symbol-name" [title]="getSymbolName(tx.symbol)">{{ getSymbolName(tx.symbol) }}</span>
+                    }
+                  </div>
                 </button>
+              } @else {
+                <div class="mobile-single-identity">
+                  <span class="mobile-tx-type" [class.type-buy]="tx.type === 'BUY'" [class.type-sell]="tx.type === 'SELL'">
+                    @if (tx.type === 'BUY') {
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                      </svg>
+                    } @else {
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
+                        <polyline points="17 14 12 9 7 14"></polyline>
+                        <line x1="12" y1="9" x2="12" y2="21"></line>
+                      </svg>
+                    }
+                    {{ tx.type }}
+                  </span>
+                  <span class="mobile-tx-date">{{ tx.date | date:'mediumDate' }}</span>
+                </div>
               }
-              <span class="mobile-tx-type" [class.type-buy]="tx.type === 'BUY'" [class.type-sell]="tx.type === 'SELL'">
-                {{ tx.type }}
-              </span>
-              <span class="mobile-tx-date">{{ tx.date | date:'MMM d, y' }}</span>
             </div>
-            <span class="mobile-tx-num">#{{ sortOrder() === 'desc' ? filteredTransactions().length - i : i + 1 }}</span>
+
+            <div class="mobile-card-meta-right">
+              @if (!activeSummary()) {
+                <span class="mobile-tx-type" [class.type-buy]="tx.type === 'BUY'" [class.type-sell]="tx.type === 'SELL'">
+                  @if (tx.type === 'BUY') {
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                  } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
+                      <polyline points="17 14 12 9 7 14"></polyline>
+                      <line x1="12" y1="9" x2="12" y2="21"></line>
+                    </svg>
+                  }
+                  {{ tx.type }}
+                </span>
+                <span class="mobile-tx-date">{{ tx.date | date:'MMM d, y' }}</span>
+              }
+              <span class="mobile-tx-num">#{{ sortOrder() === 'desc' ? filteredTransactions().length - ((currentPage() - 1) * pageSize() + i) : (currentPage() - 1) * pageSize() + i + 1 }}</span>
+            </div>
           </div>
 
+          <!-- Card Body: Clean 2-Column Financial Figures -->
           <div class="mobile-card-body">
-            <div class="mobile-metric-row">
-              <div class="mobile-metric-col">
-                <span class="mobile-label">Quantity</span>
-                <span class="mobile-val" [class.qty-buy]="tx.type === 'BUY'" [class.qty-sell]="tx.type === 'SELL'">
-                  {{ tx.type === 'BUY' ? '+' : '-' }}{{ tx.quantity | number:getQuantityFormat(tx.symbol, tx.assetType) }}
-                </span>
+            <div class="mobile-financial-row">
+              <div class="mobile-financial-col-left">
+                <span class="mobile-metric-label">Shares & Execution</span>
+                <div class="mobile-qty-wrap">
+                  <span class="mobile-metric-qty" [class.qty-buy]="tx.type === 'BUY'" [class.qty-sell]="tx.type === 'SELL'">
+                    {{ tx.type === 'BUY' ? '+' : '-' }}{{ tx.quantity | number:getQuantityFormat(tx.symbol, tx.assetType) }}
+                  </span>
+                  <span class="mobile-metric-unit">shares</span>
+                </div>
+                <div class="mobile-metric-sub">
+                  @ {{ cx(tx.price, tx.currency) | currency:dc(tx.currency):'symbol-narrow':getPriceFormat(tx.symbol, tx.assetType) }} / share
+                </div>
               </div>
-              <div class="mobile-metric-col">
-                <span class="mobile-label">Unit Price</span>
-                <span class="mobile-val">{{ cx(tx.price, tx.currency) | currency:dc(tx.currency):'symbol-narrow':getPriceFormat(tx.symbol, tx.assetType) }}</span>
-              </div>
-              <div class="mobile-metric-col">
-                <span class="mobile-label">Total Value</span>
-                <span class="mobile-val bold">{{ cx(tx.totalAmount, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }}</span>
+
+              <div class="mobile-financial-col-right">
+                <span class="mobile-metric-label">Total Amount</span>
+                <div class="mobile-metric-amount">
+                  {{ cx(tx.totalAmount, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }}
+                </div>
               </div>
             </div>
 
             @if (tx.type === 'SELL' && tx.realizedPL !== undefined) {
               <div class="mobile-pl-banner" [class.pl-positive]="tx.realizedPL >= 0" [class.pl-negative]="tx.realizedPL < 0">
-                <span class="mobile-label">Realized P/L:</span>
-                <span class="mobile-val">
+                <div class="mobile-pl-banner-left">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pl-banner-icon">
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                  </svg>
+                  <span>Realized P/L</span>
+                </div>
+                <div class="mobile-pl-banner-val">
                   {{ tx.realizedPL >= 0 ? '+' : '' }}{{ cx(tx.realizedPL, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }}
-                  ({{ tx.realizedPL >= 0 ? '+' : '' }}{{ tx.realizedPLPercent | number:'1.2-2' }}%)
-                </span>
+                  <span class="pl-pct">({{ tx.realizedPL >= 0 ? '+' : '' }}{{ tx.realizedPLPercent | number:'1.2-2' }}%)</span>
+                </div>
               </div>
             }
 
             <div class="mobile-footer-row">
-              <span class="mobile-footer-label">Holding After:</span>
-              <span class="mobile-footer-val">{{ tx.runningShares | number:getQuantityFormat(tx.symbol, tx.assetType) }} shares ({{ cx(tx.runningTotalCost, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }})</span>
+              <span class="mobile-footer-label">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="footer-icon">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                </svg>
+                Position After
+              </span>
+              <span class="mobile-footer-val">
+                <strong>{{ tx.runningShares | number:getQuantityFormat(tx.symbol, tx.assetType) }}</strong> shares
+                <span class="mobile-footer-cost">({{ cx(tx.runningTotalCost, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }})</span>
+              </span>
             </div>
           </div>
         </div>
       } @empty {
         <div class="empty-state-mobile">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="empty-icon-mobile">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
           <p>No transactions match your current filter.</p>
         </div>
       }
     </div>
+
+    <!-- Pagination Bar -->
+    @if (filteredTransactions().length > 0) {
+      <div class="tx-pagination-bar" id="tx-pagination-bar">
+        <div class="pagination-top-row">
+          <div class="pagination-info">
+            <span>Showing</span>
+            <span class="pagination-highlight">{{ startIndex() }}–{{ endIndex() }}</span>
+            <span>of</span>
+            <span class="pagination-highlight">{{ filteredTransactions().length }}</span>
+            <span>trades</span>
+          </div>
+
+          <div class="pagination-center">
+            <label for="tx-page-size-select" class="page-size-label">Per page:</label>
+            <div class="page-size-select-wrap">
+              <select
+                id="tx-page-size-select"
+                class="page-size-select"
+                [value]="pageSize()"
+                (change)="onPageSizeChange($event)"
+              >
+                @for (size of pageSizeOptions; track size) {
+                  <option [value]="size">{{ size }}</option>
+                }
+              </select>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-size-chevron">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="pagination-controls">
+          <!-- First Page -->
+          <button
+            class="pagination-btn pagination-btn-nav"
+            [disabled]="currentPage() === 1"
+            (click)="firstPage()"
+            type="button"
+            title="First Page"
+            id="tx-page-first"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">
+              <polyline points="11 17 6 12 11 7"></polyline>
+              <polyline points="18 17 13 12 18 7"></polyline>
+            </svg>
+          </button>
+
+          <!-- Prev Page -->
+          <button
+            class="pagination-btn pagination-btn-nav"
+            [disabled]="currentPage() === 1"
+            (click)="prevPage()"
+            type="button"
+            title="Previous Page"
+            id="tx-page-prev"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+
+          <!-- Page Numbers -->
+          <div class="pagination-pages">
+            @for (pageNum of displayedPageNumbers(); track $index) {
+              @if (pageNum === '...') {
+                <span class="pagination-ellipsis">…</span>
+              } @else {
+                <button
+                  class="pagination-page-btn"
+                  [class.active]="currentPage() === pageNum"
+                  (click)="setPage(pageNum)"
+                  type="button"
+                  [id]="'tx-page-btn-' + pageNum"
+                >
+                  {{ pageNum }}
+                </button>
+              }
+            }
+          </div>
+
+          <!-- Next Page -->
+          <button
+            class="pagination-btn pagination-btn-nav"
+            [disabled]="currentPage() === totalPages()"
+            (click)="nextPage()"
+            type="button"
+            title="Next Page"
+            id="tx-page-next"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+
+          <!-- Last Page -->
+          <button
+            class="pagination-btn pagination-btn-last"
+            [disabled]="currentPage() === totalPages()"
+            (click)="lastPage()"
+            type="button"
+            title="Last Page"
+            id="tx-page-last"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">
+              <polyline points="13 17 18 12 13 7"></polyline>
+              <polyline points="6 17 11 12 6 7"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+    }
   </div>
 </div>

@@ -1121,6 +1121,7 @@
 
 .col-symbol {
   white-space: nowrap;
+  min-width: 140px;
 }
 
 .symbol-link-btn {
@@ -1130,9 +1131,10 @@
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.45rem;
   text-align: left;
   transition: opacity 0.15s ease;
+  max-width: 100%;
 }
 
 .symbol-link-btn:hover {
@@ -1143,20 +1145,22 @@
   font-size: 0.75rem;
   color: var(--color-text-secondary);
   font-weight: 500;
-  max-width: 120px;
+  max-width: 280px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.3;
 }
 
 .mobile-tx-symbol-name {
   font-size: 0.75rem;
   color: var(--color-text-secondary);
   font-weight: 500;
-  max-width: 110px;
+  max-width: 190px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.3;
 }
 
 .col-date {
@@ -1339,39 +1343,116 @@
 .tx-mobile-cards {
   display: none;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.875rem;
 }
 
 .tx-mobile-card {
   background-color: var(--color-surface-raised);
   border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
-  padding: 0.875rem;
+  border-radius: 0.875rem;
+  padding: 0.875rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
-  box-shadow: 0 2px 6px var(--color-shadow-sm);
+  gap: 0.75rem;
+  box-shadow: 0 2px 8px var(--color-shadow-sm);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.tx-mobile-card:active {
+  transform: scale(0.99);
+}
+
+.tx-mobile-card.mobile-card-buy {
+  border-left: 3.5px solid #10b981;
+}
+
+.tx-mobile-card.mobile-card-sell {
+  border-left: 3.5px solid #f43f5e;
 }
 
 .mobile-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 0.5rem;
+  gap: 0.75rem;
+  padding-bottom: 0.625rem;
   border-bottom: 1px solid var(--color-border);
 }
 
-.mobile-card-header-left {
+.mobile-card-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.mobile-symbol-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  min-width: 0;
+  text-align: left;
+  font-family: inherit;
+}
+
+.mobile-symbol-text-wrap {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.mobile-symbol-code {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.mobile-tx-symbol-name {
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+  font-weight: 400;
+  max-width: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-single-identity {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
+.mobile-card-meta-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
 .mobile-tx-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   font-size: 0.6875rem;
   font-weight: 700;
-  padding: 0.15rem 0.4rem;
-  border-radius: 0.25rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 0.35rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.type-icon-xs {
+  width: 0.75rem;
+  height: 0.75rem;
 }
 
 .type-buy {
@@ -1387,68 +1468,381 @@
 .mobile-tx-date {
   font-size: 0.75rem;
   color: var(--color-text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .mobile-tx-num {
   font-size: 0.6875rem;
   color: var(--color-text-muted);
   font-weight: 600;
+  background-color: var(--color-surface-overlay);
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
 }
 
-.mobile-metric-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 0.5rem;
-}
-
-.mobile-metric-col {
+/* Financial Highlights */
+.mobile-card-body {
   display: flex;
   flex-direction: column;
+  gap: 0.625rem;
 }
 
-.mobile-label {
+.mobile-financial-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.mobile-financial-col-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.mobile-financial-col-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  flex-shrink: 0;
+}
+
+.mobile-metric-label {
   font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
   color: var(--color-text-muted);
-}
-
-.mobile-val {
-  font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--color-text-primary);
 }
 
-.mobile-val.bold {
+.mobile-qty-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.mobile-metric-qty {
+  font-size: 0.9375rem;
   font-weight: 700;
+}
+
+.qty-buy {
+  color: #10b981;
+}
+
+.qty-sell {
+  color: #f43f5e;
+}
+
+.mobile-metric-unit {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.mobile-metric-sub {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.mobile-metric-amount {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
 }
 
 .mobile-pl-banner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.375rem 0.625rem;
-  border-radius: 0.375rem;
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.5rem;
   background-color: var(--color-surface-overlay);
+  border: 1px solid var(--color-border);
   font-size: 0.75rem;
+}
+
+.mobile-pl-banner.pl-positive {
+  background-color: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+.mobile-pl-banner.pl-negative {
+  background-color: rgba(244, 63, 94, 0.08);
+  border-color: rgba(244, 63, 94, 0.2);
+  color: #f43f5e;
+}
+
+.mobile-pl-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.pl-banner-icon {
+  width: 0.8125rem;
+  height: 0.8125rem;
+}
+
+.mobile-pl-banner-val {
+  font-weight: 700;
+  font-size: 0.8125rem;
+}
+
+.mobile-pl-banner-val .pl-pct {
+  font-size: 0.72rem;
+  margin-left: 0.2rem;
+  font-weight: 600;
 }
 
 .mobile-footer-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.6875rem;
+  gap: 0.5rem;
+  font-size: 0.72rem;
   color: var(--color-text-secondary);
-  padding-top: 0.375rem;
+  padding-top: 0.45rem;
   border-top: 1px dashed var(--color-border);
 }
 
-.empty-state-mobile {
-  padding: 2rem 1rem;
-  text-align: center;
+.mobile-footer-label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
   color: var(--color-text-muted);
-  font-size: 0.875rem;
+  font-weight: 500;
 }
 
-/* Responsive Breakpoints */
+.footer-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.mobile-footer-val {
+  font-weight: 500;
+  text-align: right;
+}
+
+.mobile-footer-val strong {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.mobile-footer-cost {
+  color: var(--color-text-muted);
+  margin-left: 0.25rem;
+}
+
+.empty-state-mobile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--color-text-muted);
+  background: var(--color-surface-raised);
+  border: 1px dashed var(--color-border);
+  border-radius: 0.875rem;
+}
+
+.empty-icon-mobile {
+  width: 2.25rem;
+  height: 2.25rem;
+  opacity: 0.5;
+  color: var(--color-text-muted);
+}
+
+/* ==========================================================================
+   Pagination Bar
+   ========================================================================== */
+.tx-pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+  background-color: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 8px var(--color-shadow-sm);
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
+.pagination-top-row {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.pagination-info {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.pagination-highlight {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.pagination-center {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.page-size-label {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.page-size-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.page-size-select {
+  appearance: none;
+  background-color: var(--color-surface-overlay);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  padding: 0.35rem 1.85rem 0.35rem 0.65rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+.page-size-select:hover {
+  border-color: var(--color-border-hover);
+  background-color: var(--color-surface-raised);
+}
+
+.page-size-select:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-accent-soft);
+}
+
+.page-size-chevron {
+  position: absolute;
+  right: 0.5rem;
+  pointer-events: none;
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background-color: var(--color-surface-overlay);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.pagination-btn .nav-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background-color: var(--color-surface-raised);
+  border-color: var(--color-border-hover);
+  color: var(--color-text-primary);
+  transform: translateY(-1px);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pagination-page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.4rem;
+  border-radius: 0.5rem;
+  background-color: transparent;
+  border: 1px solid transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.pagination-page-btn:hover:not(.active) {
+  background-color: var(--color-surface-overlay);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+
+.pagination-page-btn.active {
+  background-color: var(--color-accent);
+  color: #ffffff;
+  font-weight: 700;
+  border-color: var(--color-accent);
+  box-shadow: 0 2px 6px var(--color-accent-soft);
+}
+
+.pagination-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 2rem;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  user-select: none;
+}
+
+/* ==========================================================================
+   Responsive Breakpoints
+   ========================================================================== */
 @media (min-width: 769px) and (max-width: 1200px) {
   .tx-table th,
   .tx-table td {
@@ -1457,15 +1851,19 @@
   }
 
   .tx-symbol-name {
-    max-width: 80px;
+    max-width: 180px;
   }
 }
 
 @media (max-width: 768px) {
+  .tx-history-container {
+    gap: 1rem;
+  }
+
   .tx-nav-bar {
     flex-direction: column;
     align-items: stretch;
-    gap: 0.625rem;
+    gap: 0.5rem;
   }
 
   .tx-nav-left {
@@ -1473,6 +1871,13 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+  }
+
+  .back-btn,
+  .all-feed-btn {
+    padding: 0.45rem 0.65rem;
+    font-size: 0.8125rem;
+    white-space: nowrap;
   }
 
   .symbol-selector-wrapper {
@@ -1486,8 +1891,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.4rem 0.625rem;
-    gap: 0.375rem;
+    padding: 0.42rem 0.65rem;
+    gap: 0.35rem;
   }
 
   .symbol-selector-text {
@@ -1567,12 +1972,58 @@
     display: flex;
   }
 
-  .symbol-hero-card {
-    padding: 1.125rem;
+  .symbol-hero-card,
+  .all-symbols-hero-card {
+    padding: 1rem;
+    border-radius: 0.875rem;
+    gap: 0.875rem;
+  }
+
+  .symbol-hero-header,
+  .all-symbols-hero-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .symbol-hero-identity {
+    gap: 0.75rem;
+  }
+
+  .symbol-hero-title {
+    font-size: 1.25rem;
+  }
+
+  .symbol-hero-meta {
+    width: 100%;
+    justify-content: space-around;
+    padding: 0.4rem 0.65rem;
+  }
+
+  .all-symbols-subtitle {
+    font-size: 0.75rem;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .symbol-metrics-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.625rem;
+  }
+
+  .metric-card {
+    padding: 0.625rem 0.75rem;
+  }
+
+  .metric-main-value {
+    font-size: 1rem;
+  }
+
+  .metric-sub-value {
+    font-size: 0.6875rem;
   }
 
   /* Hide desktop asset filter bars on mobile */
@@ -1590,13 +2041,31 @@
   .tx-toolbar {
     flex-direction: column;
     align-items: stretch;
-    gap: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .type-filter-group {
+    display: flex;
+    width: 100%;
+    padding: 0.2rem;
+  }
+
+  .type-pill {
+    flex: 1;
+    justify-content: center;
+    padding: 0.4rem 0.25rem;
+    font-size: 0.72rem;
+    gap: 0.2rem;
+  }
+
+  .pill-icon {
+    width: 0.75rem;
+    height: 0.75rem;
   }
 
   .tx-toolbar-right {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    align-items: stretch;
     gap: 0.5rem;
     width: 100%;
   }
@@ -1605,4 +2074,98 @@
     flex: 1;
     min-width: 0;
   }
+
+  .btn-sort-toggle {
+    padding: 0.4rem 0.65rem;
+    font-size: 0.72rem;
+    flex-shrink: 0;
+    justify-content: center;
+  }
+
+  .tx-pagination-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 0.75rem 0.875rem;
+    border-radius: 0.875rem;
+  }
+
+  .pagination-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .pagination-info {
+    font-size: 0.75rem;
+  }
+
+  .page-size-label {
+    font-size: 0.75rem;
+  }
+
+  .page-size-select {
+    padding: 0.25rem 1.6rem 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.25rem;
+    width: 100%;
+    flex-wrap: nowrap;
+  }
+
+  .pagination-btn {
+    width: 1.875rem;
+    height: 1.875rem;
+    border-radius: 0.375rem;
+  }
+
+  .pagination-page-btn {
+    min-width: 1.875rem;
+    height: 1.875rem;
+    padding: 0 0.25rem;
+    font-size: 0.75rem;
+    border-radius: 0.375rem;
+  }
+
+  .pagination-ellipsis {
+    width: 1rem;
+    height: 1.875rem;
+  }
 }
+
+@media (max-width: 480px) {
+  .tx-nav-left {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  .back-btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .all-feed-btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .symbol-selector-wrapper {
+    width: 100%;
+    flex-basis: 100%;
+  }
+
+  .mobile-tx-symbol-name {
+    max-width: 130px;
+  }
+}
+
+

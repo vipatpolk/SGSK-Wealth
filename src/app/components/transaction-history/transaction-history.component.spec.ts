@@ -306,5 +306,212 @@ describe('TransactionHistoryComponent', () => {
     expect(component.getSymbolName('TSLA')).toBe('Tesla, Inc.');
     expect(component.getSymbolName('UNKNOWN')).toBe('');
   });
+
+  it('should initialize pagination with default page size 50 and page 1', () => {
+    expect(component.currentPage()).toBe(1);
+    expect(component.pageSize()).toBe(50);
+    expect(component.pageSizeOptions).toEqual([10, 50, 100]);
+    expect(component.totalPages()).toBe(1);
+    expect(component.paginatedTransactions().length).toBe(6);
+    expect(component.startIndex()).toBe(1);
+    expect(component.endIndex()).toBe(6);
+  });
+
+  it('should paginate transactions when page size is changed to 10 with multiple transactions', () => {
+    // Generate a mock summary with 25 transactions
+    const manyTxs = Array.from({ length: 25 }, (_, i) => ({
+      id: `TX-${i + 1}`,
+      symbol: 'AAPL',
+      date: `2024-01-${String((i % 28) + 1).padStart(2, '0')}`,
+      type: (i % 2 === 0 ? 'BUY' : 'SELL') as 'BUY' | 'SELL',
+      quantity: 10,
+      rawQuantity: 10,
+      price: 150 + i,
+      totalAmount: (150 + i) * 10,
+      currency: 'USD',
+      assetType: 'us-stock',
+      runningShares: 10,
+      runningTotalCost: 1500,
+      runningAverageCost: 150,
+    }));
+
+    const mockLargeSummary: SymbolTransactionSummary[] = [
+      {
+        symbol: 'AAPL',
+        assetType: 'us-stock',
+        currency: 'USD',
+        totalTransactions: 25,
+        buyCount: 13,
+        sellCount: 12,
+        totalBuyShares: 130,
+        totalSellShares: 120,
+        totalBuyAmount: 20000,
+        totalSellAmount: 22000,
+        averageBuyPrice: 150,
+        averageSellPrice: 180,
+        netShares: 10,
+        netInvested: 1500,
+        currentStatus: 'OPEN',
+        realizedPL: 2000,
+        realizedPLPercent: 10,
+        firstTradeDate: '2024-01-01',
+        lastTradeDate: '2024-01-25',
+        transactions: manyTxs,
+      },
+    ];
+
+    fixture.componentRef.setInput('transactionSummaries', mockLargeSummary);
+    fixture.detectChanges();
+
+    // Default page size is 50 -> 1 page of 25
+    expect(component.totalPages()).toBe(1);
+    expect(component.paginatedTransactions().length).toBe(25);
+
+    // Change page size to 10
+    component.setPageSize(10);
+    expect(component.pageSize()).toBe(10);
+    expect(component.currentPage()).toBe(1);
+    expect(component.totalPages()).toBe(3);
+    expect(component.paginatedTransactions().length).toBe(10);
+    expect(component.startIndex()).toBe(1);
+    expect(component.endIndex()).toBe(10);
+
+    // Page 2
+    component.nextPage();
+    expect(component.currentPage()).toBe(2);
+    expect(component.paginatedTransactions().length).toBe(10);
+    expect(component.startIndex()).toBe(11);
+    expect(component.endIndex()).toBe(20);
+
+    // Page 3 (last page with 5 items)
+    component.nextPage();
+    expect(component.currentPage()).toBe(3);
+    expect(component.paginatedTransactions().length).toBe(5);
+    expect(component.startIndex()).toBe(21);
+    expect(component.endIndex()).toBe(25);
+
+    // Should not exceed totalPages
+    component.nextPage();
+    expect(component.currentPage()).toBe(3);
+
+    // Previous Page
+    component.prevPage();
+    expect(component.currentPage()).toBe(2);
+
+    // First Page
+    component.firstPage();
+    expect(component.currentPage()).toBe(1);
+
+    // Last Page
+    component.lastPage();
+    expect(component.currentPage()).toBe(3);
+  });
+
+  it('should reset current page to 1 when changing filters or page size', () => {
+    component.currentPage.set(2);
+    component.setPageSize(10);
+    expect(component.currentPage()).toBe(1);
+
+    component.currentPage.set(2);
+    component.setTypeFilter('buy');
+    expect(component.currentPage()).toBe(1);
+
+    component.currentPage.set(2);
+    component.setAssetFilter('thai-stock');
+    expect(component.currentPage()).toBe(1);
+
+    component.currentPage.set(2);
+    component.selectSymbol('TSLA');
+    expect(component.currentPage()).toBe(1);
+
+    component.currentPage.set(2);
+    component.clearSymbolSelection();
+    expect(component.currentPage()).toBe(1);
+
+    component.currentPage.set(2);
+    component.onDateRangeChange({ startDate: '2024-01-01', endDate: '2024-01-31' });
+    expect(component.currentPage()).toBe(1);
+
+    component.currentPage.set(2);
+    component.clearDateRange();
+    expect(component.currentPage()).toBe(1);
+
+    component.currentPage.set(2);
+    component.toggleSort();
+    expect(component.currentPage()).toBe(1);
+  });
+
+  it('should generate appropriate displayed page numbers with ellipsis for many pages', () => {
+    // 7 or fewer pages
+    expect(component.displayedPageNumbers()).toEqual([1]);
+
+    // Create component with 150 items and page size 10 -> 15 pages
+    const mock150Txs = Array.from({ length: 150 }, (_, i) => ({
+      id: `TX-${i + 1}`,
+      symbol: 'AAPL',
+      date: `2024-01-01`,
+      type: 'BUY' as const,
+      quantity: 1,
+      rawQuantity: 1,
+      price: 100,
+      totalAmount: 100,
+      currency: 'USD',
+      assetType: 'us-stock',
+      runningShares: i + 1,
+      runningTotalCost: (i + 1) * 100,
+      runningAverageCost: 100,
+    }));
+
+    fixture.componentRef.setInput('transactionSummaries', [
+      {
+        symbol: 'AAPL',
+        assetType: 'us-stock',
+        currency: 'USD',
+        totalTransactions: 150,
+        buyCount: 150,
+        sellCount: 0,
+        totalBuyShares: 150,
+        totalSellShares: 0,
+        totalBuyAmount: 15000,
+        totalSellAmount: 0,
+        averageBuyPrice: 100,
+        averageSellPrice: 0,
+        netShares: 150,
+        netInvested: 15000,
+        currentStatus: 'OPEN',
+        realizedPL: 0,
+        realizedPLPercent: 0,
+        firstTradeDate: '2024-01-01',
+        lastTradeDate: '2024-01-01',
+        transactions: mock150Txs,
+      },
+    ]);
+    component.setPageSize(10);
+    fixture.detectChanges();
+
+    expect(component.totalPages()).toBe(15);
+
+    // On page 1: [1, 2, 3, 4, 5, '...', 15]
+    component.setPage(1);
+    expect(component.displayedPageNumbers()).toEqual([1, 2, 3, 4, 5, '...', 15]);
+
+    // On middle page 8: [1, '...', 7, 8, 9, '...', 15]
+    component.setPage(8);
+    expect(component.displayedPageNumbers()).toEqual([1, '...', 7, 8, 9, '...', 15]);
+
+    // On near end page 14: [1, '...', 11, 12, 13, 14, 15]
+    component.setPage(14);
+    expect(component.displayedPageNumbers()).toEqual([1, '...', 11, 12, 13, 14, 15]);
+  });
+
+  it('should handle onPageSizeChange event from select element', () => {
+    const mockEvent = {
+      target: { value: '100' },
+    } as unknown as Event;
+
+    component.onPageSizeChange(mockEvent);
+    expect(component.pageSize()).toBe(100);
+  });
 });
+
 
