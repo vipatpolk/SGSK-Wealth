@@ -574,7 +574,7 @@
   height: 1rem;
   color: var(--color-text-muted);
   pointer-events: none;
-  z-index: 2;
+  z-index: 56;
 }
 
 .search-input {
@@ -589,7 +589,7 @@
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
   position: relative;
-  z-index: 1;
+  z-index: 56;
 }
 
 .search-input::placeholder {
@@ -616,7 +616,7 @@
   color: var(--color-text-muted);
   border-radius: 50%;
   cursor: pointer;
-  z-index: 2;
+  z-index: 56;
   transition: all 0.15s ease;
   padding: 0;
 }
