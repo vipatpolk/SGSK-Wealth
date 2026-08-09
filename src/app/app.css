@@ -641,7 +641,7 @@
 
 .search-autocomplete-dropdown {
   position: absolute;
-  top: calc(100% + 0.375rem);
+  top: 0;
   left: 0;
   right: 0;
   min-width: 360px;
