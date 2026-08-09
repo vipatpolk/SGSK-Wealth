@@ -231,10 +231,7 @@ describe('TransactionHistoryComponent', () => {
     component.setAssetFilter('us-stock');
     expect(component.filteredSummaries().length).toBe(2);
 
-    const mockSelectEvent = {
-      target: { value: 'all' },
-    } as unknown as Event;
-    component.onAssetTypeChange(mockSelectEvent);
+    component.setAssetFilter('all');
     expect(component.filteredSummaries().length).toBe(3);
     expect(component.assetFilter()).toBe('all');
   });

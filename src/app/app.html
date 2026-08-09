@@ -1,278 +1,36 @@
-<header class="header">
-  <div class="header-content">
-    <div class="header-left">
-      <div class="logo-mark">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="logo-icon">
-          <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
-          <polyline points="16 7 22 7 22 13"></polyline>
-        </svg>
-      </div>
-      <div>
-        <h1 class="logo-text">ShareLot</h1>
-        <p class="logo-subtitle">FIFO Share Lot Tracker</p>
-      </div>
-    </div>
+<app-header
+  [loading]="loading()"
+  [error]="error()"
+  [result]="result()"
+  [totalCostConverted]="totalCostConverted()"
+  [totalProceedsConverted]="totalProceedsConverted()"
+  [totalPL]="totalPL()"
+  [totalPLPercent]="totalPLPercent()"
+  [isClosedTab]="isClosedTab()"
+  [isAllTab]="isAllTab()"
+  [totalHoldingConverted]="totalHoldingConverted()"
+  [totalRealizedPLConverted]="totalRealizedPLConverted()"
+  [totalRealizedPLPercent]="totalRealizedPLPercent()"
+  [hasRate]="hasRate()"
+  [exchangeRate]="exchangeRate()"
+  [currentView]="currentView()"
+  [displayCurrency]="displayCurrency()"
+  [theme]="theme()"
+  (viewChange)="setView($event)"
+  (currencyChange)="displayCurrency.set($event)"
+  (themeChange)="toggleTheme()"
+></app-header>
 
-    @if (!loading() && !error() && result()) {
-      <div class="header-stats-wrapper">
-        <div class="header-financial-stats" [class.grid-4-items]="isAllTab() && totalHoldingConverted() > 0 && totalRealizedPLConverted() !== 0">
-          <div class="header-stat">
-            <span class="header-stat-label">Total Cost</span>
-            <span class="header-stat-value">{{ totalCostConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
-          </div>
-          @if (isClosedTab()) {
-            <div class="header-stat">
-              <span class="header-stat-label">Total Proceeds</span>
-              <span class="header-stat-value">{{ totalProceedsConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
-            </div>
-            <div class="header-stat">
-              <span class="header-stat-label">Realized P/L</span>
-              <span class="header-stat-value" [class.pl-positive]="totalPL() >= 0" [class.pl-negative]="totalPL() < 0">
-                {{ totalPL() >= 0 ? '+' : '' }}{{ totalPLPercent() | number:'1.2-2' }}%
-              </span>
-            </div>
-          } @else if (isAllTab()) {
-            @if (totalHoldingConverted() > 0) {
-              <div class="header-stat">
-                <span class="header-stat-label">Holding Value</span>
-                <span class="header-stat-value">{{ totalHoldingConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
-              </div>
-              <div class="header-stat">
-                <span class="header-stat-label">P/L</span>
-                <span class="header-stat-value" [class.pl-positive]="totalPL() >= 0" [class.pl-negative]="totalPL() < 0">
-                  {{ totalPL() >= 0 ? '+' : '' }}{{ totalPLPercent() | number:'1.2-2' }}%
-                </span>
-              </div>
-            }
-            @if (totalRealizedPLConverted() !== 0) {
-              <div class="header-stat">
-                <span class="header-stat-label">Realized P/L</span>
-                <span class="header-stat-value" [class.pl-positive]="totalRealizedPLConverted() >= 0" [class.pl-negative]="totalRealizedPLConverted() < 0">
-                  {{ totalRealizedPLConverted() >= 0 ? '+' : '' }}{{ totalRealizedPLPercent() | number:'1.2-2' }}%
-                </span>
-              </div>
-            }
-          } @else if (totalHoldingConverted() > 0) {
-            <div class="header-stat">
-              <span class="header-stat-label">Holding Value</span>
-              <span class="header-stat-value">{{ totalHoldingConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
-            </div>
-            <div class="header-stat">
-              <span class="header-stat-label">P/L</span>
-              <span class="header-stat-value" [class.pl-positive]="totalPL() >= 0" [class.pl-negative]="totalPL() < 0">
-                {{ totalPL() >= 0 ? '+' : '' }}{{ totalPLPercent() | number:'1.2-2' }}%
-              </span>
-            </div>
-          }
-        </div>
-        <div class="header-stat-divider desktop-only"></div>
-        <!-- Meta Stats -->
-        <div class="header-meta-stats">
-          <div class="header-stat header-stat-compact">
-            <span class="header-stat-label">Symbols</span>
-            <span class="header-stat-value">{{ result()!.totalSymbols }}</span>
-          </div>
-          <div class="header-stat-divider-dot"></div>
-          <div class="header-stat header-stat-compact">
-            <span class="header-stat-label">Lots</span>
-            <span class="header-stat-value">{{ result()!.totalLots }}</span>
-          </div>
-          @if (hasRate()) {
-            <div class="header-stat-divider-dot"></div>
-            <div class="header-stat header-stat-compact">
-              <span class="header-stat-label">USD/THB</span>
-              <span class="header-stat-value">{{ exchangeRate() | number:'1.2-2' }}</span>
-            </div>
-          }
-        </div>
-      </div>
-    }
-
-    <div class="header-right">
-      @if (!loading() && !error() && result()) {
-        <div class="view-toggle" id="view-toggle">
-          <button
-            class="view-toggle-btn"
-            [class.view-toggle-btn-active]="currentView() === 'holdings'"
-            (click)="setView('holdings')"
-            id="view-toggle-holdings"
-            type="button"
-            title="View holdings and share lots"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon">
-              <rect x="3" y="3" width="7" height="7"></rect>
-              <rect x="14" y="3" width="7" height="7"></rect>
-              <rect x="14" y="14" width="7" height="7"></rect>
-              <rect x="3" y="14" width="7" height="7"></rect>
-            </svg>
-            <span class="view-toggle-label">Holdings</span>
-          </button>
-          <button
-            class="view-toggle-btn"
-            [class.view-toggle-btn-active]="currentView() === 'transactions'"
-            (click)="setView('transactions')"
-            id="view-toggle-transactions"
-            type="button"
-            title="View transactions history & trade ledger"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 14 14"></polyline>
-            </svg>
-            <span class="view-toggle-label">Transactions</span>
-          </button>
-        </div>
-
-        <div class="currency-toggle" id="currency-toggle">
-          <button
-            class="currency-btn"
-            [class.currency-btn-active]="displayCurrency() === 'USD'"
-            (click)="displayCurrency.set('USD')"
-            id="currency-usd"
-          >$</button>
-          <button
-            class="currency-btn"
-            [class.currency-btn-active]="displayCurrency() === 'THB'"
-            (click)="displayCurrency.set('THB')"
-            id="currency-thb"
-          >฿</button>
-        </div>
-      }
-      <button
-        class="theme-toggle-btn"
-        (click)="toggleTheme()"
-        id="theme-toggle-btn"
-        [title]="theme() === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'"
-        [attr.aria-label]="theme() === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'"
-        type="button"
-      >
-        @if (theme() === 'dark') {
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon">
-            <circle cx="12" cy="12" r="4"></circle>
-            <path d="M12 2v2"></path>
-            <path d="M12 20v2"></path>
-            <path d="m4.93 4.93 1.41 1.41"></path>
-            <path d="m17.66 17.66 1.41 1.41"></path>
-            <path d="M2 12h2"></path>
-            <path d="M20 12h2"></path>
-            <path d="m6.34 17.66-1.41 1.41"></path>
-            <path d="m19.07 4.93-1.41 1.41"></path>
-          </svg>
-        } @else {
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon">
-            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
-          </svg>
-        }
-      </button>
-    </div>
-  </div>
-</header>
 <!-- Tab Bar -->
 @if (currentView() === 'holdings') {
-<ng-template #tabIconTpl let-icon>
-  @if (icon === 'globe') {
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
-      <circle cx="12" cy="12" r="10"></circle>
-      <line x1="2" y1="12" x2="22" y2="12"></line>
-      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10 15.3 15.3 0 0 1 4-10z"></path>
-    </svg>
-  }
-  @if (icon === 'flag-us') {
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
-      <rect x="2" y="4" width="20" height="16" rx="2"></rect>
-      <path d="M2 6a2 2 0 0 1 2-2h7v8H2V6z" stroke-width="1.5" fill="currentColor" fill-opacity="0.25"></path>
-      <line x1="11" y1="6.7" x2="22" y2="6.7" stroke-width="1.5"></line>
-      <line x1="11" y1="9.4" x2="22" y2="9.4" stroke-width="1.5"></line>
-      <line x1="2" y1="12" x2="22" y2="12" stroke-width="1.5"></line>
-      <line x1="2" y1="14.7" x2="22" y2="14.7" stroke-width="1.5"></line>
-      <line x1="2" y1="17.4" x2="22" y2="17.4" stroke-width="1.5"></line>
-    </svg>
-  }
-  @if (icon === 'flag-th') {
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
-      <rect x="2" y="4" width="20" height="16" rx="2"></rect>
-      <line x1="2" y1="6.7" x2="22" y2="6.7" stroke-width="1.3"></line>
-      <rect x="2" y="9.3" width="20" height="5.4" stroke="none" fill="currentColor" fill-opacity="0.3"></rect>
-      <line x1="2" y1="9.3" x2="22" y2="9.3" stroke-width="1.3"></line>
-      <line x1="2" y1="14.7" x2="22" y2="14.7" stroke-width="1.3"></line>
-      <line x1="2" y1="17.3" x2="22" y2="17.3" stroke-width="1.3"></line>
-    </svg>
-  }
-  @if (icon === 'bitcoin' || icon === 'crypto') {
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
-      <circle cx="12" cy="12" r="10"></circle>
-      <path d="M9.5 8h4a2 2 0 0 1 0 4H9.5"></path>
-      <path d="M9.5 12h4.5a2 2 0 0 1 0 4H9.5"></path>
-      <line x1="9.5" y1="7" x2="9.5" y2="17"></line>
-      <line x1="11.5" y1="5.5" x2="11.5" y2="7.5"></line>
-      <line x1="13.5" y1="5.5" x2="13.5" y2="7.5"></line>
-      <line x1="11.5" y1="16.5" x2="11.5" y2="18.5"></line>
-      <line x1="13.5" y1="16.5" x2="13.5" y2="18.5"></line>
-    </svg>
-  }
-  @if (icon === 'pie-chart' || icon === 'fund') {
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
-      <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
-      <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
-    </svg>
-  }
-  @if (icon === 'check-circle') {
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-      <polyline points="22 4 12 14.01 9 11.01"></polyline>
-    </svg>
-  }
-</ng-template>
-
-<nav class="tab-bar" id="tab-bar">
-  <div class="symbol-selector-wrapper tab-dropdown-wrapper" [class.dropdown-is-open]="isTabDropdownOpen()">
-    <button
-      class="symbol-selector-btn tab-dropdown-btn"
-      (click)="toggleTabDropdown()"
-      id="tab-dropdown-btn"
-      type="button"
-    >
-      <div style="display: flex; align-items: center; gap: 0.5rem;">
-        <ng-container *ngTemplateOutlet="tabIconTpl; context: { $implicit: activeTab().icon }"></ng-container>
-        <span class="symbol-selector-text">{{ activeTab().label }}</span>
-      </div>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chevron-arrow" [class.chevron-open]="isTabDropdownOpen()">
-        <polyline points="6 9 12 15 18 9"></polyline>
-      </svg>
-    </button>
-    @if (isTabDropdownOpen()) {
-      <div class="symbol-dropdown-menu tab-dropdown-menu">
-        <div class="dropdown-list">
-          @for (tab of tabs; track tab.id) {
-            <button
-              class="dropdown-item"
-              [class.active]="activeTab().id === tab.id"
-              (click)="selectTab(tab)"
-              type="button"
-            >
-              <ng-container *ngTemplateOutlet="tabIconTpl; context: { $implicit: tab.icon }"></ng-container>
-              <span>{{ tab.label }}</span>
-            </button>
-          }
-        </div>
-      </div>
-      <div class="dropdown-backdrop" (click)="toggleTabDropdown()"></div>
-    }
-  </div>
-  <div class="tab-bar-inner">
-    @for (tab of tabs; track tab.id) {
-      <button
-        class="tab-button"
-        [class.tab-active]="activeTab().id === tab.id"
-        (click)="selectTab(tab)"
-        [id]="'tab-' + tab.id"
-      >
-        <ng-container *ngTemplateOutlet="tabIconTpl; context: { $implicit: tab.icon }"></ng-container>
-        <span class="tab-label">{{ tab.label }}</span>
-      </button>
-    }
-  </div>
-</nav>
+  <app-tab-bar
+    [currentView]="currentView()"
+    [tabs]="tabs"
+    [activeTab]="activeTab()"
+    [isTabDropdownOpen]="isTabDropdownOpen()"
+    (tabSelect)="selectTab($event)"
+    (toggleDropdown)="toggleTabDropdown()"
+  ></app-tab-bar>
 }
 
 <!-- Screen Loading Overlay (Hides contents while data is loading) -->
@@ -352,683 +110,196 @@
         (backToHoldings)="openHoldingsView()"
       ></app-transaction-history>
     } @else {
-    <!-- Toolbar -->
-    <div class="toolbar">
-      <div class="search-container" [class.search-focused]="isSearchFocused() || isSearchDropdownOpen()">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-        <input
-          type="text"
-          class="search-input"
-          placeholder="Search by symbol or name..."
-          [value]="searchQuery()"
-          (input)="onSearchInput($any($event.target).value)"
-          (focus)="onSearchFocus()"
-          (keydown)="onSearchKeydown($event)"
-          id="search-input"
-          #searchInput
-          autocomplete="off"
-          spellcheck="false"
-        />
-        @if (searchQuery()) {
-          <button
-            class="btn-search-clear"
-            (mousedown)="$event.preventDefault(); clearSearchQuery(searchInput)"
-            type="button"
-            title="Clear search"
-            aria-label="Clear search"
-            id="search-clear-btn"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="clear-icon">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
+      <!-- Toolbar -->
+      <app-search-bar
+        [searchQuery]="searchQuery()"
+        [isSearchFocused]="isSearchFocused()"
+        [isSearchDropdownOpen]="isSearchDropdownOpen()"
+        [searchActiveIndex]="searchActiveIndex()"
+        [autocompleteSuggestions]="autocompleteSuggestions()"
+        [filteredSummariesCount]="filteredSummaries().length"
+        [filteredClosedSummariesCount]="filteredClosedSummaries().length"
+        [isClosedTab]="isClosedTab()"
+        [isAllTab]="isAllTab()"
+        [getAssetTypeClass]="getAssetTypeClass.bind(this)"
+        (searchInput)="onSearchInput($event)"
+        (searchFocus)="onSearchFocus()"
+        (searchKeydown)="onSearchKeydown($event)"
+        (clearSearch)="clearSearchQuery($event)"
+        (selectItem)="selectAutocompleteItem($event)"
+        (closeDropdown)="closeSearchDropdown()"
+        (refresh)="refresh()"
+        (expandAll)="expandAll()"
+        (collapseAll)="collapseAll()"
+        (setSearchActiveIndex)="searchActiveIndex.set($event)"
+      ></app-search-bar>
+
+      <app-filters
+        [isClosedTab]="isClosedTab()"
+        [closedAssetTypeOptions]="closedAssetTypeOptions()"
+        [selectedClosedAssetType]="selectedClosedAssetType()"
+        [isMobileFilterDropdownOpen]="isMobileFilterDropdownOpen()"
+        [sortOptions]="sortOptions()"
+        [sortField]="sortField()"
+        [sortDirection]="sortDirection()"
+        [isMobileSortDropdownOpen]="isMobileSortDropdownOpen()"
+        (toggleMobileFilter)="toggleMobileFilterDropdown()"
+        (setClosedAssetType)="setClosedAssetTypeFilter($event)"
+        (toggleMobileSort)="toggleMobileSortDropdown()"
+        (setSort)="setSort($event)"
+        (toggleSortDir)="toggleSortDirection()"
+      ></app-filters>
+
+      <!-- Price Loading Indicator -->
+      @if (pricesLoading()) {
+        <div class="price-loading-bar">
+          <div class="price-loading-bar-inner"></div>
+        </div>
+      }
+
+      <!-- ================= ALL POSITIONS VIEW (GROUPED SEPARATELY) ================= -->
+      @if (isAllTab()) {
+        <!-- Open Positions Section -->
+        <div class="section-divider">
+          <div class="section-title-wrap">
+            <div class="section-pill open-pill">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="section-icon">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span>Open Positions</span>
+            </div>
+            <span class="section-count">{{ filteredSummaries().length }} {{ filteredSummaries().length === 1 ? 'symbol' : 'symbols' }}</span>
+          </div>
+        </div>
+
+        @for (summary of filteredSummaries(); track summary.symbol) {
+          <ng-container *ngTemplateOutlet="openCardTpl; context: { $implicit: summary }"></ng-container>
+        } @empty {
+          <div class="empty-state" style="padding: 2.5rem 1rem;">
+            <p class="empty-text">No open positions match your search.</p>
+          </div>
         }
 
-        <!-- Autocomplete Dropdown Panel -->
-        @if (isSearchDropdownOpen()) {
-          <div class="search-autocomplete-dropdown" id="search-autocomplete-dropdown">
-            <div class="autocomplete-header">
-              <span class="autocomplete-title">
-                @if (searchQuery()) {
-                  Matching Symbols ({{ autocompleteSuggestions().length }})
-                } @else {
-                  Available Symbols ({{ autocompleteSuggestions().length }})
-                }
+        <!-- Closed Positions Section -->
+        <div class="section-divider section-divider-closed">
+          <div class="section-title-wrap">
+            <div class="section-pill closed-pill">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="section-icon">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              <span>Closed Positions</span>
+            </div>
+            <span class="section-count">{{ filteredClosedSummaries().length }} {{ filteredClosedSummaries().length === 1 ? 'symbol' : 'symbols' }}</span>
+          </div>
+          @if (filteredClosedSummaries().length > 0 && totalRealizedPLConverted() !== 0) {
+            <div class="section-summary-stat">
+              <span class="section-stat-label">Realized P/L:</span>
+              <span class="section-stat-val" [class.pl-positive]="totalRealizedPLConverted() >= 0" [class.pl-negative]="totalRealizedPLConverted() < 0">
+                {{ totalRealizedPLConverted() >= 0 ? '+' : '' }}{{ totalRealizedPLConverted() | currency:dc():'symbol-narrow':'1.2-2' }}
+                ({{ totalRealizedPLPercent() >= 0 ? '+' : '' }}{{ totalRealizedPLPercent() | number:'1.2-2' }}%)
               </span>
-              <span class="autocomplete-hint">↑↓ navigate · ↵ select · esc</span>
             </div>
-
-            <div class="autocomplete-list" role="listbox">
-              @for (item of autocompleteSuggestions(); track item.symbol; let i = $index) {
-                <div
-                  class="autocomplete-item"
-                  [class.active]="searchActiveIndex() === i"
-                  [id]="'autocomplete-item-' + i"
-                  role="option"
-                  [attr.aria-selected]="searchActiveIndex() === i"
-                  (mousedown)="$event.preventDefault(); selectAutocompleteItem(item)"
-                  (mouseenter)="searchActiveIndex.set(i)"
-                >
-                  <div class="item-left">
-                    <span
-                      class="symbol-badge symbol-badge-xs"
-                      [style.background-color]="item.color + '18'"
-                      [style.color]="item.color"
-                      [style.border-color]="item.color + '30'"
-                    >
-                      {{ item.displaySymbol }}
-                    </span>
-                    <div class="item-info">
-                      <div class="item-headline">
-                        <span [class]="getAssetTypeClass(item.assetType, item.symbol)">
-                          {{ item.assetTypeLabel }}
-                        </span>
-                        @if (item.isClosed) {
-                          <span class="closed-tag-badge">Closed</span>
-                        }
-                      </div>
-                      @if (item.name) {
-                        <span class="item-name" [title]="item.name">{{ item.name }}</span>
-                      }
-                    </div>
-                  </div>
-                </div>
-              } @empty {
-                <div class="autocomplete-empty">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="empty-search-icon">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  </svg>
-                  <p>No symbols match "<strong>{{ searchQuery() }}</strong>"</p>
-                </div>
-              }
-            </div>
-
-            @if (searchQuery()) {
-              <div class="autocomplete-footer">
-                <button
-                  type="button"
-                  class="autocomplete-footer-btn"
-                  (mousedown)="$event.preventDefault(); closeSearchDropdown()"
-                >
-                  Show results in list ({{ (filteredSummaries().length + (isClosedTab() || isAllTab() ? filteredClosedSummaries().length : 0)) }})
-                </button>
-              </div>
-            }
-          </div>
-
-          <!-- Backdrop overlay to dismiss dropdown on click-outside -->
-          <div class="search-backdrop" (mousedown)="closeSearchDropdown()"></div>
-        }
-      </div>
-      <div class="toolbar-actions">
-        <button class="btn btn-ghost" (click)="refresh()" id="refresh-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
-            <polyline points="23 4 23 10 17 10"></polyline>
-            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-          </svg>
-          Refresh
-        </button>
-        <button class="btn btn-ghost" (click)="expandAll()" id="expand-all-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
-            <polyline points="15 3 21 3 21 9"></polyline>
-            <polyline points="9 21 3 21 3 15"></polyline>
-            <line x1="21" y1="3" x2="14" y2="10"></line>
-            <line x1="3" y1="21" x2="10" y2="14"></line>
-          </svg>
-          Expand All
-        </button>
-        <button class="btn btn-ghost" (click)="collapseAll()" id="collapse-all-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
-            <polyline points="4 14 10 14 10 20"></polyline>
-            <polyline points="20 10 14 10 14 4"></polyline>
-            <line x1="14" y1="10" x2="21" y2="3"></line>
-            <line x1="3" y1="21" x2="10" y2="14"></line>
-          </svg>
-          Collapse All
-        </button>
-      </div>
-    </div>
-
-    <!-- Mobile Controls Bar (Filter & Sort) -->
-    <div class="mobile-controls-bar" id="mobile-controls-bar">
-      <div class="mobile-controls-grid" [class.has-filter]="isClosedTab()">
-        <!-- Asset Filter Control (Closed Position Tab) -->
-        @if (isClosedTab()) {
-          <div class="mobile-control-field">
-            <div class="mobile-control-icon-wrap">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mobile-control-icon">
-                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-              </svg>
-            </div>
-            <button
-              class="mobile-control-btn"
-              id="mobile-filter-select-btn"
-              (click)="toggleMobileFilterDropdown()"
-              type="button"
-            >
-              @if (closedAssetTypeOptions().find(o => o.id === selectedClosedAssetType()); as selected) {
-                <span>Filter: {{ selected.label }} ({{ selected.count }})</span>
-              } @else {
-                <span>Filter: All</span>
-              }
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chevron-arrow-sm" [class.chevron-open]="isMobileFilterDropdownOpen()">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </button>
-            @if (isMobileFilterDropdownOpen()) {
-              <div class="symbol-dropdown-menu mobile-control-dropdown-menu">
-                <div class="dropdown-list">
-                  @for (opt of closedAssetTypeOptions(); track opt.id) {
-                    <button
-                      class="dropdown-item"
-                      [class.active]="selectedClosedAssetType() === opt.id"
-                      (click)="setClosedAssetTypeFilter(opt.id)"
-                      type="button"
-                    >
-                      Filter: {{ opt.label }} ({{ opt.count }})
-                    </button>
-                  }
-                </div>
-              </div>
-              <div class="dropdown-backdrop" (click)="toggleMobileFilterDropdown()"></div>
-            }
-          </div>
-        }
-
-        <!-- Sort Control -->
-        <div class="mobile-control-field" [class.dropdown-is-open]="isMobileSortDropdownOpen()">
-          <div class="mobile-control-icon-wrap">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mobile-control-icon">
-              <path d="m3 16 4 4 4-4"></path>
-              <path d="M7 20V4"></path>
-              <path d="m21 8-4-4-4 4"></path>
-              <path d="M17 4v16"></path>
-            </svg>
-          </div>
-          <button
-            class="mobile-control-btn"
-            id="mobile-sort-select-btn"
-            (click)="toggleMobileSortDropdown()"
-            type="button"
-          >
-            @if (sortOptions().find(o => o.field === sortField()); as selectedSort) {
-              <span>Sort: {{ selectedSort.label }}</span>
-            } @else {
-              <span>Sort</span>
-            }
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chevron-arrow-sm" [class.chevron-open]="isMobileSortDropdownOpen()">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </button>
-          @if (isMobileSortDropdownOpen()) {
-            <div class="symbol-dropdown-menu mobile-control-dropdown-menu">
-              <div class="dropdown-list">
-                @for (opt of sortOptions(); track opt.field) {
-                  <button
-                    class="dropdown-item"
-                    [class.active]="sortField() === opt.field"
-                    (click)="setSort(opt.field)"
-                    type="button"
-                  >
-                    Sort: {{ opt.label }}
-                  </button>
-                }
-              </div>
-            </div>
-            <div class="dropdown-backdrop" (click)="toggleMobileSortDropdown()"></div>
-          }
-          <button
-            class="mobile-sort-dir-btn"
-            (click)="toggleSortDirection()"
-            id="mobile-sort-dir-btn"
-            [title]="sortDirection() === 'asc' ? 'Sort Ascending' : 'Sort Descending'"
-            type="button"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="sort-arrow" [class.sort-arrow-up]="sortDirection() === 'asc'">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-            <span class="mobile-sort-dir-text">{{ sortDirection() === 'asc' ? 'ASC' : 'DESC' }}</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Desktop Asset Type Filter Bar (Closed Position Tab) -->
-    @if (isClosedTab()) {
-      <div class="asset-filter-bar desktop-asset-filter-bar" id="closed-asset-filter-bar">
-        <span class="asset-filter-label">Asset Type</span>
-        <div class="asset-filter-pills">
-          @for (opt of closedAssetTypeOptions(); track opt.id) {
-            <button
-              class="asset-filter-pill"
-              [class.asset-filter-pill-active]="selectedClosedAssetType() === opt.id"
-              [class]="'asset-filter-pill-' + opt.id"
-              (click)="setClosedAssetTypeFilter(opt.id)"
-              [id]="'filter-asset-' + opt.id"
-            >
-              <span class="asset-filter-pill-name">{{ opt.label }}</span>
-              <span class="asset-filter-pill-count">{{ opt.count }}</span>
-            </button>
           }
         </div>
-      </div>
-    }
 
-    <!-- Desktop Sort Bar -->
-    <div class="sort-bar desktop-sort-bar" id="sort-bar">
-      <span class="sort-label">Sort by</span>
-      @for (opt of sortOptions(); track opt.field) {
-        <button
-          class="sort-pill"
-          [class.sort-pill-active]="sortField() === opt.field"
-          (click)="setSort(opt.field)"
-          [id]="'sort-' + opt.field"
-        >
-          {{ opt.label }}
-          @if (sortField() === opt.field) {
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="sort-arrow" [class.sort-arrow-up]="sortDirection() === 'asc'">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          }
-        </button>
-      }
-    </div>
-
-    <!-- Price Loading Indicator -->
-    @if (pricesLoading()) {
-      <div class="price-loading-bar">
-        <div class="price-loading-bar-inner"></div>
-      </div>
-    }
-
-    <!-- ================= ALL POSITIONS VIEW (GROUPED SEPARATELY) ================= -->
-    @if (isAllTab()) {
-      <!-- Open Positions Section -->
-      <div class="section-divider">
-        <div class="section-title-wrap">
-          <div class="section-pill open-pill">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="section-icon">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-            <span>Open Positions</span>
-          </div>
-          <span class="section-count">{{ filteredSummaries().length }} {{ filteredSummaries().length === 1 ? 'symbol' : 'symbols' }}</span>
-        </div>
-      </div>
-
-      @for (summary of filteredSummaries(); track summary.symbol) {
-        <ng-container *ngTemplateOutlet="openCardTpl; context: { $implicit: summary }"></ng-container>
-      } @empty {
-        <div class="empty-state" style="padding: 2.5rem 1rem;">
-          <p class="empty-text">No open positions match your search.</p>
-        </div>
-      }
-
-      <!-- Closed Positions Section -->
-      <div class="section-divider section-divider-closed">
-        <div class="section-title-wrap">
-          <div class="section-pill closed-pill">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="section-icon">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-              <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>
-            <span>Closed Positions</span>
-          </div>
-          <span class="section-count">{{ filteredClosedSummaries().length }} {{ filteredClosedSummaries().length === 1 ? 'symbol' : 'symbols' }}</span>
-        </div>
-        @if (filteredClosedSummaries().length > 0 && totalRealizedPLConverted() !== 0) {
-          <div class="section-summary-stat">
-            <span class="section-stat-label">Realized P/L:</span>
-            <span class="section-stat-val" [class.pl-positive]="totalRealizedPLConverted() >= 0" [class.pl-negative]="totalRealizedPLConverted() < 0">
-              {{ totalRealizedPLConverted() >= 0 ? '+' : '' }}{{ totalRealizedPLConverted() | currency:dc():'symbol-narrow':'1.2-2' }}
-              ({{ totalRealizedPLPercent() >= 0 ? '+' : '' }}{{ totalRealizedPLPercent() | number:'1.2-2' }}%)
-            </span>
+        @for (summary of filteredClosedSummaries(); track summary.symbol) {
+          <ng-container *ngTemplateOutlet="closedCardTpl; context: { $implicit: summary }"></ng-container>
+        } @empty {
+          <div class="empty-state" style="padding: 2.5rem 1rem;">
+            <p class="empty-text">No closed positions match your search.</p>
           </div>
         }
-      </div>
-
-      @for (summary of filteredClosedSummaries(); track summary.symbol) {
-        <ng-container *ngTemplateOutlet="closedCardTpl; context: { $implicit: summary }"></ng-container>
-      } @empty {
-        <div class="empty-state" style="padding: 2.5rem 1rem;">
-          <p class="empty-text">No closed positions match your search.</p>
-        </div>
+      } @else if (isClosedTab()) {
+        <!-- ================= CLOSED POSITIONS TAB VIEW ================= -->
+        @for (summary of filteredClosedSummaries(); track summary.symbol) {
+          <ng-container *ngTemplateOutlet="closedCardTpl; context: { $implicit: summary }"></ng-container>
+        } @empty {
+          <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="empty-icon">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              <line x1="8" y1="11" x2="14" y2="11"></line>
+            </svg>
+            <p class="empty-text">No closed positions match your search.</p>
+          </div>
+        }
+      } @else {
+        <!-- ================= OPEN POSITIONS TAB VIEW ================= -->
+        @for (summary of filteredSummaries(); track summary.symbol) {
+          <ng-container *ngTemplateOutlet="openCardTpl; context: { $implicit: summary }"></ng-container>
+        } @empty {
+          <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="empty-icon">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              <line x1="8" y1="11" x2="14" y2="11"></line>
+            </svg>
+            <p class="empty-text">No symbols match your search.</p>
+          </div>
+        }
       }
-    } @else if (isClosedTab()) {
-      <!-- ================= CLOSED POSITIONS TAB VIEW ================= -->
-      @for (summary of filteredClosedSummaries(); track summary.symbol) {
-        <ng-container *ngTemplateOutlet="closedCardTpl; context: { $implicit: summary }"></ng-container>
-      } @empty {
-        <div class="empty-state">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="empty-icon">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            <line x1="8" y1="11" x2="14" y2="11"></line>
-          </svg>
-          <p class="empty-text">No closed positions match your search.</p>
-        </div>
-      }
-    } @else {
-      <!-- ================= OPEN POSITIONS TAB VIEW ================= -->
-      @for (summary of filteredSummaries(); track summary.symbol) {
-        <ng-container *ngTemplateOutlet="openCardTpl; context: { $implicit: summary }"></ng-container>
-      } @empty {
-        <div class="empty-state">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="empty-icon">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            <line x1="8" y1="11" x2="14" y2="11"></line>
-          </svg>
-          <p class="empty-text">No symbols match your search.</p>
-        </div>
-      }
-    }
     }
 
     <!-- ================= TEMPLATE: OPEN POSITION CARD ================= -->
     <ng-template #openCardTpl let-summary>
-      <div class="symbol-card" [id]="'card-' + summary.symbol">
-        <!-- Card Header -->
-        <button class="card-header" (click)="toggleExpand(summary.symbol)" [id]="'toggle-' + summary.symbol">
-          <div class="card-header-left">
-            <div class="symbol-identity">
-              <span class="symbol-badge" [style.background-color]="getSymbolColor(summary.symbol) + '18'" [style.color]="getSymbolColor(summary.symbol)" [style.border-color]="getSymbolColor(summary.symbol) + '30'">
-                {{ getDisplaySymbol(summary.symbol) }}
-              </span>
-              @if (getSymbolName(summary.symbol)) {
-                <span class="symbol-name" [title]="getSymbolName(summary.symbol)">{{ getSymbolName(summary.symbol) }}</span>
-              }
-            </div>
-            <div class="card-header-info">
-              @if (isAllTab() || isClosedTab()) {
-                <span [class]="getAssetTypeClass(summary.assetType, summary.symbol)">
-                  {{ getAssetTypeLabel(summary.assetType, summary.symbol) }}
-                </span>
-              }
-              <span class="card-shares">{{ summary.totalShares | number:getQuantityFormat(summary.symbol) }} shares</span>
-              <span class="card-lots-count">{{ summary.lots.length }} {{ summary.lots.length === 1 ? 'lot' : 'lots' }}</span>
-            </div>
-          </div>
-          <div class="card-header-right">
-            <button
-              class="card-trades-btn"
-              (click)="$event.stopPropagation(); openTransactionHistory(summary.symbol)"
-              [id]="'btn-trades-' + summary.symbol"
-              [title]="'View transaction history for ' + summary.symbol"
-              type="button"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="trades-btn-icon">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 14 14"></polyline>
-              </svg>
-              <span>Transactions</span>
-            </button>
-            <div class="card-metrics">
-              <div class="card-metric">
-                <span class="card-metric-label">Avg Cost</span>
-                <span class="card-metric-value">{{ cx(summary.averageCost, summary.currency) | currency:dc(summary.currency):'symbol-narrow':getPriceFormat(summary.symbol) }}</span>
-              </div>
-              <div class="card-metric">
-                <span class="card-metric-label">Total Cost</span>
-                <span class="card-metric-value">{{ cx(summary.totalCost, summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}</span>
-              </div>
-              @if (hasPriceData(summary.symbol)) {
-                <div class="card-metric">
-                  <span class="card-metric-label">{{ summary.assetType === 'mutual-fund' ? 'NAV' : 'Mkt Price' }}</span>
-                  <span class="card-metric-value">{{ getCurrentPriceConverted(summary) | currency:dc(summary.currency):'symbol-narrow':getPriceFormat(summary.symbol) }}</span>
-                </div>
-                <div class="card-metric">
-                  <span class="card-metric-label">Holding Value</span>
-                  <span class="card-metric-value">{{ cx(getHoldingValue(summary), summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}</span>
-                </div>
-                <div class="card-metric">
-                  <span class="card-metric-label">P/L</span>
-                  <span
-                    class="card-metric-value"
-                    [class.pl-positive]="getUnrealizedPL(summary) >= 0"
-                    [class.pl-negative]="getUnrealizedPL(summary) < 0"
-                  >
-                    {{ getUnrealizedPL(summary) >= 0 ? '+' : '' }}{{ cx(getUnrealizedPL(summary), summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}
-                    <span class="pl-percent">({{ getUnrealizedPLPercent(summary) >= 0 ? '+' : '' }}{{ getUnrealizedPLPercent(summary) | number:'1.2-2' }}%)</span>
-                  </span>
-                </div>
-              } @else if (pricesLoading()) {
-                <div class="card-metric">
-                  <span class="card-metric-label">Holding Value</span>
-                  <span class="card-metric-value card-metric-shimmer">Loading…</span>
-                </div>
-              } @else {
-                <div class="card-metric">
-                  <span class="card-metric-label">{{ summary.assetType === 'mutual-fund' ? 'NAV' : 'Mkt Price' }}</span>
-                  <span class="card-metric-value">-</span>
-                </div>
-                <div class="card-metric">
-                  <span class="card-metric-label">Holding Value</span>
-                  <span class="card-metric-value">-</span>
-                </div>
-              }
-            </div>
-            <svg
-              xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-              class="chevron-icon"
-              [class.chevron-expanded]="isExpanded(summary.symbol)"
-            >
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </div>
-        </button>
-
-        <!-- Lot Details (Expandable) -->
-        @if (isExpanded(summary.symbol)) {
-          <div class="lots-container">
-            <div class="lots-table-wrapper">
-              <table class="lots-table">
-                <thead>
-                  <tr>
-                    <th class="lot-col-num">#</th>
-                    <th class="lot-col-date">Purchase Date</th>
-                    <th class="lot-col-qty">Quantity</th>
-                    <th class="lot-col-cost">Cost Basis</th>
-                    <th class="lot-col-total">Total Cost</th>
-                    @if (hasPriceData(summary.symbol)) {
-                      <th class="lot-col-total">Holding Value</th>
-                      <th class="lot-col-pl">P/L</th>
-                    }
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (lot of summary.lots; track $index; let i = $index) {
-                    <tr class="lot-row">
-                      <td class="lot-col-num">
-                        <span class="lot-number">{{ i + 1 }}</span>
-                      </td>
-                      <td class="lot-col-date">{{ lot.purchaseDate | date:'MMM d, y' }}</td>
-                      <td class="lot-col-qty">{{ lot.quantity | number:getQuantityFormat(summary.symbol) }}</td>
-                      <td class="lot-col-cost">{{ cx(lot.costBasis, summary.currency) | currency:dc(summary.currency):'symbol-narrow':getPriceFormat(summary.symbol) }}</td>
-                      <td class="lot-col-total">{{ cx(lot.totalCost, summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}</td>
-                      @if (hasPriceData(summary.symbol)) {
-                        <td class="lot-col-total">{{ cx(getLotHoldingValue(lot, summary), summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}</td>
-                        <td class="lot-col-pl"
-                          [class.pl-positive]="getLotUnrealizedPL(lot, summary) >= 0"
-                          [class.pl-negative]="getLotUnrealizedPL(lot, summary) < 0"
-                        >
-                          {{ getLotUnrealizedPL(lot, summary) >= 0 ? '+' : '' }}{{ cx(getLotUnrealizedPL(lot, summary), summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}
-                        </td>
-                      }
-                    </tr>
-                  }
-                </tbody>
-                <tfoot>
-                  <tr class="lot-summary-row">
-                    <td colspan="2" class="lot-summary-label">Total</td>
-                    <td class="lot-col-qty lot-summary-value">{{ summary.totalShares | number:getQuantityFormat(summary.symbol) }}</td>
-                    <td class="lot-col-cost lot-summary-value">{{ cx(summary.averageCost, summary.currency) | currency:dc(summary.currency):'symbol-narrow':getPriceFormat(summary.symbol) }} avg</td>
-                    <td class="lot-col-total lot-summary-value">{{ cx(summary.totalCost, summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}</td>
-                    @if (hasPriceData(summary.symbol)) {
-                      <td class="lot-col-total lot-summary-value">{{ cx(getHoldingValue(summary), summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}</td>
-                      <td class="lot-col-pl lot-summary-value"
-                        [class.pl-positive]="getUnrealizedPL(summary) >= 0"
-                        [class.pl-negative]="getUnrealizedPL(summary) < 0"
-                      >
-                        {{ getUnrealizedPL(summary) >= 0 ? '+' : '' }}{{ cx(getUnrealizedPL(summary), summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}
-                      </td>
-                    }
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
-        }
-      </div>
+      <app-summary-card
+        [type]="'open'"
+        [summary]="summary"
+        [isAllTab]="isAllTab()"
+        [isClosedTab]="isClosedTab()"
+        [hasPriceData]="hasPriceData(summary.symbol)"
+        [pricesLoading]="pricesLoading()"
+        [isExpanded]="isExpanded(summary.symbol)"
+        (toggleExpand)="toggleExpand($event)"
+        (openHistory)="openTransactionHistory($event)"
+        [getSymbolColor]="getSymbolColor.bind(this)"
+        [getDisplaySymbol]="getDisplaySymbol.bind(this)"
+        [getSymbolName]="getSymbolName.bind(this)"
+        [getAssetTypeClass]="getAssetTypeClass.bind(this)"
+        [getAssetTypeLabel]="getAssetTypeLabel.bind(this)"
+        [getQuantityFormat]="getQuantityFormat.bind(this)"
+        [getPriceFormat]="getPriceFormat.bind(this)"
+        [cx]="cx.bind(this)"
+        [dc]="dc.bind(this)"
+        [getCurrentPriceConverted]="getCurrentPriceConverted.bind(this)"
+        [getHoldingValue]="getHoldingValue.bind(this)"
+        [getUnrealizedPL]="getUnrealizedPL.bind(this)"
+        [getUnrealizedPLPercent]="getUnrealizedPLPercent.bind(this)"
+        [getLotHoldingValue]="getLotHoldingValue.bind(this)"
+        [getLotUnrealizedPL]="getLotUnrealizedPL.bind(this)"
+      ></app-summary-card>
     </ng-template>
 
     <!-- ================= TEMPLATE: CLOSED POSITION CARD ================= -->
     <ng-template #closedCardTpl let-summary>
-      <div class="symbol-card" [id]="'card-' + summary.symbol">
-        <!-- Card Header -->
-        <button class="card-header" (click)="toggleExpand(summary.symbol)" [id]="'toggle-' + summary.symbol">
-          <div class="card-header-left">
-            <div class="symbol-identity">
-              <span class="symbol-badge" [style.background-color]="getSymbolColor(summary.symbol) + '18'" [style.color]="getSymbolColor(summary.symbol)" [style.border-color]="getSymbolColor(summary.symbol) + '30'">
-                {{ getDisplaySymbol(summary.symbol) }}
-              </span>
-              @if (getSymbolName(summary.symbol)) {
-                <span class="symbol-name" [title]="getSymbolName(summary.symbol)">{{ getSymbolName(summary.symbol) }}</span>
-              }
-            </div>
-            <div class="card-header-info">
-              @if (isAllTab() || isClosedTab()) {
-                <span [class]="getAssetTypeClass(summary.assetType, summary.symbol)">
-                  {{ getAssetTypeLabel(summary.assetType, summary.symbol) }}
-                </span>
-              }
-              <span class="card-shares">0 shares</span>
-              <span class="card-lots-count">{{ summary.lots.length }} closed {{ summary.lots.length === 1 ? 'lot' : 'lots' }}</span>
-            </div>
-          </div>
-          <div class="card-header-right">
-            <button
-              class="card-trades-btn"
-              (click)="$event.stopPropagation(); openTransactionHistory(summary.symbol)"
-              [id]="'btn-trades-' + summary.symbol"
-              [title]="'View transaction history for ' + summary.symbol"
-              type="button"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="trades-btn-icon">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 14 14"></polyline>
-              </svg>
-              <span>Transactions</span>
-            </button>
-            <div class="card-metrics">
-              <div class="card-metric">
-                <span class="card-metric-label">Avg Buy</span>
-                <span class="card-metric-value">{{ cx(summary.averageBuyPrice, summary.currency) | currency:dc(summary.currency):'symbol-narrow':getPriceFormat(summary.symbol) }}</span>
-              </div>
-              <div class="card-metric">
-                <span class="card-metric-label">Avg Sell</span>
-                <span class="card-metric-value">{{ cx(summary.averageSellPrice, summary.currency) | currency:dc(summary.currency):'symbol-narrow':getPriceFormat(summary.symbol) }}</span>
-              </div>
-              <div class="card-metric">
-                <span class="card-metric-label">Total Cost</span>
-                <span class="card-metric-value">{{ cx(summary.totalCost, summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}</span>
-              </div>
-              <div class="card-metric">
-                <span class="card-metric-label">Proceeds</span>
-                <span class="card-metric-value">{{ cx(summary.totalProceeds, summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}</span>
-              </div>
-              <div class="card-metric">
-                <span class="card-metric-label">Realized P/L</span>
-                <span
-                  class="card-metric-value"
-                  [class.pl-positive]="summary.realizedPL >= 0"
-                  [class.pl-negative]="summary.realizedPL < 0"
-                >
-                  {{ summary.realizedPL >= 0 ? '+' : '' }}{{ cx(summary.realizedPL, summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}
-                  <span class="pl-percent">({{ summary.realizedPLPercent >= 0 ? '+' : '' }}{{ summary.realizedPLPercent | number:'1.2-2' }}%)</span>
-                </span>
-              </div>
-            </div>
-            <svg
-              xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-              class="chevron-icon"
-              [class.chevron-expanded]="isExpanded(summary.symbol)"
-            >
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </div>
-        </button>
-
-        <!-- Lot Details (Expandable) -->
-        @if (isExpanded(summary.symbol)) {
-          <div class="lots-container">
-            <div class="lots-table-wrapper">
-              <table class="lots-table">
-                <thead>
-                  <tr>
-                    <th class="lot-col-num">#</th>
-                    <th class="lot-col-date">Buy Date</th>
-                    <th class="lot-col-date">Sell Date</th>
-                    <th class="lot-col-qty">Quantity</th>
-                    <th class="lot-col-cost">Buy Price</th>
-                    <th class="lot-col-cost">Sell Price</th>
-                    <th class="lot-col-total">Total Cost</th>
-                    <th class="lot-col-total">Proceeds</th>
-                    <th class="lot-col-pl">Realized P/L</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (lot of summary.lots; track $index; let i = $index) {
-                    <tr class="lot-row">
-                      <td class="lot-col-num">
-                        <span class="lot-number">{{ i + 1 }}</span>
-                      </td>
-                      <td class="lot-col-date">{{ lot.purchaseDate | date:'MMM d, y' }}</td>
-                      <td class="lot-col-date">{{ lot.closeDate | date:'MMM d, y' }}</td>
-                      <td class="lot-col-qty">{{ lot.quantity | number:getQuantityFormat(summary.symbol) }}</td>
-                      <td class="lot-col-cost">{{ cx(lot.costBasis, summary.currency) | currency:dc(summary.currency):'symbol-narrow':getPriceFormat(summary.symbol) }}</td>
-                      <td class="lot-col-cost">{{ cx(lot.sellPrice, summary.currency) | currency:dc(summary.currency):'symbol-narrow':getPriceFormat(summary.symbol) }}</td>
-                      <td class="lot-col-total">{{ cx(lot.totalCost, summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}</td>
-                      <td class="lot-col-total">{{ cx(lot.totalProceeds, summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}</td>
-                      <td class="lot-col-pl"
-                        [class.pl-positive]="lot.realizedPL >= 0"
-                        [class.pl-negative]="lot.realizedPL < 0"
-                      >
-                        {{ lot.realizedPL >= 0 ? '+' : '' }}{{ cx(lot.realizedPL, summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}
-                        <span class="pl-percent">({{ lot.realizedPLPercent >= 0 ? '+' : '' }}{{ lot.realizedPLPercent | number:'1.2-2' }}%)</span>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-                <tfoot>
-                  <tr class="lot-summary-row">
-                    <td colspan="3" class="lot-summary-label">Total</td>
-                    <td class="lot-col-qty lot-summary-value">{{ summary.totalShares | number:getQuantityFormat(summary.symbol) }}</td>
-                    <td class="lot-col-cost lot-summary-value">{{ cx(summary.averageBuyPrice, summary.currency) | currency:dc(summary.currency):'symbol-narrow':getPriceFormat(summary.symbol) }} avg</td>
-                    <td class="lot-col-cost lot-summary-value">{{ cx(summary.averageSellPrice, summary.currency) | currency:dc(summary.currency):'symbol-narrow':getPriceFormat(summary.symbol) }} avg</td>
-                    <td class="lot-col-total lot-summary-value">{{ cx(summary.totalCost, summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}</td>
-                    <td class="lot-col-total lot-summary-value">{{ cx(summary.totalProceeds, summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}</td>
-                    <td class="lot-col-pl lot-summary-value"
-                      [class.pl-positive]="summary.realizedPL >= 0"
-                      [class.pl-negative]="summary.realizedPL < 0"
-                    >
-                      {{ summary.realizedPL >= 0 ? '+' : '' }}{{ cx(summary.realizedPL, summary.currency) | currency:dc(summary.currency):'symbol-narrow':'1.2-2' }}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
-        }
-      </div>
+      <app-summary-card
+        [type]="'closed'"
+        [summary]="summary"
+        [isAllTab]="isAllTab()"
+        [isClosedTab]="isClosedTab()"
+        [hasPriceData]="hasPriceData(summary.symbol)"
+        [pricesLoading]="pricesLoading()"
+        [isExpanded]="isExpanded(summary.symbol)"
+        (toggleExpand)="toggleExpand($event)"
+        (openHistory)="openTransactionHistory($event)"
+        [getSymbolColor]="getSymbolColor.bind(this)"
+        [getDisplaySymbol]="getDisplaySymbol.bind(this)"
+        [getSymbolName]="getSymbolName.bind(this)"
+        [getAssetTypeClass]="getAssetTypeClass.bind(this)"
+        [getAssetTypeLabel]="getAssetTypeLabel.bind(this)"
+        [getQuantityFormat]="getQuantityFormat.bind(this)"
+        [getPriceFormat]="getPriceFormat.bind(this)"
+        [cx]="cx.bind(this)"
+        [dc]="dc.bind(this)"
+        [getCurrentPriceConverted]="getCurrentPriceConverted.bind(this)"
+        [getHoldingValue]="getHoldingValue.bind(this)"
+        [getUnrealizedPL]="getUnrealizedPL.bind(this)"
+        [getUnrealizedPLPercent]="getUnrealizedPLPercent.bind(this)"
+        [getLotHoldingValue]="getLotHoldingValue.bind(this)"
+        [getLotUnrealizedPL]="getLotUnrealizedPL.bind(this)"
+      ></app-summary-card>
     </ng-template>
   }
 </main>
@@ -1036,4 +307,3 @@
 <footer class="footer">
   <p>ShareLot &mdash; FIFO Share Lot Calculator &bull; Live data from Google Sheets &bull; Prices from Yahoo Finance, Binance TH &amp; SEC Thailand</p>
 </footer>
-

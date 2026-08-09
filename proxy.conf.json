@@ -1,26 +1,10 @@
 {
-  "/api/finance": {
-    "target": "https://query1.finance.yahoo.com",
-    "secure": true,
+  "/api/backend": {
+    "target": "http://127.0.0.1:8000",
+    "secure": false,
     "changeOrigin": true,
     "pathRewrite": {
-      "^/api/finance": ""
-    }
-  },
-  "/api/binance": {
-    "target": "https://api.binance.th",
-    "secure": true,
-    "changeOrigin": true,
-    "pathRewrite": {
-      "^/api/binance": ""
-    }
-  },
-  "/api/sec": {
-    "target": "https://api.sec.or.th",
-    "secure": true,
-    "changeOrigin": true,
-    "pathRewrite": {
-      "^/api/sec": ""
+      "^/api/backend": ""
     }
   }
 }

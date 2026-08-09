@@ -31,14 +31,12 @@ describe('App', () => {
     expect(closedTab?.sheetGid).toBe('273600915');
   });
 
-  it('should handle tab dropdown change on mobile select', () => {
+  it('should select tab and update active tab', () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;
-    const mockEvent = {
-      target: { value: 'closed-position' },
-    } as unknown as Event;
+    const closedTab = app.tabs.find((t) => t.id === 'closed-position')!;
 
-    app.onTabDropdownChange(mockEvent);
+    app.selectTab(closedTab);
 
     expect(app.activeTab().id).toBe('closed-position');
   });
@@ -64,29 +62,22 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;
 
-    const mockEvent = {
-      target: { value: 'symbol' },
-    } as unknown as Event;
-
-    app.onSortDropdownChange(mockEvent);
+    app.setSort('symbol');
     expect(app.sortField()).toBe('symbol');
 
-    // Default direction is desc, toggle to asc
-    app.toggleSortDirection();
+    // For 'symbol', default direction is asc, toggle to desc
     expect(app.sortDirection()).toBe('asc');
     app.toggleSortDirection();
     expect(app.sortDirection()).toBe('desc');
+    app.toggleSortDirection();
+    expect(app.sortDirection()).toBe('asc');
   });
 
   it('should handle asset filter dropdown change on mobile', () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;
 
-    const mockEvent = {
-      target: { value: 'crypto' },
-    } as unknown as Event;
-
-    app.onClosedAssetTypeChange(mockEvent);
+    app.setClosedAssetTypeFilter('crypto');
     expect(app.selectedClosedAssetType()).toBe('crypto');
   });
 

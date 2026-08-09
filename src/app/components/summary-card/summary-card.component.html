@@ -1,0 +1,295 @@
+@if (type() === 'open') {
+  <div class="symbol-card" [id]="'card-' + summary().symbol">
+    <!-- Card Header -->
+    <button class="card-header" (click)="toggleExpand.emit(summary().symbol)" [id]="'toggle-' + summary().symbol">
+      <div class="card-header-left">
+        <div class="symbol-identity">
+          <span class="symbol-badge" [style.background-color]="getSymbolColor()(summary().symbol) + '18'" [style.color]="getSymbolColor()(summary().symbol)" [style.border-color]="getSymbolColor()(summary().symbol) + '30'">
+            {{ getDisplaySymbol()(summary().symbol) }}
+          </span>
+          @if (getSymbolName()(summary().symbol)) {
+            <span class="symbol-name" [title]="getSymbolName()(summary().symbol)">{{ getSymbolName()(summary().symbol) }}</span>
+          }
+        </div>
+        <div class="card-header-info">
+          @if (isAllTab() || isClosedTab()) {
+            <span [class]="getAssetTypeClass()(summary().assetType, summary().symbol)">
+              {{ getAssetTypeLabel()(summary().assetType, summary().symbol) }}
+            </span>
+          }
+          <span class="card-shares">{{ summary().totalShares | number:getQuantityFormat()(summary().symbol) }} shares</span>
+          <span class="card-lots-count">{{ summary().lots.length }} {{ summary().lots.length === 1 ? 'lot' : 'lots' }}</span>
+        </div>
+      </div>
+      <div class="card-header-right">
+        <button
+          class="card-trades-btn"
+          (click)="$event.stopPropagation(); openHistory.emit(summary().symbol)"
+          [id]="'btn-trades-' + summary().symbol"
+          [title]="'View transaction history for ' + summary().symbol"
+          type="button"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="trades-btn-icon">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 14 14"></polyline>
+          </svg>
+          <span>Transactions</span>
+        </button>
+        <div class="card-metrics">
+          <div class="card-metric">
+            <span class="card-metric-label">Avg Cost</span>
+            <span class="card-metric-value">{{ cx()(summary().averageCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</span>
+          </div>
+          <div class="card-metric">
+            <span class="card-metric-label">Total Cost</span>
+            <span class="card-metric-value">{{ cx()(summary().totalCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
+          </div>
+          @if (hasPriceData()) {
+            <div class="card-metric">
+              <span class="card-metric-label">{{ summary().assetType === 'mutual-fund' ? 'NAV' : 'Mkt Price' }}</span>
+              <span class="card-metric-value">{{ getCurrentPriceConverted()(summary()) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</span>
+            </div>
+            <div class="card-metric">
+              <span class="card-metric-label">Holding Value</span>
+              <span class="card-metric-value">{{ cx()(getHoldingValue()(summary()), summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
+            </div>
+            <div class="card-metric">
+              <span class="card-metric-label">P/L</span>
+              <span
+                class="card-metric-value"
+                [class.pl-positive]="getUnrealizedPL()(summary()) >= 0"
+                [class.pl-negative]="getUnrealizedPL()(summary()) < 0"
+              >
+                {{ getUnrealizedPL()(summary()) >= 0 ? '+' : '' }}{{ cx()(getUnrealizedPL()(summary()), summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}
+                <span class="pl-percent">({{ getUnrealizedPLPercent()(summary()) >= 0 ? '+' : '' }}{{ getUnrealizedPLPercent()(summary()) | number:'1.2-2' }}%)</span>
+              </span>
+            </div>
+          } @else if (pricesLoading()) {
+            <div class="card-metric">
+              <span class="card-metric-label">Holding Value</span>
+              <span class="card-metric-value card-metric-shimmer">Loading…</span>
+            </div>
+          } @else {
+            <div class="card-metric">
+              <span class="card-metric-label">{{ summary().assetType === 'mutual-fund' ? 'NAV' : 'Mkt Price' }}</span>
+              <span class="card-metric-value">-</span>
+            </div>
+            <div class="card-metric">
+              <span class="card-metric-label">Holding Value</span>
+              <span class="card-metric-value">-</span>
+            </div>
+          }
+        </div>
+        <svg
+          xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="chevron-icon"
+          [class.chevron-expanded]="isExpanded()"
+        >
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+    </button>
+
+    <!-- Lot Details (Expandable) -->
+    @if (isExpanded()) {
+      <div class="lots-container">
+        <div class="lots-table-wrapper">
+          <table class="lots-table">
+            <thead>
+              <tr>
+                <th class="lot-col-num">#</th>
+                <th class="lot-col-date">Purchase Date</th>
+                <th class="lot-col-qty">Quantity</th>
+                <th class="lot-col-cost">Cost Basis</th>
+                <th class="lot-col-total">Total Cost</th>
+                @if (hasPriceData()) {
+                  <th class="lot-col-total">Holding Value</th>
+                  <th class="lot-col-pl">P/L</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (lot of summary().lots; track $index; let i = $index) {
+                <tr class="lot-row">
+                  <td class="lot-col-num">
+                    <span class="lot-number">{{ i + 1 }}</span>
+                  </td>
+                  <td class="lot-col-date">{{ lot.purchaseDate | date:'MMM d, y' }}</td>
+                  <td class="lot-col-qty">{{ lot.quantity | number:getQuantityFormat()(summary().symbol) }}</td>
+                  <td class="lot-col-cost">{{ cx()(lot.costBasis, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</td>
+                  <td class="lot-col-total">{{ cx()(lot.totalCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</td>
+                  @if (hasPriceData()) {
+                    <td class="lot-col-total">{{ cx()(getLotHoldingValue()(lot, summary()), summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</td>
+                    <td class="lot-col-pl"
+                      [class.pl-positive]="getLotUnrealizedPL()(lot, summary()) >= 0"
+                      [class.pl-negative]="getLotUnrealizedPL()(lot, summary()) < 0"
+                    >
+                      {{ getLotUnrealizedPL()(lot, summary()) >= 0 ? '+' : '' }}{{ cx()(getLotUnrealizedPL()(lot, summary()), summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr class="lot-summary-row">
+                <td colspan="2" class="lot-summary-label">Total</td>
+                <td class="lot-col-qty lot-summary-value">{{ summary().totalShares | number:getQuantityFormat()(summary().symbol) }}</td>
+                <td class="lot-col-cost lot-summary-value">{{ cx()(summary().averageCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }} avg</td>
+                <td class="lot-col-total lot-summary-value">{{ cx()(summary().totalCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</td>
+                @if (hasPriceData()) {
+                  <td class="lot-col-total lot-summary-value">{{ cx()(getHoldingValue()(summary()), summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</td>
+                  <td class="lot-col-pl lot-summary-value"
+                    [class.pl-positive]="getUnrealizedPL()(summary()) >= 0"
+                    [class.pl-negative]="getUnrealizedPL()(summary()) < 0"
+                  >
+                    {{ getUnrealizedPL()(summary()) >= 0 ? '+' : '' }}{{ cx()(getUnrealizedPL()(summary()), summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}
+                  </td>
+                }
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    }
+  </div>
+} @else {
+  <div class="symbol-card" [id]="'card-' + summary().symbol">
+    <!-- Card Header -->
+    <button class="card-header" (click)="toggleExpand.emit(summary().symbol)" [id]="'toggle-' + summary().symbol">
+      <div class="card-header-left">
+        <div class="symbol-identity">
+          <span class="symbol-badge" [style.background-color]="getSymbolColor()(summary().symbol) + '18'" [style.color]="getSymbolColor()(summary().symbol)" [style.border-color]="getSymbolColor()(summary().symbol) + '30'">
+            {{ getDisplaySymbol()(summary().symbol) }}
+          </span>
+          @if (getSymbolName()(summary().symbol)) {
+            <span class="symbol-name" [title]="getSymbolName()(summary().symbol)">{{ getSymbolName()(summary().symbol) }}</span>
+          }
+        </div>
+        <div class="card-header-info">
+          @if (isAllTab() || isClosedTab()) {
+            <span [class]="getAssetTypeClass()(summary().assetType, summary().symbol)">
+              {{ getAssetTypeLabel()(summary().assetType, summary().symbol) }}
+            </span>
+          }
+          <span class="card-shares">0 shares</span>
+          <span class="card-lots-count">{{ summary().lots.length }} closed {{ summary().lots.length === 1 ? 'lot' : 'lots' }}</span>
+        </div>
+      </div>
+      <div class="card-header-right">
+        <button
+          class="card-trades-btn"
+          (click)="$event.stopPropagation(); openHistory.emit(summary().symbol)"
+          [id]="'btn-trades-' + summary().symbol"
+          [title]="'View transaction history for ' + summary().symbol"
+          type="button"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="trades-btn-icon">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 14 14"></polyline>
+          </svg>
+          <span>Transactions</span>
+        </button>
+        <div class="card-metrics">
+          <div class="card-metric">
+            <span class="card-metric-label">Avg Buy</span>
+            <span class="card-metric-value">{{ cx()(summary().averageBuyPrice, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</span>
+          </div>
+          <div class="card-metric">
+            <span class="card-metric-label">Avg Sell</span>
+            <span class="card-metric-value">{{ cx()(summary().averageSellPrice, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</span>
+          </div>
+          <div class="card-metric">
+            <span class="card-metric-label">Total Cost</span>
+            <span class="card-metric-value">{{ cx()(summary().totalCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
+          </div>
+          <div class="card-metric">
+            <span class="card-metric-label">Proceeds</span>
+            <span class="card-metric-value">{{ cx()(summary().totalProceeds, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
+          </div>
+          <div class="card-metric">
+            <span class="card-metric-label">Realized P/L</span>
+            <span
+              class="card-metric-value"
+              [class.pl-positive]="summary().realizedPL >= 0"
+              [class.pl-negative]="summary().realizedPL < 0"
+            >
+              {{ summary().realizedPL >= 0 ? '+' : '' }}{{ cx()(summary().realizedPL, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}
+              <span class="pl-percent">({{ summary().realizedPLPercent >= 0 ? '+' : '' }}{{ summary().realizedPLPercent | number:'1.2-2' }}%)</span>
+            </span>
+          </div>
+        </div>
+        <svg
+          xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="chevron-icon"
+          [class.chevron-expanded]="isExpanded()"
+        >
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+    </button>
+
+    <!-- Lot Details (Expandable) -->
+    @if (isExpanded()) {
+      <div class="lots-container">
+        <div class="lots-table-wrapper">
+          <table class="lots-table">
+            <thead>
+              <tr>
+                <th class="lot-col-num">#</th>
+                <th class="lot-col-date">Buy Date</th>
+                <th class="lot-col-date">Sell Date</th>
+                <th class="lot-col-qty">Quantity</th>
+                <th class="lot-col-cost">Buy Price</th>
+                <th class="lot-col-cost">Sell Price</th>
+                <th class="lot-col-total">Total Cost</th>
+                <th class="lot-col-total">Proceeds</th>
+                <th class="lot-col-pl">Realized P/L</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (lot of summary().lots; track $index; let i = $index) {
+                <tr class="lot-row">
+                  <td class="lot-col-num">
+                    <span class="lot-number">{{ i + 1 }}</span>
+                  </td>
+                  <td class="lot-col-date">{{ lot.purchaseDate | date:'MMM d, y' }}</td>
+                  <td class="lot-col-date">{{ lot.closeDate | date:'MMM d, y' }}</td>
+                  <td class="lot-col-qty">{{ lot.quantity | number:getQuantityFormat()(summary().symbol) }}</td>
+                  <td class="lot-col-cost">{{ cx()(lot.costBasis, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</td>
+                  <td class="lot-col-cost">{{ cx()(lot.sellPrice, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</td>
+                  <td class="lot-col-total">{{ cx()(lot.totalCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</td>
+                  <td class="lot-col-total">{{ cx()(lot.totalProceeds, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</td>
+                  <td class="lot-col-pl"
+                    [class.pl-positive]="lot.realizedPL >= 0"
+                    [class.pl-negative]="lot.realizedPL < 0"
+                  >
+                    {{ lot.realizedPL >= 0 ? '+' : '' }}{{ cx()(lot.realizedPL, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}
+                    <span class="pl-percent">({{ lot.realizedPLPercent >= 0 ? '+' : '' }}{{ lot.realizedPLPercent | number:'1.2-2' }}%)</span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr class="lot-summary-row">
+                <td colspan="3" class="lot-summary-label">Total</td>
+                <td class="lot-col-qty lot-summary-value">{{ summary().totalShares | number:getQuantityFormat()(summary().symbol) }}</td>
+                <td class="lot-col-cost lot-summary-value">{{ cx()(summary().averageBuyPrice, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }} avg</td>
+                <td class="lot-col-cost lot-summary-value">{{ cx()(summary().averageSellPrice, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }} avg</td>
+                <td class="lot-col-total lot-summary-value">{{ cx()(summary().totalCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</td>
+                <td class="lot-col-total lot-summary-value">{{ cx()(summary().totalProceeds, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</td>
+                <td class="lot-col-pl lot-summary-value"
+                  [class.pl-positive]="summary().realizedPL >= 0"
+                  [class.pl-negative]="summary().realizedPL < 0"
+                >
+                  {{ summary().realizedPL >= 0 ? '+' : '' }}{{ cx()(summary().realizedPL, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    }
+  </div>
+}

@@ -1,10 +1,15 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, ViewEncapsulation } from '@angular/core';
 import { DecimalPipe, CurrencyPipe, DatePipe, NgTemplateOutlet } from '@angular/common';
 import { ShareLotService, SheetResult } from './services/share-lot.service';
 import { PriceService, PriceData } from './services/price.service';
 import { SymbolSummary, ClosedSymbolSummary, ShareLot } from './models/transaction.model';
 import { AssetTab, ASSET_TABS } from './config/sheet.config';
 import { TransactionHistoryComponent } from './components/transaction-history/transaction-history.component';
+import { HeaderComponent } from './components/header/header.component';
+import { TabBarComponent } from './components/tab-bar/tab-bar.component';
+import { SearchBarComponent } from './components/search-bar/search-bar.component';
+import { FiltersComponent } from './components/filters/filters.component';
+import { SummaryCardComponent } from './components/summary-card/summary-card.component';
 import {
   getQuantityFormat,
   displaySymbol,
@@ -40,9 +45,13 @@ export interface SymbolAutocompleteItem {
 
 @Component({
   selector: 'app-root',
-  imports: [DecimalPipe, CurrencyPipe, DatePipe, NgTemplateOutlet, TransactionHistoryComponent],
+  imports: [
+    DecimalPipe, CurrencyPipe, NgTemplateOutlet, TransactionHistoryComponent,
+    HeaderComponent, TabBarComponent, SearchBarComponent, FiltersComponent, SummaryCardComponent
+  ],
   templateUrl: './app.html',
   styleUrl: './app.css',
+  encapsulation: ViewEncapsulation.None,
 })
 export class App {
   private readonly shareLotService = inject(ShareLotService);

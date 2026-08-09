@@ -20,7 +20,7 @@
 
 ## Overview
 
-**ShareLot** is an investment portfolio analytics web application designed to automate **First-In, First-Out (FIFO)** share lot accounting across multiple asset classes. It ingests transaction logs directly from Google Sheets and streams real-time market data to compute cost basis, open lots, realized gains, holding values, and total profit/loss (P/L).
+**ShareLot** is an investment portfolio analytics web application designed to automate **First-In, First-Out (FIFO)** share lot accounting across multiple asset classes. It connects to the **SGSKBackend** to ingest transaction logs from Google Sheets and streams real-time market data to compute cost basis, open lots, realized gains, holding values, and total profit/loss (P/L).
 
 ---
 
@@ -65,8 +65,8 @@
   - Seamless one-click switching between USD ($) and THB (฿) with dynamic portfolio revaluation.
 
 - 🔗 **Google Sheets Integration**:
-  - Zero-backend transactional database.
-  - Fetches and parses published CSV sheets on-the-fly with dynamic column header detection and parallel tab loading.
+  - Leverages **SGSKBackend** to fetch and parse published CSV sheets on-the-fly.
+  - Offloads FIFO calculations and transaction parsing to the Python backend.
 
 - 🔍 **Interactive Holdings Dashboard**:
   - Instant search across symbols and company/fund names.
@@ -86,8 +86,8 @@
 | :--- | :--- |
 | **Framework** | [Angular 21](https://angular.dev/) (Standalone Components, Signals, RxJS) |
 | **Styling** | Custom Design System with Modern CSS & Tailwind CSS |
-| **Market Data APIs** | Yahoo Finance, Binance TH API, SEC Thailand API |
-| **Data Source** | Google Sheets CSV Export |
+| **Backend Integration** | [FastAPI Backend (SGSKBackend)](https://github.com/vipatpolk/SGSKBackend) for data processing and API proxying |
+| **Data Source** | Google Sheets CSV Export (via Backend) |
 | **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom |
 | **Deployment** | [Vercel](https://vercel.com/) (with API proxy rewrites) |
 
@@ -160,7 +160,7 @@ npm start
 Navigate to `http://localhost:4200/` in your browser. The application will automatically reload if you modify any source files.
 
 > [!NOTE]
-> The dev server uses `proxy.conf.json` to proxy requests to Yahoo Finance, Binance TH, and SEC Thailand APIs to prevent CORS issues in development.
+> The dev server uses `proxy.conf.json` to proxy requests to the local `SGSKBackend` running on `http://127.0.0.1:8000`. You must have the backend running locally for the app to function properly.
 
 ### Running Unit Tests
 
@@ -189,9 +189,9 @@ The compiled output will be generated inside the `dist/` directory, ready for de
 To connect your own Google Sheet:
 
 1. Open [src/app/config/sheet.config.ts](src/app/config/sheet.config.ts).
-2. Update `spreadsheetId` with your Google Spreadsheet ID.
+2. Update `spreadsheetId` with your Google Spreadsheet ID (Ensure this matches your SGSKBackend configuration).
 3. Update the `gids` mapping with the sheet tab GIDs for each asset category (`us-stock`, `thai-stock`, `crypto`, `mutual-fund`, `closed-position`).
-4. Ensure your Google Sheet is shared as **"Anyone with the link can view"** so the CSV export endpoint is accessible.
+4. Ensure your Google Sheet is accessible to the SGSKBackend server.
 
 ### Sheet Column Format
 

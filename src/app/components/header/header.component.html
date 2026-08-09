@@ -1,0 +1,169 @@
+<header class="header">
+  <div class="header-content">
+    <div class="header-left">
+      <div class="logo-mark">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="logo-icon">
+          <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+          <polyline points="16 7 22 7 22 13"></polyline>
+        </svg>
+      </div>
+      <div>
+        <h1 class="logo-text">ShareLot</h1>
+        <p class="logo-subtitle">FIFO Share Lot Tracker</p>
+      </div>
+    </div>
+
+    @if (!loading() && !error() && result()) {
+      <div class="header-stats-wrapper">
+        <div class="header-financial-stats" [class.grid-4-items]="isAllTab() && totalHoldingConverted() > 0 && totalRealizedPLConverted() !== 0">
+          <div class="header-stat">
+            <span class="header-stat-label">Total Cost</span>
+            <span class="header-stat-value">{{ totalCostConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
+          </div>
+          @if (isClosedTab()) {
+            <div class="header-stat">
+              <span class="header-stat-label">Total Proceeds</span>
+              <span class="header-stat-value">{{ totalProceedsConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
+            </div>
+            <div class="header-stat">
+              <span class="header-stat-label">Realized P/L</span>
+              <span class="header-stat-value" [class.pl-positive]="totalPL() >= 0" [class.pl-negative]="totalPL() < 0">
+                {{ totalPL() >= 0 ? '+' : '' }}{{ totalPLPercent() | number:'1.2-2' }}%
+              </span>
+            </div>
+          } @else if (isAllTab()) {
+            @if (totalHoldingConverted() > 0) {
+              <div class="header-stat">
+                <span class="header-stat-label">Holding Value</span>
+                <span class="header-stat-value">{{ totalHoldingConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
+              </div>
+              <div class="header-stat">
+                <span class="header-stat-label">P/L</span>
+                <span class="header-stat-value" [class.pl-positive]="totalPL() >= 0" [class.pl-negative]="totalPL() < 0">
+                  {{ totalPL() >= 0 ? '+' : '' }}{{ totalPLPercent() | number:'1.2-2' }}%
+                </span>
+              </div>
+            }
+            @if (totalRealizedPLConverted() !== 0) {
+              <div class="header-stat">
+                <span class="header-stat-label">Realized P/L</span>
+                <span class="header-stat-value" [class.pl-positive]="totalRealizedPLConverted() >= 0" [class.pl-negative]="totalRealizedPLConverted() < 0">
+                  {{ totalRealizedPLConverted() >= 0 ? '+' : '' }}{{ totalRealizedPLPercent() | number:'1.2-2' }}%
+                </span>
+              </div>
+            }
+          } @else if (totalHoldingConverted() > 0) {
+            <div class="header-stat">
+              <span class="header-stat-label">Holding Value</span>
+              <span class="header-stat-value">{{ totalHoldingConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
+            </div>
+            <div class="header-stat">
+              <span class="header-stat-label">P/L</span>
+              <span class="header-stat-value" [class.pl-positive]="totalPL() >= 0" [class.pl-negative]="totalPL() < 0">
+                {{ totalPL() >= 0 ? '+' : '' }}{{ totalPLPercent() | number:'1.2-2' }}%
+              </span>
+            </div>
+          }
+        </div>
+        <div class="header-stat-divider desktop-only"></div>
+        <!-- Meta Stats -->
+        <div class="header-meta-stats">
+          <div class="header-stat header-stat-compact">
+            <span class="header-stat-label">Symbols</span>
+            <span class="header-stat-value">{{ result()!.totalSymbols }}</span>
+          </div>
+          <div class="header-stat-divider-dot"></div>
+          <div class="header-stat header-stat-compact">
+            <span class="header-stat-label">Lots</span>
+            <span class="header-stat-value">{{ result()!.totalLots }}</span>
+          </div>
+          @if (hasRate()) {
+            <div class="header-stat-divider-dot"></div>
+            <div class="header-stat header-stat-compact">
+              <span class="header-stat-label">USD/THB</span>
+              <span class="header-stat-value">{{ exchangeRate() | number:'1.2-2' }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="header-right">
+      @if (!loading() && !error() && result()) {
+        <div class="view-toggle" id="view-toggle">
+          <button
+            class="view-toggle-btn"
+            [class.view-toggle-btn-active]="currentView() === 'holdings'"
+            (click)="viewChange.emit('holdings')"
+            id="view-toggle-holdings"
+            type="button"
+            title="View holdings and share lots"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span class="view-toggle-label">Holdings</span>
+          </button>
+          <button
+            class="view-toggle-btn"
+            [class.view-toggle-btn-active]="currentView() === 'transactions'"
+            (click)="viewChange.emit('transactions')"
+            id="view-toggle-transactions"
+            type="button"
+            title="View transactions history & trade ledger"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 14 14"></polyline>
+            </svg>
+            <span class="view-toggle-label">Transactions</span>
+          </button>
+        </div>
+
+        <div class="currency-toggle" id="currency-toggle">
+          <button
+            class="currency-btn"
+            [class.currency-btn-active]="displayCurrency() === 'USD'"
+            (click)="currencyChange.emit('USD')"
+            id="currency-usd"
+          >$</button>
+          <button
+            class="currency-btn"
+            [class.currency-btn-active]="displayCurrency() === 'THB'"
+            (click)="currencyChange.emit('THB')"
+            id="currency-thb"
+          >฿</button>
+        </div>
+      }
+      <button
+        class="theme-toggle-btn"
+        (click)="themeChange.emit()"
+        id="theme-toggle-btn"
+        [title]="theme() === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'"
+        [attr.aria-label]="theme() === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'"
+        type="button"
+      >
+        @if (theme() === 'dark') {
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2"></path>
+            <path d="M12 20v2"></path>
+            <path d="m4.93 4.93 1.41 1.41"></path>
+            <path d="m17.66 17.66 1.41 1.41"></path>
+            <path d="M2 12h2"></path>
+            <path d="M20 12h2"></path>
+            <path d="m6.34 17.66-1.41 1.41"></path>
+            <path d="m19.07 4.93-1.41 1.41"></path>
+          </svg>
+        } @else {
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+          </svg>
+        }
+      </button>
+    </div>
+  </div>
+</header>

@@ -1,9 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { firstValueFrom } from 'rxjs';
 import { NavService } from './nav.service';
-import { PriceData } from './price.service';
 
 describe('NavService', () => {
   let service: NavService;
@@ -11,13 +10,8 @@ describe('NavService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [
-        NavService,
-        provideHttpClient(),
-        provideHttpClientTesting(),
-      ],
+      providers: [NavService, provideHttpClient(), provideHttpClientTesting()],
     });
-
     service = TestBed.inject(NavService);
     httpMock = TestBed.inject(HttpTestingController);
   });
@@ -30,129 +24,27 @@ describe('NavService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should resolve SCBSFF correctly by falling back to project_info when class search returns non-matching items', async () => {
-    let result: Map<string, PriceData> | undefined;
-    service.fetchFundNAVs(['SCBSFF']).subscribe((res) => {
-      result = res;
+  it('should fetch NAV data via backend proxy', async () => {
+    const symbols = ['SCBSFF.BKFUND', 'ES-GTECHSSF.BKFUND'];
+
+    const promise = firstValueFrom(service.fetchFundNAVs(symbols));
+
+    const req = httpMock.expectOne('/api/backend/nav/fetch');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ symbols });
+    
+    req.flush({
+      'SCBSFF.BKFUND': { symbol: 'SCBSFF.BKFUND', price: 15.5, currency: 'THB', name: 'SCBSFF' },
+      'ES-GTECHSSF.BKFUND': { symbol: 'ES-GTECHSSF.BKFUND', price: 20.0, currency: 'THB', name: 'ES-GTECHSSF' },
     });
 
-    // 1. Initial fund_class_name search returns items belonging to SCBSFFPLUS (no exact SCBSFF match)
-    const req1 = httpMock.expectOne((req) => req.url.includes('fund_class_name=SCBSFF'));
-    expect(req1.request.method).toBe('GET');
-    req1.flush({
-      items: [
-        { proj_id: 'M0732_2556', proj_abbr_name: 'SCBSFFPLUS', fund_class_name: 'SCBSFFPLU(SSFE)' },
-        { proj_id: 'M0732_2556', proj_abbr_name: 'SCBSFFPLUS', fund_class_name: 'SCBSFFPLUS-A' },
-      ],
-    });
+    const result = await promise;
+    expect(result.size).toBe(2);
 
-    // 2. NavService falls back to project_info=SCBSFF
-    const req2 = httpMock.expectOne((req) => req.url.includes('project_info=SCBSFF'));
-    expect(req2.request.method).toBe('GET');
-    req2.flush({
-      items: [
-        {
-          proj_id: 'M0003_2539',
-          proj_abbr_name: 'SCBSFF',
-          proj_name_en: 'SCB Short Term Fixed Income Fund',
-          fund_class_name: 'main',
-        },
-      ],
-    });
+    const scbsff = result.get('SCBSFF.BKFUND');
+    expect(scbsff?.price).toBe(15.5);
 
-    // 3. NavService fetches daily NAV for M0003_2539
-    const req3 = httpMock.expectOne((req) => req.url.includes('proj_id=M0003_2539'));
-    expect(req3.request.method).toBe('GET');
-    req3.flush({
-      items: [
-        { proj_id: 'M0003_2539', fund_class_name: 'main', nav_date: '2026-07-31', last_val: 21.7135 },
-        { proj_id: 'M0003_2539', fund_class_name: 'main', nav_date: '2026-07-30', last_val: 21.7133 },
-      ],
-    });
-
-    // Wait a tick for delay / rxjs pipeline
-    await new Promise((r) => setTimeout(r, 350));
-
-    expect(result).toBeDefined();
-    expect(result!.has('SCBSFF')).toBe(true);
-    const data = result!.get('SCBSFF');
-    expect(data!.price).toBe(21.7135);
-    expect(data!.name).toBe('SCB Short Term Fixed Income Fund');
-  });
-
-  it('should resolve multi-class funds with exact fund_class_name match', async () => {
-    let result: Map<string, PriceData> | undefined;
-    service.fetchFundNAVs(['SCBGOLDH-SSF']).subscribe((res) => {
-      result = res;
-    });
-
-    // 1. fund_class_name search returns exact class match
-    const req1 = httpMock.expectOne((req) => req.url.includes('fund_class_name=SCBGOLDH-SSF'));
-    expect(req1.request.method).toBe('GET');
-    req1.flush({
-      items: [
-        {
-          proj_id: 'M0856_2553',
-          proj_abbr_name: 'SCBGOLDHFUND',
-          proj_name_en: 'SCB Gold THB Hedged Fund',
-          fund_class_name: 'SCBGOLDH-SSF',
-        },
-      ],
-    });
-
-    // 2. NavService fetches daily NAV for M0856_2553
-    const req2 = httpMock.expectOne((req) => req.url.includes('proj_id=M0856_2553'));
-    expect(req2.request.method).toBe('GET');
-    req2.flush({
-      items: [
-        { proj_id: 'M0856_2553', fund_class_name: 'SCBGOLDH-SSF', nav_date: '2026-07-31', last_val: 15.3633 },
-      ],
-    });
-
-    await new Promise((r) => setTimeout(r, 350));
-
-    expect(result).toBeDefined();
-    expect(result!.has('SCBGOLDH-SSF')).toBe(true);
-    const data = result!.get('SCBGOLDH-SSF');
-    expect(data!.price).toBe(15.3633);
-  });
-
-  it('should strip .BKFUND suffix before requesting SEC API and map results back to original symbol', async () => {
-    let result: Map<string, PriceData> | undefined;
-    service.fetchFundNAVs(['ES-GTECHSSF.BKFUND']).subscribe((res) => {
-      result = res;
-    });
-
-    // 1. fund_class_name search should request ES-GTECHSSF (without .BKFUND)
-    const req1 = httpMock.expectOne((req) => req.url.includes('fund_class_name=ES-GTECHSSF') && !req.url.includes('.BKFUND'));
-    expect(req1.request.method).toBe('GET');
-    req1.flush({
-      items: [
-        {
-          proj_id: 'M0518_2563',
-          proj_abbr_name: 'ES-GTECH',
-          proj_name_en: 'Eastspring Global Technology SSF',
-          fund_class_name: 'ES-GTECHSSF',
-        },
-      ],
-    });
-
-    // 2. NavService fetches daily NAV for M0518_2563
-    const req2 = httpMock.expectOne((req) => req.url.includes('proj_id=M0518_2563'));
-    expect(req2.request.method).toBe('GET');
-    req2.flush({
-      items: [
-        { proj_id: 'M0518_2563', fund_class_name: 'ES-GTECHSSF', nav_date: '2026-07-31', last_val: 18.2541 },
-      ],
-    });
-
-    await new Promise((r) => setTimeout(r, 350));
-
-    expect(result).toBeDefined();
-    expect(result!.has('ES-GTECHSSF.BKFUND')).toBe(true);
-    const data = result!.get('ES-GTECHSSF.BKFUND');
-    expect(data!.price).toBe(18.2541);
-    expect(data!.name).toBe('Eastspring Global Technology SSF');
-    expect(data!.currency).toBe('THB');
+    const es = result.get('ES-GTECHSSF.BKFUND');
+    expect(es?.price).toBe(20.0);
   });
 });
