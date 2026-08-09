@@ -1775,6 +1775,12 @@
   box-shadow: 0 0 0 2px var(--color-accent-soft);
 }
 
+.page-size-select option {
+  background-color: var(--color-surface-overlay);
+  color: var(--color-text-primary);
+  padding: 0.375rem;
+}
+
 .page-size-chevron {
   position: absolute;
   right: 0.5rem;
@@ -2161,10 +2167,14 @@
     width: 100%;
     gap: 0.5rem;
     font-size: 0.75rem;
+    flex-wrap: wrap;
   }
 
-  .pagination-info {
-    font-size: 0.75rem;
+  .pagination-center {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex-shrink: 0;
   }
 
   .page-size-label {
@@ -2172,8 +2182,13 @@
   }
 
   .page-size-select {
-    padding: 0.25rem 1.6rem 0.25rem 0.5rem;
-    font-size: 0.75rem;
+    padding: 0.35rem 1.6rem 0.35rem 0.625rem;
+    font-size: 16px; /* Prevents iOS Safari auto-zoom on select focus */
+    min-height: 2.25rem; /* Ensures comfortable touch target height on mobile */
+    line-height: 1.2;
+    border-radius: 0.5rem;
+    background-color: var(--color-surface-overlay);
+    color: var(--color-text-primary);
   }
 
   .pagination-controls {

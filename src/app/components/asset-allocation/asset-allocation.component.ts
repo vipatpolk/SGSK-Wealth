@@ -3,7 +3,7 @@ import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SymbolSummary, TargetAllocation, RebalanceRecommendation } from '../../models/transaction.model';
 import { PriceData } from '../../services/price.service';
-import { getAssetType, getAssetTypeLabel, getSymbolColor, displaySymbol } from '../../utils/format.utils';
+import { getAssetType, getAssetTypeLabel, getSymbolColor, displaySymbol, resolveSymbolName } from '../../utils/format.utils';
 
 @Component({
   selector: 'app-asset-allocation',
@@ -29,6 +29,61 @@ export class AssetAllocationComponent implements OnInit {
   targetAllocation = signal<TargetAllocation>(this.defaultTargets);
   isEditingTarget = signal<boolean>(false);
   tempTargetAllocation = signal<TargetAllocation>({});
+  selectedAssetType = signal<string | null>(null);
+
+  selectAssetType(type: string | null): void {
+    if (this.selectedAssetType() === type) {
+      this.selectedAssetType.set(null);
+    } else {
+      this.selectedAssetType.set(type);
+    }
+  }
+
+  readonly selectedAssetLabel = computed<string>(() => {
+    const type = this.selectedAssetType();
+    return type ? this.getAssetLabel(type) : 'All Classes';
+  });
+
+  readonly classHoldings = computed(() => {
+    const selectedType = this.selectedAssetType();
+    if (!selectedType) return [];
+
+    const pm = this.pricesMap();
+    return this.summaries()
+      .filter(s => getAssetType(s.assetType, s.symbol) === selectedType)
+      .map(s => {
+        const pd = pm.get(s.symbol);
+        const val = pd && pd.price > 0 ? this.cx(s.totalShares * pd.price, pd.currency) : 0;
+        return {
+          symbol: s.symbol,
+          displaySymbol: displaySymbol(s.symbol),
+          name: resolveSymbolName(s.symbol, pm),
+          shares: s.totalShares,
+          price: pd?.price || 0,
+          currency: pd?.currency || 'USD',
+          value: val,
+          color: getSymbolColor(s.symbol)
+        };
+      })
+      .filter(h => h.value > 0 || h.shares > 0)
+      .sort((a, b) => b.value - a.value);
+  });
+
+  readonly classTotalValue = computed(() => {
+    return this.classHoldings().reduce((sum, h) => sum + h.value, 0);
+  });
+
+  readonly enrichedClassHoldings = computed(() => {
+    const holdings = this.classHoldings();
+    const classTot = this.classTotalValue();
+    const portTot = this.totalValue();
+
+    return holdings.map(h => ({
+      ...h,
+      classPercent: classTot > 0 ? (h.value / classTot) * 100 : 0,
+      portfolioPercent: portTot > 0 ? (h.value / portTot) * 100 : 0
+    }));
+  });
 
   constructor() {
     effect(() => {
@@ -42,7 +97,7 @@ export class AssetAllocationComponent implements OnInit {
       try {
         const parsed = JSON.parse(saved);
         if (parsed && typeof parsed === 'object') {
-          this.targetAllocation.set(parsed);
+          this.targetAllocation.set({ ...this.defaultTargets, ...parsed });
         }
       } catch (e) {
         // use defaults
@@ -72,6 +127,8 @@ export class AssetAllocationComponent implements OnInit {
         const val = s.totalShares * pd.price;
         if (vals[type] !== undefined) {
           vals[type] += this.cx(val, pd.currency);
+        } else {
+          vals[type] = this.cx(val, pd.currency);
         }
       }
     }
@@ -87,9 +144,11 @@ export class AssetAllocationComponent implements OnInit {
     const total = this.totalValue();
     const targets = this.targetAllocation();
     
-    const recs: RebalanceRecommendation[] = [];
-    const keys = ['us-stock', 'thai-stock', 'crypto', 'mutual-fund'];
+    const defaultKeys = ['us-stock', 'thai-stock', 'crypto', 'mutual-fund'];
+    const extraKeys = Object.keys({ ...vals, ...targets }).filter(k => !defaultKeys.includes(k));
+    const keys = [...defaultKeys, ...extraKeys];
     
+    const recs: RebalanceRecommendation[] = [];
     for (const k of keys) {
       const val = vals[k] || 0;
       const actualPct = total > 0 ? (val / total) * 100 : 0;
@@ -109,11 +168,20 @@ export class AssetAllocationComponent implements OnInit {
     return recs;
   });
 
+  readonly displayTotalValue = computed(() => {
+    return this.selectedAssetType() ? this.classTotalValue() : this.totalValue();
+  });
+
   readonly currencyExposure = computed(() => {
     let usdVal = 0;
     let thbVal = 0;
     const pm = this.pricesMap();
-    for (const s of this.summaries()) {
+    const selectedType = this.selectedAssetType();
+    const summaries = selectedType
+      ? this.summaries().filter(s => getAssetType(s.assetType, s.symbol) === selectedType)
+      : this.summaries();
+
+    for (const s of summaries) {
       const pd = pm.get(s.symbol);
       if (pd && pd.price > 0) {
         const val = this.cx(s.totalShares * pd.price, pd.currency);
@@ -133,7 +201,12 @@ export class AssetAllocationComponent implements OnInit {
 
   readonly allHoldings = computed(() => {
     const pm = this.pricesMap();
-    const holdings = this.summaries().map(s => {
+    const selectedType = this.selectedAssetType();
+    const summaries = selectedType
+      ? this.summaries().filter(s => getAssetType(s.assetType, s.symbol) === selectedType)
+      : this.summaries();
+
+    const holdings = summaries.map(s => {
       const pd = pm.get(s.symbol);
       const val = pd && pd.price > 0 ? this.cx(s.totalShares * pd.price, pd.currency) : 0;
       return {
@@ -145,7 +218,7 @@ export class AssetAllocationComponent implements OnInit {
       };
     }).filter(h => h.value > 0);
     
-    const total = this.totalValue();
+    const total = selectedType ? this.classTotalValue() : this.totalValue();
     holdings.forEach(h => h.percent = total > 0 ? (h.value / total) * 100 : 0);
     
     return holdings.sort((a, b) => b.value - a.value);
@@ -219,21 +292,42 @@ export class AssetAllocationComponent implements OnInit {
   }
 
   readonly donutSegments = computed(() => {
-    const recs = this.recommendations();
+    const selectedType = this.selectedAssetType();
     let cumulativePercent = 0;
     
-    return recs.map(r => {
-      const percent = r.actualPercent;
-      const offset = 100 - cumulativePercent;
-      cumulativePercent += percent;
-      
-      return {
-        ...r,
-        dashArray: `${Math.max(percent, 0.001)} ${100 - Math.max(percent, 0.001)}`,
-        dashOffset: offset,
-        color: this.getAssetColor(r.assetType)
-      };
-    });
+    if (!selectedType) {
+      const recs = this.recommendations();
+      return recs.map(r => {
+        const percent = r.actualPercent;
+        const offset = 100 - cumulativePercent;
+        cumulativePercent += percent;
+        
+        return {
+          key: r.assetType,
+          label: this.getAssetLabel(r.assetType),
+          actualPercent: percent,
+          dashArray: `${Math.max(percent, 0.001)} ${100 - Math.max(percent, 0.001)}`,
+          dashOffset: offset,
+          color: this.getAssetColor(r.assetType)
+        };
+      });
+    } else {
+      const holdings = this.enrichedClassHoldings();
+      return holdings.map(h => {
+        const percent = h.classPercent;
+        const offset = 100 - cumulativePercent;
+        cumulativePercent += percent;
+        
+        return {
+          key: h.symbol,
+          label: h.displaySymbol,
+          actualPercent: percent,
+          dashArray: `${Math.max(percent, 0.001)} ${100 - Math.max(percent, 0.001)}`,
+          dashOffset: offset,
+          color: h.color
+        };
+      });
+    }
   });
 
 }

@@ -9,10 +9,10 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Angular-21.0-DD0031?style=flat-square&logo=angular&logoColor=white" alt="Angular 21" />
-  <img src="https://img.shields.io/badge/TailwindCSS-v4.0-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS v4" />
-  <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Vitest-4.0-6E9F18?style=flat-square&logo=vitest&logoColor=white" alt="Vitest" />
+  <img src="https://img.shields.io/badge/Angular-22.1-DD0031?style=flat-square&logo=angular&logoColor=white" alt="Angular 22" />
+  <img src="https://img.shields.io/badge/TailwindCSS-v4.3-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS v4.3" />
+  <img src="https://img.shields.io/badge/TypeScript-6.0-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript 6.0" />
+  <img src="https://img.shields.io/badge/Node.js-24.19_LTS-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js 24 LTS" />
   <img src="https://img.shields.io/badge/Deploy-Vercel-000000?style=flat-square&logo=vercel&logoColor=white" alt="Vercel" />
 </p>
 
@@ -27,10 +27,12 @@
 ## Key Features
 
 - ⚖️ **Target Asset Allocation & Rebalancing**:
-  - **Live Portfolio Rebalancer**: Computes real-time target vs. actual allocation percentages across asset classes (`U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`).
-  - **Editable Target Allocation**: Interactive edit mode with real-time target sum validation (must equal 100%). Prevents invalid target submission with visual color cues.
+  - **Auto-Aggregated Portfolio Overview**: Navigating to the Allocation page automatically switches to the `All` tab, aggregating portfolio positions across all asset categories (`U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`).
+  - **Interactive Asset Class Filtering**: Clicking any Asset Class row, Donut Chart segment, or Legend item filters the Allocation page directly to that specific asset class.
+  - **"Symbol at Class" Detailed Breakdown View**: When filtered, the Target Rebalancing card dynamically transforms into **Symbol Allocation in [Asset Class]**, displaying individual holdings (shares, value, class %, portfolio %) with a prominent **`← All Asset Classes`** button positioned above the Pie Chart for one-click filter reset.
+  - **Editable Target Allocation**: Interactive edit mode with icon-enhanced action buttons and real-time target sum validation (must equal 100%).
   - **Actionable Rebalance Deltas**: Calculates precise monetary actions needed to rebalance portfolio (`+$1,000` to buy, `-$500` to sell, or `Balanced`).
-  - **Concentration & Currency Exposure**: Top Holdings Concentration chart with **Show All / Show Top 5** toggle controls, alongside USD/THB currency exposure visualizer.
+  - **Concentration & Currency Exposure**: Top Holdings Concentration chart with **Show All / Show Top 5** toggle controls, alongside USD/THB currency exposure visualizer (automatically hidden when class filtering to maintain focused analysis).
 
 - 📊 **FIFO Share Lot Engine**:
   - Automatically matches buy and sell transaction queues according to FIFO principles.
@@ -40,13 +42,14 @@
 - 📜 **Full Transaction History Ledger**:
   - **All Symbols Feed & Symbol-Specific Views**: Unified cross-portfolio activity stream or dedicated per-symbol transaction drill-down.
   - **Interactive Date Range Filter**: Custom date range picker component with presets (`YTD`, `1M`, `3M`, `6M`, `1Y`, `All Time`, or custom date bounds).
-  - **Pagination Controls**: Configurable page size options (10, 50, or 100 transactions per page) with full navigation and dynamic count indicators.
+  - **Pagination Controls**: Configurable page size options (10, 50, or 100 transactions per page) with full navigation, touch-friendly dropdown styling, and dynamic count indicators.
   - **Transaction Filtering & Sorting**: Filter by transaction type (`All`, `Buy`, `Sell`), asset class, or text search.
   - **Realized P/L Tracking**: Displays matched lots, gain/loss per sale, hold duration, and execution prices.
 
 - 📱 **Mobile-First Responsive Experience**:
   - **Mobile-Responsive Card Layouts**: High-density tables on desktop seamlessly transform into touch-friendly cards on mobile devices without horizontal clipping or blowout.
   - **Dropdown View Selector**: Touch-friendly dropdown selector (`Holdings`, `Allocation`, `Transactions`) for effortless mobile navigation.
+  - **iOS Safari Auto-Zoom Prevention**: Touch inputs and per-page select controls are optimized with explicit styling and `16px` mobile sizing to prevent unwanted mobile layout zooming.
   - **Adaptive Header & Toolbar**: Dynamic USD/THB currency toggle, theme switcher, and mobile-optimized pagination bar.
 
 - 🌐 **Multi-Asset Class Support**:
@@ -60,8 +63,8 @@
   - Real-time USD/THB exchange rate lookup with one-click switching between USD ($) and THB (฿).
 
 - 🎨 **Modern Architecture & Dark UI**:
+  - Built with **Angular 22**, Standalone Components, Signals, RxJS, and modern control-flow syntax (`@if`, `@for`).
   - Decoupled client architecture utilizing `asset.constants.ts` for clean UI configuration; raw Google Sheets IDs/GIDs are fully encapsulated within `SGSKBackend`.
-  - Angular Standalone Components, Signals, and modern control-flow syntax (`@if`, `@for`).
 
 ---
 
@@ -69,8 +72,10 @@
 
 | Layer | Technology |
 | :--- | :--- |
-| **Framework** | [Angular 21](https://angular.dev/) (Standalone Components, Signals, RxJS) |
-| **Styling** | Custom Design System with Modern CSS & Tailwind CSS |
+| **Framework** | [Angular 22](https://angular.dev/) (Standalone Components, Signals, RxJS) |
+| **Styling** | Custom Design System with Modern CSS & [Tailwind CSS v4.3](https://tailwindcss.com/) |
+| **Language** | [TypeScript 6.0](https://www.typescriptlang.org/) |
+| **Runtime** | [Node.js 24 LTS](https://nodejs.org/) (v24.19.0) |
 | **Backend Integration** | [FastAPI Backend (SGSKBackend)](https://github.com/vipatpolk/SGSKBackend) for data processing and API proxying |
 | **Data Source** | Google Sheets CSV Export (via Backend) |
 | **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom |
@@ -86,7 +91,7 @@ ShareLot/
 ├── src/
 │   ├── app/
 │   │   ├── components/         # Reusable UI feature components
-│   │   │   ├── asset-allocation/     # Asset allocation & target rebalancing component
+│   │   │   ├── asset-allocation/     # Asset allocation, class filtering & symbol rebalancing component
 │   │   │   ├── date-range-picker/    # Interactive date range selector component
 │   │   │   ├── filters/              # Asset class filter pills & search bar
 │   │   │   ├── header/               # Header logo, portfolio summary stats & view toggle
@@ -122,7 +127,7 @@ ShareLot/
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (version 20.x or later recommended)
+- [Node.js](https://nodejs.org/) (version 22.x or 24.x LTS recommended)
 - [npm](https://www.npmjs.com/) (version 10.x or later)
 
 ### Installation
@@ -183,3 +188,4 @@ All Google Spreadsheet IDs, tab GID mappings, and data processing are configured
 ## License
 
 This project is private and proprietary.
+

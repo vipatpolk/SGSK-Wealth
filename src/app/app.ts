@@ -129,6 +129,9 @@ export class App {
 
   setView(view: 'holdings' | 'transactions' | 'allocation'): void {
     this.currentView.set(view);
+    if (view === 'allocation') {
+      this.selectTab(ASSET_TABS[0]);
+    }
   }
 
   readonly closedAssetTypeOptions = computed(() => {
