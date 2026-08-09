@@ -32,8 +32,8 @@ export class ShareLotService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = '/api/backend/share-lot';
 
-  fetchSheet(gid: string): Observable<SheetResult> {
-    return this.http.get<SheetResult>(`${this.baseUrl}/sheet/${gid}`).pipe(
+  fetchSheet(tabId: string): Observable<SheetResult> {
+    return this.http.get<SheetResult>(`${this.baseUrl}/sheet/${tabId}`).pipe(
       catchError(() => of(this.createEmptyResult('Failed to fetch data from backend.', false)))
     );
   }

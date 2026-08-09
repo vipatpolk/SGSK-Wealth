@@ -97,3 +97,16 @@ export interface SymbolTransactionSummary {
   transactions: SymbolTransaction[];
 }
 
+export interface TargetAllocation {
+  [assetType: string]: number;
+}
+
+export interface RebalanceRecommendation {
+  assetType: string;
+  currentValue: number;
+  actualPercent: number;
+  targetPercent: number;
+  rebalanceAmount: number;
+  deviationPercent: number;
+}
+

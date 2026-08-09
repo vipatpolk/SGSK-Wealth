@@ -1,0 +1,189 @@
+<div class="allocation-container">
+  <div class="allocation-top-row">
+    
+    <div class="allocation-card">
+      <h2 class="allocation-card-title">Asset Distribution</h2>
+      <div class="donut-chart-wrapper">
+        <svg viewBox="0 0 42 42" class="donut-svg">
+          <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--bg-card)" stroke-width="6"></circle>
+          @for (seg of donutSegments(); track seg.assetType) {
+            <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" 
+                    [attr.stroke]="seg.color" 
+                    stroke-width="5" 
+                    [attr.stroke-dasharray]="seg.dashArray" 
+                    [attr.stroke-dashoffset]="seg.dashOffset"
+                    class="donut-segment">
+              <title>{{ getAssetLabel(seg.assetType) }}: {{ seg.actualPercent | number:'1.1-1' }}%</title>
+            </circle>
+          }
+        </svg>
+        <div class="donut-center-text">
+          <div class="donut-center-val">{{ totalValue() | currency:displayCurrency():'symbol-narrow':'1.0-0' }}</div>
+          <div class="donut-center-label">Total Value</div>
+        </div>
+      </div>
+      
+      <div class="donut-legend">
+        @for (seg of recommendations(); track seg.assetType) {
+          <div class="legend-item">
+            <div class="legend-color" [style.background-color]="getAssetColor(seg.assetType)"></div>
+            <div class="legend-label">{{ getAssetLabel(seg.assetType) }}</div>
+            <div class="legend-value">{{ seg.actualPercent | number:'1.1-1' }}%</div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="allocation-card">
+      <div class="allocation-card-header">
+        <h2 class="allocation-card-title">Target Rebalancing</h2>
+        @if (!isEditingTarget()) {
+          <button class="edit-target-btn" (click)="startEditing()">Edit Targets</button>
+        } @else {
+          <div class="edit-actions">
+            <button class="cancel-target-btn" (click)="cancelEditing()">Cancel</button>
+            <button class="save-target-btn" (click)="saveTargets()" [disabled]="!isTargetValid()" [class.disabled-btn]="!isTargetValid()">Save</button>
+          </div>
+        }
+      </div>
+
+      <div class="rebalance-list">
+        <div class="rebalance-list-header desktop-only">
+          <div class="rebalance-col-asset">Asset Class</div>
+          <div class="rebalance-col-actual text-right">Actual %</div>
+          <div class="rebalance-col-target text-right">Target %</div>
+          <div class="rebalance-col-action" style="padding-left: 1.5rem;">Action Needed</div>
+        </div>
+
+        @for (rec of recommendations(); track rec.assetType) {
+          <div class="rebalance-item-container">
+            <div class="rebalance-main-row">
+              
+              <div class="rebalance-col-asset">
+                <div class="asset-class-cell">
+                  <div class="legend-color" [style.background-color]="getAssetColor(rec.assetType)"></div>
+                  {{ getAssetLabel(rec.assetType) }}
+                </div>
+              </div>
+
+              <div class="rebalance-mobile-stats">
+                <div class="rebalance-col-actual">
+                  <span class="mobile-label">Actual:</span>
+                  <span class="font-mono">{{ rec.actualPercent | number:'1.1-1' }}%</span>
+                </div>
+
+                <div class="rebalance-col-target" (click)="$event.stopPropagation()">
+                  <span class="mobile-label">Target:</span>
+                  @if (isEditingTarget()) {
+                    <input type="number" class="target-input" 
+                           [ngModel]="tempTargetAllocation()[rec.assetType]" 
+                           (ngModelChange)="updateTempTarget(rec.assetType, $event)"
+                           min="0" max="100" step="1">
+                  } @else {
+                    <span class="target-display">{{ rec.targetPercent | number:'1.1-1' }}%</span>
+                  }
+                </div>
+
+                <div class="rebalance-col-action font-mono" 
+                    [class.text-green]="rec.rebalanceAmount > 10" 
+                    [class.text-red]="rec.rebalanceAmount < -10"
+                    [class.text-muted]="rec.rebalanceAmount >= -10 && rec.rebalanceAmount <= 10">
+                  <span class="mobile-label">Action:</span>
+                  <span>
+                    @if (rec.rebalanceAmount > 10) {
+                      +{{ rec.rebalanceAmount | currency:displayCurrency():'symbol-narrow':'1.0-0' }}
+                    } @else if (rec.rebalanceAmount < -10) {
+                      {{ rec.rebalanceAmount | currency:displayCurrency():'symbol-narrow':'1.0-0' }}
+                    } @else {
+                      Balanced
+                    }
+                  </span>
+              </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <div class="rebalance-item-container total-row-container" style="background: transparent; border-top: 2px solid var(--border-color); border-bottom: none; border-left: none; border-right: none; border-radius: 0;">
+          <div class="rebalance-main-row total-row" style="cursor: default;">
+            <div class="rebalance-col-asset desktop-text-right" style="font-weight: 600;">
+              Total
+            </div>
+            <div class="rebalance-mobile-stats">
+              <div class="rebalance-col-actual" style="font-weight: 600;">
+                <span class="mobile-label">Actual:</span>
+                <span class="font-mono">{{ actualTotal() | number:'1.1-1' }}%</span>
+              </div>
+              <div class="rebalance-col-target">
+                <span class="mobile-label">Target:</span>
+                @if (isEditingTarget()) {
+                  <span class="target-display" [class.text-red]="!isTargetValid()" [class.text-green]="isTargetValid()">
+                    {{ editTargetTotal() | number:'1.0-0' }}%
+                  </span>
+                } @else {
+                  <span class="target-display">{{ targetTotal() | number:'1.0-0' }}%</span>
+                }
+              </div>
+              <div class="rebalance-col-action"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="allocation-bottom-row">
+    
+    <div class="allocation-card">
+      <h2 class="allocation-card-title">Currency Exposure</h2>
+      <div class="currency-bar-wrapper">
+        <div class="currency-labels">
+          <span>USD <span class="text-muted">({{ currencyExposure().usdPercent | number:'1.1-1' }}%)</span></span>
+          <span>THB <span class="text-muted">({{ currencyExposure().thbPercent | number:'1.1-1' }}%)</span></span>
+        </div>
+        <div class="currency-bar">
+          <div class="currency-segment usd-segment" [style.width.%]="currencyExposure().usdPercent"></div>
+          <div class="currency-segment thb-segment" [style.width.%]="currencyExposure().thbPercent"></div>
+        </div>
+        <div class="currency-values">
+          <span>{{ currencyExposure().usd | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
+          <span>{{ currencyExposure().thb | currency:'THB':'symbol-narrow':'1.0-0' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="allocation-card">
+      <div class="allocation-card-header">
+        <h2 class="allocation-card-title">Top Holdings Concentration</h2>
+        @if (allHoldings().length > 5) {
+          <button class="edit-target-btn" (click)="toggleShowAllHoldings()">
+            {{ showAllHoldings() ? 'Show Top 5' : 'Show All' }}
+          </button>
+        }
+      </div>
+      <div class="concentration-list">
+        @for (holding of displayedHoldings(); track holding.symbol) {
+          <div class="concentration-item">
+            <div class="concentration-symbol">
+              <span class="symbol-badge" 
+                    [style.background-color]="holding.color + '18'" 
+                    [style.color]="holding.color" 
+                    [style.border-color]="holding.color + '30'">
+                {{ holding.displaySymbol }}
+              </span>
+            </div>
+            <div class="concentration-bar-container">
+              <div class="concentration-bar" [style.width.%]="holding.percent" [style.background-color]="holding.color"></div>
+            </div>
+            <div class="concentration-stats">
+              <span class="concentration-val">{{ holding.value | currency:displayCurrency():'symbol-narrow':'1.0-0' }}</span>
+              <span class="concentration-pct" [class.text-red]="holding.percent > 15">{{ holding.percent | number:'1.1-1' }}%</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+    
+  </div>
+</div>

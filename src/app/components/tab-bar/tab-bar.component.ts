@@ -1,6 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { AssetTab } from '../../config/sheet.config';
+import { AssetTab } from '../../config/asset.constants';
 
 @Component({
   selector: 'app-tab-bar',
@@ -9,7 +9,7 @@ import { AssetTab } from '../../config/sheet.config';
   templateUrl: './tab-bar.component.html'
 })
 export class TabBarComponent {
-  currentView = input.required<'holdings' | 'transactions'>();
+  currentView = input.required<'holdings' | 'transactions' | 'allocation'>();
   tabs = input.required<AssetTab[]>();
   activeTab = input.required<AssetTab>();
   isTabDropdownOpen = input.required<boolean>();

@@ -28,7 +28,7 @@ describe('App', () => {
     const app = fixture.componentInstance;
     const closedTab = app.tabs.find((t) => t.id === 'closed-position');
     expect(closedTab).toBeDefined();
-    expect(closedTab?.sheetGid).toBe('273600915');
+    expect(closedTab?.label).toBe('Closed Position');
   });
 
   it('should select tab and update active tab', () => {

@@ -90,37 +90,60 @@
 
     <div class="header-right">
       @if (!loading() && !error() && result()) {
-        <div class="view-toggle" id="view-toggle">
-          <button
-            class="view-toggle-btn"
-            [class.view-toggle-btn-active]="currentView() === 'holdings'"
-            (click)="viewChange.emit('holdings')"
-            id="view-toggle-holdings"
-            type="button"
-            title="View holdings and share lots"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon">
-              <rect x="3" y="3" width="7" height="7"></rect>
-              <rect x="14" y="3" width="7" height="7"></rect>
-              <rect x="14" y="14" width="7" height="7"></rect>
-              <rect x="3" y="14" width="7" height="7"></rect>
-            </svg>
-            <span class="view-toggle-label">Holdings</span>
+        <div class="view-toggle-wrapper" [class.dropdown-open]="isViewDropdownOpen()">
+          @if (isViewDropdownOpen()) {
+            <div class="view-toggle-backdrop" (click)="isViewDropdownOpen.set(false)"></div>
+          }
+          
+          <button class="view-toggle-trigger" (click)="toggleViewDropdown()">
+            @if (currentView() === 'holdings') {
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              <span class="view-toggle-label">Holdings</span>
+            } @else if (currentView() === 'transactions') {
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+              <span class="view-toggle-label">Transactions</span>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+              <span class="view-toggle-label">Allocation</span>
+            }
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon dropdown-chevron"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
-          <button
-            class="view-toggle-btn"
-            [class.view-toggle-btn-active]="currentView() === 'transactions'"
-            (click)="viewChange.emit('transactions')"
-            id="view-toggle-transactions"
-            type="button"
-            title="View transactions history & trade ledger"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 14 14"></polyline>
-            </svg>
-            <span class="view-toggle-label">Transactions</span>
-          </button>
+
+          <div class="view-toggle" id="view-toggle">
+            <button
+              class="view-toggle-btn"
+              [class.view-toggle-btn-active]="currentView() === 'holdings'"
+              (click)="selectView('holdings')"
+              id="view-toggle-holdings"
+              type="button"
+              title="View holdings and share lots"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              <span class="view-toggle-label">Holdings</span>
+            </button>
+            <button
+              class="view-toggle-btn"
+              [class.view-toggle-btn-active]="currentView() === 'allocation'"
+              (click)="selectView('allocation')"
+              id="view-toggle-allocation"
+              type="button"
+              title="View asset allocation & rebalancing"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+              <span class="view-toggle-label">Allocation</span>
+            </button>
+            <button
+              class="view-toggle-btn"
+              [class.view-toggle-btn-active]="currentView() === 'transactions'"
+              (click)="selectView('transactions')"
+              id="view-toggle-transactions"
+              type="button"
+              title="View transactions history & trade ledger"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+              <span class="view-toggle-label">Transactions</span>
+            </button>
+          </div>
         </div>
 
         <div class="currency-toggle" id="currency-toggle">

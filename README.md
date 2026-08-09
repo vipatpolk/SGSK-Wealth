@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong>A modern, real-time investment portfolio tracker and FIFO share lot accounting dashboard.</strong>
+  <strong>A modern, real-time investment portfolio tracker, FIFO share lot accounting dashboard, and asset allocation rebalancer.</strong>
 </p>
 
 <p align="center">
@@ -20,11 +20,17 @@
 
 ## Overview
 
-**ShareLot** is an investment portfolio analytics web application designed to automate **First-In, First-Out (FIFO)** share lot accounting across multiple asset classes. It connects to the **SGSKBackend** to ingest transaction logs from Google Sheets and streams real-time market data to compute cost basis, open lots, realized gains, holding values, and total profit/loss (P/L).
+**ShareLot** is an investment portfolio analytics web application designed to automate **First-In, First-Out (FIFO)** share lot accounting across multiple asset classes. It connects to the **SGSKBackend** to ingest transaction logs from Google Sheets and streams real-time market data to compute cost basis, open lots, realized gains, holding values, total profit/loss (P/L), and target asset rebalancing.
 
 ---
 
 ## Key Features
+
+- ⚖️ **Target Asset Allocation & Rebalancing**:
+  - **Live Portfolio Rebalancer**: Computes real-time target vs. actual allocation percentages across asset classes (`U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`).
+  - **Editable Target Allocation**: Interactive edit mode with real-time target sum validation (must equal 100%). Prevents invalid target submission with visual color cues.
+  - **Actionable Rebalance Deltas**: Calculates precise monetary actions needed to rebalance portfolio (`+$1,000` to buy, `-$500` to sell, or `Balanced`).
+  - **Concentration & Currency Exposure**: Top Holdings Concentration chart with **Show All / Show Top 5** toggle controls, alongside USD/THB currency exposure visualizer.
 
 - 📊 **FIFO Share Lot Engine**:
   - Automatically matches buy and sell transaction queues according to FIFO principles.
@@ -34,49 +40,28 @@
 - 📜 **Full Transaction History Ledger**:
   - **All Symbols Feed & Symbol-Specific Views**: Unified cross-portfolio activity stream or dedicated per-symbol transaction drill-down.
   - **Interactive Date Range Filter**: Custom date range picker component with presets (`YTD`, `1M`, `3M`, `6M`, `1Y`, `All Time`, or custom date bounds).
-  - **Pagination Controls**: Configurable page size options (10, 50, or 100 transactions per page) with full first/prev/page/next/last navigation and dynamic count indicators.
-  - **Transaction Filtering & Sorting**: Filter by transaction type (`All`, `Buy`, `Sell`), asset class, or text search; smart symbol dropdown sorting open positions first followed by alphabetical order.
-  - **Realized P/L Tracking**: Displays matched lots, gain/loss per sale, hold duration, and buy/sell execution prices.
-  - **Expanded Symbol Display**: Generous space and smart truncation for long fund and company names with hover tooltips.
-  - **Responsive Dual-Mode Display**: High-density table on desktop and touch-optimized card layout on mobile devices.
+  - **Pagination Controls**: Configurable page size options (10, 50, or 100 transactions per page) with full navigation and dynamic count indicators.
+  - **Transaction Filtering & Sorting**: Filter by transaction type (`All`, `Buy`, `Sell`), asset class, or text search.
+  - **Realized P/L Tracking**: Displays matched lots, gain/loss per sale, hold duration, and execution prices.
 
 - 📱 **Mobile-First Responsive Experience**:
-  - **Dedicated Mobile Transaction Cards**: Left-accented trade badges (Emerald for `BUY`, Rose for `SELL`), 2-column financial execution metrics, realized P/L highlight banners, and running share positions after trades.
-  - **Unified Custom Dropdowns**: Touch-friendly, button-based custom dropdown menus replace native OS `<select>` controls for seamless, brand-consistent aesthetic across all viewports.
-  - **Adaptive Header & Toolbar**: Touch-friendly navigation buttons (`← Holdings`, `All Symbols`), mobile-optimized sorting, and a 2-row responsive pagination bar.
-  - **Mobile Datepicker Modal**: Centered modal popovers for the date range picker on phones and tablets ensure optimal touch usability without screen clipping.
-  - **Optimized Performance**: Smooth transitions and touch-friendly controls across all screen sizes.
-
-- 🏷️ **Dynamic Asset Classification & Filtering**:
-  - **Color-Coded Asset Badges**: Visual indicators (`U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`, and custom asset classes).
-  - **Interactive Filter Bars**: Dynamic filter pills with real-time counts and portfolio metric recalculation.
-  - **Zero Hardcoding Architecture**: 100% dynamic, data-driven symbol names, asset type categorization, and currency resolution without static lookup tables.
+  - **Mobile-Responsive Card Layouts**: High-density tables on desktop seamlessly transform into touch-friendly cards on mobile devices without horizontal clipping or blowout.
+  - **Dropdown View Selector**: Touch-friendly dropdown selector (`Holdings`, `Allocation`, `Transactions`) for effortless mobile navigation.
+  - **Adaptive Header & Toolbar**: Dynamic USD/THB currency toggle, theme switcher, and mobile-optimized pagination bar.
 
 - 🌐 **Multi-Asset Class Support**:
   - **U.S. Stocks**: Live market quotes and metadata via Yahoo Finance API (`USD`).
-  - **Thai Stocks**: Stock Exchange of Thailand (`.BK`) quotes and profiles via Yahoo Finance (`THB`).
+  - **Thai Stocks**: Stock Exchange of Thailand (`.BK`) quotes via Yahoo Finance (`THB`).
   - **Cryptocurrencies**: Live orderbook prices via Binance TH API (`THB`/`USD`).
-  - **Thai Mutual Funds**: Daily NAV lookups and fund profile matching via SEC Thailand APIs (`THB`).
-  - **Closed Positions**: Historical realized gain/loss ledger with asset-type metadata and fund name lookups.
-  - **Unified "All" View**: Combined cross-asset portfolio overview.
+  - **Thai Mutual Funds**: Daily NAV lookups via SEC Thailand APIs (`THB`).
+  - **Closed Positions**: Historical realized gain/loss ledger with asset-type metadata.
 
 - 💱 **Live Currency Conversion**:
-  - Real-time USD/THB exchange rate lookup.
-  - Seamless one-click switching between USD ($) and THB (฿) with dynamic portfolio revaluation.
+  - Real-time USD/THB exchange rate lookup with one-click switching between USD ($) and THB (฿).
 
-- 🔗 **Google Sheets Integration**:
-  - Leverages **SGSKBackend** to fetch and parse published CSV sheets on-the-fly.
-  - Offloads FIFO calculations and transaction parsing to the Python backend.
-
-- 🔍 **Interactive Holdings Dashboard**:
-  - Instant search across symbols and company/fund names.
-  - Sort by Symbol, Total Cost, Average Cost, Holding Value, Realized P/L, and P/L percentage.
-  - Expandable symbol cards displaying individual lot breakdown tiers.
-
-- 🎨 **Modern Dark UI**:
-  - Built with Angular Standalone Components, Signals, and modern control-flow syntax (`@if`, `@for`).
-  - Custom design system with glassmorphism and gradient accents.
-  - Responsive layout optimized for desktop, tablet, and mobile viewports.
+- 🎨 **Modern Architecture & Dark UI**:
+  - Decoupled client architecture utilizing `asset.constants.ts` for clean UI configuration; raw Google Sheets IDs/GIDs are fully encapsulated within `SGSKBackend`.
+  - Angular Standalone Components, Signals, and modern control-flow syntax (`@if`, `@for`).
 
 ---
 
@@ -98,22 +83,23 @@
 ```
 ShareLot/
 ├── public/                     # Static assets & favicons
-│   ├── favicon.ico             # Multi-resolution ICO (16x16, 32x32, 48x48, 64x64)
-│   ├── favicon.svg             # Vector SVG favicon
-│   ├── apple-touch-icon.png    # High-res 180x180 touch icon
-│   ├── icon-192.png            # PWA manifest 192x192 icon
-│   └── icon-512.png            # PWA manifest 512x512 icon
 ├── src/
 │   ├── app/
 │   │   ├── components/         # Reusable UI feature components
+│   │   │   ├── asset-allocation/     # Asset allocation & target rebalancing component
 │   │   │   ├── date-range-picker/    # Interactive date range selector component
-│   │   │   └── transaction-history/  # Dedicated transaction ledger component with pagination & mobile cards
-│   │   ├── config/             # Google Sheets GIDs and asset tab definitions
-│   │   │   └── sheet.config.ts
+│   │   │   ├── filters/              # Asset class filter pills & search bar
+│   │   │   ├── header/               # Header logo, portfolio summary stats & view toggle
+│   │   │   ├── search-bar/           # Symbol & fund autocomplete search component
+│   │   │   ├── summary-card/          # Holdings summary card & lot expansion table
+│   │   │   ├── tab-bar/              # Asset class tab navigation bar
+│   │   │   └── transaction-history/  # Dedicated transaction ledger component
+│   │   ├── config/             # Clean UI tab constants & metadata
+│   │   │   └── asset.constants.ts
 │   │   ├── models/             # Domain models (Transaction, ShareLot, SymbolSummary)
 │   │   │   └── transaction.model.ts
 │   │   ├── services/           # Data fetching & calculation services
-│   │   │   ├── share-lot.service.ts  # FIFO queue calculation & CSV parsing
+│   │   │   ├── share-lot.service.ts  # Backend API client for share lots & transactions
 │   │   │   ├── price.service.ts      # Multi-source live pricing & FX rates
 │   │   │   └── nav.service.ts        # Thai Mutual Fund NAV lookups
 │   │   ├── utils/              # Dynamic formatting helpers (currencies, quantities, colors)
@@ -160,11 +146,11 @@ npm start
 Navigate to `http://localhost:4200/` in your browser. The application will automatically reload if you modify any source files.
 
 > [!NOTE]
-> The dev server uses `proxy.conf.json` to proxy requests to the local `SGSKBackend` running on `http://127.0.0.1:8000`. You must have the backend running locally for the app to function properly.
+> The dev server uses `proxy.conf.json` to proxy requests to the local `SGSKBackend` running on `http://127.0.0.1:8000`. Make sure the backend is running locally.
 
 ### Running Unit Tests
 
-Execute unit tests using the Vitest test runner:
+Execute unit tests using Vitest:
 
 ```bash
 npm test
@@ -184,23 +170,13 @@ The compiled output will be generated inside the `dist/` directory, ready for de
 
 ## Configuration
 
-### Google Sheets Setup
+### Asset Category Navigation
 
-To connect your own Google Sheet:
+Tab navigation categories (`All`, `U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`, `Closed Position`) are configured in [src/app/config/asset.constants.ts](src/app/config/asset.constants.ts). 
 
-1. Open [src/app/config/sheet.config.ts](src/app/config/sheet.config.ts).
-2. Update `spreadsheetId` with your Google Spreadsheet ID (Ensure this matches your SGSKBackend configuration).
-3. Update the `gids` mapping with the sheet tab GIDs for each asset category (`us-stock`, `thai-stock`, `crypto`, `mutual-fund`, `closed-position`).
-4. Ensure your Google Sheet is accessible to the SGSKBackend server.
+### Backend Data Source
 
-### Sheet Column Format
-
-Each sheet tab should contain transaction records with standard columns (order-independent):
-- **Symbol** (e.g. `AAPL`, `PTT.BK`, `BTC.CRYPTO`, `tsp3-balancer.BKFUND`)
-- **Date** (e.g. `YYYY-MM-DD`)
-- **Quantity / Qty** (Positive for Buy, Negative for Sell)
-- **Price** (Price per share / NAV)
-- **Currency** (`USD` or `THB`)
+All Google Spreadsheet IDs, tab GID mappings, and data processing are configured centrally inside the **[SGSKBackend](https://github.com/vipatpolk/SGSKBackend)** (`config/sheet_config.py`).
 
 ---
 

@@ -109,6 +109,14 @@
         (symbolSelected)="selectedHistorySymbol.set($event)"
         (backToHoldings)="openHoldingsView()"
       ></app-transaction-history>
+    } @else if (currentView() === 'allocation') {
+      <app-asset-allocation
+        [summaries]="result()?.summaries || []"
+        [pricesMap]="prices()"
+        [displayCurrency]="displayCurrency()"
+        [exchangeRate]="exchangeRate()"
+        [hasRate]="hasRate()"
+      ></app-asset-allocation>
     } @else {
       <!-- Toolbar -->
       <app-search-bar

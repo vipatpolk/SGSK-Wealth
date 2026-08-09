@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { SheetResult } from '../../services/share-lot.service';
 
@@ -23,11 +23,11 @@ export class HeaderComponent {
   totalRealizedPLPercent = input.required<number>();
   hasRate = input.required<boolean>();
   exchangeRate = input.required<number>();
-  currentView = input.required<string>();
+  currentView = input.required<'holdings' | 'transactions' | 'allocation'>();
   displayCurrency = input.required<string>();
   theme = input.required<string>();
 
-  viewChange = output<'holdings' | 'transactions'>();
+  viewChange = output<'holdings' | 'transactions' | 'allocation'>();
   currencyChange = output<'USD' | 'THB'>();
   themeChange = output<void>();
 
@@ -36,5 +36,16 @@ export class HeaderComponent {
       return originalCurrency === 'USDT' ? 'USD' : originalCurrency;
     }
     return this.displayCurrency();
+  }
+
+  isViewDropdownOpen = signal(false);
+
+  toggleViewDropdown() {
+    this.isViewDropdownOpen.update(v => !v);
+  }
+
+  selectView(view: 'holdings' | 'transactions' | 'allocation') {
+    this.viewChange.emit(view);
+    this.isViewDropdownOpen.set(false);
   }
 }

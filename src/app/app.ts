@@ -3,13 +3,14 @@ import { DecimalPipe, CurrencyPipe, DatePipe, NgTemplateOutlet } from '@angular/
 import { ShareLotService, SheetResult } from './services/share-lot.service';
 import { PriceService, PriceData } from './services/price.service';
 import { SymbolSummary, ClosedSymbolSummary, ShareLot } from './models/transaction.model';
-import { AssetTab, ASSET_TABS } from './config/sheet.config';
+import { AssetTab, ASSET_TABS } from './config/asset.constants';
 import { TransactionHistoryComponent } from './components/transaction-history/transaction-history.component';
 import { HeaderComponent } from './components/header/header.component';
 import { TabBarComponent } from './components/tab-bar/tab-bar.component';
 import { SearchBarComponent } from './components/search-bar/search-bar.component';
 import { FiltersComponent } from './components/filters/filters.component';
 import { SummaryCardComponent } from './components/summary-card/summary-card.component';
+import { AssetAllocationComponent } from './components/asset-allocation/asset-allocation.component';
 import {
   getQuantityFormat,
   displaySymbol,
@@ -47,7 +48,7 @@ export interface SymbolAutocompleteItem {
   selector: 'app-root',
   imports: [
     DecimalPipe, CurrencyPipe, NgTemplateOutlet, TransactionHistoryComponent,
-    HeaderComponent, TabBarComponent, SearchBarComponent, FiltersComponent, SummaryCardComponent
+    HeaderComponent, TabBarComponent, SearchBarComponent, FiltersComponent, SummaryCardComponent, AssetAllocationComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
@@ -60,8 +61,8 @@ export class App {
   readonly tabs = ASSET_TABS;
   readonly activeTab = signal<AssetTab>(ASSET_TABS[0]);
 
-  /** View Mode: Holdings / Positions vs Transactions History */
-  readonly currentView = signal<'holdings' | 'transactions'>('holdings');
+  /** View Mode: Holdings / Positions vs Transactions History vs Allocation */
+  readonly currentView = signal<'holdings' | 'transactions' | 'allocation'>('holdings');
   readonly selectedHistorySymbol = signal<string>('');
 
   readonly loading = signal(true);
@@ -126,7 +127,7 @@ export class App {
     this.currentView.set('holdings');
   }
 
-  setView(view: 'holdings' | 'transactions'): void {
+  setView(view: 'holdings' | 'transactions' | 'allocation'): void {
     this.currentView.set(view);
   }
 
@@ -678,7 +679,7 @@ export class App {
     const obs =
       tab.id === 'all'
         ? this.shareLotService.fetchAllSheets()
-        : this.shareLotService.fetchSheet(tab.sheetGid);
+        : this.shareLotService.fetchSheet(tab.id);
 
     obs.subscribe({
       next: (res) => {
