@@ -1631,7 +1631,7 @@
   }
 
   .search-input {
-    font-size: 0.8rem;
+    font-size: 16px;
     padding: 0.55rem 2rem 0.55rem 2.25rem;
   }
 
@@ -2036,7 +2036,7 @@
 
   .search-input {
     padding: 0.5rem 2rem 0.5rem 2rem;
-    font-size: 0.75rem;
+    font-size: 16px;
     border-radius: 0.5rem;
   }
 
