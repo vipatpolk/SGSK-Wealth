@@ -470,17 +470,42 @@
   box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
 }
 
+/* Tablet Screen Sizing */
+@media (min-width: 769px) and (max-width: 1080px) {
+  .datepicker-popover {
+    width: 440px;
+    max-width: calc(100vw - 2rem);
+  }
+
+  .datepicker-presets-sidebar {
+    width: 135px;
+  }
+}
+
 /* Responsive (Mobile & Small screens) */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .datepicker-popover {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: calc(100vw - 1.5rem);
+    max-width: 400px;
     max-height: 90vh;
     overflow-y: auto;
     border-radius: 1rem;
+    animation: popoverInMobile 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes popoverInMobile {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -45%) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
   }
 
   .datepicker-body {

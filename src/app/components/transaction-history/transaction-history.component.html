@@ -2,12 +2,6 @@
   <!-- Top Navigation & Controls Bar -->
   <div class="tx-nav-bar">
     <div class="tx-nav-left">
-      <button class="btn btn-secondary back-btn" (click)="backToHoldings.emit()" id="btn-back-to-holdings" type="button">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
-          <polyline points="15 18 9 12 15 6"></polyline>
-        </svg>
-        <span>Holdings</span>
-      </button>
 
       @if (currentSymbol()) {
         <button class="btn btn-ghost all-feed-btn" (click)="clearSymbolSelection()" id="btn-all-symbols-feed" type="button" title="View all transactions across all symbols">
@@ -401,16 +395,38 @@
                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
               </svg>
             </div>
-            <select
-              class="mobile-control-select"
-              id="mobile-tx-filter-select"
-              [value]="assetFilter()"
-              (change)="onAssetTypeChange($event)"
+            <button
+              class="mobile-control-btn"
+              id="mobile-tx-filter-select-btn"
+              (click)="toggleMobileAssetFilter()"
+              type="button"
             >
-              @for (opt of assetTypeOptions(); track opt.id) {
-                <option [value]="opt.id">Filter: {{ opt.label }} ({{ opt.count }})</option>
+              @if (assetTypeOptions().find(o => o.id === assetFilter()); as selected) {
+                <span>Filter: {{ selected.label }} ({{ selected.count }})</span>
+              } @else {
+                <span>Filter: All</span>
               }
-            </select>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chevron-arrow-sm" [class.chevron-open]="isMobileAssetFilterOpen()">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            @if (isMobileAssetFilterOpen()) {
+              <div class="symbol-dropdown-menu mobile-control-dropdown-menu">
+                <div class="dropdown-list">
+                  @for (opt of assetTypeOptions(); track opt.id) {
+                    <button
+                      class="dropdown-item"
+                      [class.active]="assetFilter() === opt.id"
+                      (click)="setAssetFilter(opt.id)"
+                      type="button"
+                    >
+                      Filter: {{ opt.label }} ({{ opt.count }})
+                    </button>
+                  }
+                </div>
+              </div>
+              <div class="dropdown-backdrop" (click)="toggleMobileAssetFilter()"></div>
+            }
           </div>
         </div>
       </div>

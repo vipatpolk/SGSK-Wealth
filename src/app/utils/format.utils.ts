@@ -214,3 +214,36 @@ export function getAssetTypeClass(assetType?: string, symbol?: string): string {
   }
   return `asset-type-tag asset-type-${type.replace(/[^a-zA-Z0-9_-]/g, '').toLowerCase()}`;
 }
+
+export interface AssetTypeOption {
+  id: string;
+  label: string;
+  count: number;
+}
+
+export function generateAssetTypeOptions(list: { assetType?: string; symbol: string }[]): AssetTypeOption[] {
+  const countByType: Record<string, number> = {
+    all: list.length,
+    'us-stock': 0,
+    'thai-stock': 0,
+    crypto: 0,
+    'mutual-fund': 0,
+  };
+
+  for (const item of list) {
+    const type = getAssetType(item.assetType, item.symbol);
+    if (countByType[type] !== undefined) {
+      countByType[type]++;
+    } else {
+      countByType[type] = 1;
+    }
+  }
+
+  return [
+    { id: 'all', label: 'All Types', count: countByType['all'] },
+    { id: 'us-stock', label: 'U.S. Stock', count: countByType['us-stock'] },
+    { id: 'thai-stock', label: 'Thai Stock', count: countByType['thai-stock'] },
+    { id: 'crypto', label: 'Cryptocurrency', count: countByType['crypto'] },
+    { id: 'mutual-fund', label: 'Mutual Fund', count: countByType['mutual-fund'] },
+  ].filter((opt) => opt.id === 'all' || opt.count > 0);
+}

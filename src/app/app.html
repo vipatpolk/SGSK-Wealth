@@ -167,20 +167,98 @@
     </div>
   </div>
 </header>
-
 <!-- Tab Bar -->
 @if (currentView() === 'holdings') {
+<ng-template #tabIconTpl let-icon>
+  @if (icon === 'globe') {
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="2" y1="12" x2="22" y2="12"></line>
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10 15.3 15.3 0 0 1 4-10z"></path>
+    </svg>
+  }
+  @if (icon === 'flag-us') {
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
+      <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+      <path d="M2 6a2 2 0 0 1 2-2h7v8H2V6z" stroke-width="1.5" fill="currentColor" fill-opacity="0.25"></path>
+      <line x1="11" y1="6.7" x2="22" y2="6.7" stroke-width="1.5"></line>
+      <line x1="11" y1="9.4" x2="22" y2="9.4" stroke-width="1.5"></line>
+      <line x1="2" y1="12" x2="22" y2="12" stroke-width="1.5"></line>
+      <line x1="2" y1="14.7" x2="22" y2="14.7" stroke-width="1.5"></line>
+      <line x1="2" y1="17.4" x2="22" y2="17.4" stroke-width="1.5"></line>
+    </svg>
+  }
+  @if (icon === 'flag-th') {
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
+      <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+      <line x1="2" y1="6.7" x2="22" y2="6.7" stroke-width="1.3"></line>
+      <rect x="2" y="9.3" width="20" height="5.4" stroke="none" fill="currentColor" fill-opacity="0.3"></rect>
+      <line x1="2" y1="9.3" x2="22" y2="9.3" stroke-width="1.3"></line>
+      <line x1="2" y1="14.7" x2="22" y2="14.7" stroke-width="1.3"></line>
+      <line x1="2" y1="17.3" x2="22" y2="17.3" stroke-width="1.3"></line>
+    </svg>
+  }
+  @if (icon === 'bitcoin' || icon === 'crypto') {
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M9.5 8h4a2 2 0 0 1 0 4H9.5"></path>
+      <path d="M9.5 12h4.5a2 2 0 0 1 0 4H9.5"></path>
+      <line x1="9.5" y1="7" x2="9.5" y2="17"></line>
+      <line x1="11.5" y1="5.5" x2="11.5" y2="7.5"></line>
+      <line x1="13.5" y1="5.5" x2="13.5" y2="7.5"></line>
+      <line x1="11.5" y1="16.5" x2="11.5" y2="18.5"></line>
+      <line x1="13.5" y1="16.5" x2="13.5" y2="18.5"></line>
+    </svg>
+  }
+  @if (icon === 'pie-chart' || icon === 'fund') {
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
+      <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+      <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+    </svg>
+  }
+  @if (icon === 'check-circle') {
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+    </svg>
+  }
+</ng-template>
+
 <nav class="tab-bar" id="tab-bar">
-  <select
-    class="tab-dropdown"
-    id="tab-dropdown"
-    [value]="activeTab().id"
-    (change)="onTabDropdownChange($event)"
-  >
-    @for (tab of tabs; track tab.id) {
-      <option [value]="tab.id">{{ tab.label }}</option>
+  <div class="symbol-selector-wrapper tab-dropdown-wrapper" [class.dropdown-is-open]="isTabDropdownOpen()">
+    <button
+      class="symbol-selector-btn tab-dropdown-btn"
+      (click)="toggleTabDropdown()"
+      id="tab-dropdown-btn"
+      type="button"
+    >
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <ng-container *ngTemplateOutlet="tabIconTpl; context: { $implicit: activeTab().icon }"></ng-container>
+        <span class="symbol-selector-text">{{ activeTab().label }}</span>
+      </div>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chevron-arrow" [class.chevron-open]="isTabDropdownOpen()">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </button>
+    @if (isTabDropdownOpen()) {
+      <div class="symbol-dropdown-menu tab-dropdown-menu">
+        <div class="dropdown-list">
+          @for (tab of tabs; track tab.id) {
+            <button
+              class="dropdown-item"
+              [class.active]="activeTab().id === tab.id"
+              (click)="selectTab(tab)"
+              type="button"
+            >
+              <ng-container *ngTemplateOutlet="tabIconTpl; context: { $implicit: tab.icon }"></ng-container>
+              <span>{{ tab.label }}</span>
+            </button>
+          }
+        </div>
+      </div>
+      <div class="dropdown-backdrop" (click)="toggleTabDropdown()"></div>
     }
-  </select>
+  </div>
   <div class="tab-bar-inner">
     @for (tab of tabs; track tab.id) {
       <button
@@ -189,58 +267,7 @@
         (click)="selectTab(tab)"
         [id]="'tab-' + tab.id"
       >
-        @if (tab.icon === 'globe') {
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="2" y1="12" x2="22" y2="12"></line>
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-          </svg>
-        }
-        @if (tab.icon === 'flag-us') {
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
-            <rect x="2" y="4" width="20" height="16" rx="2"></rect>
-            <path d="M2 6a2 2 0 0 1 2-2h7v8H2V6z" stroke-width="1.5" fill="currentColor" fill-opacity="0.25"></path>
-            <line x1="11" y1="6.7" x2="22" y2="6.7" stroke-width="1.5"></line>
-            <line x1="11" y1="9.4" x2="22" y2="9.4" stroke-width="1.5"></line>
-            <line x1="2" y1="12" x2="22" y2="12" stroke-width="1.5"></line>
-            <line x1="2" y1="14.7" x2="22" y2="14.7" stroke-width="1.5"></line>
-            <line x1="2" y1="17.4" x2="22" y2="17.4" stroke-width="1.5"></line>
-          </svg>
-        }
-        @if (tab.icon === 'flag-th') {
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
-            <rect x="2" y="4" width="20" height="16" rx="2"></rect>
-            <line x1="2" y1="6.7" x2="22" y2="6.7" stroke-width="1.3"></line>
-            <rect x="2" y="9.3" width="20" height="5.4" stroke="none" fill="currentColor" fill-opacity="0.3"></rect>
-            <line x1="2" y1="9.3" x2="22" y2="9.3" stroke-width="1.3"></line>
-            <line x1="2" y1="14.7" x2="22" y2="14.7" stroke-width="1.3"></line>
-            <line x1="2" y1="17.3" x2="22" y2="17.3" stroke-width="1.3"></line>
-          </svg>
-        }
-        @if (tab.icon === 'bitcoin' || tab.icon === 'crypto') {
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M9.5 8h4a2 2 0 0 1 0 4H9.5"></path>
-            <path d="M9.5 12h4.5a2 2 0 0 1 0 4H9.5"></path>
-            <line x1="9.5" y1="7" x2="9.5" y2="17"></line>
-            <line x1="11.5" y1="5.5" x2="11.5" y2="7.5"></line>
-            <line x1="13.5" y1="5.5" x2="13.5" y2="7.5"></line>
-            <line x1="11.5" y1="16.5" x2="11.5" y2="18.5"></line>
-            <line x1="13.5" y1="16.5" x2="13.5" y2="18.5"></line>
-          </svg>
-        }
-        @if (tab.icon === 'pie-chart' || tab.icon === 'fund') {
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
-            <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
-            <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
-          </svg>
-        }
-        @if (tab.icon === 'check-circle') {
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-          </svg>
-        }
+        <ng-container *ngTemplateOutlet="tabIconTpl; context: { $implicit: tab.icon }"></ng-container>
         <span class="tab-label">{{ tab.label }}</span>
       </button>
     }
@@ -478,21 +505,43 @@
                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
               </svg>
             </div>
-            <select
-              class="mobile-control-select"
-              id="mobile-filter-select"
-              [value]="selectedClosedAssetType()"
-              (change)="onClosedAssetTypeChange($event)"
+            <button
+              class="mobile-control-btn"
+              id="mobile-filter-select-btn"
+              (click)="toggleMobileFilterDropdown()"
+              type="button"
             >
-              @for (opt of closedAssetTypeOptions(); track opt.id) {
-                <option [value]="opt.id">Filter: {{ opt.label }} ({{ opt.count }})</option>
+              @if (closedAssetTypeOptions().find(o => o.id === selectedClosedAssetType()); as selected) {
+                <span>Filter: {{ selected.label }} ({{ selected.count }})</span>
+              } @else {
+                <span>Filter: All</span>
               }
-            </select>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chevron-arrow-sm" [class.chevron-open]="isMobileFilterDropdownOpen()">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            @if (isMobileFilterDropdownOpen()) {
+              <div class="symbol-dropdown-menu mobile-control-dropdown-menu">
+                <div class="dropdown-list">
+                  @for (opt of closedAssetTypeOptions(); track opt.id) {
+                    <button
+                      class="dropdown-item"
+                      [class.active]="selectedClosedAssetType() === opt.id"
+                      (click)="setClosedAssetTypeFilter(opt.id)"
+                      type="button"
+                    >
+                      Filter: {{ opt.label }} ({{ opt.count }})
+                    </button>
+                  }
+                </div>
+              </div>
+              <div class="dropdown-backdrop" (click)="toggleMobileFilterDropdown()"></div>
+            }
           </div>
         }
 
         <!-- Sort Control -->
-        <div class="mobile-control-field">
+        <div class="mobile-control-field" [class.dropdown-is-open]="isMobileSortDropdownOpen()">
           <div class="mobile-control-icon-wrap">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mobile-control-icon">
               <path d="m3 16 4 4 4-4"></path>
@@ -501,16 +550,38 @@
               <path d="M17 4v16"></path>
             </svg>
           </div>
-          <select
-            class="mobile-control-select"
-            id="mobile-sort-select"
-            [value]="sortField()"
-            (change)="onSortDropdownChange($event)"
+          <button
+            class="mobile-control-btn"
+            id="mobile-sort-select-btn"
+            (click)="toggleMobileSortDropdown()"
+            type="button"
           >
-            @for (opt of sortOptions(); track opt.field) {
-              <option [value]="opt.field">Sort: {{ opt.label }}</option>
+            @if (sortOptions().find(o => o.field === sortField()); as selectedSort) {
+              <span>Sort: {{ selectedSort.label }}</span>
+            } @else {
+              <span>Sort</span>
             }
-          </select>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chevron-arrow-sm" [class.chevron-open]="isMobileSortDropdownOpen()">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          @if (isMobileSortDropdownOpen()) {
+            <div class="symbol-dropdown-menu mobile-control-dropdown-menu">
+              <div class="dropdown-list">
+                @for (opt of sortOptions(); track opt.field) {
+                  <button
+                    class="dropdown-item"
+                    [class.active]="sortField() === opt.field"
+                    (click)="setSort(opt.field)"
+                    type="button"
+                  >
+                    Sort: {{ opt.label }}
+                  </button>
+                }
+              </div>
+            </div>
+            <div class="dropdown-backdrop" (click)="toggleMobileSortDropdown()"></div>
+          }
           <button
             class="mobile-sort-dir-btn"
             (click)="toggleSortDirection()"

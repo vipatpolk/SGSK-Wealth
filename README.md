@@ -42,7 +42,9 @@
 
 - 📱 **Mobile-First Responsive Experience**:
   - **Dedicated Mobile Transaction Cards**: Left-accented trade badges (Emerald for `BUY`, Rose for `SELL`), 2-column financial execution metrics, realized P/L highlight banners, and running share positions after trades.
-  - **Adaptive Header & Toolbar**: Touch-friendly navigation buttons (`← Holdings`, `All Symbols`, and `Symbol Selector`), compact date range picker, and 2-row mobile pagination bar.
+  - **Unified Custom Dropdowns**: Touch-friendly, button-based custom dropdown menus replace native OS `<select>` controls for seamless, brand-consistent aesthetic across all viewports.
+  - **Adaptive Header & Toolbar**: Touch-friendly navigation buttons (`← Holdings`, `All Symbols`), mobile-optimized sorting, and a 2-row responsive pagination bar.
+  - **Mobile Datepicker Modal**: Centered modal popovers for the date range picker on phones and tablets ensure optimal touch usability without screen clipping.
   - **Optimized Performance**: Smooth transitions and touch-friendly controls across all screen sizes.
 
 - 🏷️ **Dynamic Asset Classification & Filtering**:

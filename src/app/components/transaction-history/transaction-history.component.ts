@@ -29,6 +29,7 @@ import {
   getAssetType,
   getAssetTypeLabel,
   getAssetTypeClass,
+  generateAssetTypeOptions,
 } from '../../utils/format.utils';
 
 export type TxTypeFilter = 'all' | 'buy' | 'sell';
@@ -72,6 +73,11 @@ export class TransactionHistoryComponent {
   readonly endDate = signal<string>('');
   readonly symbolSearchQuery = signal<string>('');
   readonly isSymbolDropdownOpen = signal<boolean>(false);
+  readonly isMobileAssetFilterOpen = signal<boolean>(false);
+
+  toggleMobileAssetFilter(): void {
+    this.isMobileAssetFilterOpen.set(!this.isMobileAssetFilterOpen());
+  }
 
   /** Pagination State */
   readonly pageSizeOptions = [10, 50, 100] as const;
@@ -129,11 +135,7 @@ export class TransactionHistoryComponent {
   setAssetFilter(filter: string): void {
     this.assetFilter.set(filter);
     this.currentPage.set(1);
-  }
-
-  onAssetTypeChange(event: Event): void {
-    const type = (event.target as HTMLSelectElement).value;
-    this.setAssetFilter(type);
+    this.isMobileAssetFilterOpen.set(false);
   }
 
   toggleSymbolDropdown(): void {
@@ -149,30 +151,7 @@ export class TransactionHistoryComponent {
 
   readonly assetTypeOptions = computed(() => {
     const list = this.transactionSummaries();
-    const countByType: Record<string, number> = {
-      all: list.length,
-      'us-stock': 0,
-      'thai-stock': 0,
-      crypto: 0,
-      'mutual-fund': 0,
-    };
-
-    for (const item of list) {
-      const type = getAssetType(item.assetType, item.symbol);
-      if (countByType[type] !== undefined) {
-        countByType[type]++;
-      } else {
-        countByType[type] = 1;
-      }
-    }
-
-    return [
-      { id: 'all', label: 'All Types', count: countByType['all'] },
-      { id: 'us-stock', label: 'U.S. Stock', count: countByType['us-stock'] },
-      { id: 'thai-stock', label: 'Thai Stock', count: countByType['thai-stock'] },
-      { id: 'crypto', label: 'Cryptocurrency', count: countByType['crypto'] },
-      { id: 'mutual-fund', label: 'Mutual Fund', count: countByType['mutual-fund'] },
-    ].filter((opt) => opt.id === 'all' || opt.count > 0);
+    return generateAssetTypeOptions(list);
   });
 
   /** Matched summaries based on assetFilter */

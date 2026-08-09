@@ -869,6 +869,7 @@
   min-width: 0;
   width: 100%;
   box-sizing: border-box;
+  position: relative;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
@@ -890,7 +891,11 @@
   height: 0.875rem;
 }
 
-.mobile-control-select {
+.mobile-control-field.dropdown-is-open {
+  z-index: 60;
+}
+
+.mobile-control-btn {
   flex: 1;
   min-width: 0;
   border: none;
@@ -902,13 +907,40 @@
   outline: none;
   cursor: pointer;
   padding: 0.3125rem 0;
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0 center;
-  background-size: 1rem;
-  padding-right: 1.125rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.chevron-arrow-sm {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--color-text-muted);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.chevron-arrow-sm.chevron-open {
+  transform: rotate(180deg);
+}
+
+.mobile-control-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  min-width: 100%;
+  width: max-content;
+  background-color: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px -5px var(--color-shadow), 0 8px 10px -6px var(--color-shadow-sm);
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+  animation: dropdownIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .all-symbols-metrics-grid {
@@ -1844,14 +1876,46 @@
    Responsive Breakpoints
    ========================================================================== */
 @media (min-width: 769px) and (max-width: 1200px) {
+  .tx-history-container {
+    gap: 1.25rem;
+  }
+
+  .symbol-hero-card,
+  .all-symbols-hero-card {
+    padding: 1.25rem;
+  }
+
+  .symbol-metrics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .metric-card {
+    padding: 0.75rem 0.875rem;
+  }
+
+  .metric-main-value {
+    font-size: 1.05rem;
+  }
+
+  .symbol-selector-text {
+    max-width: 180px;
+  }
+
+  .tx-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .tx-table th,
   .tx-table td {
     padding: 0.5rem 0.45rem;
     font-size: 0.75rem;
+    white-space: nowrap;
   }
 
   .tx-symbol-name {
-    max-width: 180px;
+    max-width: 160px;
   }
 }
 

@@ -16,6 +16,7 @@ import {
   getAssetType,
   getAssetTypeLabel,
   getAssetTypeClass,
+  generateAssetTypeOptions,
 } from './utils/format.utils';
 
 export interface SymbolAutocompleteItem {
@@ -85,6 +86,22 @@ export class App {
   readonly sortDirection = signal<'asc' | 'desc'>('desc');
   readonly selectedClosedAssetType = signal<string>('all');
 
+  readonly isTabDropdownOpen = signal<boolean>(false);
+  readonly isMobileSortDropdownOpen = signal<boolean>(false);
+  readonly isMobileFilterDropdownOpen = signal<boolean>(false);
+
+  toggleTabDropdown(): void {
+    this.isTabDropdownOpen.set(!this.isTabDropdownOpen());
+  }
+
+  toggleMobileSortDropdown(): void {
+    this.isMobileSortDropdownOpen.set(!this.isMobileSortDropdownOpen());
+  }
+
+  toggleMobileFilterDropdown(): void {
+    this.isMobileFilterDropdownOpen.set(!this.isMobileFilterDropdownOpen());
+  }
+
   readonly isClosedTab = computed<boolean>(() => this.activeTab().id === 'closed-position');
   readonly isAllTab = computed<boolean>(() => this.activeTab().id === 'all');
 
@@ -107,31 +124,7 @@ export class App {
   readonly closedAssetTypeOptions = computed(() => {
     const data = this.result();
     const list = data?.closedSummaries || [];
-
-    const countByType: Record<string, number> = {
-      all: list.length,
-      'us-stock': 0,
-      'thai-stock': 0,
-      crypto: 0,
-      'mutual-fund': 0,
-    };
-
-    for (const item of list) {
-      const type = getAssetType(item.assetType, item.symbol);
-      if (countByType[type] !== undefined) {
-        countByType[type]++;
-      } else {
-        countByType[type] = 1;
-      }
-    }
-
-    return [
-      { id: 'all', label: 'All Types', count: countByType['all'] },
-      { id: 'us-stock', label: 'U.S. Stock', count: countByType['us-stock'] },
-      { id: 'thai-stock', label: 'Thai Stock', count: countByType['thai-stock'] },
-      { id: 'crypto', label: 'Cryptocurrency', count: countByType['crypto'] },
-      { id: 'mutual-fund', label: 'Mutual Fund', count: countByType['mutual-fund'] },
-    ].filter((opt) => opt.id === 'all' || opt.count > 0);
+    return generateAssetTypeOptions(list);
   });
 
   readonly openSortOptions = [
@@ -618,6 +611,7 @@ export class App {
 
   setClosedAssetTypeFilter(type: string): void {
     this.selectedClosedAssetType.set(type);
+    this.isMobileFilterDropdownOpen.set(false);
   }
 
   setSort(field: string): void {
@@ -627,23 +621,15 @@ export class App {
       this.sortField.set(field);
       this.sortDirection.set(field === 'symbol' ? 'asc' : 'desc');
     }
+    this.isMobileSortDropdownOpen.set(false);
   }
 
   toggleSortDirection(): void {
     this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
   }
 
-  onSortDropdownChange(event: Event): void {
-    const field = (event.target as HTMLSelectElement).value;
-    this.sortField.set(field);
-  }
-
-  onClosedAssetTypeChange(event: Event): void {
-    const type = (event.target as HTMLSelectElement).value;
-    this.setClosedAssetTypeFilter(type);
-  }
-
   selectTab(tab: AssetTab): void {
+    this.isTabDropdownOpen.set(false);
     if (tab.id === this.activeTab().id) return;
     this.activeTab.set(tab);
     this.searchQuery.set('');
@@ -673,13 +659,6 @@ export class App {
     this.loadTab(tab);
   }
 
-  onTabDropdownChange(event: Event): void {
-    const selectedId = (event.target as HTMLSelectElement).value;
-    const tab = this.tabs.find((t) => t.id === selectedId);
-    if (tab) {
-      this.selectTab(tab);
-    }
-  }
 
   loadTab(tab: AssetTab): void {
     this.loading.set(true);
