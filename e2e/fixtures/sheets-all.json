@@ -1,0 +1,318 @@
+{
+  "summaries": [
+    {
+      "symbol": "AAPL",
+      "displaySymbol": "AAPL",
+      "name": "Apple Inc.",
+      "assetType": "us-stock",
+      "totalShares": 50.0,
+      "totalCost": 9000.0,
+      "averageCost": 180.0,
+      "currency": "USD",
+      "lots": [
+        {
+          "symbol": "AAPL",
+          "purchaseDate": "2024-01-15",
+          "quantity": 30.0,
+          "costBasis": 175.0,
+          "totalCost": 5250.0,
+          "currency": "USD",
+          "assetType": "us-stock"
+        },
+        {
+          "symbol": "AAPL",
+          "purchaseDate": "2024-03-10",
+          "quantity": 20.0,
+          "costBasis": 187.5,
+          "totalCost": 3750.0,
+          "currency": "USD",
+          "assetType": "us-stock"
+        }
+      ]
+    },
+    {
+      "symbol": "PTT.BK",
+      "displaySymbol": "PTT",
+      "name": "PTT Public Company Limited",
+      "assetType": "thai-stock",
+      "totalShares": 1000.0,
+      "totalCost": 33000.0,
+      "averageCost": 33.0,
+      "currency": "THB",
+      "lots": [
+        {
+          "symbol": "PTT.BK",
+          "purchaseDate": "2024-02-01",
+          "quantity": 1000.0,
+          "costBasis": 33.0,
+          "totalCost": 33000.0,
+          "currency": "THB",
+          "assetType": "thai-stock"
+        }
+      ]
+    },
+    {
+      "symbol": "BTC",
+      "displaySymbol": "BTC",
+      "name": "Bitcoin",
+      "assetType": "crypto",
+      "totalShares": 0.5,
+      "totalCost": 32000.0,
+      "averageCost": 64000.0,
+      "currency": "USD",
+      "lots": [
+        {
+          "symbol": "BTC",
+          "purchaseDate": "2024-04-20",
+          "quantity": 0.5,
+          "costBasis": 64000.0,
+          "totalCost": 32000.0,
+          "currency": "USD",
+          "assetType": "crypto"
+        }
+      ]
+    },
+    {
+      "symbol": "K-USA",
+      "displaySymbol": "K-USA",
+      "name": "Kasikorn US Equity Fund",
+      "assetType": "mutual-fund",
+      "totalShares": 500.0,
+      "totalCost": 7500.0,
+      "averageCost": 15.0,
+      "currency": "THB",
+      "lots": [
+        {
+          "symbol": "K-USA",
+          "purchaseDate": "2024-05-05",
+          "quantity": 500.0,
+          "costBasis": 15.0,
+          "totalCost": 7500.0,
+          "currency": "THB",
+          "assetType": "mutual-fund"
+        }
+      ]
+    }
+  ],
+  "closedSummaries": [
+    {
+      "symbol": "NVDA",
+      "displaySymbol": "NVDA",
+      "name": "NVIDIA Corporation",
+      "assetType": "us-stock",
+      "totalShares": 0,
+      "closedShares": 10.0,
+      "averageBuyPrice": 500.0,
+      "averageSellPrice": 750.0,
+      "totalCost": 5000.0,
+      "totalProceeds": 7500.0,
+      "realizedPL": 2500.0,
+      "realizedPLPercent": 50.0,
+      "currency": "USD",
+      "lots": [
+        {
+          "symbol": "NVDA",
+          "purchaseDate": "2024-01-10",
+          "closeDate": "2024-06-01",
+          "quantity": 10.0,
+          "costBasis": 500.0,
+          "sellPrice": 750.0,
+          "totalCost": 5000.0,
+          "totalProceeds": 7500.0,
+          "realizedPL": 2500.0,
+          "realizedPLPercent": 50.0,
+          "currency": "USD",
+          "assetType": "us-stock"
+        }
+      ]
+    }
+  ],
+  "transactionSummaries": [
+    {
+      "symbol": "AAPL",
+      "assetType": "us-stock",
+      "currency": "USD",
+      "totalTransactions": 2,
+      "buyCount": 2,
+      "sellCount": 0,
+      "totalBuyShares": 50.0,
+      "totalSellShares": 0.0,
+      "totalBuyAmount": 9000.0,
+      "totalSellAmount": 0.0,
+      "averageBuyPrice": 180.0,
+      "averageSellPrice": 0.0,
+      "netShares": 50.0,
+      "netInvested": 9000.0,
+      "currentStatus": "OPEN",
+      "realizedPL": 0.0,
+      "realizedPLPercent": 0.0,
+      "firstTradeDate": "2024-01-15",
+      "lastTradeDate": "2024-03-10",
+      "transactions": [
+        {
+          "id": "aapl-1",
+          "symbol": "AAPL",
+          "date": "2024-01-15",
+          "type": "BUY",
+          "quantity": 30.0,
+          "rawQuantity": 30.0,
+          "price": 175.0,
+          "totalAmount": 5250.0,
+          "currency": "USD",
+          "assetType": "us-stock",
+          "runningShares": 30.0,
+          "runningTotalCost": 5250.0,
+          "runningAverageCost": 175.0
+        },
+        {
+          "id": "aapl-2",
+          "symbol": "AAPL",
+          "date": "2024-03-10",
+          "type": "BUY",
+          "quantity": 20.0,
+          "rawQuantity": 20.0,
+          "price": 187.5,
+          "totalAmount": 3750.0,
+          "currency": "USD",
+          "assetType": "us-stock",
+          "runningShares": 50.0,
+          "runningTotalCost": 9000.0,
+          "runningAverageCost": 180.0
+        }
+      ]
+    },
+    {
+      "symbol": "BTC",
+      "assetType": "crypto",
+      "currency": "USD",
+      "totalTransactions": 1,
+      "buyCount": 1,
+      "sellCount": 0,
+      "totalBuyShares": 0.5,
+      "totalSellShares": 0.0,
+      "totalBuyAmount": 32000.0,
+      "totalSellAmount": 0.0,
+      "averageBuyPrice": 64000.0,
+      "averageSellPrice": 0.0,
+      "netShares": 0.5,
+      "netInvested": 32000.0,
+      "currentStatus": "OPEN",
+      "realizedPL": 0.0,
+      "realizedPLPercent": 0.0,
+      "firstTradeDate": "2024-04-20",
+      "lastTradeDate": "2024-04-20",
+      "transactions": [
+        {
+          "id": "btc-1",
+          "symbol": "BTC",
+          "date": "2024-04-20",
+          "type": "BUY",
+          "quantity": 0.5,
+          "rawQuantity": 0.5,
+          "price": 64000.0,
+          "totalAmount": 32000.0,
+          "currency": "USD",
+          "assetType": "crypto",
+          "runningShares": 0.5,
+          "runningTotalCost": 32000.0,
+          "runningAverageCost": 64000.0
+        }
+      ]
+    }
+  ],
+  "rawTransactions": [
+    {
+      "symbol": "AAPL",
+      "displaySymbol": "AAPL",
+      "date": "2024-01-15",
+      "type": "BUY",
+      "shares": 30.0,
+      "price": 175.0,
+      "amount": 5250.0,
+      "currency": "USD",
+      "assetType": "us-stock"
+    },
+    {
+      "symbol": "AAPL",
+      "displaySymbol": "AAPL",
+      "date": "2024-03-10",
+      "type": "BUY",
+      "shares": 20.0,
+      "price": 187.5,
+      "amount": 3750.0,
+      "currency": "USD",
+      "assetType": "us-stock"
+    },
+    {
+      "symbol": "PTT.BK",
+      "displaySymbol": "PTT",
+      "date": "2024-02-01",
+      "type": "BUY",
+      "shares": 1000.0,
+      "price": 33.0,
+      "amount": 33000.0,
+      "currency": "THB",
+      "assetType": "thai-stock"
+    },
+    {
+      "symbol": "BTC",
+      "displaySymbol": "BTC",
+      "date": "2024-04-20",
+      "type": "BUY",
+      "shares": 0.5,
+      "price": 64000.0,
+      "amount": 32000.0,
+      "currency": "USD",
+      "assetType": "crypto"
+    },
+    {
+      "symbol": "K-USA",
+      "displaySymbol": "K-USA",
+      "date": "2024-05-05",
+      "type": "BUY",
+      "shares": 500.0,
+      "price": 15.0,
+      "amount": 7500.0,
+      "currency": "THB",
+      "assetType": "mutual-fund"
+    },
+    {
+      "symbol": "NVDA",
+      "displaySymbol": "NVDA",
+      "date": "2024-01-10",
+      "type": "BUY",
+      "shares": 10.0,
+      "price": 500.0,
+      "amount": 5000.0,
+      "currency": "USD",
+      "assetType": "us-stock"
+    },
+    {
+      "symbol": "NVDA",
+      "displaySymbol": "NVDA",
+      "date": "2024-06-01",
+      "type": "SELL",
+      "shares": 10.0,
+      "price": 750.0,
+      "amount": 7500.0,
+      "currency": "USD",
+      "assetType": "us-stock"
+    }
+  ],
+  "totalCostByCurrency": {
+    "USD": 41000.0,
+    "THB": 40500.0
+  },
+  "totalProceedsByCurrency": {
+    "USD": 7500.0,
+    "THB": 0.0
+  },
+  "totalRealizedPLByCurrency": {
+    "USD": 2500.0,
+    "THB": 0.0
+  },
+  "totalSymbols": 4,
+  "totalLots": 5,
+  "error": null,
+  "isClosed": false
+}

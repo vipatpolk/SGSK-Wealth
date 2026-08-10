@@ -1,0 +1,29 @@
+{
+  "prices": {
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "Apple Inc.",
+      "price": 225.5,
+      "currency": "USD"
+    },
+    "PTT.BK": {
+      "symbol": "PTT.BK",
+      "name": "PTT Public Company Limited",
+      "price": 35.0,
+      "currency": "THB"
+    },
+    "BTC": {
+      "symbol": "BTC",
+      "name": "Bitcoin",
+      "price": 95000.0,
+      "currency": "USD"
+    },
+    "K-USA": {
+      "symbol": "K-USA",
+      "name": "Kasikorn US Equity Fund",
+      "price": 18.2,
+      "currency": "THB"
+    }
+  },
+  "rate": 35.5
+}

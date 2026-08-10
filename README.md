@@ -12,6 +12,7 @@
   <img src="https://img.shields.io/badge/Angular-22.1-DD0031?style=flat-square&logo=angular&logoColor=white" alt="Angular 22" />
   <img src="https://img.shields.io/badge/TailwindCSS-v4.3-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS v4.3" />
   <img src="https://img.shields.io/badge/TypeScript-6.0-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript 6.0" />
+  <img src="https://img.shields.io/badge/Playwright-1.50-45BA4B?style=flat-square&logo=playwright&logoColor=white" alt="Playwright E2E" />
   <img src="https://img.shields.io/badge/Node.js-24.19_LTS-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js 24 LTS" />
   <img src="https://img.shields.io/badge/Deploy-Vercel-000000?style=flat-square&logo=vercel&logoColor=white" alt="Vercel" />
 </p>
@@ -87,6 +88,7 @@
 | **Backend Integration** | [FastAPI Backend (SGSKBackend)](https://github.com/vipatpolk/SGSKBackend) for data processing and API proxying |
 | **Data Source** | Google Sheets CSV Export (via Backend) |
 | **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom (13 test suites, 105 unit tests) |
+| **E2E Testing** | [Playwright](https://playwright.dev/) & Page Object Models (70 automated tests across 5 browser targets) |
 | **Deployment** | [Vercel](https://vercel.com/) (with API proxy rewrites) |
 
 ---
@@ -95,67 +97,55 @@
 
 ```
 ShareLot/
+├── e2e/                        # Playwright End-to-End (E2E) Test Suite
+│   ├── fixtures/               # Deterministic mock JSON payloads (sheets, prices, rates)
+│   │   ├── sheets-all.json
+│   │   ├── price-fetch.json
+│   │   └── exchange-rate.json
+│   ├── pages/                  # Page Object Model (POM) classes
+│   │   ├── header.component.po.ts
+│   │   ├── holdings.page.po.ts
+│   │   ├── allocation.page.po.ts
+│   │   └── transactions.page.po.ts
+│   ├── specs/                  # E2E test spec suites across 6 core functional areas
+│   │   ├── 01-navigation-header.spec.ts
+│   │   ├── 02-holdings-fifolots.spec.ts
+│   │   ├── 03-asset-allocation.spec.ts
+│   │   ├── 04-transaction-history.spec.ts
+│   │   ├── 05-mobile-responsive.spec.ts
+│   │   └── 06-error-resilience.spec.ts
+│   └── utils/                  # Network interception utilities (page.route)
+│       └── api-mock.utils.ts
 ├── public/                     # Static assets & favicons
 ├── src/
 │   ├── app/
 │   │   ├── components/         # Reusable UI feature components & co-located unit tests
 │   │   │   ├── asset-allocation/
-│   │   │   │   ├── asset-allocation.component.ts
-│   │   │   │   ├── asset-allocation.component.html
-│   │   │   │   ├── asset-allocation.component.css
-│   │   │   │   └── asset-allocation.component.spec.ts
 │   │   │   ├── date-range-picker/
-│   │   │   │   ├── date-range-picker.component.ts
-│   │   │   │   ├── date-range-picker.component.html
-│   │   │   │   ├── date-range-picker.component.css
-│   │   │   │   └── date-range-picker.component.spec.ts
 │   │   │   ├── filters/
-│   │   │   │   ├── filters.component.ts
-│   │   │   │   ├── filters.component.html
-│   │   │   │   └── filters.component.spec.ts
 │   │   │   ├── header/
-│   │   │   │   ├── header.component.ts
-│   │   │   │   ├── header.component.html
-│   │   │   │   └── header.component.spec.ts
 │   │   │   ├── search-bar/
-│   │   │   │   ├── search-bar.component.ts
-│   │   │   │   ├── search-bar.component.html
-│   │   │   │   └── search-bar.component.spec.ts
 │   │   │   ├── summary-card/
-│   │   │   │   ├── summary-card.component.ts
-│   │   │   │   ├── summary-card.component.html
-│   │   │   │   └── summary-card.component.spec.ts
 │   │   │   ├── tab-bar/
-│   │   │   │   ├── tab-bar.component.ts
-│   │   │   │   ├── tab-bar.component.html
-│   │   │   │   └── tab-bar.component.spec.ts
 │   │   │   └── transaction-history/
-│   │   │       ├── transaction-history.component.ts
-│   │   │       ├── transaction-history.component.html
-│   │   │       ├── transaction-history.component.css
-│   │   │       └── transaction-history.component.spec.ts
 │   │   ├── config/             # Clean UI tab constants & metadata
 │   │   │   └── asset.constants.ts
 │   │   ├── models/             # Domain models (Transaction, ShareLot, SymbolSummary)
 │   │   │   └── transaction.model.ts
 │   │   ├── services/           # Data fetching & calculation services with spec tests
 │   │   │   ├── share-lot.service.ts
-│   │   │   ├── share-lot.service.spec.ts
 │   │   │   ├── price.service.ts
-│   │   │   ├── price.service.spec.ts
-│   │   │   ├── nav.service.ts
-│   │   │   └── nav.service.spec.ts
+│   │   │   └── nav.service.ts
 │   │   ├── utils/              # Dynamic formatting helpers & unit tests
-│   │   │   ├── format.utils.ts
-│   │   │   └── format.utils.spec.ts
+│   │   │   └── format.utils.ts
 │   │   ├── app.ts              # Root component logic & signal state
 │   │   ├── app.html            # Dashboard layout & template
-│   │   ├── app.css             # Component styling & animations
-│   │   └── app.spec.ts         # Root component unit tests
+│   │   └── app.css             # Component styling & animations
 │   ├── index.html              # HTML entry point with favicon metadata
 │   ├── main.ts                 # Application bootstrapping
 │   └── styles.css              # Global styles & theme tokens
 ├── angular.json                # Angular CLI configuration
+├── playwright.config.ts        # Playwright E2E configuration & browser targets
 ├── proxy.conf.json             # Dev server reverse proxies (CORS bypass)
 ├── vitest.config.ts            # Vitest unit testing configuration
 ├── vercel.json                 # Production API rewrites for Vercel
@@ -179,6 +169,7 @@ Clone the repository and install dependencies:
 git clone https://github.com/vipatpolk/ShareLot.git
 cd ShareLot
 npm install
+npx playwright install --with-deps
 ```
 
 ### Development Server
@@ -196,10 +187,31 @@ Navigate to `http://localhost:4200/` in your browser. The application will autom
 
 ### Running Unit Tests
 
-Execute unit tests using Vitest (13 test files, 103 unit tests):
+Execute unit tests using Vitest (13 test files, 105 unit tests):
 
 ```bash
 npm test
+```
+
+### Running End-to-End (E2E) Tests
+
+ShareLot includes a comprehensive Playwright E2E suite covering **70 automated tests** across 5 browser target environments (Chromium, Firefox, WebKit, Mobile Safari, Mobile Chrome):
+
+```bash
+# Run all E2E tests in headless mode across all 5 browser targets
+npm run test:e2e
+
+# Launch the interactive Playwright UI runner
+npm run test:e2e:ui
+
+# Debug E2E tests step-by-step with browser inspector
+npm run test:e2e:debug
+
+# View HTML test execution report
+npm run test:e2e:report
+
+# Clear test results and report output folders
+npm run clean:e2e
 ```
 
 ### Production Build
@@ -223,6 +235,12 @@ Tab navigation categories (`All`, `U.S. Stock`, `Thai Stock`, `Cryptocurrency`, 
 ### Backend Data Source
 
 All Google Spreadsheet IDs, tab GID mappings, and data processing are configured centrally inside **[SGSKBackend](https://github.com/vipatpolk/SGSKBackend)** (`config/sheet_config.py`).
+
+---
+
+## CI/CD Automated Testing
+
+Automated E2E testing runs on every Push and Pull Request to `main`/`master` via **GitHub Actions** ([.github/workflows/e2e.yml](../.github/workflows/e2e.yml)) using 4-shard parallel workers for ultra-fast build feedback.
 
 ---
 
