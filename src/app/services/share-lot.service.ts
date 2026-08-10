@@ -3,11 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, of } from 'rxjs';
 import {
   Transaction,
-  ShareLot,
   SymbolSummary,
-  ClosedShareLot,
   ClosedSymbolSummary,
-  SymbolTransaction,
   SymbolTransactionSummary,
 } from '../models/transaction.model';
 

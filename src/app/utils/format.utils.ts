@@ -247,3 +247,18 @@ export function generateAssetTypeOptions(list: { assetType?: string; symbol: str
     { id: 'mutual-fund', label: 'Mutual Fund', count: countByType['mutual-fund'] },
   ].filter((opt) => opt.id === 'all' || opt.count > 0);
 }
+
+export function getUnitLabel(symbol?: string, assetType?: string): string {
+  const type = getAssetType(assetType, symbol);
+  if (type === 'crypto') return 'coins';
+  if (type === 'mutual-fund') return 'units';
+  return 'shares';
+}
+
+export function getUnitLabelSingular(symbol?: string, assetType?: string): string {
+  const type = getAssetType(assetType, symbol);
+  if (type === 'crypto') return 'coin';
+  if (type === 'mutual-fund') return 'unit';
+  return 'share';
+}
+

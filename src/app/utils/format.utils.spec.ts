@@ -11,6 +11,8 @@ import {
   getAssetTypeLabel,
   getAssetTypeClass,
   normalizeAssetType,
+  getUnitLabel,
+  getUnitLabelSingular,
 } from './format.utils';
 
 describe('FormatUtils', () => {
@@ -264,6 +266,29 @@ describe('FormatUtils', () => {
       expect(getAssetType('U.S. Stock')).toBe('us-stock');
       expect(getAssetType('Cryptocurrency')).toBe('crypto');
       expect(getAssetType('Mutual Fund')).toBe('mutual-fund');
+    });
+  });
+
+  describe('getUnitLabel and getUnitLabelSingular', () => {
+    it('should return coins/coin for cryptocurrency transactions', () => {
+      expect(getUnitLabel('BTC.CRYPTO')).toBe('coins');
+      expect(getUnitLabel('ETH', 'crypto')).toBe('coins');
+      expect(getUnitLabelSingular('BTC.CRYPTO')).toBe('coin');
+      expect(getUnitLabelSingular('ETH', 'crypto')).toBe('coin');
+    });
+
+    it('should return units/unit for mutual fund transactions', () => {
+      expect(getUnitLabel('SCBSFF.BKFUND')).toBe('units');
+      expect(getUnitLabel('K-CHANGE', 'mutual-fund')).toBe('units');
+      expect(getUnitLabelSingular('SCBSFF.BKFUND')).toBe('unit');
+      expect(getUnitLabelSingular('K-CHANGE', 'mutual-fund')).toBe('unit');
+    });
+
+    it('should return shares/share for stock transactions', () => {
+      expect(getUnitLabel('AAPL')).toBe('shares');
+      expect(getUnitLabel('PTT.BK', 'thai-stock')).toBe('shares');
+      expect(getUnitLabelSingular('AAPL')).toBe('share');
+      expect(getUnitLabelSingular('PTT.BK', 'thai-stock')).toBe('share');
     });
   });
 });

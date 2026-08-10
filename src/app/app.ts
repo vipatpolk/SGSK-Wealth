@@ -118,6 +118,9 @@ export class App {
   openTransactionHistory(symbol: string = ''): void {
     this.selectedHistorySymbol.set(symbol);
     this.currentView.set('transactions');
+    if (this.activeTab().id !== 'all') {
+      this.selectTab(ASSET_TABS[0]);
+    }
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -129,7 +132,10 @@ export class App {
 
   setView(view: 'holdings' | 'transactions' | 'allocation'): void {
     this.currentView.set(view);
-    if (view === 'allocation') {
+    if (view === 'allocation' || view === 'transactions') {
+      if (view === 'transactions') {
+        this.selectedHistorySymbol.set('');
+      }
       this.selectTab(ASSET_TABS[0]);
     }
   }

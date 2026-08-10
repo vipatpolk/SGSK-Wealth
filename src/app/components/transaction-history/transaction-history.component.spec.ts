@@ -509,6 +509,48 @@ describe('TransactionHistoryComponent', () => {
     component.onPageSizeChange(mockEvent);
     expect(component.pageSize()).toBe(100);
   });
+
+  it('should toggle and close export dropdown menu state', () => {
+    expect(component.isExportDropdownOpen()).toBe(false);
+    component.toggleExportDropdown();
+    expect(component.isExportDropdownOpen()).toBe(true);
+    component.closeExportDropdown();
+    expect(component.isExportDropdownOpen()).toBe(false);
+  });
+
+  it('should support exportCsv with mode options (all, open, closed)', () => {
+    let createdElement: HTMLAnchorElement | null = null;
+    const originalCreateElement = document.createElement.bind(document);
+
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+      const el = originalCreateElement(tagName);
+      if (tagName === 'a') {
+        createdElement = el as HTMLAnchorElement;
+        vi.spyOn(el, 'click').mockImplementation(() => {});
+      }
+      return el;
+    });
+
+    const createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockImplementation(() => 'blob:mock-url');
+    const revokeObjectURLSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+
+    // 1. Export All Transactions
+    component.exportCsv('all');
+    expect(createdElement).not.toBeNull();
+    expect(createdElement!.getAttribute('download')).toContain('ShareLot_Transactions_All_');
+
+    // 2. Export Only Open Positions
+    component.exportCsv('open');
+    expect(createdElement!.getAttribute('download')).toContain('ShareLot_Transactions_OpenPositions_OPEN_');
+
+    // 3. Export Only Closed Positions
+    component.exportCsv('closed');
+    expect(createdElement!.getAttribute('download')).toContain('ShareLot_Transactions_ClosedPositions_CLOSED_');
+
+    createElementSpy.mockRestore();
+    createObjectURLSpy.mockRestore();
+    revokeObjectURLSpy.mockRestore();
+  });
 });
 
 

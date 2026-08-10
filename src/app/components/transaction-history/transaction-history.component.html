@@ -237,7 +237,7 @@
           </div>
           <div class="metric-main-value">
             {{ activeSummary()!.netShares | number:getQuantityFormat(activeSummary()!.symbol, activeSummary()!.assetType) }}
-            <span class="metric-unit">shares</span>
+            <span class="metric-unit">{{ getUnitLabel(activeSummary()!.symbol, activeSummary()!.assetType) }}</span>
           </div>
           @if (activeSummary()!.netShares > 0 && activeHoldingValueConverted() > 0) {
             <div class="metric-sub-value">
@@ -265,7 +265,7 @@
             {{ cx(activeSummary()!.averageBuyPrice, activeSummary()!.currency) | currency:dc(activeSummary()!.currency):'symbol-narrow':getPriceFormat(activeSummary()!.symbol, activeSummary()!.assetType) }}
           </div>
           <div class="metric-sub-value">
-            Total bought: {{ activeSummary()!.totalBuyShares | number:getQuantityFormat(activeSummary()!.symbol, activeSummary()!.assetType) }} shares
+            Total bought: {{ activeSummary()!.totalBuyShares | number:getQuantityFormat(activeSummary()!.symbol, activeSummary()!.assetType) }} {{ getUnitLabel(activeSummary()!.symbol, activeSummary()!.assetType) }}
           </div>
         </div>
 
@@ -284,7 +284,7 @@
           </div>
           <div class="metric-sub-value">
             @if (activeSummary()!.sellCount > 0) {
-              Total sold: {{ activeSummary()!.totalSellShares | number:getQuantityFormat(activeSummary()!.symbol, activeSummary()!.assetType) }} shares
+              Total sold: {{ activeSummary()!.totalSellShares | number:getQuantityFormat(activeSummary()!.symbol, activeSummary()!.assetType) }} {{ getUnitLabel(activeSummary()!.symbol, activeSummary()!.assetType) }}
             } @else {
               No sell transactions yet
             }
@@ -560,6 +560,92 @@
           </svg>
           <span>{{ sortOrder() === 'desc' ? 'Newest First' : 'Oldest First' }}</span>
         </button>
+
+        <div class="export-dropdown-wrapper" [class.dropdown-is-open]="isExportDropdownOpen()">
+          <button
+            class="btn-sort-toggle btn-export-csv"
+            (click)="toggleExportDropdown()"
+            id="btn-export-csv-trigger"
+            type="button"
+            title="Export transactions to CSV"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sort-icon">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Export CSV</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chevron-arrow-sm" [class.chevron-open]="isExportDropdownOpen()">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+
+          <ng-container *ngIf="isExportDropdownOpen()">
+            <div class="export-dropdown-menu" id="export-dropdown-menu">
+              <div class="export-dropdown-header">
+                <span>Select Export Scope</span>
+              </div>
+              <div class="dropdown-list">
+                <button
+                  class="dropdown-item export-item"
+                  (click)="exportCsv('all')"
+                  id="btn-export-all"
+                  type="button"
+                >
+                  <div class="dropdown-item-left">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="export-opt-icon">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="16" y1="13" x2="8" y2="13"></line>
+                      <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                    <div class="export-item-text">
+                      <span class="export-item-title">Export All Transactions</span>
+                      <span class="export-item-sub">All trades matching current filters</span>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  class="dropdown-item export-item"
+                  (click)="exportCsv('open')"
+                  id="btn-export-open"
+                  type="button"
+                >
+                  <div class="dropdown-item-left">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="export-opt-icon icon-open">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <div class="export-item-text">
+                      <span class="export-item-title">Only Open Positions</span>
+                      <span class="export-item-sub">Trades for active open holdings</span>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  class="dropdown-item export-item"
+                  (click)="exportCsv('closed')"
+                  id="btn-export-closed"
+                  type="button"
+                >
+                  <div class="dropdown-item-left">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="export-opt-icon icon-closed">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    <div class="export-item-text">
+                      <span class="export-item-title">Only Closed Positions</span>
+                      <span class="export-item-sub">Trades for fully realized positions</span>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
+            <div class="dropdown-backdrop" (click)="closeExportDropdown()"></div>
+          </ng-container>
+        </div>
       </div>
     </div>
 
@@ -672,7 +758,7 @@
                   <div class="running-shares-wrap">
                     <span class="running-shares-num">{{ tx.runningShares | number:getQuantityFormat(tx.symbol, tx.assetType) }}</span>
                     @if (tx.runningShares > 0 && tx.runningAverageCost > 0) {
-                      <span class="running-avg-cost">@ {{ cx(tx.runningAverageCost, tx.currency) | currency:dc(tx.currency):'symbol-narrow':getPriceFormat(tx.symbol, tx.assetType) }}</span>
+                      <span class="running-avg-cost">&#64; {{ cx(tx.runningAverageCost, tx.currency) | currency:dc(tx.currency):'symbol-narrow':getPriceFormat(tx.symbol, tx.assetType) }}</span>
                     }
                   </div>
                 </td>
@@ -771,15 +857,23 @@
           <div class="mobile-card-body">
             <div class="mobile-financial-row">
               <div class="mobile-financial-col-left">
-                <span class="mobile-metric-label">Shares & Execution</span>
+                <span class="mobile-metric-label">
+                  @if (getUnitLabel(tx.symbol, tx.assetType) === 'coins') {
+                    Coins & Execution
+                  } @else if (getUnitLabel(tx.symbol, tx.assetType) === 'units') {
+                    Units & Execution
+                  } @else {
+                    Shares & Execution
+                  }
+                </span>
                 <div class="mobile-qty-wrap">
                   <span class="mobile-metric-qty" [class.qty-buy]="tx.type === 'BUY'" [class.qty-sell]="tx.type === 'SELL'">
                     {{ tx.type === 'BUY' ? '+' : '-' }}{{ tx.quantity | number:getQuantityFormat(tx.symbol, tx.assetType) }}
                   </span>
-                  <span class="mobile-metric-unit">shares</span>
+                  <span class="mobile-metric-unit">{{ getUnitLabel(tx.symbol, tx.assetType) }}</span>
                 </div>
                 <div class="mobile-metric-sub">
-                  @ {{ cx(tx.price, tx.currency) | currency:dc(tx.currency):'symbol-narrow':getPriceFormat(tx.symbol, tx.assetType) }} / share
+                  &#64; {{ cx(tx.price, tx.currency) | currency:dc(tx.currency):'symbol-narrow':getPriceFormat(tx.symbol, tx.assetType) }} / {{ getUnitLabelSingular(tx.symbol, tx.assetType) }}
                 </div>
               </div>
 
@@ -815,7 +909,7 @@
                 Position After
               </span>
               <span class="mobile-footer-val">
-                <strong>{{ tx.runningShares | number:getQuantityFormat(tx.symbol, tx.assetType) }}</strong> shares
+                <strong>{{ tx.runningShares | number:getQuantityFormat(tx.symbol, tx.assetType) }}</strong> {{ getUnitLabel(tx.symbol, tx.assetType) }}
                 <span class="mobile-footer-cost">({{ cx(tx.runningTotalCost, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }})</span>
               </span>
             </div>

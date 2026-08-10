@@ -10,6 +10,7 @@ import {
   DecimalPipe,
   CurrencyPipe,
   DatePipe,
+  NgIf,
 } from '@angular/common';
 import { DateRangePickerComponent, DateRange } from '../date-range-picker/date-range-picker.component';
 import {
@@ -30,6 +31,8 @@ import {
   getAssetTypeLabel,
   getAssetTypeClass,
   generateAssetTypeOptions,
+  getUnitLabel,
+  getUnitLabelSingular,
 } from '../../utils/format.utils';
 
 export type TxTypeFilter = 'all' | 'buy' | 'sell';
@@ -37,7 +40,7 @@ export type SortOrder = 'desc' | 'asc';
 
 @Component({
   selector: 'app-transaction-history',
-  imports: [DecimalPipe, CurrencyPipe, DatePipe, DateRangePickerComponent],
+  imports: [DecimalPipe, CurrencyPipe, DatePipe, NgIf, DateRangePickerComponent],
   templateUrl: './transaction-history.component.html',
   styleUrl: './transaction-history.component.css',
 })
@@ -86,7 +89,13 @@ export class TransactionHistoryComponent {
 
   constructor() {
     effect(() => {
-      this.currentSymbol.set(this.selectedSymbol());
+      const sym = this.selectedSymbol();
+      this.currentSymbol.set(sym);
+      this.typeFilter.set('all');
+      this.assetFilter.set('all');
+      this.startDate.set('');
+      this.endDate.set('');
+      this.currentPage.set(1);
     });
 
     // Guard: clamp currentPage when totalPages decreases
@@ -101,6 +110,8 @@ export class TransactionHistoryComponent {
 
   selectSymbol(symbol: string): void {
     this.currentSymbol.set(symbol);
+    this.typeFilter.set('all');
+    this.assetFilter.set('all');
     this.symbolSelected.emit(symbol);
     this.isSymbolDropdownOpen.set(false);
     this.clearDateRange();
@@ -109,6 +120,8 @@ export class TransactionHistoryComponent {
 
   clearSymbolSelection(): void {
     this.currentSymbol.set('');
+    this.typeFilter.set('all');
+    this.assetFilter.set('all');
     this.symbolSelected.emit('');
     this.isSymbolDropdownOpen.set(false);
     this.clearDateRange();
@@ -392,6 +405,14 @@ export class TransactionHistoryComponent {
     return getAssetTypeClass(assetType, symbol);
   }
 
+  getUnitLabel(symbol?: string, assetType?: string): string {
+    return getUnitLabel(symbol, assetType);
+  }
+
+  getUnitLabelSingular(symbol?: string, assetType?: string): string {
+    return getUnitLabelSingular(symbol, assetType);
+  }
+
   /** Pagination Computeds */
   readonly totalPages = computed<number>(() => {
     const total = this.filteredTransactions().length;
@@ -500,5 +521,100 @@ export class TransactionHistoryComponent {
   toggleSort(): void {
     this.sortOrder.set(this.sortOrder() === 'desc' ? 'asc' : 'desc');
     this.currentPage.set(1);
+  }
+
+  readonly isExportDropdownOpen = signal<boolean>(false);
+
+  toggleExportDropdown(): void {
+    this.isExportDropdownOpen.set(!this.isExportDropdownOpen());
+  }
+
+  closeExportDropdown(): void {
+    this.isExportDropdownOpen.set(false);
+  }
+
+  private formatDateYMD(dateStr: string): string {
+    if (!dateStr) return '';
+    const trimmed = dateStr.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      return trimmed;
+    }
+    const d = new Date(trimmed);
+    if (!isNaN(d.getTime())) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    return trimmed;
+  }
+
+  exportCsv(mode: 'all' | 'open' | 'closed' = 'all'): void {
+    this.isExportDropdownOpen.set(false);
+    let txs = this.filteredTransactions();
+    if (!txs || txs.length === 0) return;
+
+    if (mode === 'open') {
+      const openSymbols = new Set(
+        this.transactionSummaries()
+          .filter((s) => s.currentStatus === 'OPEN')
+          .map((s) => s.symbol)
+      );
+      txs = txs.filter((t) => openSymbols.has(t.symbol));
+    } else if (mode === 'closed') {
+      const closedSymbols = new Set(
+        this.transactionSummaries()
+          .filter((s) => s.currentStatus === 'CLOSED')
+          .map((s) => s.symbol)
+      );
+      txs = txs.filter((t) => closedSymbols.has(t.symbol));
+    }
+
+    if (txs.length === 0) return;
+
+    const headers = ['Symbol', 'Date', 'Quantity', 'Price', 'Currency'];
+    const rows = txs.map((tx) => {
+      const qty = tx.rawQuantity !== undefined ? tx.rawQuantity : (tx.type === 'SELL' ? -tx.quantity : tx.quantity);
+      const dateYMD = this.formatDateYMD(tx.date);
+      return [tx.symbol, dateYMD, qty, tx.price, tx.currency];
+    });
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map((row) =>
+        row
+          .map((cell) => {
+            const str = String(cell ?? '');
+            return str.includes(',') || str.includes('"') || str.includes('\n')
+              ? `"${str.replace(/"/g, '""')}"`
+              : str;
+          })
+          .join(',')
+      ),
+    ].join('\r\n');
+
+    if (typeof document !== 'undefined') {
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+
+      const activeSym = this.currentSymbol();
+      const symName = activeSym
+        ? this.getDisplaySymbol(activeSym)
+        : mode === 'open'
+        ? 'OpenPositions'
+        : mode === 'closed'
+        ? 'ClosedPositions'
+        : 'All';
+      const dateStr = new Date().toISOString().split('T')[0];
+      const modeSuffix = mode !== 'all' ? `_${mode.toUpperCase()}` : '';
+      link.setAttribute('download', `ShareLot_Transactions_${symName}${modeSuffix}_${dateStr}.csv`);
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
   }
 }
