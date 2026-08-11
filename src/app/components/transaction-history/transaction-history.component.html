@@ -803,12 +803,9 @@
                   >
                     {{ getDisplaySymbol(tx.symbol) }}
                   </span>
-                  <div class="mobile-symbol-text-wrap">
-                    <span class="mobile-symbol-code">{{ getDisplaySymbol(tx.symbol) }}</span>
-                    @if (getSymbolName(tx.symbol)) {
-                      <span class="mobile-tx-symbol-name" [title]="getSymbolName(tx.symbol)">{{ getSymbolName(tx.symbol) }}</span>
-                    }
-                  </div>
+                  @if (getSymbolName(tx.symbol)) {
+                    <span class="mobile-tx-symbol-name" [title]="getSymbolName(tx.symbol)">{{ getSymbolName(tx.symbol) }}</span>
+                  }
                 </button>
               } @else {
                 <div class="mobile-single-identity">

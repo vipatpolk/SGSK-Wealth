@@ -1503,8 +1503,9 @@
 
 .mobile-symbol-link {
   display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
   background: transparent;
   border: none;
   padding: 0;
@@ -1512,19 +1513,6 @@
   min-width: 0;
   text-align: left;
   font-family: inherit;
-}
-
-.mobile-symbol-text-wrap {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  line-height: 1.25;
-}
-
-.mobile-symbol-code {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
 }
 
 .mobile-tx-symbol-name {
