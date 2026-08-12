@@ -510,7 +510,7 @@ describe('TransactionHistoryComponent', () => {
     expect(component.pageSize()).toBe(100);
   });
 
-  it('should toggle and close export dropdown menu state', () => {
+  it('TC-UI-10: should toggle and close export dropdown menu state', () => {
     expect(component.isExportDropdownOpen()).toBe(false);
     component.toggleExportDropdown();
     expect(component.isExportDropdownOpen()).toBe(true);
@@ -518,7 +518,7 @@ describe('TransactionHistoryComponent', () => {
     expect(component.isExportDropdownOpen()).toBe(false);
   });
 
-  it('should support exportCsv with mode options (all, open, closed)', () => {
+  it('TC-UI-01 to TC-UI-09: should support exportCsv with asset type selection and status scope options', () => {
     let createdElement: HTMLAnchorElement | null = null;
     const originalCreateElement = document.createElement.bind(document);
 
@@ -534,18 +534,38 @@ describe('TransactionHistoryComponent', () => {
     const createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockImplementation(() => 'blob:mock-url');
     const revokeObjectURLSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
 
-    // 1. Export All Transactions
-    component.exportCsv('all');
+    // 1. TC-UI-01: Export All Transactions
+    component.exportCsv('all', 'all');
     expect(createdElement).not.toBeNull();
     expect(createdElement!.getAttribute('download')).toContain('ShareLot_Transactions_All_');
 
-    // 2. Export Only Open Positions
-    component.exportCsv('open');
-    expect(createdElement!.getAttribute('download')).toContain('ShareLot_Transactions_OpenPositions_OPEN_');
+    // 2. TC-UI-06: Export Only Open Positions
+    component.exportCsv('all', 'open');
+    expect(createdElement!.getAttribute('download')).toContain('ShareLot_Transactions_All_OPEN_');
 
-    // 3. Export Only Closed Positions
-    component.exportCsv('closed');
-    expect(createdElement!.getAttribute('download')).toContain('ShareLot_Transactions_ClosedPositions_CLOSED_');
+    // 3. TC-UI-07: Export Only Closed Positions
+    component.exportCsv('all', 'closed');
+    expect(createdElement!.getAttribute('download')).toContain('ShareLot_Transactions_All_CLOSED_');
+
+    // 4. TC-UI-02: Export US Stock
+    component.exportCsv('us-stock');
+    expect(createdElement!.getAttribute('download')).toContain('ShareLot_Transactions_US-STOCK_');
+
+    // 5. TC-UI-03: Export Thai Stock
+    component.exportCsv('thai-stock');
+    expect(createdElement!.getAttribute('download')).toContain('ShareLot_Transactions_THAI-STOCK_');
+
+    // 6. TC-UI-04: Export Crypto
+    component.exportCsv('crypto');
+    expect(createdElement!.getAttribute('download')).toContain('ShareLot_Transactions_CRYPTO_');
+
+    // 7. TC-UI-05: Export Mutual Fund
+    component.exportCsv('mutual-fund');
+    expect(createdElement!.getAttribute('download')).toContain('ShareLot_Transactions_MUTUAL-FUND_');
+
+    // 8. TC-UI-08: Combined Asset Type and Status Scope
+    component.exportCsv('us-stock', 'open');
+    expect(createdElement!.getAttribute('download')).toContain('ShareLot_Transactions_US-STOCK_OPEN_');
 
     createElementSpy.mockRestore();
     createObjectURLSpy.mockRestore();

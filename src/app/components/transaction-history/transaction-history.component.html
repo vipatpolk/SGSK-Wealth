@@ -581,14 +581,40 @@
           </button>
 
           <ng-container *ngIf="isExportDropdownOpen()">
-            <div class="export-dropdown-menu" id="export-dropdown-menu">
-              <div class="export-dropdown-header">
-                <span>Select Export Scope</span>
+            <div class="export-dropdown-menu export-dropdown-menu-wide" id="export-dropdown-menu">
+              <!-- Position Scope Segment Pills -->
+              <div class="export-scope-selector-wrap">
+                <span class="export-scope-label">POSITION SCOPE</span>
+                <div class="export-scope-pills">
+                  <button
+                    type="button"
+                    class="export-scope-pill"
+                    [class.active]="exportStatusScope() === 'all'"
+                    (click)="setExportStatusScope('all'); $event.stopPropagation()"
+                    id="btn-export-scope-all"
+                  >All</button>
+                  <button
+                    type="button"
+                    class="export-scope-pill"
+                    [class.active]="exportStatusScope() === 'open'"
+                    (click)="setExportStatusScope('open'); $event.stopPropagation()"
+                    id="btn-export-scope-open"
+                  >Only Open</button>
+                  <button
+                    type="button"
+                    class="export-scope-pill"
+                    [class.active]="exportStatusScope() === 'closed'"
+                    (click)="setExportStatusScope('closed'); $event.stopPropagation()"
+                    id="btn-export-scope-closed"
+                  >Only Closed</button>
+                </div>
               </div>
-              <div class="dropdown-list">
+
+              <!-- Full-Width All Asset Types Button -->
+              <div class="export-hero-section">
                 <button
-                  class="dropdown-item export-item"
-                  (click)="exportCsv('all')"
+                  class="dropdown-item export-item export-item-hero"
+                  (click)="exportCsv('all', exportStatusScope())"
                   id="btn-export-all"
                   type="button"
                 >
@@ -600,46 +626,59 @@
                       <line x1="16" y1="17" x2="8" y2="17"></line>
                     </svg>
                     <div class="export-item-text">
-                      <span class="export-item-title">Export All Transactions</span>
-                      <span class="export-item-sub">All trades matching current filters</span>
+                      <span class="export-item-title">Export All Asset Types</span>
+                      <span class="export-item-sub">
+                        All trades ({{ exportStatusScope() === 'open' ? 'Only Open' : exportStatusScope() === 'closed' ? 'Only Closed' : 'All Positions' }})
+                      </span>
                     </div>
                   </div>
                 </button>
+              </div>
 
+              <div class="export-dropdown-header compact-header">
+                <span>EXPORT BY ASSET TYPE</span>
+              </div>
+
+              <!-- 2-Column Grid for Asset Types -->
+              <div class="export-asset-grid">
                 <button
-                  class="dropdown-item export-item"
-                  (click)="exportCsv('open')"
-                  id="btn-export-open"
+                  class="export-grid-card"
+                  (click)="exportCsv('us-stock', exportStatusScope())"
+                  id="btn-export-us-stock"
                   type="button"
                 >
-                  <div class="dropdown-item-left">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="export-opt-icon icon-open">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <polyline points="12 6 12 12 16 14"></polyline>
-                    </svg>
-                    <div class="export-item-text">
-                      <span class="export-item-title">Only Open Positions</span>
-                      <span class="export-item-sub">Trades for active open holdings</span>
-                    </div>
-                  </div>
+                  <span class="asset-type-tag asset-type-us-stock export-tag">U.S.</span>
+                  <span class="export-grid-title">U.S. Stock</span>
                 </button>
 
                 <button
-                  class="dropdown-item export-item"
-                  (click)="exportCsv('closed')"
-                  id="btn-export-closed"
+                  class="export-grid-card"
+                  (click)="exportCsv('thai-stock', exportStatusScope())"
+                  id="btn-export-thai-stock"
                   type="button"
                 >
-                  <div class="dropdown-item-left">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="export-opt-icon icon-closed">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                    </svg>
-                    <div class="export-item-text">
-                      <span class="export-item-title">Only Closed Positions</span>
-                      <span class="export-item-sub">Trades for fully realized positions</span>
-                    </div>
-                  </div>
+                  <span class="asset-type-tag asset-type-thai-stock export-tag">Thai</span>
+                  <span class="export-grid-title">Thai Stock</span>
+                </button>
+
+                <button
+                  class="export-grid-card"
+                  (click)="exportCsv('crypto', exportStatusScope())"
+                  id="btn-export-crypto"
+                  type="button"
+                >
+                  <span class="asset-type-tag asset-type-crypto export-tag">Crypto</span>
+                  <span class="export-grid-title">Cryptocurrency</span>
+                </button>
+
+                <button
+                  class="export-grid-card"
+                  (click)="exportCsv('mutual-fund', exportStatusScope())"
+                  id="btn-export-mutual-fund"
+                  type="button"
+                >
+                  <span class="asset-type-tag asset-type-mutual-fund export-tag">Fund</span>
+                  <span class="export-grid-title">Mutual Fund</span>
                 </button>
               </div>
             </div>

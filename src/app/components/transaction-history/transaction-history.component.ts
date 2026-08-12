@@ -34,6 +34,12 @@ import {
   getUnitLabel,
   getUnitLabelSingular,
 } from '../../utils/format.utils';
+import {
+  generateTransactionsCsv,
+  generateExportFilename,
+  triggerFileDownload,
+  ExportCsvOptions,
+} from '../../utils/csv-exporter.utils';
 
 export type TxTypeFilter = 'all' | 'buy' | 'sell';
 export type SortOrder = 'desc' | 'asc';
@@ -524,6 +530,8 @@ export class TransactionHistoryComponent {
   }
 
   readonly isExportDropdownOpen = signal<boolean>(false);
+  readonly exportAssetTypeFilter = signal<string>('all');
+  readonly exportStatusScope = signal<'all' | 'open' | 'closed'>('all');
 
   toggleExportDropdown(): void {
     this.isExportDropdownOpen.set(!this.isExportDropdownOpen());
@@ -533,88 +541,61 @@ export class TransactionHistoryComponent {
     this.isExportDropdownOpen.set(false);
   }
 
-  private formatDateYMD(dateStr: string): string {
-    if (!dateStr) return '';
-    const trimmed = dateStr.trim();
-    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-      return trimmed;
-    }
-    const d = new Date(trimmed);
-    if (!isNaN(d.getTime())) {
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
-    return trimmed;
+  setExportAssetType(assetType: string): void {
+    this.exportAssetTypeFilter.set(assetType);
   }
 
-  exportCsv(mode: 'all' | 'open' | 'closed' = 'all'): void {
+  setExportStatusScope(scope: 'all' | 'open' | 'closed'): void {
+    this.exportStatusScope.set(scope);
+  }
+
+  exportCsv(
+    modeOrAssetType: string = 'all',
+    statusScope?: 'all' | 'open' | 'closed'
+  ): void {
     this.isExportDropdownOpen.set(false);
-    let txs = this.filteredTransactions();
+
+    let assetTypeFilter = this.exportAssetTypeFilter();
+    let scope: 'all' | 'open' | 'closed' = statusScope || this.exportStatusScope();
+
+    if (statusScope === undefined) {
+      if (modeOrAssetType === 'open' || modeOrAssetType === 'closed') {
+        scope = modeOrAssetType;
+        assetTypeFilter = 'all';
+      } else if (modeOrAssetType !== 'all') {
+        assetTypeFilter = modeOrAssetType;
+      }
+    } else {
+      assetTypeFilter = modeOrAssetType;
+    }
+
+    const txs = this.filteredTransactions();
     if (!txs || txs.length === 0) return;
 
-    if (mode === 'open') {
-      const openSymbols = new Set(
-        this.transactionSummaries()
-          .filter((s) => s.currentStatus === 'OPEN')
-          .map((s) => s.symbol)
-      );
-      txs = txs.filter((t) => openSymbols.has(t.symbol));
-    } else if (mode === 'closed') {
-      const closedSymbols = new Set(
-        this.transactionSummaries()
-          .filter((s) => s.currentStatus === 'CLOSED')
-          .map((s) => s.symbol)
-      );
-      txs = txs.filter((t) => closedSymbols.has(t.symbol));
-    }
+    const openSymbols = new Set(
+      this.transactionSummaries()
+        .filter((s) => s.currentStatus === 'OPEN')
+        .map((s) => s.symbol)
+    );
 
-    if (txs.length === 0) return;
+    const closedSymbols = new Set(
+      this.transactionSummaries()
+        .filter((s) => s.currentStatus === 'CLOSED')
+        .map((s) => s.symbol)
+    );
 
-    const headers = ['Symbol', 'Date', 'Quantity', 'Price', 'Currency'];
-    const rows = txs.map((tx) => {
-      const qty = tx.rawQuantity !== undefined ? tx.rawQuantity : (tx.type === 'SELL' ? -tx.quantity : tx.quantity);
-      const dateYMD = this.formatDateYMD(tx.date);
-      return [tx.symbol, dateYMD, qty, tx.price, tx.currency];
-    });
+    const options: ExportCsvOptions = {
+      assetTypeFilter,
+      statusScope: scope,
+      openSymbols,
+      closedSymbols,
+      activeSymbol: this.currentSymbol(),
+      getDisplaySymbolFn: (sym) => this.getDisplaySymbol(sym),
+    };
 
-    const csvContent = [
-      headers.join(','),
-      ...rows.map((row) =>
-        row
-          .map((cell) => {
-            const str = String(cell ?? '');
-            return str.includes(',') || str.includes('"') || str.includes('\n')
-              ? `"${str.replace(/"/g, '""')}"`
-              : str;
-          })
-          .join(',')
-      ),
-    ].join('\r\n');
+    const csvContent = generateTransactionsCsv(txs, options);
+    const filename = generateExportFilename(options);
 
-    if (typeof document !== 'undefined') {
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-
-      const activeSym = this.currentSymbol();
-      const symName = activeSym
-        ? this.getDisplaySymbol(activeSym)
-        : mode === 'open'
-        ? 'OpenPositions'
-        : mode === 'closed'
-        ? 'ClosedPositions'
-        : 'All';
-      const dateStr = new Date().toISOString().split('T')[0];
-      const modeSuffix = mode !== 'all' ? `_${mode.toUpperCase()}` : '';
-      link.setAttribute('download', `ShareLot_Transactions_${symName}${modeSuffix}_${dateStr}.csv`);
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }
+    triggerFileDownload(csvContent, filename);
   }
 }

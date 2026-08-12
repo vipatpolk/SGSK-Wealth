@@ -47,15 +47,16 @@
     - **Cryptocurrency**: Displays unit as `coins` / `coin` (e.g., `+0.2500 coins`, `@ $98,400.00 / coin`, `Coins & Execution`).
     - **Mutual Funds**: Displays unit as `units` / `unit`.
     - **Stocks**: Displays unit as `shares` / `share`.
-  - **Export to CSV**: Download unpaginated transactions in CSV format matching Google Sheets schema (`Symbol,Date,Quantity,Price,Currency`) with YYYY-MM-DD formatted dates and 3 export scope options:
-    - **Export All Transactions**: All transactions matching active search & date filters.
-    - **Only Open Positions**: Transactions filtered exclusively for active open holdings.
-    - **Only Closed Positions**: Transactions filtered exclusively for fully realized closed holdings.
+  - **Export to CSV**: Download unpaginated transactions in standard 5-column CSV format matching Google Sheets schema (`Symbol,Date,Quantity,Price,Currency`) with YYYY-MM-DD formatted dates, signed quantities (`+` for BUY, `-` for SELL), and native UTF-8 BOM encoding (`\uFEFF`) for seamless MS Excel / Google Sheets compatibility.
+    - **Asset Type Selection**: Export all asset types or quick-filter by selected asset category (`U.S. Stock`, `Thai Stock`, `Crypto`, `Mutual Fund`).
+    - **Position Scope Selector**: Interactively filter by position state (`All Positions`, `Only Open Positions`, or `Only Closed Positions`).
+    - **Wider & Compact 2-Column Grid Menu**: Optimized 360px wide dropdown menu featuring a 2-column asset type grid to eliminate vertical scrolling.
   - **Interactive Date Range Filter**: Custom date range picker component with presets (`YTD`, `1M`, `3M`, `6M`, `1Y`, `All Time`, or custom date bounds).
   - **Pagination Controls**: Configurable page size options (10, 50, or 100 transactions per page) with full navigation, touch-friendly dropdown styling, and dynamic count indicators.
   - **Transaction Filtering & Sorting**: Filter by transaction type (`All`, `Buy`, `Sell`), asset class, or text search.
 
-- 📱 **Mobile-First Responsive Experience**:
+- 📱 **Mobile & Tablet Responsive Experience**:
+  - **Tablet & Big Screen Optimization**: Tailored layouts and table density for tablet devices (e.g., iPad Air, iPad Pro, Surface Pro) with proportional `13px` typography, generous `240px` symbol name bounds, and touch-optimized padding.
   - **Mobile-Responsive Card Layouts**: High-density tables on desktop seamlessly transform into touch-friendly cards on mobile devices without horizontal clipping.
   - **Dropdown View Selector**: Touch-friendly dropdown selector (`Holdings`, `Allocation`, `Transactions`) for effortless mobile navigation.
   - **iOS Safari Auto-Zoom Prevention**: Touch inputs and per-page select controls are optimized with explicit styling and `16px` mobile sizing to prevent unwanted layout zooming.
@@ -87,7 +88,7 @@
 | **Runtime** | [Node.js 24 LTS](https://nodejs.org/) (v24.19.0) |
 | **Backend Integration** | [FastAPI Backend (SGSKBackend)](https://github.com/vipatpolk/SGSKBackend) for data processing and API proxying |
 | **Data Source** | Google Sheets CSV Export (via Backend) |
-| **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom (13 test suites, 105 unit tests) |
+| **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom (15 test suites, 119 unit tests) |
 | **E2E Testing** | [Playwright](https://playwright.dev/) & Page Object Models (70 automated tests across 5 browser targets) |
 | **Deployment** | [Vercel](https://vercel.com/) (with API proxy rewrites) |
 
