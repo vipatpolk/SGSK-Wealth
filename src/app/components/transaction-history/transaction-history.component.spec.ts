@@ -206,9 +206,54 @@ describe('TransactionHistoryComponent', () => {
     expect(symbols[1].symbol).toBe('PTT.BK');
   });
 
-  it('should filter transactions by BUY and SELL type filter', () => {
-    // Default is all (3 AAPL + 2 TSLA + 1 PTT = 6 total)
-    expect(component.filteredTransactions().length).toBe(6);
+  it('should filter transactions by BUY, SELL, and EXCHANGE type filter', () => {
+    // Add mock mutual fund exchange summary
+    const mfSummary: SymbolTransactionSummary = {
+      symbol: 'K-USA',
+      assetType: 'mutual-fund',
+      currency: 'THB',
+      totalTransactions: 1,
+      buyCount: 0,
+      sellCount: 0,
+      exchangeCount: 1,
+      totalBuyShares: 100,
+      totalSellShares: 0,
+      totalBuyAmount: 1550,
+      totalSellAmount: 0,
+      averageBuyPrice: 15.5,
+      averageSellPrice: 0,
+      netShares: 100,
+      netInvested: 1550,
+      currentStatus: 'OPEN',
+      realizedPL: 0,
+      realizedPLPercent: 0,
+      firstTradeDate: '2024-03-01',
+      lastTradeDate: '2024-03-01',
+      transactions: [
+        {
+          id: 'K-USA-1',
+          symbol: 'K-USA',
+          date: '2024-03-01',
+          type: 'EXCHANGE_IN',
+          quantity: 100,
+          rawQuantity: 100,
+          price: 15.5,
+          totalAmount: 1550,
+          currency: 'THB',
+          assetType: 'mutual-fund',
+          runningShares: 100,
+          runningTotalCost: 1550,
+          runningAverageCost: 15.5,
+          exchangeFrom: 'K-CASH',
+        },
+      ],
+    };
+
+    fixture.componentRef.setInput('transactionSummaries', [...mockTransactionSummaries, mfSummary]);
+    fixture.detectChanges();
+
+    // Default is all (3 AAPL + 2 TSLA + 1 PTT + 1 K-USA = 7 total)
+    expect(component.filteredTransactions().length).toBe(7);
 
     // Filter by BUY
     component.typeFilter.set('buy');
@@ -221,6 +266,13 @@ describe('TransactionHistoryComponent', () => {
     const sellTxs = component.filteredTransactions();
     expect(sellTxs.length).toBe(2);
     expect(sellTxs.every((t) => t.type === 'SELL')).toBe(true);
+
+    // Filter by EXCHANGE
+    component.typeFilter.set('exchange');
+    const exTxs = component.filteredTransactions();
+    expect(exTxs.length).toBe(1);
+    expect(exTxs[0].symbol).toBe('K-USA');
+    expect(exTxs[0].exchangeFrom).toBe('K-CASH');
   });
 
   it('should filter by asset category tab and dropdown change', () => {

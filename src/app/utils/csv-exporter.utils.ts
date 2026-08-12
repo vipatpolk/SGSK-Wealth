@@ -80,17 +80,25 @@ export function generateTransactionsCsv(
   options: ExportCsvOptions = {}
 ): string {
   const filtered = filterTransactionsForExport(transactions, options);
+  const hasExchanges = filtered.some((tx) => tx.exchangeFrom || tx.exchangeTo);
   const headers = ['Symbol', 'Date', 'Quantity', 'Price', 'Currency'];
+  if (hasExchanges) {
+    headers.push('Exchange From', 'Exchange To');
+  }
 
   const rows = filtered.map((tx) => {
     const qty =
       tx.rawQuantity !== undefined
         ? tx.rawQuantity
-        : tx.type === 'SELL'
+        : (tx.type === 'SELL' || tx.type === 'EXCHANGE_OUT')
         ? -tx.quantity
         : tx.quantity;
     const dateYMD = formatDateYMD(tx.date);
-    return [tx.symbol, dateYMD, qty, tx.price, tx.currency];
+    const row: (string | number)[] = [tx.symbol, dateYMD, qty, tx.price, tx.currency];
+    if (hasExchanges) {
+      row.push(tx.exchangeFrom || '', tx.exchangeTo || '');
+    }
+    return row;
   });
 
   const csvRows = [

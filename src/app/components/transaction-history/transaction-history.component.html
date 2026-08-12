@@ -507,7 +507,7 @@
           id="filter-type-all"
           type="button"
         >
-          All ({{ filteredTransactions().length }})
+          All ({{ allCount() }})
         </button>
         <button
           class="type-pill type-pill-buy"
@@ -534,6 +534,21 @@
             <line x1="12" y1="9" x2="12" y2="21"></line>
           </svg>
           Sells ({{ sellCount() }})
+        </button>
+        <button
+          class="type-pill type-pill-exchange"
+          [class.active]="typeFilter() === 'exchange'"
+          (click)="setTypeFilter('exchange')"
+          id="filter-type-exchange"
+          type="button"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="pill-icon">
+            <polyline points="16 3 21 3 21 8"></polyline>
+            <line x1="4" y1="20" x2="21" y2="3"></line>
+            <polyline points="8 21 3 21 3 16"></polyline>
+            <line x1="15" y1="15" x2="3" y2="21"></line>
+          </svg>
+          Exchanges ({{ exchangeCount() }})
         </button>
       </div>
 
@@ -710,7 +725,7 @@
           </thead>
           <tbody>
             @for (tx of paginatedTransactions(); track tx.id; let i = $index) {
-              <tr class="tx-row" [class.tx-row-buy]="tx.type === 'BUY'" [class.tx-row-sell]="tx.type === 'SELL'">
+              <tr class="tx-row" [class.tx-row-buy]="tx.type === 'BUY'" [class.tx-row-sell]="tx.type === 'SELL'" [class.tx-row-exchange]="tx.type === 'EXCHANGE' || tx.type === 'EXCHANGE_IN' || tx.type === 'EXCHANGE_OUT' || !!tx.exchangeFrom || !!tx.exchangeTo">
                 <!-- # Index -->
                 <td class="col-num">
                   <span class="tx-index-badge">{{ sortOrder() === 'desc' ? filteredTransactions().length - ((currentPage() - 1) * pageSize() + i) : (currentPage() - 1) * pageSize() + i + 1 }}</span>
@@ -742,7 +757,37 @@
 
                 <!-- Type -->
                 <td class="col-type">
-                  @if (tx.type === 'BUY') {
+                  @if (tx.type === 'EXCHANGE_OUT' || !!tx.exchangeTo || (tx.type === 'SELL' && tx.exchangeTo)) {
+                    <span class="type-tag tag-exchange">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="type-icon">
+                        <polyline points="16 3 21 3 21 8"></polyline>
+                        <line x1="4" y1="20" x2="21" y2="3"></line>
+                        <polyline points="8 21 3 21 3 16"></polyline>
+                        <line x1="15" y1="15" x2="3" y2="21"></line>
+                      </svg>
+                      EX-OUT
+                    </span>
+                  } @else if (tx.type === 'EXCHANGE_IN' || !!tx.exchangeFrom || (tx.type === 'BUY' && tx.exchangeFrom)) {
+                    <span class="type-tag tag-exchange">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="type-icon">
+                        <polyline points="16 3 21 3 21 8"></polyline>
+                        <line x1="4" y1="20" x2="21" y2="3"></line>
+                        <polyline points="8 21 3 21 3 16"></polyline>
+                        <line x1="15" y1="15" x2="3" y2="21"></line>
+                      </svg>
+                      EX-IN
+                    </span>
+                  } @else if (tx.type === 'EXCHANGE') {
+                    <span class="type-tag tag-exchange">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="type-icon">
+                        <polyline points="16 3 21 3 21 8"></polyline>
+                        <line x1="4" y1="20" x2="21" y2="3"></line>
+                        <polyline points="8 21 3 21 3 16"></polyline>
+                        <line x1="15" y1="15" x2="3" y2="21"></line>
+                      </svg>
+                      EXCHANGE
+                    </span>
+                  } @else if (tx.type === 'BUY') {
                     <span class="type-tag tag-buy">
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="type-icon">
                         <polyline points="7 10 12 15 17 10"></polyline>
@@ -759,11 +804,27 @@
                       SELL
                     </span>
                   }
+                  @if (tx.exchangeFrom) {
+                    <div class="exchange-connected-wrap">
+                      <button class="exchange-link-btn" (click)="selectSymbol(tx.exchangeFrom!)" type="button" [title]="'Exchanged from ' + getDisplaySymbol(tx.exchangeFrom!)">
+                        <span class="exchange-dir-label">From</span>
+                        <span class="exchange-symbol-chip">{{ getDisplaySymbol(tx.exchangeFrom!) }}</span>
+                      </button>
+                    </div>
+                  }
+                  @if (tx.exchangeTo) {
+                    <div class="exchange-connected-wrap">
+                      <button class="exchange-link-btn" (click)="selectSymbol(tx.exchangeTo!)" type="button" [title]="'Exchanged to ' + getDisplaySymbol(tx.exchangeTo!)">
+                        <span class="exchange-dir-label">To</span>
+                        <span class="exchange-symbol-chip">{{ getDisplaySymbol(tx.exchangeTo!) }}</span>
+                      </button>
+                    </div>
+                  }
                 </td>
 
                 <!-- Quantity -->
-                <td class="col-qty" [class.qty-buy]="tx.type === 'BUY'" [class.qty-sell]="tx.type === 'SELL'">
-                  {{ tx.type === 'BUY' ? '+' : '-' }}{{ tx.quantity | number:getQuantityFormat(tx.symbol, tx.assetType) }}
+                <td class="col-qty" [class.qty-buy]="tx.type === 'BUY' || tx.type === 'EXCHANGE_IN'" [class.qty-sell]="tx.type === 'SELL' || tx.type === 'EXCHANGE_OUT'" [class.qty-exchange]="tx.type === 'EXCHANGE'">
+                  {{ tx.type === 'BUY' || tx.type === 'EXCHANGE_IN' ? '+' : '-' }}{{ tx.quantity | number:getQuantityFormat(tx.symbol, tx.assetType) }}
                 </td>
 
                 <!-- Price / Unit -->
@@ -776,9 +837,9 @@
                   <span class="amount-val">{{ cx(tx.totalAmount, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }}</span>
                 </td>
 
-                <!-- Realized P/L (for Sells) -->
+                <!-- Realized P/L (for Sells & Exchange Out trades) -->
                 <td class="col-pl">
-                  @if (tx.type === 'SELL' && tx.realizedPL !== undefined) {
+                  @if ((tx.type === 'SELL' || tx.type === 'EXCHANGE_OUT' || !!tx.exchangeTo) && tx.realizedPL !== undefined && tx.realizedPL !== null) {
                     <span
                       class="pl-badge"
                       [class.pl-positive]="tx.realizedPL >= 0"
@@ -828,7 +889,7 @@
     <!-- Mobile Transaction Cards View (Visible on small screens) -->
     <div class="tx-mobile-cards">
       @for (tx of paginatedTransactions(); track tx.id; let i = $index) {
-        <div class="tx-mobile-card" [class.mobile-card-buy]="tx.type === 'BUY'" [class.mobile-card-sell]="tx.type === 'SELL'">
+        <div class="tx-mobile-card" [class.mobile-card-buy]="tx.type === 'BUY' && !tx.exchangeFrom && !tx.exchangeTo" [class.mobile-card-sell]="tx.type === 'SELL' && !tx.exchangeFrom && !tx.exchangeTo" [class.mobile-card-exchange]="tx.type === 'EXCHANGE' || tx.type === 'EXCHANGE_IN' || tx.type === 'EXCHANGE_OUT' || !!tx.exchangeFrom || !!tx.exchangeTo">
           <!-- Top Row: Identity (Symbol / Type) + Date + Trade # -->
           <div class="mobile-card-header">
             <div class="mobile-card-identity">
@@ -848,19 +909,44 @@
                 </button>
               } @else {
                 <div class="mobile-single-identity">
-                  <span class="mobile-tx-type" [class.type-buy]="tx.type === 'BUY'" [class.type-sell]="tx.type === 'SELL'">
-                    @if (tx.type === 'BUY') {
+                  <span class="mobile-tx-type" [class.type-buy]="tx.type === 'BUY' && !tx.exchangeFrom && !tx.exchangeTo" [class.type-sell]="tx.type === 'SELL' && !tx.exchangeFrom && !tx.exchangeTo" [class.type-exchange]="tx.type === 'EXCHANGE' || tx.type === 'EXCHANGE_IN' || tx.type === 'EXCHANGE_OUT' || !!tx.exchangeFrom || !!tx.exchangeTo">
+                    @if (tx.type === 'EXCHANGE_OUT' || !!tx.exchangeTo || (tx.type === 'SELL' && tx.exchangeTo)) {
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
+                        <polyline points="16 3 21 3 21 8"></polyline>
+                        <line x1="4" y1="20" x2="21" y2="3"></line>
+                        <polyline points="8 21 3 21 3 16"></polyline>
+                        <line x1="15" y1="15" x2="3" y2="21"></line>
+                      </svg>
+                      EX-OUT
+                    } @else if (tx.type === 'EXCHANGE_IN' || !!tx.exchangeFrom || (tx.type === 'BUY' && tx.exchangeFrom)) {
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
+                        <polyline points="16 3 21 3 21 8"></polyline>
+                        <line x1="4" y1="20" x2="21" y2="3"></line>
+                        <polyline points="8 21 3 21 3 16"></polyline>
+                        <line x1="15" y1="15" x2="3" y2="21"></line>
+                      </svg>
+                      EX-IN
+                    } @else if (tx.type === 'EXCHANGE') {
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
+                        <polyline points="16 3 21 3 21 8"></polyline>
+                        <line x1="4" y1="20" x2="21" y2="3"></line>
+                        <polyline points="8 21 3 21 3 16"></polyline>
+                        <line x1="15" y1="15" x2="3" y2="21"></line>
+                      </svg>
+                      EXCHANGE
+                    } @else if (tx.type === 'BUY') {
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
                         <polyline points="7 10 12 15 17 10"></polyline>
                         <line x1="12" y1="15" x2="12" y2="3"></line>
                       </svg>
+                      BUY
                     } @else {
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
                         <polyline points="17 14 12 9 7 14"></polyline>
                         <line x1="12" y1="9" x2="12" y2="21"></line>
                       </svg>
+                      SELL
                     }
-                    {{ tx.type }}
                   </span>
                   <span class="mobile-tx-date">{{ tx.date | date:'mediumDate' }}</span>
                 </div>
@@ -869,19 +955,44 @@
 
             <div class="mobile-card-meta-right">
               @if (!activeSummary()) {
-                <span class="mobile-tx-type" [class.type-buy]="tx.type === 'BUY'" [class.type-sell]="tx.type === 'SELL'">
-                  @if (tx.type === 'BUY') {
+                <span class="mobile-tx-type" [class.type-buy]="tx.type === 'BUY' && !tx.exchangeFrom && !tx.exchangeTo" [class.type-sell]="tx.type === 'SELL' && !tx.exchangeFrom && !tx.exchangeTo" [class.type-exchange]="tx.type === 'EXCHANGE' || tx.type === 'EXCHANGE_IN' || tx.type === 'EXCHANGE_OUT' || !!tx.exchangeFrom || !!tx.exchangeTo">
+                  @if (tx.type === 'EXCHANGE_OUT' || !!tx.exchangeTo || (tx.type === 'SELL' && tx.exchangeTo)) {
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
+                      <polyline points="16 3 21 3 21 8"></polyline>
+                      <line x1="4" y1="20" x2="21" y2="3"></line>
+                      <polyline points="8 21 3 21 3 16"></polyline>
+                      <line x1="15" y1="15" x2="3" y2="21"></line>
+                    </svg>
+                    EX-OUT
+                  } @else if (tx.type === 'EXCHANGE_IN' || !!tx.exchangeFrom || (tx.type === 'BUY' && tx.exchangeFrom)) {
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
+                      <polyline points="16 3 21 3 21 8"></polyline>
+                      <line x1="4" y1="20" x2="21" y2="3"></line>
+                      <polyline points="8 21 3 21 3 16"></polyline>
+                      <line x1="15" y1="15" x2="3" y2="21"></line>
+                    </svg>
+                    EX-IN
+                  } @else if (tx.type === 'EXCHANGE') {
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
+                      <polyline points="16 3 21 3 21 8"></polyline>
+                      <line x1="4" y1="20" x2="21" y2="3"></line>
+                      <polyline points="8 21 3 21 3 16"></polyline>
+                      <line x1="15" y1="15" x2="3" y2="21"></line>
+                    </svg>
+                    EXCHANGE
+                  } @else if (tx.type === 'BUY') {
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
                       <polyline points="7 10 12 15 17 10"></polyline>
                       <line x1="12" y1="15" x2="12" y2="3"></line>
                     </svg>
+                    BUY
                   } @else {
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
                       <polyline points="17 14 12 9 7 14"></polyline>
                       <line x1="12" y1="9" x2="12" y2="21"></line>
                     </svg>
+                    SELL
                   }
-                  {{ tx.type }}
                 </span>
                 <span class="mobile-tx-date">{{ tx.date | date:'MMM d, y' }}</span>
               }
@@ -903,8 +1014,8 @@
                   }
                 </span>
                 <div class="mobile-qty-wrap">
-                  <span class="mobile-metric-qty" [class.qty-buy]="tx.type === 'BUY'" [class.qty-sell]="tx.type === 'SELL'">
-                    {{ tx.type === 'BUY' ? '+' : '-' }}{{ tx.quantity | number:getQuantityFormat(tx.symbol, tx.assetType) }}
+                  <span class="mobile-metric-qty" [class.qty-buy]="tx.type === 'BUY' && !tx.exchangeFrom && !tx.exchangeTo" [class.qty-sell]="tx.type === 'SELL' && !tx.exchangeFrom && !tx.exchangeTo" [class.qty-exchange]="tx.type === 'EXCHANGE' || tx.type === 'EXCHANGE_IN' || tx.type === 'EXCHANGE_OUT' || !!tx.exchangeFrom || !!tx.exchangeTo">
+                    {{ (tx.type === 'BUY' || tx.type === 'EXCHANGE_IN' || !!tx.exchangeFrom) ? '+' : '-' }}{{ tx.quantity | number:getQuantityFormat(tx.symbol, tx.assetType) }}
                   </span>
                   <span class="mobile-metric-unit">{{ getUnitLabel(tx.symbol, tx.assetType) }}</span>
                 </div>
@@ -921,7 +1032,25 @@
               </div>
             </div>
 
-            @if (tx.type === 'SELL' && tx.realizedPL !== undefined) {
+            <!-- Connected Exchange Fund Inline Bar (Compact & Sleek) -->
+            @if (tx.exchangeFrom || tx.exchangeTo) {
+              <div class="mobile-exchange-bar">
+                @if (tx.exchangeFrom) {
+                  <button class="mobile-exchange-inline-btn" (click)="selectSymbol(tx.exchangeFrom!)" type="button" [title]="'Exchanged from ' + getDisplaySymbol(tx.exchangeFrom!)">
+                    <span class="mobile-exchange-prefix">From</span>
+                    <span class="mobile-exchange-chip-val">{{ getDisplaySymbol(tx.exchangeFrom!) }}</span>
+                  </button>
+                }
+                @if (tx.exchangeTo) {
+                  <button class="mobile-exchange-inline-btn" (click)="selectSymbol(tx.exchangeTo!)" type="button" [title]="'Exchanged to ' + getDisplaySymbol(tx.exchangeTo!)">
+                    <span class="mobile-exchange-prefix">To</span>
+                    <span class="mobile-exchange-chip-val">{{ getDisplaySymbol(tx.exchangeTo!) }}</span>
+                  </button>
+                }
+              </div>
+            }
+
+            @if ((tx.type === 'SELL' || tx.type === 'EXCHANGE_OUT' || !!tx.exchangeTo) && tx.realizedPL !== undefined) {
               <div class="mobile-pl-banner" [class.pl-positive]="tx.realizedPL >= 0" [class.pl-negative]="tx.realizedPL < 0">
                 <div class="mobile-pl-banner-left">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pl-banner-icon">

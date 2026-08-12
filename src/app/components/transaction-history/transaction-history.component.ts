@@ -41,7 +41,7 @@ import {
   ExportCsvOptions,
 } from '../../utils/csv-exporter.utils';
 
-export type TxTypeFilter = 'all' | 'buy' | 'sell';
+export type TxTypeFilter = 'all' | 'buy' | 'sell' | 'exchange';
 export type SortOrder = 'desc' | 'asc';
 
 @Component({
@@ -228,27 +228,17 @@ export class TransactionHistoryComponent {
     return this.openSummaries().find((s) => s.symbol === sym) || null;
   });
 
-  /** Filtered transactions for active symbol or unified feed */
-  readonly filteredTransactions = computed<SymbolTransaction[]>(() => {
+  /** Base transactions before type filter (respecting active symbol, asset filter, and date range) */
+  readonly baseTransactions = computed<SymbolTransaction[]>(() => {
     const summary = this.activeSummary();
     let txs: SymbolTransaction[] = [];
 
     if (summary) {
       txs = [...summary.transactions];
     } else {
-      // Unified all symbols feed
       txs = this.filteredSummaries().flatMap((s) => s.transactions);
     }
 
-    // Filter by type (BUY / SELL)
-    const type = this.typeFilter();
-    if (type === 'buy') {
-      txs = txs.filter((t) => t.type === 'BUY');
-    } else if (type === 'sell') {
-      txs = txs.filter((t) => t.type === 'SELL');
-    }
-
-    // Filter by date range (startDate <= date <= endDate)
     const start = this.startDate().trim();
     const end = this.endDate().trim();
     if (start) {
@@ -256,6 +246,30 @@ export class TransactionHistoryComponent {
     }
     if (end) {
       txs = txs.filter((t) => (t.date ? t.date <= end : true));
+    }
+
+    return txs;
+  });
+
+  /** Filtered transactions for active symbol or unified feed */
+  readonly filteredTransactions = computed<SymbolTransaction[]>(() => {
+    let txs = [...this.baseTransactions()];
+
+    // Filter by type (BUY / SELL / EXCHANGE)
+    const type = this.typeFilter();
+    if (type === 'buy') {
+      txs = txs.filter((t) => t.type === 'BUY');
+    } else if (type === 'sell') {
+      txs = txs.filter((t) => t.type === 'SELL');
+    } else if (type === 'exchange') {
+      txs = txs.filter(
+        (t) =>
+          t.type === 'EXCHANGE' ||
+          t.type === 'EXCHANGE_IN' ||
+          t.type === 'EXCHANGE_OUT' ||
+          !!t.exchangeFrom ||
+          !!t.exchangeTo
+      );
     }
 
     // Sort order
@@ -269,22 +283,27 @@ export class TransactionHistoryComponent {
   });
 
   /** Counts for type filter pills */
+  readonly allCount = computed<number>(() => {
+    return this.baseTransactions().length;
+  });
+
   readonly buyCount = computed<number>(() => {
-    const summary = this.activeSummary();
-    if (summary) return summary.buyCount;
-    return this.filteredSummaries().reduce(
-      (sum, s) => sum + s.buyCount,
-      0
-    );
+    return this.baseTransactions().filter((t) => t.type === 'BUY').length;
   });
 
   readonly sellCount = computed<number>(() => {
-    const summary = this.activeSummary();
-    if (summary) return summary.sellCount;
-    return this.filteredSummaries().reduce(
-      (sum, s) => sum + s.sellCount,
-      0
-    );
+    return this.baseTransactions().filter((t) => t.type === 'SELL').length;
+  });
+
+  readonly exchangeCount = computed<number>(() => {
+    return this.baseTransactions().filter(
+      (t) =>
+        t.type === 'EXCHANGE' ||
+        t.type === 'EXCHANGE_IN' ||
+        t.type === 'EXCHANGE_OUT' ||
+        !!t.exchangeFrom ||
+        !!t.exchangeTo
+    ).length;
   });
 
   readonly totalTxCount = computed<number>(() => {

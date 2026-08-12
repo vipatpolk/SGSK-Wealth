@@ -5,6 +5,9 @@ export interface Transaction {
   price: number;
   currency: string;
   assetType: string;
+  exchangeFrom?: string;
+  exchangeTo?: string;
+  txType?: string;
 }
 
 export interface ShareLot {
@@ -60,7 +63,7 @@ export interface SymbolTransaction {
   id: string;
   symbol: string;
   date: string;
-  type: 'BUY' | 'SELL';
+  type: 'BUY' | 'SELL' | 'EXCHANGE' | 'EXCHANGE_IN' | 'EXCHANGE_OUT';
   quantity: number;
   rawQuantity: number;
   price: number;
@@ -72,6 +75,8 @@ export interface SymbolTransaction {
   runningAverageCost: number;
   realizedPL?: number;
   realizedPLPercent?: number;
+  exchangeFrom?: string;
+  exchangeTo?: string;
 }
 
 export interface SymbolTransactionSummary {
@@ -81,6 +86,7 @@ export interface SymbolTransactionSummary {
   totalTransactions: number;
   buyCount: number;
   sellCount: number;
+  exchangeCount?: number;
   totalBuyShares: number;
   totalSellShares: number;
   totalBuyAmount: number;
