@@ -1,6 +1,8 @@
-import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { Observable, forkJoin, map, of } from 'rxjs';
+
+import { environment } from '../../environments/environment';
 import { PriceData } from './price.service';
 
 @Injectable({
@@ -11,15 +13,32 @@ export class NavService {
   private readonly baseUrl = '/api/backend/nav';
 
   fetchFundNAVs(symbols: string[]): Observable<Map<string, PriceData>> {
-    return this.http.post<{ [key: string]: PriceData }>(`${this.baseUrl}/fetch`, { symbols }).pipe(
-      map((response) => {
-        const priceMap = new Map<string, PriceData>();
-        if (response) {
-          for (const key of Object.keys(response)) {
-            priceMap.set(key, response[key]);
+    if (!symbols || symbols.length === 0) {
+      return of(new Map<string, PriceData>());
+    }
+
+    const batchSize = environment.maxBatchSize || 50;
+    const chunks: string[][] = [];
+
+    for (let i = 0; i < symbols.length; i += batchSize) {
+      chunks.push(symbols.slice(i, i + batchSize));
+    }
+
+    const requests$ = chunks.map((chunk) =>
+      this.http.post<{ [key: string]: PriceData }>(`${this.baseUrl}/fetch`, { symbols: chunk })
+    );
+
+    return forkJoin(requests$).pipe(
+      map((responses) => {
+        const mergedMap = new Map<string, PriceData>();
+        for (const resp of responses) {
+          if (resp) {
+            for (const key of Object.keys(resp)) {
+              mergedMap.set(key, resp[key]);
+            }
           }
         }
-        return priceMap;
+        return mergedMap;
       })
     );
   }

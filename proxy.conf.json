@@ -5,6 +5,9 @@
     "changeOrigin": true,
     "pathRewrite": {
       "^/api/backend": ""
+    },
+    "headers": {
+      "X-API-Key": "dev_secret_key_change_in_prod"
     }
   }
 }
