@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { App } from './app';
+import { ASSET_TABS } from './config/asset.constants';
 
 describe('App', () => {
   beforeEach(async () => {
@@ -286,6 +287,43 @@ describe('App', () => {
     expect(app.totalHoldingConverted()).toBe(1320);
     expect(app.totalCostConverted()).toBe(1300);
     expect(app.totalPL()).toBe(20);
+  });
+
+  it('should compute totalCostConverted from openInvested on open tabs and closedInvested on closed tab', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    app.portfolioData.set({
+      currency: 'USD',
+      exchangeRate: 1.0,
+      tabId: 'all',
+      summary: {
+        totalInvested: 15000,
+        totalValue: 12000,
+        openInvested: 10000,
+        closedInvested: 5000,
+        totalUnrealizedPL: 2000,
+        totalUnrealizedPLPercent: 20,
+        totalRealizedPL: 1000,
+        totalRealizedPLPercent: 20,
+        totalReturn: 3000,
+        totalReturnPercent: 20,
+      },
+      openPositions: [],
+      closedPositions: [],
+      error: null,
+    });
+
+    // On open/all tab: totalCostConverted must be openInvested ($10,000) not totalInvested ($15,000)
+    expect(app.isClosedTab()).toBe(false);
+    expect(app.totalCostConverted()).toBe(10000);
+    expect(app.totalHoldingConverted()).toBe(12000);
+    expect(app.totalPL()).toBe(2000);
+
+    // On closed tab: totalCostConverted must be closedInvested ($5,000)
+    app.activeTab.set(ASSET_TABS.find((t: any) => t.id === 'closed-position')!);
+    expect(app.isClosedTab()).toBe(true);
+    expect(app.totalCostConverted()).toBe(5000);
   });
 
   it('should format display symbols correctly stripping .BKFUND, .BK, and .CRYPTO suffixes', () => {

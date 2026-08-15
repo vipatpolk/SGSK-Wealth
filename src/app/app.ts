@@ -235,9 +235,12 @@ export class App {
   });
 
   readonly totalCostConverted = computed<number>(() => {
-    const summary = this.portfolioData()?.summary;
-    if (!summary) return 0;
-    return this.isClosedTab() ? summary.closedInvested : summary.totalInvested;
+    const data = this.portfolioData();
+    if (!data) return 0;
+    if (this.isClosedTab()) {
+      return data.summary.closedInvested ?? data.closedPositions.reduce((acc, c) => acc + c.totalCost, 0);
+    }
+    return data.summary.openInvested ?? data.openPositions.reduce((acc, p) => acc + p.totalCost, 0);
   });
 
   readonly totalProceedsConverted = computed<number>(() => {
