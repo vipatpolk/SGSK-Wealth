@@ -1,9 +1,11 @@
 import { PerformanceComponent } from './components/performance/performance.component';
-import { Component, inject, signal, computed, ViewEncapsulation } from '@angular/core';
-import { DecimalPipe, CurrencyPipe, DatePipe, NgTemplateOutlet } from '@angular/common';
-import { ShareLotService, SheetResult } from './services/share-lot.service';
+import { Component, inject, signal, computed, ViewEncapsulation, effect } from '@angular/core';
+import { DecimalPipe, CurrencyPipe, NgTemplateOutlet } from '@angular/common';
+import { SheetResult } from './services/share-lot.service';
 import { PriceService, PriceData } from './services/price.service';
-import { SymbolSummary, ClosedSymbolSummary, ShareLot } from './models/transaction.model';
+import { PortfolioService } from './services/portfolio.service';
+import { PortfolioHoldingsResponse, PortfolioPosition, ClosedPortfolioPosition, PortfolioHoldingLot } from './models/portfolio.model';
+import { SymbolSummary, ClosedSymbolSummary, ShareLot, ClosedShareLot } from './models/transaction.model';
 import { AssetTab, ASSET_TABS } from './config/asset.constants';
 import { TransactionHistoryComponent } from './components/transaction-history/transaction-history.component';
 import { HeaderComponent } from './components/header/header.component';
@@ -56,7 +58,7 @@ export interface SymbolAutocompleteItem {
   encapsulation: ViewEncapsulation.None,
 })
 export class App {
-  private readonly shareLotService = inject(ShareLotService);
+  private readonly portfolioService = inject(PortfolioService);
   private readonly priceService = inject(PriceService);
 
   readonly tabs = ASSET_TABS;
@@ -68,21 +70,20 @@ export class App {
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
-  readonly result = signal<SheetResult | null>(null);
+  readonly portfolioData = signal<PortfolioHoldingsResponse | null>(null);
   readonly prices = signal<Map<string, PriceData>>(new Map());
   readonly pricesLoading = signal(false);
 
   /** Per-tab cache to avoid redundant network requests on tab switch */
   private readonly tabCache = new Map<string, {
-    result: SheetResult;
+    portfolioData: PortfolioHoldingsResponse;
     prices: Map<string, PriceData>;
-    exchangeRate: number;
     timestamp: number;
   }>();
 
   /** Currency conversion */
   readonly displayCurrency = signal<'USD' | 'THB'>('THB');
-  readonly exchangeRate = signal<number>(0); // USD → THB rate
+  readonly exchangeRate = signal<number>(0);
 
   /** Theme (dark/light) */
   readonly theme = signal<'dark' | 'light'>('dark');
@@ -144,9 +145,61 @@ export class App {
     }
   }
 
+  /** Adapter for result signal to maintain backward compatibility with components */
+  readonly result = computed<SheetResult | null>(() => {
+    const data = this.portfolioData();
+    if (!data) return null;
+
+    const summaries: SymbolSummary[] = data.openPositions.map((p) => ({
+      symbol: p.symbol,
+      totalShares: p.totalShares,
+      totalCost: p.totalCost,
+      averageCost: p.averageCost,
+      currency: p.currency,
+      assetType: p.assetType,
+      lots: p.lots.map((l) => ({
+        symbol: p.symbol,
+        purchaseDate: l.purchaseDate,
+        quantity: l.quantity,
+        costBasis: l.costBasis,
+        totalCost: l.totalCost,
+        assetType: l.assetType,
+      })),
+    }));
+
+    const closedSummaries: ClosedSymbolSummary[] = data.closedPositions.map((c) => ({
+      symbol: c.symbol,
+      totalShares: 0,
+      closedShares: c.closedShares,
+      totalCost: c.totalCost,
+      totalProceeds: c.totalProceeds,
+      realizedPL: c.realizedPL,
+      realizedPLPercent: c.realizedPLPercent,
+      averageBuyPrice: c.averageBuyPrice,
+      averageSellPrice: c.averageSellPrice,
+      currency: c.currency,
+      assetType: c.assetType,
+      lots: c.lots,
+    }));
+
+    return {
+      summaries,
+      closedSummaries,
+      transactionSummaries: data.transactionSummaries,
+      rawTransactions: data.rawTransactions,
+      totalCostByCurrency: { [data.currency]: data.summary.totalInvested },
+      totalProceedsByCurrency: { [data.currency]: data.summary.totalValue },
+      totalRealizedPLByCurrency: { [data.currency]: data.summary.totalRealizedPL },
+      totalSymbols: summaries.length + closedSummaries.length,
+      totalLots: summaries.reduce((acc, s) => acc + s.lots.length, 0),
+      error: data.error,
+      isClosed: this.isClosedTab(),
+    };
+  });
+
   readonly closedAssetTypeOptions = computed(() => {
-    const data = this.result();
-    const list = data?.closedSummaries || [];
+    const data = this.portfolioData();
+    const list = data?.closedPositions || [];
     return generateAssetTypeOptions(list);
   });
 
@@ -172,66 +225,52 @@ export class App {
   });
 
   readonly totalCostConverted = computed<number>(() => {
-    const data = this.result();
-    if (!data) return 0;
-    if (this.isClosedTab()) {
-      return this.sumConverted(this.filteredClosedSummaries(), s => s.totalCost);
-    }
-    return this.sumConverted(data.summaries, s => s.totalCost);
+    const summary = this.portfolioData()?.summary;
+    if (!summary) return 0;
+    return this.isClosedTab() ? summary.closedInvested : summary.totalInvested;
   });
 
   readonly totalProceedsConverted = computed<number>(() => {
-    if (!this.result()) return 0;
-    return this.sumConverted(this.filteredClosedSummaries(), s => s.totalProceeds);
+    return this.portfolioData()?.closedPositions.reduce((acc, c) => acc + c.totalProceeds, 0) || 0;
   });
 
   readonly totalRealizedPLConverted = computed<number>(() => {
-    if (!this.result()) return 0;
-    return this.sumConverted(this.filteredClosedSummaries(), s => s.realizedPL);
+    return this.portfolioData()?.summary.totalRealizedPL || 0;
   });
 
   readonly totalRealizedPLPercent = computed<number>(() => {
-    if (!this.result()) return 0;
-    const closedCost = this.sumConverted(this.filteredClosedSummaries(), s => s.totalCost);
-    if (closedCost === 0) return 0;
-    return (this.totalRealizedPLConverted() / closedCost) * 100;
+    return this.portfolioData()?.summary.totalRealizedPLPercent || 0;
   });
 
   readonly totalHoldingConverted = computed<number>(() => {
-    const data = this.result();
-    const priceMap = this.prices();
-    if (!data || this.isClosedTab()) return 0;
-
-    let total = 0;
-    for (const s of data.summaries) {
-      const pd = priceMap.get(s.symbol);
-      if (pd && pd.price > 0) {
-        if (!this.hasRate() && s.currency !== this.displayCurrency()) continue;
-        const holdingValInSummary = this.getHoldingValue(s);
-        total += this.cx(holdingValInSummary, s.currency);
-      }
-    }
-    return total;
+    if (this.isClosedTab()) return 0;
+    return this.portfolioData()?.summary.totalValue || 0;
   });
 
   readonly totalPL = computed<number>(() => {
     if (this.isClosedTab()) {
-      return this.totalProceedsConverted() - this.totalCostConverted();
+      return this.totalRealizedPLConverted();
     }
-    return this.totalHoldingConverted() - this.totalCostConverted();
+    return this.portfolioData()?.summary.totalUnrealizedPL || 0;
   });
 
   readonly totalPLPercent = computed<number>(() => {
-    const cost = this.totalCostConverted();
-    if (cost === 0) return 0;
-    return (this.totalPL() / cost) * 100;
+    if (this.isClosedTab()) {
+      return this.totalRealizedPLPercent();
+    }
+    return this.portfolioData()?.summary.totalUnrealizedPLPercent || 0;
   });
 
   readonly hasRate = computed<boolean>(() => this.exchangeRate() > 0);
 
   constructor() {
     this.initTheme();
-    this.loadTab(this.activeTab());
+    effect(() => {
+      // Re-fetch on currency change
+      const curr = this.displayCurrency();
+      const tab = this.activeTab();
+      this.loadTab(tab, curr);
+    });
   }
 
   private initTheme(): void {
@@ -265,43 +304,35 @@ export class App {
       try {
         localStorage.setItem('sharelot_theme', theme);
       } catch {
-        // Ignore localStorage errors (e.g. incognito/sandboxed)
+        // Ignore localStorage errors
       }
     }
   }
 
-  private sumConverted<T extends { currency: string }>(items: T[], valueGetter: (item: T) => number): number {
-    return items.reduce((sum, s) => {
-      const normCurrency = s.currency === 'USDT' ? 'USD' : s.currency;
-      if (!this.hasRate() && normCurrency !== this.displayCurrency()) return sum;
-      return sum + this.cx(valueGetter(s), s.currency);
-    }, 0);
-  }
-
-  /** Convert an amount from `fromCurrency` to `toCurrency` using the exchange rate */
   convertCurrency(amount: number, fromCurrency: string, toCurrency: string): number {
     return convertCurrency(amount, fromCurrency, toCurrency, this.exchangeRate());
   }
 
-  /** Convert an amount from `fromCurrency` to the display currency */
   cx(amount: number, fromCurrency: string): number {
     return this.convertCurrency(amount, fromCurrency, this.displayCurrency());
   }
 
   dc(originalCurrency?: string): string {
-    if (!this.hasRate() && originalCurrency) {
-      return originalCurrency === 'USDT' ? 'USD' : originalCurrency;
-    }
     return this.displayCurrency();
   }
 
-  readonly filteredSummaries = computed<SymbolSummary[]>(() => {
-    const data = this.result();
+  readonly filteredSummaries = computed<PortfolioPosition[]>(() => {
+    const data = this.portfolioData();
     if (!data) return [];
     const query = this.searchQuery().trim().toUpperCase();
     let list = query
-      ? data.summaries.filter((s) => s.symbol.toUpperCase().includes(query) || this.getSymbolName(s.symbol).toUpperCase().includes(query))
-      : [...data.summaries];
+      ? data.openPositions.filter(
+          (s) =>
+            s.symbol.toUpperCase().includes(query) ||
+            s.displaySymbol.toUpperCase().includes(query) ||
+            s.name.toUpperCase().includes(query)
+        )
+      : [...data.openPositions];
 
     const field = this.sortField();
     const dir = this.sortDirection() === 'asc' ? 1 : -1;
@@ -316,24 +347,24 @@ export class App {
           vb = b.symbol;
           return dir * (va < vb ? -1 : va > vb ? 1 : 0);
         case 'totalCost':
-          va = this.cx(a.totalCost, a.currency);
-          vb = this.cx(b.totalCost, b.currency);
+          va = a.totalCost;
+          vb = b.totalCost;
           break;
         case 'avgCost':
-          va = this.cx(a.averageCost, a.currency);
-          vb = this.cx(b.averageCost, b.currency);
+          va = a.averageCost;
+          vb = b.averageCost;
           break;
         case 'holdingValue':
-          va = this.cx(this.getHoldingValue(a), a.currency);
-          vb = this.cx(this.getHoldingValue(b), b.currency);
+          va = a.holdingValue;
+          vb = b.holdingValue;
           break;
         case 'pl':
-          va = this.getUnrealizedPLPercent(a);
-          vb = this.getUnrealizedPLPercent(b);
+          va = a.unrealizedPLPercent;
+          vb = b.unrealizedPLPercent;
           break;
         default:
-          va = this.cx(a.totalCost, a.currency);
-          vb = this.cx(b.totalCost, b.currency);
+          va = a.totalCost;
+          vb = b.totalCost;
           break;
       }
 
@@ -343,13 +374,12 @@ export class App {
     return list;
   });
 
-  readonly filteredClosedSummaries = computed<ClosedSymbolSummary[]>(() => {
-    const data = this.result();
-    if (!data || !data.closedSummaries) return [];
+  readonly filteredClosedSummaries = computed<ClosedPortfolioPosition[]>(() => {
+    const data = this.portfolioData();
+    if (!data || !data.closedPositions) return [];
 
-    let list = [...data.closedSummaries];
+    let list = [...data.closedPositions];
 
-    // Filter by Asset Type on Closed Position tab
     const typeFilter = this.selectedClosedAssetType();
     if (this.isClosedTab() && typeFilter !== 'all') {
       list = list.filter((s) => getAssetType(s.assetType, s.symbol) === typeFilter);
@@ -357,7 +387,12 @@ export class App {
 
     const query = this.searchQuery().trim().toUpperCase();
     if (query) {
-      list = list.filter((s) => s.symbol.toUpperCase().includes(query) || this.getSymbolName(s.symbol).toUpperCase().includes(query));
+      list = list.filter(
+        (s) =>
+          s.symbol.toUpperCase().includes(query) ||
+          s.displaySymbol.toUpperCase().includes(query) ||
+          s.name.toUpperCase().includes(query)
+      );
     }
 
     const field = this.sortField();
@@ -373,21 +408,21 @@ export class App {
           vb = b.symbol;
           return dir * (va < vb ? -1 : va > vb ? 1 : 0);
         case 'totalCost':
-          va = this.cx(a.totalCost, a.currency);
-          vb = this.cx(b.totalCost, b.currency);
+          va = a.totalCost;
+          vb = b.totalCost;
           break;
         case 'avgCost':
-          va = this.cx(a.averageBuyPrice, a.currency);
-          vb = this.cx(b.averageBuyPrice, b.currency);
+          va = a.averageBuyPrice;
+          vb = b.averageBuyPrice;
           break;
         case 'holdingValue':
         case 'totalProceeds':
-          va = this.cx(a.totalProceeds, a.currency);
-          vb = this.cx(b.totalProceeds, b.currency);
+          va = a.totalProceeds;
+          vb = b.totalProceeds;
           break;
         case 'realizedPL':
-          va = this.cx(a.realizedPL, a.currency);
-          vb = this.cx(b.realizedPL, b.currency);
+          va = a.realizedPL;
+          vb = b.realizedPL;
           break;
         case 'pl':
           va = a.realizedPLPercent;
@@ -399,8 +434,8 @@ export class App {
           vb = b.closedShares;
           break;
         default:
-          va = this.cx(a.realizedPL, a.currency);
-          vb = this.cx(b.realizedPL, b.currency);
+          va = a.realizedPL;
+          vb = b.realizedPL;
           break;
       }
 
@@ -411,7 +446,7 @@ export class App {
   });
 
   readonly autocompleteSuggestions = computed<SymbolAutocompleteItem[]>(() => {
-    const data = this.result();
+    const data = this.portfolioData();
     if (!data) return [];
 
     const query = this.searchQuery().trim().toUpperCase();
@@ -421,13 +456,12 @@ export class App {
     const items: SymbolAutocompleteItem[] = [];
     const seenSymbols = new Set<string>();
 
-    // 1. Open positions
     if (!isClosed || isAll) {
-      for (const s of data.summaries || []) {
-        const displaySym = this.getDisplaySymbol(s.symbol);
-        const name = this.getSymbolName(s.symbol);
-        const type = getAssetType(s.assetType, s.symbol);
-        const typeLabel = this.getAssetTypeLabel(s.assetType, s.symbol);
+      for (const s of data.openPositions || []) {
+        const displaySym = s.displaySymbol || this.getDisplaySymbol(s.symbol);
+        const name = s.name || this.getSymbolName(s.symbol);
+        const type = s.assetType;
+        const typeLabel = s.assetTypeLabel;
 
         const matches =
           !query ||
@@ -438,11 +472,6 @@ export class App {
 
         if (matches) {
           seenSymbols.add(s.symbol);
-          const hasPrice = this.hasPriceData(s.symbol);
-          const holdingVal = hasPrice ? this.getHoldingValue(s) : undefined;
-          const pl = hasPrice ? this.getUnrealizedPL(s) : undefined;
-          const plPercent = hasPrice ? this.getUnrealizedPLPercent(s) : undefined;
-
           items.push({
             symbol: s.symbol,
             displaySymbol: displaySym,
@@ -454,24 +483,23 @@ export class App {
             totalShares: s.totalShares,
             totalCost: s.totalCost,
             currency: s.currency,
-            holdingValue: holdingVal,
-            unrealizedPL: pl,
-            unrealizedPLPercent: plPercent,
-            hasPrice,
+            holdingValue: s.holdingValue,
+            unrealizedPL: s.unrealizedPL,
+            unrealizedPLPercent: s.unrealizedPLPercent,
+            hasPrice: s.hasPrice,
           });
         }
       }
     }
 
-    // 2. Closed positions
     if (isClosed || isAll) {
-      for (const s of data.closedSummaries || []) {
+      for (const s of data.closedPositions || []) {
         if (seenSymbols.has(s.symbol)) continue;
 
-        const displaySym = this.getDisplaySymbol(s.symbol);
-        const name = this.getSymbolName(s.symbol);
-        const type = getAssetType(s.assetType, s.symbol);
-        const typeLabel = this.getAssetTypeLabel(s.assetType, s.symbol);
+        const displaySym = s.displaySymbol || this.getDisplaySymbol(s.symbol);
+        const name = s.name || this.getSymbolName(s.symbol);
+        const type = s.assetType;
+        const typeLabel = s.assetTypeLabel;
 
         const matches =
           !query ||
@@ -500,15 +528,12 @@ export class App {
       }
     }
 
-    // Sort suggestions: exact matches first, then starts-with, then name matches
     if (query) {
       items.sort((a, b) => {
         const aSym = a.symbol.toUpperCase();
         const bSym = b.symbol.toUpperCase();
         const aDisp = a.displaySymbol.toUpperCase();
         const bDisp = b.displaySymbol.toUpperCase();
-        const aName = a.name.toUpperCase();
-        const bName = b.name.toUpperCase();
 
         const aExact = aSym === query || aDisp === query;
         const bExact = bSym === query || bDisp === query;
@@ -519,11 +544,6 @@ export class App {
         const bStarts = bSym.startsWith(query) || bDisp.startsWith(query);
         if (aStarts && !bStarts) return -1;
         if (!aStarts && bStarts) return 1;
-
-        const aNameStarts = aName.startsWith(query);
-        const bNameStarts = bName.startsWith(query);
-        if (aNameStarts && !bNameStarts) return -1;
-        if (!aNameStarts && bNameStarts) return 1;
 
         return 0;
       });
@@ -562,7 +582,6 @@ export class App {
     this.searchQuery.set(item.displaySymbol || item.symbol);
     this.closeSearchDropdown();
 
-    // Expand the selected symbol's card
     this.expandedSymbols.update((set) => {
       const next = new Set(set);
       next.add(item.symbol);
@@ -604,7 +623,8 @@ export class App {
         return;
       }
       if (suggestions.length > 0) {
-        const nextIndex = this.searchActiveIndex() <= 0 ? suggestions.length - 1 : this.searchActiveIndex() - 1;
+        const nextIndex =
+          this.searchActiveIndex() <= 0 ? suggestions.length - 1 : this.searchActiveIndex() - 1;
         this.searchActiveIndex.set(nextIndex);
         this.scrollActiveSuggestionIntoView(nextIndex);
       }
@@ -667,116 +687,73 @@ export class App {
       this.sortDirection.set('desc');
     }
 
-    // Restore from cache if available (instant tab switch)
-    const cached = this.tabCache.get(tab.id);
+    const cacheKey = `${tab.id}-${this.displayCurrency()}`;
+    const cached = this.tabCache.get(cacheKey);
     if (cached) {
       this.error.set(null);
-      this.result.set(cached.result);
+      this.portfolioData.set(cached.portfolioData);
       this.prices.set(cached.prices);
-      if (cached.exchangeRate > 0) this.exchangeRate.set(cached.exchangeRate);
+      if (cached.portfolioData.exchangeRate > 0) {
+        this.exchangeRate.set(cached.portfolioData.exchangeRate);
+      }
       this.loading.set(false);
       this.pricesLoading.set(false);
       return;
     }
 
-    this.loadTab(tab);
+    this.loadTab(tab, this.displayCurrency());
   }
 
-
-  loadTab(tab: AssetTab): void {
+  loadTab(tab: AssetTab, currency: 'USD' | 'THB' = this.displayCurrency()): void {
     this.loading.set(true);
     this.error.set(null);
-    this.result.set(null);
-    this.prices.set(new Map());
+    this.portfolioData.set(null);
 
-    const obs =
-      tab.id === 'all'
-        ? this.shareLotService.fetchAllSheets()
-        : this.shareLotService.fetchSheet(tab.id);
-
-    obs.subscribe({
+    this.portfolioService.fetchHoldings(tab.id, currency).subscribe({
       next: (res) => {
         if (res.error) {
           this.error.set(res.error);
           this.loading.set(false);
         } else {
-          this.result.set(res);
-          this.fetchPricesForResult(tab.id, res);
+          this.portfolioData.set(res);
+          if (res.exchangeRate > 0) {
+            this.exchangeRate.set(res.exchangeRate);
+          }
+
+          // Populate price map for child components
+          const pMap = new Map<string, PriceData>();
+          for (const pos of res.openPositions) {
+            pMap.set(pos.symbol, {
+              symbol: pos.symbol,
+              name: pos.name,
+              price: pos.currentPrice,
+              currency: pos.currency,
+            });
+          }
+          this.prices.set(pMap);
+
+          const cacheKey = `${tab.id}-${currency}`;
+          this.tabCache.set(cacheKey, {
+            portfolioData: res,
+            prices: pMap,
+            timestamp: Date.now(),
+          });
+
+          this.loading.set(false);
+          this.pricesLoading.set(false);
         }
       },
       error: (err) => {
-        this.error.set(err?.message || 'Failed to load sheet data');
+        this.error.set(err?.message || 'Failed to load portfolio holdings');
         this.loading.set(false);
       },
-    });
-  }
-
-  private fetchPricesForResult(tabId: string, result: SheetResult): void {
-    const seen = new Set<string>();
-    const allSummaries: { symbol: string; assetType?: string }[] = [];
-
-    const candidates = [
-      ...(result.summaries || []),
-      ...(result.closedSummaries || []),
-      ...(result.transactionSummaries || []),
-    ];
-
-    for (const item of candidates) {
-      if (item.symbol && !seen.has(item.symbol)) {
-        seen.add(item.symbol);
-        allSummaries.push({ symbol: item.symbol, assetType: item.assetType });
-      }
-    }
-
-    if (allSummaries.length === 0) {
-      this.priceService.fetchExchangeRate().subscribe({
-        next: (rate) => {
-          if (rate > 0) this.exchangeRate.set(rate);
-          this.cacheTabData(tabId, result, new Map(), this.exchangeRate());
-          this.loading.set(false);
-        },
-        error: () => {
-          this.loading.set(false);
-        },
-      });
-      return;
-    }
-
-    this.pricesLoading.set(true);
-    this.priceService.fetchPricesAndRate(allSummaries).subscribe({
-      next: ({ prices, rate }) => {
-        this.prices.set(prices);
-        if (rate > 0) this.exchangeRate.set(rate);
-        this.cacheTabData(tabId, result, prices, this.exchangeRate());
-        this.pricesLoading.set(false);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.pricesLoading.set(false);
-        this.loading.set(false);
-      },
-    });
-  }
-
-  /** Store fetched data in per-tab cache */
-  private cacheTabData(
-    tabId: string,
-    result: SheetResult,
-    prices: Map<string, PriceData>,
-    exchangeRate: number
-  ): void {
-    this.tabCache.set(tabId, {
-      result,
-      prices,
-      exchangeRate,
-      timestamp: Date.now(),
     });
   }
 
   refresh(): void {
-    // Clear cache for the active tab so loadTab fetches fresh data
-    this.tabCache.delete(this.activeTab().id);
-    this.loadTab(this.activeTab());
+    const cacheKey = `${this.activeTab().id}-${this.displayCurrency()}`;
+    this.tabCache.delete(cacheKey);
+    this.loadTab(this.activeTab(), this.displayCurrency());
   }
 
   toggleExpand(symbol: string): void {
@@ -794,14 +771,14 @@ export class App {
   }
 
   expandAll(): void {
-    const data = this.result();
+    const data = this.portfolioData();
     if (!data) return;
     const symbols = new Set<string>();
     if (!this.isClosedTab()) {
-      data.summaries.forEach(s => symbols.add(s.symbol));
+      data.openPositions.forEach((s) => symbols.add(s.symbol));
     }
     if (this.isClosedTab() || this.isAllTab()) {
-      data.closedSummaries.forEach(s => symbols.add(s.symbol));
+      data.closedPositions.forEach((s) => symbols.add(s.symbol));
     }
     this.expandedSymbols.set(symbols);
   }
@@ -814,24 +791,14 @@ export class App {
     return this.prices().get(symbol)?.price ?? 0;
   }
 
-  getCurrentPriceInSummaryCurrency(summary: SymbolSummary): number {
-    const pd = this.prices().get(summary.symbol);
-    if (!pd || pd.price <= 0) return 0;
-    return this.convertCurrency(pd.price, pd.currency, summary.currency);
-  }
-
-  getCurrentPriceConverted(summary: SymbolSummary): number {
-    const pd = this.prices().get(summary.symbol);
-    if (!pd || pd.price <= 0) return 0;
-    const target = this.dc(summary.currency);
-    return this.convertCurrency(pd.price, pd.currency, target);
+  getCurrentPriceConverted(summary: PortfolioPosition | SymbolSummary): number {
+    if ('currentPrice' in summary) {
+      return summary.currentPrice;
+    }
+    return this.getCurrentPrice(summary.symbol);
   }
 
   getDisplaySymbol(symbol: string): string {
-    const priceData = this.prices().get(symbol);
-    if (priceData?.symbol && priceData.symbol !== symbol) {
-      return priceData.symbol;
-    }
     return displaySymbol(symbol);
   }
 
@@ -839,35 +806,58 @@ export class App {
     return resolveSymbolName(symbol, this.prices());
   }
 
-  getHoldingValue(summary: SymbolSummary): number {
-    const priceInSummary = this.getCurrentPriceInSummaryCurrency(summary);
-    return summary.totalShares * priceInSummary;
+  getHoldingValue(summary: PortfolioPosition | SymbolSummary): number {
+    if ('holdingValue' in summary) {
+      return summary.holdingValue;
+    }
+    const price = this.getCurrentPrice(summary.symbol);
+    return summary.totalShares * price;
   }
 
-  getUnrealizedPL(summary: SymbolSummary): number {
+  getUnrealizedPL(summary: PortfolioPosition | SymbolSummary): number {
+    if ('unrealizedPL' in summary) {
+      return summary.unrealizedPL;
+    }
     return this.getHoldingValue(summary) - summary.totalCost;
   }
 
-  getUnrealizedPLPercent(summary: SymbolSummary): number {
+  getUnrealizedPLPercent(summary: PortfolioPosition | SymbolSummary): number {
+    if ('unrealizedPLPercent' in summary) {
+      return summary.unrealizedPLPercent;
+    }
     if (summary.totalCost === 0) return 0;
     return (this.getUnrealizedPL(summary) / summary.totalCost) * 100;
   }
 
-  getLotHoldingValue(lot: ShareLot, summary: SymbolSummary): number {
-    const priceInSummary = this.getCurrentPriceInSummaryCurrency(summary);
-    return lot.quantity * priceInSummary;
+  getLotHoldingValue(lot: PortfolioHoldingLot | ShareLot, summary: PortfolioPosition | SymbolSummary): number {
+    if ('holdingValue' in lot) {
+      return lot.holdingValue;
+    }
+    const price = this.getCurrentPriceConverted(summary);
+    return lot.quantity * price;
   }
 
-  getLotUnrealizedPL(lot: ShareLot, summary: SymbolSummary): number {
+  getLotUnrealizedPL(lot: PortfolioHoldingLot | ShareLot, summary: PortfolioPosition | SymbolSummary): number {
+    if ('unrealizedPL' in lot) {
+      return lot.unrealizedPL;
+    }
     return this.getLotHoldingValue(lot, summary) - lot.totalCost;
   }
 
-  getLotUnrealizedPLPercent(lot: ShareLot, summary: SymbolSummary): number {
+  getLotUnrealizedPLPercent(lot: PortfolioHoldingLot | ShareLot, summary: PortfolioPosition | SymbolSummary): number {
+    if ('unrealizedPLPercent' in lot) {
+      return lot.unrealizedPLPercent;
+    }
     if (lot.totalCost === 0) return 0;
     return (this.getLotUnrealizedPL(lot, summary) / lot.totalCost) * 100;
   }
 
   hasPriceData(symbol: string): boolean {
+    const data = this.portfolioData();
+    if (data) {
+      const pos = data.openPositions.find((p) => p.symbol === symbol);
+      if (pos) return pos.hasPrice;
+    }
     return this.prices().has(symbol) && this.getCurrentPrice(symbol) > 0;
   }
 

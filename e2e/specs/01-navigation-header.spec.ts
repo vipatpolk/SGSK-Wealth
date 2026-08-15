@@ -11,13 +11,17 @@ test.describe('Global Navigation & Header Controls', () => {
     await page.goto('/');
   });
 
-  test('TC-NAV-01: View Mode Switcher navigates between Holdings, Allocation, and Transactions', async ({ page }) => {
+  test('TC-NAV-01: View Mode Switcher navigates between Holdings, Allocation, Performance, and Transactions', async ({ page }) => {
     // Default should be Holdings
     await expect(page.locator('app-tab-bar')).toBeVisible();
 
     // Switch to Allocation view
     await headerPage.selectAllocationView();
     await expect(page.locator('app-asset-allocation')).toBeVisible();
+
+    // Switch to Performance view
+    await headerPage.selectPerformanceView();
+    await expect(page.locator('app-performance')).toBeVisible();
 
     // Switch to Transactions view
     await headerPage.selectTransactionsView();

@@ -1,8 +1,10 @@
-import { Component, input, signal, computed } from '@angular/core';
+import { Component, input, signal, computed, inject, effect } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { DateRangePickerComponent, DateRange } from '../date-range-picker/date-range-picker.component';
 import { SymbolSummary, ClosedSymbolSummary, SymbolTransactionSummary, Transaction } from '../../models/transaction.model';
 import { PriceData } from '../../services/price.service';
+import { PortfolioService } from '../../services/portfolio.service';
+import { PortfolioPerformanceResponse } from '../../models/portfolio.model';
 import { getAssetType, getAssetTypeLabel, getAssetColor, getSymbolColor, displaySymbol, resolveSymbolName, convertCurrency } from '../../utils/format.utils';
 
 @Component({
@@ -13,6 +15,8 @@ import { getAssetType, getAssetTypeLabel, getAssetColor, getSymbolColor, display
   styleUrls: ['./performance.component.css']
 })
 export class PerformanceComponent {
+  private readonly portfolioService = inject(PortfolioService);
+
   summaries = input.required<SymbolSummary[]>();
   closedSummaries = input.required<ClosedSymbolSummary[]>();
   transactionSummaries = input.required<SymbolTransactionSummary[]>();
@@ -31,6 +35,8 @@ export class PerformanceComponent {
   sortDirection = signal<'asc' | 'desc'>('desc');
   showAllSymbols = signal<boolean>(false);
 
+  readonly serverPerformance = signal<PortfolioPerformanceResponse | null>(null);
+
   readonly sortOptions = [
     { field: 'symbol', label: 'Symbol' },
     { field: 'totalReturn', label: 'Total Return %' },
@@ -40,6 +46,8 @@ export class PerformanceComponent {
     { field: 'realizedPL', label: 'Realized P/L' },
     { field: 'unrealizedPL', label: 'Unrealized P/L' },
   ];
+
+  getAssetColor = getAssetColor;
 
   private cx(value: number, originalCurrency: string): number {
     if (!this.hasRate()) {
@@ -51,7 +59,22 @@ export class PerformanceComponent {
     return convertCurrency(value, originalCurrency, this.displayCurrency(), this.exchangeRate());
   }
 
-  getAssetColor = getAssetColor;
+  constructor() {
+    effect(() => {
+      const curr = this.displayCurrency();
+      const start = this.startDate();
+      const end = this.endDate();
+      const tf = start || end ? 'CUSTOM' : 'ALL';
+
+      this.portfolioService.fetchPerformance(tf, start, end, curr).subscribe({
+        next: (res) => {
+          if (!res.error) {
+            this.serverPerformance.set(res);
+          }
+        },
+      });
+    });
+  }
 
   assetTypeOptions = computed(() => {
     const types = new Set<string>();
@@ -69,23 +92,38 @@ export class PerformanceComponent {
   });
 
   assetTypePerformance = computed(() => {
+    const perf = this.serverPerformance();
+    if (perf && perf.assetTypePerformance && perf.assetTypePerformance.length > 0) {
+      return perf.assetTypePerformance.map((t) => ({
+        type: t.assetType,
+        label: t.label,
+        investedCost: t.investedCost,
+        currentValue: t.currentValue,
+        realizedPL: t.realizedPL,
+        unrealizedPL: t.unrealizedPL,
+        totalReturn: t.totalReturn,
+        totalReturnPercent: t.totalReturnPercent,
+        openSymbolCount: t.openSymbolCount,
+        closedSymbolCount: t.closedSymbolCount,
+        color: this.getAssetColor(t.assetType),
+      }));
+    }
+
+    // Fallback client computation
     const typeMap = new Map<string, any>();
-    
-    // Process open positions
     for (const summary of this.summaries()) {
       const type = getAssetType(summary.assetType || '', summary.symbol);
       const originalCurrency = summary.currency;
-      
       const priceData = this.pricesMap().get(summary.symbol);
       const investedCost = this.cx(summary.totalCost, originalCurrency);
-      
+
       let currentValue = 0;
       if (priceData && priceData.price > 0) {
         currentValue = this.cx(summary.totalShares * priceData.price, priceData.currency);
       } else {
         currentValue = this.cx(summary.totalShares * summary.averageCost, originalCurrency);
       }
-      
+
       if (!typeMap.has(type)) {
         typeMap.set(type, { type, investedCost: 0, currentValue: 0, realizedPL: 0, unrealizedPL: 0, openSymbolCount: 0, closedSymbolCount: 0 });
       }
@@ -95,52 +133,33 @@ export class PerformanceComponent {
       t.unrealizedPL += (currentValue - investedCost);
       t.openSymbolCount += 1;
     }
-    
-    // Process closed positions
+
     const start = this.startDate();
     const end = this.endDate();
-    
     for (const closed of this.closedSummaries()) {
       const type = getAssetType(closed.assetType || '', closed.symbol);
       const originalCurrency = closed.currency;
-      
-      let includeClosed = true;
-      if (start && end) {
-        let hasLotInRange = false;
-        for (const lot of closed.lots) {
-          if (lot.closeDate >= start && lot.closeDate <= end) {
-            hasLotInRange = true;
-            break;
-          }
-        }
-        if (!hasLotInRange && closed.lots.length > 0) {
-          includeClosed = false;
-        }
-      }
-      
+
       if (!typeMap.has(type)) {
         typeMap.set(type, { type, investedCost: 0, currentValue: 0, realizedPL: 0, unrealizedPL: 0, openSymbolCount: 0, closedSymbolCount: 0 });
       }
-      
       const t = typeMap.get(type);
       t.closedSymbolCount += 1;
-      
-      if (includeClosed) {
-        let realizedPL = 0;
-        let investedCost = 0;
-        for (const lot of closed.lots) {
-          if ((!start || !end) || (lot.closeDate >= start && lot.closeDate <= end)) {
-            const lotCurrency = lot.currency || originalCurrency;
-            realizedPL += this.cx(lot.realizedPL, lotCurrency);
-            investedCost += this.cx(lot.totalCost, lotCurrency);
-          }
+
+      let realizedPL = 0;
+      let investedCost = 0;
+      for (const lot of closed.lots) {
+        if ((!start || !end) || (lot.closeDate >= start && lot.closeDate <= end)) {
+          const lotCurrency = lot.currency || originalCurrency;
+          realizedPL += this.cx(lot.realizedPL, lotCurrency);
+          investedCost += this.cx(lot.totalCost, lotCurrency);
         }
-        t.realizedPL += realizedPL;
-        t.investedCost += investedCost;
       }
+      t.realizedPL += realizedPL;
+      t.investedCost += investedCost;
     }
-    
-    const result = Array.from(typeMap.values()).map(t => {
+
+    return Array.from(typeMap.values()).map(t => {
       const totalReturn = t.realizedPL + t.unrealizedPL;
       const totalReturnPercent = t.investedCost > 0 ? (totalReturn / t.investedCost) * 100 : 0;
       return {
@@ -150,19 +169,26 @@ export class PerformanceComponent {
         color: this.getAssetColor(t.type),
         label: getAssetTypeLabel(t.type)
       };
-    });
-    
-    return result.sort((a, b) => b.totalReturnPercent - a.totalReturnPercent);
+    }).sort((a, b) => b.totalReturnPercent - a.totalReturnPercent);
   });
 
   rawSymbolPerformance = computed(() => {
+    const perf = this.serverPerformance();
+    if (perf && perf.symbolPerformance && perf.symbolPerformance.length > 0) {
+      return perf.symbolPerformance.map((s) => ({
+        ...s,
+        color: getSymbolColor(s.symbol),
+        name: s.name || resolveSymbolName(s.symbol, this.pricesMap()),
+        displaySymbol: s.displaySymbol || displaySymbol(s.symbol),
+      }));
+    }
+
+    // Fallback client computation
     const symbolMap = new Map<string, any>();
-    
     for (const summary of this.summaries()) {
       const sym = summary.symbol;
       const priceData = this.pricesMap().get(sym);
       const currency = summary.currency;
-      
       const investedCost = this.cx(summary.totalCost, currency);
       let currentValue = 0;
       if (priceData && priceData.price > 0) {
@@ -170,7 +196,7 @@ export class PerformanceComponent {
       } else {
         currentValue = this.cx(summary.totalShares * summary.averageCost, currency);
       }
-      
+
       symbolMap.set(sym, {
         symbol: sym,
         displaySymbol: displaySymbol(sym),
@@ -186,18 +212,16 @@ export class PerformanceComponent {
         hasPrice: !!priceData
       });
     }
-    
+
     const start = this.startDate();
     const end = this.endDate();
-    
     for (const closed of this.closedSummaries()) {
       const sym = closed.symbol;
       const currency = closed.currency;
-      
       let realizedPL = 0;
       let closedInvested = 0;
       let closedProceeds = 0;
-      
+
       for (const lot of closed.lots) {
         if ((!start || !end) || (lot.closeDate >= start && lot.closeDate <= end)) {
           const lotCurrency = lot.currency || currency;
@@ -206,7 +230,7 @@ export class PerformanceComponent {
           closedProceeds += this.cx(lot.totalProceeds || (lot.totalCost + lot.realizedPL), lotCurrency);
         }
       }
-      
+
       if (symbolMap.has(sym)) {
         const existing = symbolMap.get(sym);
         existing.status = 'BOTH';
@@ -230,7 +254,7 @@ export class PerformanceComponent {
         });
       }
     }
-    
+
     return Array.from(symbolMap.values()).map(s => {
       const totalReturn = s.realizedPL + s.unrealizedPL;
       const totalReturnPercent = s.investedCost > 0 ? (totalReturn / s.investedCost) * 100 : 0;
@@ -240,48 +264,47 @@ export class PerformanceComponent {
 
   symbolPerformance = computed(() => {
     let result = [...this.rawSymbolPerformance()];
-    
-    // Apply filters
+
     const search = this.searchQuery().toLowerCase().trim();
     const assetType = this.assetTypeFilter();
     const status = this.statusFilter();
-    
+
     if (search) {
-      result = result.filter(s =>
-        s.symbol.toLowerCase().includes(search) ||
-        s.displaySymbol.toLowerCase().includes(search) ||
-        s.name.toLowerCase().includes(search) ||
-        s.assetTypeLabel.toLowerCase().includes(search)
+      result = result.filter(
+        (s) =>
+          s.symbol.toLowerCase().includes(search) ||
+          s.displaySymbol.toLowerCase().includes(search) ||
+          s.name.toLowerCase().includes(search) ||
+          s.assetTypeLabel.toLowerCase().includes(search)
       );
     }
-    
+
     if (assetType !== 'all') {
-      result = result.filter(s => s.assetType === assetType);
+      result = result.filter((s) => s.assetType === assetType);
     }
-    
+
     if (status !== 'all') {
       if (status === 'open') {
-        result = result.filter(s => s.status === 'OPEN' || s.status === 'BOTH');
+        result = result.filter((s) => s.status === 'OPEN' || s.status === 'BOTH');
       } else if (status === 'closed') {
-        result = result.filter(s => s.status === 'CLOSED' || s.status === 'BOTH');
+        result = result.filter((s) => s.status === 'CLOSED' || s.status === 'BOTH');
       }
     }
-    
-    // Apply sorting
+
     const field = this.sortField();
     const dir = this.sortDirection() === 'asc' ? 1 : -1;
-    
+
     result.sort((a, b) => {
       let valA = a[field as keyof typeof a];
       let valB = b[field as keyof typeof b];
-      
+
       if (field === 'symbol') {
         return a.symbol.localeCompare(b.symbol) * dir;
       }
-      
+
       return ((valA as number) - (valB as number)) * dir;
     });
-    
+
     return result;
   });
 
@@ -292,25 +315,41 @@ export class PerformanceComponent {
 
   topGainers = computed(() => {
     return [...this.symbolPerformance()]
-      .filter(s => s.totalReturnPercent > 0)
+      .filter((s) => s.totalReturnPercent > 0)
       .sort((a, b) => b.totalReturnPercent - a.totalReturnPercent)
       .slice(0, 5);
   });
 
   topLosers = computed(() => {
     return [...this.symbolPerformance()]
-      .filter(s => s.totalReturnPercent < 0)
+      .filter((s) => s.totalReturnPercent < 0)
       .sort((a, b) => a.totalReturnPercent - b.totalReturnPercent)
       .slice(0, 5);
   });
 
   portfolioSummary = computed(() => {
+    const perf = this.serverPerformance();
+    if (perf && perf.summary && (perf.summary.totalInvested > 0 || perf.summary.totalValue > 0)) {
+      return {
+        totalInvested: perf.summary.totalInvested,
+        totalCurrentValue: perf.summary.totalValue,
+        openInvested: perf.summary.openInvested,
+        closedInvested: perf.summary.closedInvested,
+        totalUnrealizedPL: perf.summary.totalUnrealizedPL,
+        totalUnrealizedPLPercent: perf.summary.totalUnrealizedPLPercent,
+        totalRealizedPL: perf.summary.totalRealizedPL,
+        totalRealizedPLPercent: perf.summary.totalRealizedPLPercent,
+        totalReturn: perf.summary.totalReturn,
+        totalReturnPercent: perf.summary.totalReturnPercent,
+      };
+    }
+
+    // Fallback client computation
     let openInvested = 0;
     let openValue = 0;
     let closedInvested = 0;
     let closedRealized = 0;
 
-    // Process open positions
     for (const summary of this.summaries()) {
       const priceData = this.pricesMap().get(summary.symbol);
       const invested = this.cx(summary.totalCost, summary.currency);
@@ -327,7 +366,6 @@ export class PerformanceComponent {
     const totalUnrealizedPL = openValue - openInvested;
     const totalUnrealizedPLPercent = openInvested > 0 ? (totalUnrealizedPL / openInvested) * 100 : 0;
 
-    // Process closed positions (filtered by date range)
     const start = this.startDate();
     const end = this.endDate();
     for (const closed of this.closedSummaries()) {
@@ -342,7 +380,6 @@ export class PerformanceComponent {
 
     const totalRealizedPL = closedRealized;
     const totalRealizedPLPercent = closedInvested > 0 ? (totalRealizedPL / closedInvested) * 100 : 0;
-
     const totalInvested = openInvested + closedInvested;
     const totalReturn = totalRealizedPL + totalUnrealizedPL;
     const totalReturnPercent = totalInvested > 0 ? (totalReturn / totalInvested) * 100 : 0;
@@ -360,7 +397,7 @@ export class PerformanceComponent {
       totalReturnPercent
     };
   });
-  
+
   getMaxAbsReturnPercent = computed(() => {
     let max = 0;
     for (const t of this.assetTypePerformance()) {
@@ -383,11 +420,12 @@ export class PerformanceComponent {
       return all.slice(0, 8);
     }
 
-    const matches = all.filter(s =>
-      s.symbol.toUpperCase().includes(query) ||
-      s.displaySymbol.toUpperCase().includes(query) ||
-      s.name.toUpperCase().includes(query) ||
-      s.assetTypeLabel.toUpperCase().includes(query)
+    const matches = all.filter(
+      (s) =>
+        s.symbol.toUpperCase().includes(query) ||
+        s.displaySymbol.toUpperCase().includes(query) ||
+        s.name.toUpperCase().includes(query) ||
+        s.assetTypeLabel.toUpperCase().includes(query)
     );
 
     matches.sort((a, b) => {
@@ -492,7 +530,8 @@ export class PerformanceComponent {
         return;
       }
       if (suggestions.length > 0) {
-        const nextIndex = this.searchActiveIndex() <= 0 ? suggestions.length - 1 : this.searchActiveIndex() - 1;
+        const nextIndex =
+          this.searchActiveIndex() <= 0 ? suggestions.length - 1 : this.searchActiveIndex() - 1;
         this.searchActiveIndex.set(nextIndex);
       }
     } else if (event.key === 'Enter') {

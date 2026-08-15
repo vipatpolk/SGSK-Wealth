@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { App } from './app';
 
 describe('App', () => {
@@ -89,12 +90,29 @@ describe('App', () => {
     const closedTab = app.tabs.find((t) => t.id === 'closed-position')!;
     app.activeTab.set(closedTab);
 
-    // Set mock result
-    app.result.set({
-      summaries: [],
-      closedSummaries: [
+    // Set mock portfolioData
+    app.portfolioData.set({
+      currency: 'USD',
+      exchangeRate: 1.0,
+      tabId: 'closed-position',
+      summary: {
+        totalInvested: 16500,
+        totalValue: 0,
+        openInvested: 0,
+        closedInvested: 16500,
+        totalUnrealizedPL: 0,
+        totalUnrealizedPLPercent: 0,
+        totalRealizedPL: 1800,
+        totalRealizedPLPercent: 10.9,
+        totalReturn: 1800,
+        totalReturnPercent: 10.9,
+      },
+      openPositions: [],
+      closedPositions: [
         {
           symbol: 'AAPL',
+          displaySymbol: 'AAPL',
+          name: 'Apple Inc.',
           totalShares: 0,
           closedShares: 10,
           totalCost: 1500,
@@ -104,11 +122,15 @@ describe('App', () => {
           averageBuyPrice: 150,
           averageSellPrice: 180,
           currency: 'USD',
+          originalCurrency: 'USD',
           assetType: 'us-stock',
+          assetTypeLabel: 'U.S. Stock',
           lots: [],
         },
         {
           symbol: 'TISCO.BK',
+          displaySymbol: 'TISCO',
+          name: 'Tisco Financial Group',
           totalShares: 0,
           closedShares: 100,
           totalCost: 10000,
@@ -118,11 +140,15 @@ describe('App', () => {
           averageBuyPrice: 100,
           averageSellPrice: 110,
           currency: 'THB',
+          originalCurrency: 'THB',
           assetType: 'thai-stock',
+          assetTypeLabel: 'Thai Stock',
           lots: [],
         },
         {
           symbol: 'ES-GTECHSSF.BKFUND',
+          displaySymbol: 'ES-GTECHSSF',
+          name: 'Eastspring Global Tech',
           totalShares: 0,
           closedShares: 500,
           totalCost: 5000,
@@ -132,15 +158,12 @@ describe('App', () => {
           averageBuyPrice: 10,
           averageSellPrice: 11,
           currency: 'THB',
+          originalCurrency: 'THB',
           assetType: 'mutual-fund',
+          assetTypeLabel: 'Mutual Fund',
           lots: [],
         },
       ],
-      totalCostByCurrency: {},
-      totalProceedsByCurrency: {},
-      totalRealizedPLByCurrency: {},
-      totalSymbols: 3,
-      totalLots: 0,
       error: null,
     });
 
@@ -165,90 +188,87 @@ describe('App', () => {
     expect(app.filteredClosedSummaries()[0].symbol).toBe('TISCO.BK');
   });
 
-  it('should correctly calculate holding value and P/L for crypto paired with USDT when transactions are in THB', () => {
+  it('should correctly access server-computed holding values and P/L for crypto positions', () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;
 
-    // Set exchange rate: 1 USD = 33.0 THB
     app.exchangeRate.set(33.0);
     app.displayCurrency.set('THB');
 
-    // Price data for PAXG.CRYPTO is in USD (USDT pair from Binance TH: price $4,000 USD)
-    const priceMap = new Map();
-    priceMap.set('PAXG.CRYPTO', {
+    const paxgPosition = {
       symbol: 'PAXG.CRYPTO',
+      displaySymbol: 'PAXG',
       name: 'PAX Gold',
-      price: 4000,
-      currency: 'USD',
-    });
-    app.prices.set(priceMap);
-
-    // Summary has transactions in THB: 0.01 shares bought at 130,000 THB each = 1,300 THB totalCost
-    const paxgSummary = {
-      symbol: 'PAXG.CRYPTO',
+      assetType: 'crypto',
+      assetTypeLabel: 'Cryptocurrency',
       totalShares: 0.01,
       totalCost: 1300,
       averageCost: 130000,
+      currentPrice: 132000,
+      holdingValue: 1320,
+      unrealizedPL: 20,
+      unrealizedPLPercent: 1.538,
       currency: 'THB',
-      assetType: 'crypto',
+      originalCurrency: 'THB',
+      hasPrice: true,
       lots: [
         {
-          symbol: 'PAXG.CRYPTO',
           purchaseDate: '2026-01-01',
           quantity: 0.01,
           costBasis: 130000,
           totalCost: 1300,
+          currentPrice: 132000,
+          holdingValue: 1320,
+          unrealizedPL: 20,
+          unrealizedPLPercent: 1.538,
           assetType: 'crypto',
+          currency: 'THB',
+          originalCostBasis: 130000,
+          originalCurrency: 'THB',
         },
       ],
     };
 
-    app.result.set({
-      summaries: [paxgSummary],
-      closedSummaries: [],
-      totalCostByCurrency: { THB: 1300 },
-      totalProceedsByCurrency: {},
-      totalRealizedPLByCurrency: {},
-      totalSymbols: 1,
-      totalLots: 1,
+    app.portfolioData.set({
+      currency: 'THB',
+      exchangeRate: 33.0,
+      tabId: 'crypto',
+      summary: {
+        totalInvested: 1300,
+        totalValue: 1320,
+        openInvested: 1300,
+        closedInvested: 0,
+        totalUnrealizedPL: 20,
+        totalUnrealizedPLPercent: 1.538,
+        totalRealizedPL: 0,
+        totalRealizedPLPercent: 0,
+        totalReturn: 20,
+        totalReturnPercent: 1.538,
+      },
+      openPositions: [paxgPosition],
+      closedPositions: [],
       error: null,
     });
 
-    // 1. Current Price in summary currency (THB): 4000 USD * 33 = 132,000 THB
-    expect(app.getCurrentPriceInSummaryCurrency(paxgSummary)).toBe(132000);
+    // 1. Current Price in summary currency (THB): 132,000 THB
+    expect(app.getCurrentPriceConverted(paxgPosition)).toBe(132000);
 
-    // 2. Current Price converted to display currency (THB): 132,000 THB
-    expect(app.getCurrentPriceConverted(paxgSummary)).toBe(132000);
+    // 2. Holding Value in summary currency (THB): 1,320 THB
+    expect(app.getHoldingValue(paxgPosition)).toBe(1320);
 
-    // 3. Holding Value in summary currency (THB): 0.01 * 132,000 = 1,320 THB
-    expect(app.getHoldingValue(paxgSummary)).toBe(1320);
+    // 3. Unrealized P/L in summary currency (THB): 1,320 - 1,300 = +20 THB
+    expect(app.getUnrealizedPL(paxgPosition)).toBe(20);
+    expect(app.getUnrealizedPLPercent(paxgPosition)).toBeCloseTo(1.538, 2);
 
-    // 4. Unrealized P/L in summary currency (THB): 1,320 - 1,300 = +20 THB
-    expect(app.getUnrealizedPL(paxgSummary)).toBe(20);
-    expect(app.getUnrealizedPLPercent(paxgSummary)).toBeCloseTo(1.538, 2);
+    // 4. Lot holding value & P/L
+    expect(app.getLotHoldingValue(paxgPosition.lots[0], paxgPosition)).toBe(1320);
+    expect(app.getLotUnrealizedPL(paxgPosition.lots[0], paxgPosition)).toBe(20);
+    expect(app.getLotUnrealizedPLPercent(paxgPosition.lots[0], paxgPosition)).toBeCloseTo(1.538, 2);
 
-    // 5. Lot holding value & P/L
-    expect(app.getLotHoldingValue(paxgSummary.lots[0], paxgSummary)).toBe(1320);
-    expect(app.getLotUnrealizedPL(paxgSummary.lots[0], paxgSummary)).toBe(20);
-    expect(app.getLotUnrealizedPLPercent(paxgSummary.lots[0], paxgSummary)).toBeCloseTo(1.538, 2);
-
-    // 6. Portfolio Totals in THB
+    // 5. Portfolio Totals in THB
     expect(app.totalHoldingConverted()).toBe(1320);
     expect(app.totalCostConverted()).toBe(1300);
     expect(app.totalPL()).toBe(20);
-
-    // 7. Toggle display currency to USD
-    app.displayCurrency.set('USD');
-    // Price converted to USD display currency: $4,000
-    expect(app.getCurrentPriceConverted(paxgSummary)).toBe(4000);
-    // Holding converted to USD: 1320 / 33 = $40
-    expect(app.cx(app.getHoldingValue(paxgSummary), paxgSummary.currency)).toBe(40);
-    // Total holding in USD: $40
-    expect(app.totalHoldingConverted()).toBeCloseTo(40, 2);
-    // Total cost in USD: 1300 / 33 = $39.39
-    expect(app.totalCostConverted()).toBeCloseTo(39.3939, 2);
-    // Total P/L in USD: 20 / 33 = $0.606
-    expect(app.totalPL()).toBeCloseTo(0.606, 2);
   });
 
   it('should format display symbols correctly stripping .BKFUND, .BK, and .CRYPTO suffixes', () => {
@@ -266,30 +286,67 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;
 
-    app.result.set({
-      summaries: [
+    app.portfolioData.set({
+      currency: 'USD',
+      exchangeRate: 1.0,
+      tabId: 'all',
+      summary: {
+        totalInvested: 34000,
+        totalValue: 31000,
+        openInvested: 31000,
+        closedInvested: 3000,
+        totalUnrealizedPL: 0,
+        totalUnrealizedPLPercent: 0,
+        totalRealizedPL: 600,
+        totalRealizedPLPercent: 20,
+        totalReturn: 600,
+        totalReturnPercent: 1.76,
+      },
+      openPositions: [
         {
           symbol: 'NVDA',
+          displaySymbol: 'NVDA',
+          name: 'NVIDIA Corporation',
+          assetType: 'us-stock',
+          assetTypeLabel: 'U.S. Stock',
           totalShares: 10,
           totalCost: 1000,
           averageCost: 100,
+          currentPrice: 100,
+          holdingValue: 1000,
+          unrealizedPL: 0,
+          unrealizedPLPercent: 0,
           currency: 'USD',
-          assetType: 'us-stock',
+          originalCurrency: 'USD',
+          hasPrice: true,
           lots: [],
         },
         {
           symbol: 'BTC.CRYPTO',
+          displaySymbol: 'BTC',
+          name: 'Bitcoin',
+          assetType: 'crypto',
+          assetTypeLabel: 'Cryptocurrency',
           totalShares: 0.5,
           totalCost: 30000,
           averageCost: 60000,
+          currentPrice: 60000,
+          holdingValue: 30000,
+          unrealizedPL: 0,
+          unrealizedPLPercent: 0,
           currency: 'USD',
-          assetType: 'crypto',
+          originalCurrency: 'USD',
+          hasPrice: true,
           lots: [],
         },
       ],
-      closedSummaries: [
+      closedPositions: [
         {
           symbol: 'AAPL',
+          displaySymbol: 'AAPL',
+          name: 'Apple Inc.',
+          assetType: 'us-stock',
+          assetTypeLabel: 'U.S. Stock',
           totalShares: 0,
           closedShares: 20,
           totalCost: 3000,
@@ -299,15 +356,10 @@ describe('App', () => {
           realizedPL: 600,
           realizedPLPercent: 20,
           currency: 'USD',
-          assetType: 'us-stock',
+          originalCurrency: 'USD',
           lots: [],
         },
       ],
-      totalCostByCurrency: {},
-      totalProceedsByCurrency: {},
-      totalRealizedPLByCurrency: {},
-      totalSymbols: 3,
-      totalLots: 3,
       error: null,
     });
 
@@ -374,4 +426,3 @@ describe('App', () => {
     expect(app.activeTab().id).toBe('all');
   });
 });
-

@@ -5,6 +5,7 @@ export class HeaderPage {
   readonly logoText: Locator;
   readonly viewToggleHoldingsBtn: Locator;
   readonly viewToggleAllocationBtn: Locator;
+  readonly viewTogglePerformanceBtn: Locator;
   readonly viewToggleTransactionsBtn: Locator;
   readonly currencyUsdBtn: Locator;
   readonly currencyThbBtn: Locator;
@@ -16,6 +17,7 @@ export class HeaderPage {
     this.logoText = page.locator('.logo-text');
     this.viewToggleHoldingsBtn = page.locator('#view-toggle-holdings');
     this.viewToggleAllocationBtn = page.locator('#view-toggle-allocation');
+    this.viewTogglePerformanceBtn = page.locator('#view-toggle-performance');
     this.viewToggleTransactionsBtn = page.locator('#view-toggle-transactions');
     this.currencyUsdBtn = page.locator('#currency-usd');
     this.currencyThbBtn = page.locator('#currency-thb');
@@ -38,6 +40,15 @@ export class HeaderPage {
     } else {
       await this.viewToggleTriggerBtn.click();
       await this.viewToggleAllocationBtn.click();
+    }
+  }
+
+  async selectPerformanceView() {
+    if (await this.viewTogglePerformanceBtn.isVisible()) {
+      await this.viewTogglePerformanceBtn.click();
+    } else {
+      await this.viewToggleTriggerBtn.click();
+      await this.viewTogglePerformanceBtn.click();
     }
   }
 

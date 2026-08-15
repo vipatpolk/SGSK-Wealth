@@ -85,8 +85,8 @@
 | **Runtime** | [Node.js 24 LTS](https://nodejs.org/) (v24.19.0) |
 | **Backend Integration** | [FastAPI Backend (SGSKBackend)](https://github.com/vipatpolk/SGSKBackend) for data processing and API proxying |
 | **Data Source** | Google Sheets CSV Export (via Backend) |
-| **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom (16 test suites, 134 unit tests) |
-| **E2E Testing** | [Playwright](https://playwright.dev/) & Page Object Models (70 automated tests across 5 browser targets) |
+| **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom (17 test suites, 137 unit tests) |
+| **E2E Testing** | [Playwright](https://playwright.dev/) & Page Object Models (95 automated tests across 5 browser targets) |
 | **Deployment** | [Vercel](https://vercel.com/) (with API proxy rewrites) |
 
 ---
@@ -115,9 +115,11 @@ ShareLot/
 │   │   │   └── transaction-history/  # Transaction ledger, CSV export & pagination
 │   │   ├── config/             # UI tab constants & asset metadata
 │   │   │   └── asset.constants.ts
-│   │   ├── models/             # Domain models (Transaction, ShareLot, SymbolSummary)
+│   │   ├── models/             # Domain models (Transaction, ShareLot, Portfolio, Performance)
+│   │   │   ├── portfolio.model.ts
 │   │   │   └── transaction.model.ts
-│   │   ├── services/           # Data fetching & calculation services with spec tests
+│   │   ├── services/           # Data fetching & portfolio services with spec tests
+│   │   │   ├── portfolio.service.ts
 │   │   │   ├── share-lot.service.ts
 │   │   │   ├── price.service.ts
 │   │   │   └── nav.service.ts
