@@ -84,3 +84,95 @@ body {
   min-height: 100vh;
   line-height: 1.6;
 }
+
+/* ==========================================================================
+   Global Privacy Mode Masking (data-privacy="true")
+   ========================================================================== */
+[data-privacy="true"] .privacy-mask,
+[data-privacy="true"] .header-financial-stats .header-stat:not(:has(.pl-positive)):not(:has(.pl-negative)) .header-stat-value,
+[data-privacy="true"] .card-shares,
+[data-privacy="true"] .card-metric:not(:has(.pl-percent)) .card-metric-value,
+[data-privacy="true"] .metric-amount,
+[data-privacy="true"] .lot-amount,
+[data-privacy="true"] .lots-table td.lot-col-qty,
+[data-privacy="true"] .lots-table td.lot-col-cost,
+[data-privacy="true"] .lots-table td.lot-col-total,
+[data-privacy="true"] .lots-table .lot-summary-value,
+[data-privacy="true"] .div-summary-value:not(.yoc-value),
+[data-privacy="true"] .div-summary-sub,
+[data-privacy="true"] .div-table td.font-mono:not(:has(.yoc-pill)):not(:has(.asset-badge)),
+[data-privacy="true"] .mobile-card-primary-val,
+[data-privacy="true"] .mobile-grid-item span:last-child:not(:has(.yoc-pill)),
+[data-privacy="true"] .modal-summary-stat:first-child .modal-stat-val,
+[data-privacy="true"] .modal-summary-stat:nth-child(2) .modal-stat-val,
+[data-privacy="true"] .modal-record-net,
+[data-privacy="true"] .modal-record-item span:last-child,
+/* Allocation View */
+[data-privacy="true"] .donut-center-val,
+[data-privacy="true"] .currency-values span,
+[data-privacy="true"] .concentration-val,
+[data-privacy="true"] .symbol-col-shares span:last-child,
+[data-privacy="true"] .symbol-col-value,
+[data-privacy="true"] .symbol-class-item.total-row .symbol-col-value,
+[data-privacy="true"] .rebalance-col-action span:last-child,
+/* Transactions View */
+[data-privacy="true"] .metric-main-value,
+[data-privacy="true"] .metric-sub-value:not(:has(.metric-pl)),
+[data-privacy="true"] .tx-pl-amount,
+[data-privacy="true"] .col-shares,
+[data-privacy="true"] .col-price,
+[data-privacy="true"] .col-amount,
+[data-privacy="true"] .col-running-shares,
+[data-privacy="true"] .running-shares-num,
+[data-privacy="true"] .running-avg-cost,
+[data-privacy="true"] .tx-summary-card .tx-summary-value,
+[data-privacy="true"] .tx-summary-val,
+[data-privacy="true"] .meta-stat-val,
+[data-privacy="true"] .all-hero-stat-val,
+[data-privacy="true"] .mobile-card-row-value,
+[data-privacy="true"] .mobile-footer-val,
+[data-privacy="true"] .tx-table td.font-mono:not(:first-child):not(:nth-child(2)):not(:has(.pl-percent-sub)),
+/* Performance View */
+[data-privacy="true"] .perf-summary-value,
+[data-privacy="true"] .perf-stat-cell .font-mono:not(:has(.perf-return-pct)),
+[data-privacy="true"] .perf-amount,
+[data-privacy="true"] .perf-col-invested,
+[data-privacy="true"] .perf-col-value,
+[data-privacy="true"] .perf-total-return-val .perf-amount {
+  filter: blur(5.5px);
+  user-select: none;
+  pointer-events: none;
+  transition: filter 0.2s ease;
+}
+
+/* Explicit exemption: percentages and yields remain fully visible in privacy mode */
+[data-privacy="true"] .pl-percent,
+[data-privacy="true"] .pl-percent-sub,
+[data-privacy="true"] .pl-pct,
+[data-privacy="true"] .metric-pl,
+[data-privacy="true"] .perf-return-pct,
+[data-privacy="true"] .perf-summary-sub,
+[data-privacy="true"] .perf-bar-value,
+[data-privacy="true"] .perf-rank-val,
+[data-privacy="true"] .concentration-pct,
+[data-privacy="true"] .yoc-pill,
+[data-privacy="true"] .yoc-value,
+[data-privacy="true"] .header-stat-value.pl-positive,
+[data-privacy="true"] .header-stat-value.pl-negative,
+[data-privacy="true"] .stat-value-percent,
+[data-privacy="true"] .percent-col,
+[data-privacy="true"] .col-yield,
+[data-privacy="true"] .badge-yield,
+[data-privacy="true"] .alloc-percent,
+[data-privacy="true"] .target-display,
+[data-privacy="true"] .symbol-col-class-pct,
+[data-privacy="true"] .symbol-col-port-pct,
+[data-privacy="true"] .rebalance-col-actual,
+[data-privacy="true"] .rebalance-col-target,
+[data-privacy="true"] .legend-value,
+[data-privacy="true"] .perf-autocomplete-item-right,
+[data-privacy="true"] .tag-pl {
+  filter: none !important;
+  user-select: auto !important;
+  pointer-events: auto !important;
+}

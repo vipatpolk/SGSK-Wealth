@@ -66,23 +66,99 @@
           }
         </div>
         <div class="header-stat-divider desktop-only"></div>
-        <!-- Meta Stats -->
+        <!-- Meta Stats (Context-aware per page) -->
         <div class="header-meta-stats">
-          <div class="header-stat header-stat-compact">
-            <span class="header-stat-label">Symbols</span>
-            <span class="header-stat-value">{{ result()!.totalSymbols }}</span>
-          </div>
-          <div class="header-stat-divider-dot"></div>
-          <div class="header-stat header-stat-compact">
-            <span class="header-stat-label">Lots</span>
-            <span class="header-stat-value">{{ result()!.totalLots }}</span>
-          </div>
-          @if (hasRate()) {
+          @if (currentView() === 'dividends') {
+            <div class="header-stat header-stat-compact">
+              <span class="header-stat-label">Assets</span>
+              <span class="header-stat-value">{{ dividendPayingAssetsCount() }}</span>
+            </div>
             <div class="header-stat-divider-dot"></div>
             <div class="header-stat header-stat-compact">
-              <span class="header-stat-label">USD/THB</span>
-              <span class="header-stat-value">{{ exchangeRate() | number:'1.2-2' }}</span>
+              <span class="header-stat-label">Payouts</span>
+              <span class="header-stat-value">{{ dividendDistributionsCount() }}</span>
             </div>
+            @if (dividendYOC() > 0) {
+              <div class="header-stat-divider-dot"></div>
+              <div class="header-stat header-stat-compact">
+                <span class="header-stat-label">YOC</span>
+                <span class="header-stat-value" style="color: var(--color-pl-positive);">{{ dividendYOC() | number:'1.2-2' }}%</span>
+              </div>
+            } @else if (hasRate()) {
+              <div class="header-stat-divider-dot"></div>
+              <div class="header-stat header-stat-compact">
+                <span class="header-stat-label">USD/THB</span>
+                <span class="header-stat-value">{{ exchangeRate() | number:'1.2-2' }}</span>
+              </div>
+            }
+          } @else if (currentView() === 'allocation') {
+            <div class="header-stat header-stat-compact">
+              <span class="header-stat-label">Classes</span>
+              <span class="header-stat-value">{{ distinctAssetClassesCount() }}</span>
+            </div>
+            <div class="header-stat-divider-dot"></div>
+            <div class="header-stat header-stat-compact">
+              <span class="header-stat-label">Holdings</span>
+              <span class="header-stat-value">{{ openPositions().length || result()!.totalSymbols }}</span>
+            </div>
+            @if (hasRate()) {
+              <div class="header-stat-divider-dot"></div>
+              <div class="header-stat header-stat-compact">
+                <span class="header-stat-label">USD/THB</span>
+                <span class="header-stat-value">{{ exchangeRate() | number:'1.2-2' }}</span>
+              </div>
+            }
+          } @else if (currentView() === 'transactions') {
+            <div class="header-stat header-stat-compact">
+              <span class="header-stat-label">Total Tx</span>
+              <span class="header-stat-value">{{ totalTransactionsCount() }}</span>
+            </div>
+            <div class="header-stat-divider-dot"></div>
+            <div class="header-stat header-stat-compact">
+              <span class="header-stat-label">Symbols</span>
+              <span class="header-stat-value">{{ result()!.totalSymbols }}</span>
+            </div>
+            @if (hasRate()) {
+              <div class="header-stat-divider-dot"></div>
+              <div class="header-stat header-stat-compact">
+                <span class="header-stat-label">USD/THB</span>
+                <span class="header-stat-value">{{ exchangeRate() | number:'1.2-2' }}</span>
+              </div>
+            }
+          } @else if (currentView() === 'performance') {
+            <div class="header-stat header-stat-compact">
+              <span class="header-stat-label">Gainers</span>
+              <span class="header-stat-value" style="color: var(--color-pl-positive);">{{ gainersCount() }}</span>
+            </div>
+            <div class="header-stat-divider-dot"></div>
+            <div class="header-stat header-stat-compact">
+              <span class="header-stat-label">Losers</span>
+              <span class="header-stat-value" style="color: var(--color-pl-negative);">{{ losersCount() }}</span>
+            </div>
+            @if (hasRate()) {
+              <div class="header-stat-divider-dot"></div>
+              <div class="header-stat header-stat-compact">
+                <span class="header-stat-label">USD/THB</span>
+                <span class="header-stat-value">{{ exchangeRate() | number:'1.2-2' }}</span>
+              </div>
+            }
+          } @else {
+            <div class="header-stat header-stat-compact">
+              <span class="header-stat-label">Symbols</span>
+              <span class="header-stat-value">{{ result()!.totalSymbols }}</span>
+            </div>
+            <div class="header-stat-divider-dot"></div>
+            <div class="header-stat header-stat-compact">
+              <span class="header-stat-label">Lots</span>
+              <span class="header-stat-value">{{ result()!.totalLots }}</span>
+            </div>
+            @if (hasRate()) {
+              <div class="header-stat-divider-dot"></div>
+              <div class="header-stat header-stat-compact">
+                <span class="header-stat-label">USD/THB</span>
+                <span class="header-stat-value">{{ exchangeRate() | number:'1.2-2' }}</span>
+              </div>
+            }
           }
         </div>
       </div>
@@ -189,6 +265,29 @@
           >฿</button>
         </div>
       }
+      <button
+        class="privacy-toggle-btn"
+        [class.privacy-active]="privacyMode()"
+        (click)="privacyChange.emit()"
+        id="privacy-toggle-btn"
+        [title]="privacyMode() ? 'Show sensitive information' : 'Hide sensitive information'"
+        [attr.aria-label]="privacyMode() ? 'Show sensitive information' : 'Hide sensitive information'"
+        type="button"
+      >
+        @if (privacyMode()) {
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="privacy-icon">
+            <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+            <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+            <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+            <line x1="2" y1="2" x2="22" y2="22"></line>
+          </svg>
+        } @else {
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="privacy-icon">
+            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        }
+      </button>
       <button
         class="theme-toggle-btn"
         (click)="themeChange.emit()"

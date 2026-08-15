@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong>A modern, real-time investment portfolio tracker, FIFO share lot accounting dashboard, asset allocation rebalancer, and performance analytics engine.</strong>
+  <strong>A modern, real-time investment portfolio tracker, FIFO share lot accounting dashboard, asset allocation rebalancer, dividend cash flow tracker, and performance analytics engine.</strong>
 </p>
 
 <p align="center">
@@ -22,11 +22,16 @@
 
 ## Overview
 
-**ShareLot** is an investment portfolio analytics web application designed to automate **First-In, First-Out (FIFO)** share lot accounting across multiple asset classes. It connects to **SGSKBackend** to ingest transaction logs from Google Sheets and streams real-time market data to compute cost basis, open lots, realized gains, holding values, total profit/loss (P/L), asset rebalancing, and comprehensive investment performance analytics.
+**ShareLot** is an investment portfolio analytics web application designed to automate **First-In, First-Out (FIFO)** share lot accounting across multiple asset classes. It connects to **SGSKBackend** to ingest transaction logs from Google Sheets and streams real-time market data to compute cost basis, open lots, realized gains, holding values, total profit/loss (P/L), asset rebalancing, dividend income ledgers, privacy masking, and comprehensive investment performance analytics.
 
 ---
 
 ## Key Features
+
+### 🔒 Privacy Protection Mode
+- **Instant Masking**: One-click toggle in the header to activate Privacy Mode (state preserved in `localStorage`).
+- **Targeted Masking**: Automatically blurs sensitive monetary amounts, portfolio values, total cost, proceeds, shares, net received, and dividend payments.
+- **Percentage Visibility**: Crucial performance percentages (`P/L %`, `Realized %`, `Yield on Cost %`, `Target %`, `Return %`, `Allocation %`) remain clearly readable and unblurred for safe public demonstrations or casual tracking.
 
 ### 💵 Dividend & Income Yield Tracking
 - **100% API-Driven Dividend Engine**: Fetches complete dividend distributions automatically from Yahoo Finance (US & Thai stocks) and the SEC Thailand Fund API (Mutual Funds).
@@ -34,6 +39,7 @@
   $$\text{Shares Held}(T) = \sum_{\text{Tx Date } \le T} \text{Buy Quantity} - \sum_{\text{Tx Date } \le T} \text{Sell Quantity}$$
 - **Forward Income & Yield on Cost (YOC)**: Displays trailing 12-month DPS, current market yield %, Yield on Cost %, and forward projected annual income.
 - **Interactive Monthly Cashflow Timeline**: Visual stacked bar chart tracking monthly dividend income split across Thai Stocks, US Stocks, and Mutual Funds.
+- **Holdings Distribution Ledger Popup Modal**: Responsive popup modal with a desktop table ($\ge 640\text{px}$) and touch-friendly mobile cards ($< 640\text{px}$) showing individual dividend payouts, withholding tax, and net amounts.
 - **Global Asset Type & Year Filtering**: Filter summary metrics, monthly timeline chart, holdings breakdown, and transaction ledger across `All Assets`, `U.S. Stocks`, `Thai Stocks`, and `Mutual Funds` or specific calendar years.
 - **Fuzzy Autocomplete & Ledger Pagination**: Real-time autocomplete suggestions with keyboard navigation (`↑`, `↓`, `Enter`, `Escape`) and paginated historical payout ledger.
 
@@ -70,17 +76,10 @@
 - **Export to CSV**: Download transactions in standard 5-column CSV format (`Symbol,Date,Quantity,Price,Currency`) with YYYY-MM-DD dates, signed quantities (`+` for BUY/EX-IN, `-` for SELL/EX-OUT), UTF-8 BOM encoding (`\uFEFF`), and filter options (Asset Type and Open/Closed scope).
 - **Pagination & Sorting**: Configurable page size options (10, 50, 100) with responsive pagination navigation.
 
-### 📱 Mobile & Tablet Responsive Experience
-- **Fluid Layouts**: High-density desktop grids transform seamlessly into structured, touch-friendly card layouts on mobile and tablet devices.
-- **Dropdown View Navigation**: Touch-friendly dropdown selector (`Holdings`, `Dividends`, `Allocation`, `Performance`, `Transactions`) for seamless mobile navigation.
-- **iOS Safari Auto-Zoom Prevention**: Touch inputs and select controls utilize optimized 16px mobile typography to prevent browser zooming.
-
-### 🌐 Multi-Asset Class Support
-- **U.S. Stocks**: Live market quotes and metadata via Yahoo Finance API (`USD`).
-- **Thai Stocks**: Stock Exchange of Thailand (`.BK`) quotes via Yahoo Finance (`THB`).
-- **Cryptocurrencies**: Live orderbook prices via Binance TH API (`THB`/`USD`).
-- **Thai Mutual Funds**: Daily NAV lookups via SEC Thailand APIs (`THB`).
-- **Closed Positions**: Historical realized gain/loss ledger with asset-type metadata.
+### 📱 Responsive Experience & Tablet Optimization
+- **Segmented Capsule Header Stats**: Redesigned floating header statistics capsule with monospace typography and distinct meta stats pill badge.
+- **Tablet & iPad Breakpoints**: Optimized layout scaling for iPad Air, iPad Pro 11", and iPad Pro 12.9" preventing header stat overflow.
+- **Fluid Touch Navigation**: Responsive view selector dropdown and touch-friendly controls across all mobile form factors.
 
 ---
 
@@ -94,8 +93,8 @@
 | **Runtime** | [Node.js 24 LTS](https://nodejs.org/) (v24.19.0) |
 | **Backend Integration** | [FastAPI Backend (SGSKBackend)](https://github.com/vipatpolk/SGSKBackend) for data processing and API proxying |
 | **Data Source** | Google Sheets CSV Export (via Backend) |
-| **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom (19 test suites, 151 unit tests) |
-| **E2E Testing** | [Playwright](https://playwright.dev/) & Page Object Models (95 automated tests across 5 browser targets) |
+| **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom (**19 test suites, 165 unit tests**) |
+| **E2E Testing** | [Playwright](https://playwright.dev/) & Page Object Models (**70 automated tests** across 5 browser targets) |
 | **Deployment** | [Vercel](https://vercel.com/) (with API proxy rewrites) |
 
 ---
@@ -115,8 +114,9 @@ ShareLot/
 │   │   ├── components/         # Reusable UI feature components & co-located unit tests
 │   │   │   ├── asset-allocation/     # Asset allocation & target rebalancing
 │   │   │   ├── date-range-picker/    # Preset & custom date range picker
+│   │   │   ├── dividend/             # Dividend cash flows, YOC, timeline & ledger modal
 │   │   │   ├── filters/              # Filter pill buttons & dropdowns
-│   │   │   ├── header/               # Header, navigation, theme & currency switcher
+│   │   │   ├── header/               # Header, navigation, theme, currency & privacy toggle
 │   │   │   ├── performance/          # Performance analytics, charts, movers & symbol table
 │   │   │   ├── search-bar/           # Autocomplete symbol search input
 │   │   │   ├── summary-card/         # Metric cards & statistics displays
@@ -128,18 +128,20 @@ ShareLot/
 │   │   │   ├── portfolio.model.ts
 │   │   │   └── transaction.model.ts
 │   │   ├── services/           # Data fetching & portfolio services with spec tests
+│   │   │   ├── dividend.service.ts
 │   │   │   ├── portfolio.service.ts
 │   │   │   ├── share-lot.service.ts
 │   │   │   ├── price.service.ts
 │   │   │   └── nav.service.ts
 │   │   ├── utils/              # Dynamic formatting helpers & unit tests
+│   │   │   ├── csv-exporter.utils.ts
 │   │   │   └── format.utils.ts
-│   │   ├── app.ts              # Root component logic & signal state
+│   │   ├── app.ts              # Root component logic, signal state & privacy management
 │   │   ├── app.html            # Dashboard layout & view switching
-│   │   └── app.css             # Root component styling & animations
+│   │   └── app.css             # Root component styling, animations & privacy filters
 │   ├── index.html              # HTML entry point with favicon metadata
 │   ├── main.ts                 # Application bootstrapping
-│   └── styles.css              # Global styles & theme tokens
+│   └── styles.css              # Global styles, theme tokens & privacy masking rules
 ├── angular.json                # Angular CLI configuration
 ├── playwright.config.ts        # Playwright E2E configuration & browser targets
 ├── proxy.conf.json             # Dev server reverse proxies (CORS bypass)
@@ -184,7 +186,7 @@ Navigate to `http://localhost:4200/` in your browser. The application will autom
 
 ### Running Unit Tests
 
-Execute unit tests using Vitest (16 test files, 134 unit tests):
+Execute unit tests using Vitest (19 test files, 165 unit tests):
 
 ```bash
 npm test
@@ -227,8 +229,9 @@ The compiled output will be generated inside the `dist/` directory, ready for de
 
 ### Views and Navigation
 
-The top header enables instant switching across the 4 primary views:
+The top header enables instant switching across the 5 primary views:
 - **Holdings**: Real-time open positions, FIFO lots, cost basis, and unrealized gains.
+- **Dividends**: FIFO cashflow accounting, Yield on Cost (YOC), monthly timeline charts, and distribution ledgers.
 - **Allocation**: Target asset allocation, rebalancing recommendations, and concentration breakdown.
 - **Performance**: Return percentages, asset type breakdown charts, top movers, and symbol metrics with date filtering.
 - **Transactions**: Complete transaction history ledger, trade type filters, and CSV export.
@@ -245,4 +248,4 @@ All Google Spreadsheet IDs, tab GID mappings, and data processing are configured
 
 ## License
 
-This project is private and proprietary.
+© 2026 SGSK ShareLot — Investment Portfolio Tracker & FIFO Engine. Private and proprietary.

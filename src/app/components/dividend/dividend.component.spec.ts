@@ -228,6 +228,47 @@ describe('DividendComponent', () => {
     expect(component.selectedFundDistributions()).toBeNull();
   });
 
+  it('should retrieve related ledger records and count for a holding symbol', () => {
+    const records = component.getHoldingRecords('PTT.BK');
+    expect(records.length).toBe(2);
+    expect(component.getHoldingRecordsCount('PTT.BK')).toBe(2);
+
+    const nonExistent = component.getHoldingRecords('AAPL');
+    expect(nonExistent.length).toBe(0);
+    expect(component.getHoldingRecordsCount('AAPL')).toBe(0);
+  });
+
+  it('should open and close Holding related dividend ledger modal with calculated totals', () => {
+    const ptt = component.filteredSymbolSummaries().find(s => s.symbol === 'PTT.BK')!;
+    component.openHoldingLedger(ptt);
+    fixture.detectChanges();
+
+    const selected = component.selectedHoldingLedger();
+    expect(selected).not.toBeNull();
+    expect(selected?.symbol).toBe('PTT.BK');
+    expect(selected?.displaySymbol).toBe('PTT');
+    expect(selected?.records.length).toBe(2);
+    expect(selected?.totalGross).toBe(2600); // 1200 + 1400
+    expect(selected?.totalNet).toBe(2340); // 1080 + 1260
+    expect(selected?.totalWht).toBe(260); // 120 + 140
+
+    // Check modal rendered in DOM with desktop table and mobile cards
+    const compiled = fixture.nativeElement as HTMLElement;
+    const modalDialog = compiled.querySelector('.modal-dialog-wide');
+    expect(modalDialog).toBeTruthy();
+    expect(modalDialog?.textContent).toContain('PTT');
+    expect(modalDialog?.textContent).toContain('2 payouts');
+    expect(modalDialog?.querySelector('.modal-desktop-table')).toBeTruthy();
+    expect(modalDialog?.querySelector('.modal-mobile-cards')).toBeTruthy();
+    expect(modalDialog?.querySelectorAll('.modal-record-card').length).toBe(2);
+
+    // Close modal
+    component.closeHoldingLedger();
+    fixture.detectChanges();
+    expect(component.selectedHoldingLedger()).toBeNull();
+    expect(compiled.querySelector('.modal-dialog-wide')).toBeNull();
+  });
+
   it('should filter Holdings table symbols and recalculate timeframe net dividends when year is selected', () => {
     component.setYear('2026');
     fixture.detectChanges();

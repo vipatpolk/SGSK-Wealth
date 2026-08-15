@@ -623,6 +623,16 @@ describe('TransactionHistoryComponent', () => {
     createObjectURLSpy.mockRestore();
     revokeObjectURLSpy.mockRestore();
   });
+
+  it('should render tx-pl-amount and pl-percent-sub in table when realized P/L is present', () => {
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const plAmount = compiled.querySelector('.tx-pl-amount');
+    const plPercentSub = compiled.querySelector('.pl-percent-sub');
+
+    expect(plAmount).toBeTruthy();
+    expect(plPercentSub).toBeTruthy();
+  });
 });
 
 

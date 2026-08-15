@@ -45,6 +45,20 @@ export class DividendComponent {
   // Drill-down Modal State for SEC Fund Distribution History
   readonly selectedFundDistributions = signal<{ symbol: string; name: string; distributions: FundDividendDistribution[] } | null>(null);
 
+  // Drill-down Modal State for Related Holding Dividend Ledger
+  readonly selectedHoldingLedger = signal<{
+    symbol: string;
+    displaySymbol: string;
+    name: string;
+    assetType: string;
+    assetTypeLabel: string;
+    currency: string;
+    records: DividendRecord[];
+    totalGross: number;
+    totalNet: number;
+    totalWht: number;
+  } | null>(null);
+
   // Available Years
   readonly availableYears = computed(() => {
     const d = this.data();
@@ -506,5 +520,39 @@ export class DividendComponent {
 
   closeFundDistributions() {
     this.selectedFundDistributions.set(null);
+  }
+
+  getHoldingRecords(symbol: string): DividendRecord[] {
+    const d = this.data();
+    if (!d || !d.records) return [];
+    return d.records.filter(r => r.symbol === symbol);
+  }
+
+  getHoldingRecordsCount(symbol: string): number {
+    return this.getHoldingRecords(symbol).length;
+  }
+
+  openHoldingLedger(s: SymbolDividendSummary) {
+    const recs = this.getHoldingRecords(s.symbol);
+    const totalGross = recs.reduce((acc, r) => acc + r.convertedGrossAmount, 0);
+    const totalNet = recs.reduce((acc, r) => acc + r.convertedNetAmount, 0);
+    const totalWht = recs.reduce((acc, r) => acc + r.convertedWithholdingTax, 0);
+
+    this.selectedHoldingLedger.set({
+      symbol: s.symbol,
+      displaySymbol: s.displaySymbol || this.getDisplaySymbol()(s.symbol),
+      name: s.name || this.getSymbolName()(s.symbol),
+      assetType: s.assetType,
+      assetTypeLabel: this.getAssetTypeLabel()(s.assetType, s.symbol),
+      currency: s.currency,
+      records: [...recs].sort((a, b) => b.date.localeCompare(a.date)),
+      totalGross,
+      totalNet,
+      totalWht
+    });
+  }
+
+  closeHoldingLedger() {
+    this.selectedHoldingLedger.set(null);
   }
 }

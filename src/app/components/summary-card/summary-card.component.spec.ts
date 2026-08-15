@@ -82,4 +82,58 @@ describe('SummaryCardComponent', () => {
     component.openHistory.emit('AAPL');
     expect(emittedSymbol).toBe('AAPL');
   });
+
+  it('should render metric-amount and pl-percent for open position P/L', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    const metricAmount = compiled.querySelector('.metric-amount');
+    const plPercent = compiled.querySelector('.pl-percent');
+
+    expect(metricAmount).toBeTruthy();
+    expect(metricAmount?.textContent).toContain('300.00');
+    expect(plPercent).toBeTruthy();
+    expect(plPercent?.textContent).toContain('+20.00%');
+  });
+
+  it('should render closed position card with metric-amount and pl-percent', () => {
+    const mockClosedSummary = {
+      symbol: 'TSLA',
+      totalShares: 0,
+      closedShares: 5,
+      totalCost: 1000,
+      totalProceeds: 1500,
+      realizedPL: 500,
+      realizedPLPercent: 50,
+      averageBuyPrice: 200,
+      averageSellPrice: 300,
+      currency: 'USD',
+      assetType: 'us-stock',
+      lots: [
+        {
+          symbol: 'TSLA',
+          purchaseDate: '2026-01-01',
+          closeDate: '2026-02-01',
+          quantity: 5,
+          costBasis: 200,
+          sellPrice: 300,
+          totalCost: 1000,
+          totalProceeds: 1500,
+          realizedPL: 500,
+          realizedPLPercent: 50
+        }
+      ]
+    };
+
+    componentRef.setInput('type', 'closed');
+    componentRef.setInput('summary', mockClosedSummary);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const metricAmount = compiled.querySelector('.metric-amount');
+    const plPercent = compiled.querySelector('.pl-percent');
+
+    expect(metricAmount).toBeTruthy();
+    expect(metricAmount?.textContent).toContain('500.00');
+    expect(plPercent).toBeTruthy();
+    expect(plPercent?.textContent).toContain('+50.00%');
+  });
 });

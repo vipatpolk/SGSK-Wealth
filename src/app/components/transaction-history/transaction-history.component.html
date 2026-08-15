@@ -241,7 +241,7 @@
           </div>
           @if (activeSummary()!.netShares > 0 && activeHoldingValueConverted() > 0) {
             <div class="metric-sub-value">
-              {{ activeHoldingValueConverted() | currency:dc(activeSummary()!.currency):'symbol-narrow':'1.2-2' }}
+              <span class="metric-amount">{{ activeHoldingValueConverted() | currency:dc(activeSummary()!.currency):'symbol-narrow':'1.2-2' }}</span>
               @if (activeUnrealizedPL() !== 0) {
                 <span class="metric-pl" [class.pl-positive]="activeUnrealizedPL() >= 0" [class.pl-negative]="activeUnrealizedPL() < 0">
                   ({{ activeUnrealizedPL() >= 0 ? '+' : '' }}{{ activeUnrealizedPLPercent() | number:'1.2-2' }}%)
@@ -845,7 +845,7 @@
                       [class.pl-positive]="tx.realizedPL >= 0"
                       [class.pl-negative]="tx.realizedPL < 0"
                     >
-                      {{ tx.realizedPL >= 0 ? '+' : '' }}{{ cx(tx.realizedPL, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }}
+                      <span class="tx-pl-amount">{{ tx.realizedPL >= 0 ? '+' : '' }}{{ cx(tx.realizedPL, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }}</span>
                       <span class="pl-percent-sub">({{ tx.realizedPL >= 0 ? '+' : '' }}{{ tx.realizedPLPercent | number:'1.2-2' }}%)</span>
                     </span>
                   } @else {
@@ -1060,7 +1060,7 @@
                   <span>Realized P/L</span>
                 </div>
                 <div class="mobile-pl-banner-val">
-                  {{ tx.realizedPL >= 0 ? '+' : '' }}{{ cx(tx.realizedPL, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }}
+                  <span class="tx-pl-amount">{{ tx.realizedPL >= 0 ? '+' : '' }}{{ cx(tx.realizedPL, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }}</span>
                   <span class="pl-pct">({{ tx.realizedPL >= 0 ? '+' : '' }}{{ tx.realizedPLPercent | number:'1.2-2' }}%)</span>
                 </div>
               </div>

@@ -60,7 +60,7 @@
                 [class.pl-positive]="getUnrealizedPL()(summary()) >= 0"
                 [class.pl-negative]="getUnrealizedPL()(summary()) < 0"
               >
-                {{ getUnrealizedPL()(summary()) >= 0 ? '+' : '' }}{{ cx()(getUnrealizedPL()(summary()), summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}
+                <span class="metric-amount">{{ getUnrealizedPL()(summary()) >= 0 ? '+' : '' }}{{ cx()(getUnrealizedPL()(summary()), summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
                 <span class="pl-percent">({{ getUnrealizedPLPercent()(summary()) >= 0 ? '+' : '' }}{{ getUnrealizedPLPercent()(summary()) | number:'1.2-2' }}%)</span>
               </span>
             </div>
@@ -214,7 +214,7 @@
               [class.pl-positive]="summary().realizedPL >= 0"
               [class.pl-negative]="summary().realizedPL < 0"
             >
-              {{ summary().realizedPL >= 0 ? '+' : '' }}{{ cx()(summary().realizedPL, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}
+              <span class="metric-amount">{{ summary().realizedPL >= 0 ? '+' : '' }}{{ cx()(summary().realizedPL, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
               <span class="pl-percent">({{ summary().realizedPLPercent >= 0 ? '+' : '' }}{{ summary().realizedPLPercent | number:'1.2-2' }}%)</span>
             </span>
           </div>
@@ -265,7 +265,7 @@
                     [class.pl-positive]="lot.realizedPL >= 0"
                     [class.pl-negative]="lot.realizedPL < 0"
                   >
-                    {{ lot.realizedPL >= 0 ? '+' : '' }}{{ cx()(lot.realizedPL, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}
+                    <span class="lot-amount">{{ lot.realizedPL >= 0 ? '+' : '' }}{{ cx()(lot.realizedPL, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
                     <span class="pl-percent">({{ lot.realizedPLPercent >= 0 ? '+' : '' }}{{ lot.realizedPLPercent | number:'1.2-2' }}%)</span>
                   </td>
                 </tr>

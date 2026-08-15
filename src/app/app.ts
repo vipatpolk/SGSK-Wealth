@@ -95,6 +95,9 @@ export class App {
   /** Theme (dark/light) */
   readonly theme = signal<'dark' | 'light'>('dark');
 
+  /** Privacy Mode (Hide sensitive amounts & shares) */
+  readonly privacyMode = signal<boolean>(false);
+
   readonly expandedSymbols = signal<Set<string>>(new Set());
   readonly searchQuery = signal('');
   readonly isSearchFocused = signal<boolean>(false);
@@ -272,6 +275,7 @@ export class App {
 
   constructor() {
     this.initTheme();
+    this.initPrivacyMode();
     effect(() => {
       // Re-fetch on currency change
       const curr = this.displayCurrency();
@@ -311,6 +315,39 @@ export class App {
     if (typeof localStorage !== 'undefined') {
       try {
         localStorage.setItem('sharelot_theme', theme);
+      } catch {
+        // Ignore localStorage errors
+      }
+    }
+  }
+
+  private initPrivacyMode(): void {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedPrivacy = localStorage.getItem('sharelot_privacy_mode');
+        if (savedPrivacy === 'true') {
+          this.setPrivacyMode(true);
+        } else {
+          this.setPrivacyMode(false);
+        }
+      } catch {
+        this.setPrivacyMode(false);
+      }
+    }
+  }
+
+  togglePrivacyMode(): void {
+    this.setPrivacyMode(!this.privacyMode());
+  }
+
+  setPrivacyMode(privacy: boolean): void {
+    this.privacyMode.set(privacy);
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-privacy', privacy ? 'true' : 'false');
+    }
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem('sharelot_privacy_mode', privacy ? 'true' : 'false');
       } catch {
         // Ignore localStorage errors
       }

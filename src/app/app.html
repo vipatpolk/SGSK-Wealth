@@ -2,6 +2,8 @@
   [loading]="loading()"
   [error]="error()"
   [result]="result()"
+  [portfolioData]="portfolioData()"
+  [dividendData]="dividendData()"
   [totalCostConverted]="totalCostConverted()"
   [totalProceedsConverted]="totalProceedsConverted()"
   [totalPL]="totalPL()"
@@ -16,9 +18,11 @@
   [currentView]="currentView()"
   [displayCurrency]="displayCurrency()"
   [theme]="theme()"
+  [privacyMode]="privacyMode()"
   (viewChange)="setView($event)"
   (currencyChange)="displayCurrency.set($event)"
   (themeChange)="toggleTheme()"
+  (privacyChange)="togglePrivacyMode()"
 ></app-header>
 
 <!-- Tab Bar -->
@@ -339,5 +343,5 @@
 </main>
 
 <footer class="footer">
-  <p>ShareLot &mdash; FIFO Share Lot Calculator &bull; Live data from Google Sheets &bull; Prices from Yahoo Finance, Binance TH &amp; SEC Thailand</p>
+  <p>&copy; 2026 SGSK ShareLot &mdash; Investment Portfolio Tracker &amp; FIFO Engine</p>
 </footer>

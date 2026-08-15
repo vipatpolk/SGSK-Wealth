@@ -309,7 +309,7 @@
               <div class="perf-stat-cell perf-stat-cell-full">
                 <span class="perf-mobile-label">Total Return</span>
                 <div class="font-mono font-bold perf-total-return-val" [class.pl-positive]="sym.totalReturn > 0" [class.pl-negative]="sym.totalReturn < 0">
-                  {{ sym.totalReturn > 0 ? '+' : '' }}{{ sym.totalReturn | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+                  <span class="perf-amount">{{ sym.totalReturn > 0 ? '+' : '' }}{{ sym.totalReturn | currency:displayCurrency():'symbol-narrow':'1.2-2' }}</span>
                   <span class="perf-return-pct">({{ sym.totalReturnPercent > 0 ? '+' : '' }}{{ sym.totalReturnPercent | number:'1.2-2' }}%)</span>
                 </div>
               </div>

@@ -284,5 +284,15 @@ describe('PerformanceComponent', () => {
     // Return %: 50,000 / 300,000 * 100 = 16.67%
     expect(btc.totalReturnPercent).toBeCloseTo(16.67, 2);
   });
+
+  it('should render perf-amount and perf-return-pct elements in performance table', () => {
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const perfAmount = compiled.querySelector('.perf-amount');
+    const perfReturnPct = compiled.querySelector('.perf-return-pct');
+
+    expect(perfAmount).toBeTruthy();
+    expect(perfReturnPct).toBeTruthy();
+  });
 });
 

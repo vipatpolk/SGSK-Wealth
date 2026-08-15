@@ -59,6 +59,23 @@ describe('App', () => {
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
   });
 
+  it('should toggle privacy mode and set data-privacy attribute', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    app.setPrivacyMode(false);
+    expect(app.privacyMode()).toBe(false);
+    expect(document.documentElement.getAttribute('data-privacy')).toBe('false');
+
+    app.togglePrivacyMode();
+    expect(app.privacyMode()).toBe(true);
+    expect(document.documentElement.getAttribute('data-privacy')).toBe('true');
+
+    app.togglePrivacyMode();
+    expect(app.privacyMode()).toBe(false);
+    expect(document.documentElement.getAttribute('data-privacy')).toBe('false');
+  });
+
   it('should handle sort dropdown change and sort direction toggle on mobile', () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;
