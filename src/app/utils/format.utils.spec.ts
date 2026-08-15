@@ -10,6 +10,7 @@ import {
   getAssetType,
   getAssetTypeLabel,
   getAssetTypeClass,
+  getAssetColor,
   normalizeAssetType,
   getUnitLabel,
   getUnitLabelSingular,
@@ -266,6 +267,16 @@ describe('FormatUtils', () => {
       expect(getAssetType('U.S. Stock')).toBe('us-stock');
       expect(getAssetType('Cryptocurrency')).toBe('crypto');
       expect(getAssetType('Mutual Fund')).toBe('mutual-fund');
+    });
+
+    it('should return correct asset type brand color in getAssetColor', () => {
+      expect(getAssetColor('us-stock')).toBe('#3b82f6');
+      expect(getAssetColor('thai-stock')).toBe('#10b981');
+      expect(getAssetColor('crypto')).toBe('#f59e0b');
+      expect(getAssetColor('mutual-fund')).toBe('#8b5cf6');
+      expect(getAssetColor(undefined, 'BTC.CRYPTO')).toBe('#f59e0b');
+      expect(getAssetColor(undefined, 'PTT.BK')).toBe('#10b981');
+      expect(getAssetColor('unknown-type')).toBe('#9ca3af');
     });
   });
 

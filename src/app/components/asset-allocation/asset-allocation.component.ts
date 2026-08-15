@@ -3,7 +3,7 @@ import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SymbolSummary, TargetAllocation, RebalanceRecommendation } from '../../models/transaction.model';
 import { PriceData } from '../../services/price.service';
-import { getAssetType, getAssetTypeLabel, getSymbolColor, displaySymbol, resolveSymbolName } from '../../utils/format.utils';
+import { getAssetType, getAssetTypeLabel, getAssetColor, getSymbolColor, displaySymbol, resolveSymbolName } from '../../utils/format.utils';
 
 @Component({
   selector: 'app-asset-allocation',
@@ -277,15 +277,7 @@ export class AssetAllocationComponent implements OnInit {
     this.isEditingTarget.set(false);
   }
 
-  getAssetColor(type: string): string {
-    switch(type) {
-      case 'us-stock': return '#3b82f6';
-      case 'thai-stock': return '#10b981';
-      case 'crypto': return '#f59e0b';
-      case 'mutual-fund': return '#8b5cf6';
-      default: return '#6b7280';
-    }
-  }
+  getAssetColor = getAssetColor;
 
   getAssetLabel(type: string): string {
     return getAssetTypeLabel(type);

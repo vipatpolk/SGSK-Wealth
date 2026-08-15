@@ -362,5 +362,16 @@ describe('App', () => {
     app.onSearchKeydown(escEvent);
     expect(app.isSearchDropdownOpen()).toBe(false);
   });
+
+  it('should switch view mode to performance', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    expect(app.currentView()).toBe('holdings');
+
+    app.setView('performance');
+    expect(app.currentView()).toBe('performance');
+    expect(app.activeTab().id).toBe('all');
+  });
 });
 

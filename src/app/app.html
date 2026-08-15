@@ -117,6 +117,17 @@
         [exchangeRate]="exchangeRate()"
         [hasRate]="hasRate()"
       ></app-asset-allocation>
+    } @else if (currentView() === 'performance') {
+      <app-performance
+        [summaries]="result()?.summaries || []"
+        [closedSummaries]="result()?.closedSummaries || []"
+        [transactionSummaries]="result()?.transactionSummaries || []"
+        [rawTransactions]="result()?.rawTransactions || []"
+        [pricesMap]="prices()"
+        [displayCurrency]="displayCurrency()"
+        [exchangeRate]="exchangeRate()"
+        [hasRate]="hasRate()"
+      ></app-performance>
     } @else {
       <!-- Toolbar -->
       <app-search-bar

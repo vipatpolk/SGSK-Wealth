@@ -58,6 +58,17 @@ describe('HeaderComponent', () => {
     expect(component.isViewDropdownOpen()).toBe(false);
   });
 
+  it('should emit viewChange output and close dropdown when selecting performance view', () => {
+    let emittedView = '';
+    component.viewChange.subscribe(v => emittedView = v);
+
+    component.toggleViewDropdown();
+    component.selectView('performance');
+
+    expect(emittedView).toBe('performance');
+    expect(component.isViewDropdownOpen()).toBe(false);
+  });
+
   it('should format currency sign correctly via dc helper', () => {
     expect(component.dc('USD')).toBe('USD');
   });

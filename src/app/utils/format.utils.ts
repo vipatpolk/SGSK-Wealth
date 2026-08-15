@@ -192,11 +192,11 @@ export function getAssetType(assetType?: string, symbol?: string): string {
   return 'us-stock';
 }
 
-const ASSET_TYPE_CONFIG: Record<string, { label: string; cssClass: string }> = {
-  'us-stock': { label: 'U.S. Stock', cssClass: 'asset-type-tag asset-type-us-stock' },
-  'thai-stock': { label: 'Thai Stock', cssClass: 'asset-type-tag asset-type-thai-stock' },
-  'crypto': { label: 'Cryptocurrency', cssClass: 'asset-type-tag asset-type-crypto' },
-  'mutual-fund': { label: 'Mutual Fund', cssClass: 'asset-type-tag asset-type-mutual-fund' },
+const ASSET_TYPE_CONFIG: Record<string, { label: string; cssClass: string; color: string }> = {
+  'us-stock': { label: 'U.S. Stock', cssClass: 'asset-type-tag asset-type-us-stock', color: '#3b82f6' },
+  'thai-stock': { label: 'Thai Stock', cssClass: 'asset-type-tag asset-type-thai-stock', color: '#10b981' },
+  'crypto': { label: 'Cryptocurrency', cssClass: 'asset-type-tag asset-type-crypto', color: '#f59e0b' },
+  'mutual-fund': { label: 'Mutual Fund', cssClass: 'asset-type-tag asset-type-mutual-fund', color: '#8b5cf6' },
 };
 
 export function getAssetTypeLabel(assetType?: string, symbol?: string): string {
@@ -213,6 +213,14 @@ export function getAssetTypeClass(assetType?: string, symbol?: string): string {
     return ASSET_TYPE_CONFIG[type].cssClass;
   }
   return `asset-type-tag asset-type-${type.replace(/[^a-zA-Z0-9_-]/g, '').toLowerCase()}`;
+}
+
+export function getAssetColor(assetType?: string, symbol?: string): string {
+  const type = getAssetType(assetType, symbol);
+  if (ASSET_TYPE_CONFIG[type]) {
+    return ASSET_TYPE_CONFIG[type].color;
+  }
+  return '#9ca3af';
 }
 
 export interface AssetTypeOption {

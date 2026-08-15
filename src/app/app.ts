@@ -1,3 +1,4 @@
+import { PerformanceComponent } from './components/performance/performance.component';
 import { Component, inject, signal, computed, ViewEncapsulation } from '@angular/core';
 import { DecimalPipe, CurrencyPipe, DatePipe, NgTemplateOutlet } from '@angular/common';
 import { ShareLotService, SheetResult } from './services/share-lot.service';
@@ -48,7 +49,7 @@ export interface SymbolAutocompleteItem {
   selector: 'app-root',
   imports: [
     DecimalPipe, CurrencyPipe, NgTemplateOutlet, TransactionHistoryComponent,
-    HeaderComponent, TabBarComponent, SearchBarComponent, FiltersComponent, SummaryCardComponent, AssetAllocationComponent
+    HeaderComponent, TabBarComponent, SearchBarComponent, FiltersComponent, SummaryCardComponent, AssetAllocationComponent, PerformanceComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
@@ -62,7 +63,7 @@ export class App {
   readonly activeTab = signal<AssetTab>(ASSET_TABS[0]);
 
   /** View Mode: Holdings / Positions vs Transactions History vs Allocation */
-  readonly currentView = signal<'holdings' | 'transactions' | 'allocation'>('holdings');
+  readonly currentView = signal<'holdings' | 'transactions' | 'allocation' | 'performance'>('holdings');
   readonly selectedHistorySymbol = signal<string>('');
 
   readonly loading = signal(true);
@@ -130,12 +131,15 @@ export class App {
     this.currentView.set('holdings');
   }
 
-  setView(view: 'holdings' | 'transactions' | 'allocation'): void {
+  setView(view: 'holdings' | 'transactions' | 'allocation' | 'performance'): void {
     this.currentView.set(view);
     if (view === 'allocation' || view === 'transactions') {
       if (view === 'transactions') {
         this.selectedHistorySymbol.set('');
       }
+      this.selectTab(ASSET_TABS[0]);
+    }
+    if (view === 'performance') {
       this.selectTab(ASSET_TABS[0]);
     }
   }
