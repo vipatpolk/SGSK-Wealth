@@ -23,11 +23,11 @@ export class HeaderComponent {
   totalRealizedPLPercent = input.required<number>();
   hasRate = input.required<boolean>();
   exchangeRate = input.required<number>();
-  currentView = input.required<'holdings' | 'transactions' | 'allocation' | 'performance'>();
+  currentView = input.required<'holdings' | 'transactions' | 'allocation' | 'performance' | 'dividends'>();
   displayCurrency = input.required<string>();
   theme = input.required<string>();
 
-  viewChange = output<'holdings' | 'transactions' | 'allocation' | 'performance'>();
+  viewChange = output<'holdings' | 'transactions' | 'allocation' | 'performance' | 'dividends'>();
   currencyChange = output<'USD' | 'THB'>();
   themeChange = output<void>();
 
@@ -44,7 +44,7 @@ export class HeaderComponent {
     this.isViewDropdownOpen.update(v => !v);
   }
 
-  selectView(view: 'holdings' | 'transactions' | 'allocation' | 'performance') {
+  selectView(view: 'holdings' | 'transactions' | 'allocation' | 'performance' | 'dividends') {
     this.viewChange.emit(view);
     this.isViewDropdownOpen.set(false);
   }

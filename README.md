@@ -28,6 +28,15 @@
 
 ## Key Features
 
+### 💵 Dividend & Income Yield Tracking
+- **100% API-Driven Dividend Engine**: Fetches complete dividend distributions automatically from Yahoo Finance (US & Thai stocks) and the SEC Thailand Fund API (Mutual Funds).
+- **Exact Ex-Date Share Accounting**: Evaluates historical trade logs to calculate exact shares held on each dividend ex-date ($T$):
+  $$\text{Shares Held}(T) = \sum_{\text{Tx Date } \le T} \text{Buy Quantity} - \sum_{\text{Tx Date } \le T} \text{Sell Quantity}$$
+- **Forward Income & Yield on Cost (YOC)**: Displays trailing 12-month DPS, current market yield %, Yield on Cost %, and forward projected annual income.
+- **Interactive Monthly Cashflow Timeline**: Visual stacked bar chart tracking monthly dividend income split across Thai Stocks, US Stocks, and Mutual Funds.
+- **Global Asset Type & Year Filtering**: Filter summary metrics, monthly timeline chart, holdings breakdown, and transaction ledger across `All Assets`, `U.S. Stocks`, `Thai Stocks`, and `Mutual Funds` or specific calendar years.
+- **Fuzzy Autocomplete & Ledger Pagination**: Real-time autocomplete suggestions with keyboard navigation (`↑`, `↓`, `Enter`, `Escape`) and paginated historical payout ledger.
+
 ### 📈 Investment Performance & Returns Analytics
 - **Portfolio Summary Grid**: Five high-level KPI cards displaying *Total Invested*, *Total Value*, *P/L (Unrealized)*, *Realized P/L*, and *Total Return* with color-coded profit/loss amounts and relative return percentages.
 - **Asset Type Performance Breakdown**: Grouped returns analysis by asset class (`U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`), featuring proportional horizontal return bar charts and open/closed symbol counts.
@@ -63,7 +72,7 @@
 
 ### 📱 Mobile & Tablet Responsive Experience
 - **Fluid Layouts**: High-density desktop grids transform seamlessly into structured, touch-friendly card layouts on mobile and tablet devices.
-- **Dropdown View Navigation**: Touch-friendly dropdown selector (`Holdings`, `Allocation`, `Performance`, `Transactions`) for seamless mobile navigation.
+- **Dropdown View Navigation**: Touch-friendly dropdown selector (`Holdings`, `Dividends`, `Allocation`, `Performance`, `Transactions`) for seamless mobile navigation.
 - **iOS Safari Auto-Zoom Prevention**: Touch inputs and select controls utilize optimized 16px mobile typography to prevent browser zooming.
 
 ### 🌐 Multi-Asset Class Support
@@ -85,7 +94,7 @@
 | **Runtime** | [Node.js 24 LTS](https://nodejs.org/) (v24.19.0) |
 | **Backend Integration** | [FastAPI Backend (SGSKBackend)](https://github.com/vipatpolk/SGSKBackend) for data processing and API proxying |
 | **Data Source** | Google Sheets CSV Export (via Backend) |
-| **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom (17 test suites, 137 unit tests) |
+| **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom (19 test suites, 151 unit tests) |
 | **E2E Testing** | [Playwright](https://playwright.dev/) & Page Object Models (95 automated tests across 5 browser targets) |
 | **Deployment** | [Vercel](https://vercel.com/) (with API proxy rewrites) |
 

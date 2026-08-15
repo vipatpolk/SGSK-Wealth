@@ -117,6 +117,21 @@
         [exchangeRate]="exchangeRate()"
         [hasRate]="hasRate()"
       ></app-asset-allocation>
+    } @else if (currentView() === 'dividends') {
+      <app-dividend
+        [data]="dividendData()"
+        [loading]="dividendLoading()"
+        [error]="error()"
+        [displayCurrency]="displayCurrency()"
+        [exchangeRate]="exchangeRate()"
+        [getSymbolColor]="getSymbolColor.bind(this)"
+        [getDisplaySymbol]="getDisplaySymbol.bind(this)"
+        [getSymbolName]="getSymbolName.bind(this)"
+        [getAssetTypeClass]="getAssetTypeClass.bind(this)"
+        [getAssetTypeLabel]="getAssetTypeLabel.bind(this)"
+        (currencyChange)="displayCurrency.set($event)"
+        (refresh)="loadDividendData()"
+      ></app-dividend>
     } @else if (currentView() === 'performance') {
       <app-performance
         [summaries]="result()?.summaries || []"

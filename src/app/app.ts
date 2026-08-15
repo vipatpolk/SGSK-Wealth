@@ -1,10 +1,13 @@
 import { PerformanceComponent } from './components/performance/performance.component';
+import { DividendComponent } from './components/dividend/dividend.component';
 import { Component, inject, signal, computed, ViewEncapsulation, effect } from '@angular/core';
 import { DecimalPipe, CurrencyPipe, NgTemplateOutlet } from '@angular/common';
 import { SheetResult } from './services/share-lot.service';
 import { PriceService, PriceData } from './services/price.service';
 import { PortfolioService } from './services/portfolio.service';
+import { DividendService } from './services/dividend.service';
 import { PortfolioHoldingsResponse, PortfolioPosition, ClosedPortfolioPosition, PortfolioHoldingLot } from './models/portfolio.model';
+import { PortfolioDividendResponse } from './models/dividend.model';
 import { SymbolSummary, ClosedSymbolSummary, ShareLot, ClosedShareLot } from './models/transaction.model';
 import { AssetTab, ASSET_TABS } from './config/asset.constants';
 import { TransactionHistoryComponent } from './components/transaction-history/transaction-history.component';
@@ -51,7 +54,8 @@ export interface SymbolAutocompleteItem {
   selector: 'app-root',
   imports: [
     DecimalPipe, CurrencyPipe, NgTemplateOutlet, TransactionHistoryComponent,
-    HeaderComponent, TabBarComponent, SearchBarComponent, FiltersComponent, SummaryCardComponent, AssetAllocationComponent, PerformanceComponent
+    HeaderComponent, TabBarComponent, SearchBarComponent, FiltersComponent,
+    SummaryCardComponent, AssetAllocationComponent, PerformanceComponent, DividendComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
@@ -60,17 +64,20 @@ export interface SymbolAutocompleteItem {
 export class App {
   private readonly portfolioService = inject(PortfolioService);
   private readonly priceService = inject(PriceService);
+  private readonly dividendService = inject(DividendService);
 
   readonly tabs = ASSET_TABS;
   readonly activeTab = signal<AssetTab>(ASSET_TABS[0]);
 
-  /** View Mode: Holdings / Positions vs Transactions History vs Allocation */
-  readonly currentView = signal<'holdings' | 'transactions' | 'allocation' | 'performance'>('holdings');
+  /** View Mode: Holdings / Positions vs Transactions History vs Allocation vs Dividends */
+  readonly currentView = signal<'holdings' | 'transactions' | 'allocation' | 'performance' | 'dividends'>('holdings');
   readonly selectedHistorySymbol = signal<string>('');
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly portfolioData = signal<PortfolioHoldingsResponse | null>(null);
+  readonly dividendData = signal<PortfolioDividendResponse | null>(null);
+  readonly dividendLoading = signal<boolean>(false);
   readonly prices = signal<Map<string, PriceData>>(new Map());
   readonly pricesLoading = signal(false);
 
@@ -132,16 +139,16 @@ export class App {
     this.currentView.set('holdings');
   }
 
-  setView(view: 'holdings' | 'transactions' | 'allocation' | 'performance'): void {
+  setView(view: 'holdings' | 'transactions' | 'allocation' | 'performance' | 'dividends'): void {
     this.currentView.set(view);
-    if (view === 'allocation' || view === 'transactions') {
+    if (view === 'allocation' || view === 'transactions' || view === 'performance' || view === 'dividends') {
       if (view === 'transactions') {
         this.selectedHistorySymbol.set('');
       }
       this.selectTab(ASSET_TABS[0]);
     }
-    if (view === 'performance') {
-      this.selectTab(ASSET_TABS[0]);
+    if (view === 'dividends') {
+      this.loadDividendData();
     }
   }
 
@@ -270,6 +277,7 @@ export class App {
       const curr = this.displayCurrency();
       const tab = this.activeTab();
       this.loadTab(tab, curr);
+      this.loadDividendData(curr);
     });
   }
 
@@ -750,10 +758,24 @@ export class App {
     });
   }
 
+  loadDividendData(currency: 'USD' | 'THB' = this.displayCurrency()): void {
+    this.dividendLoading.set(true);
+    this.dividendService.getDividendAnalytics(currency, 'all').subscribe({
+      next: (res) => {
+        this.dividendData.set(res);
+        this.dividendLoading.set(false);
+      },
+      error: () => {
+        this.dividendLoading.set(false);
+      },
+    });
+  }
+
   refresh(): void {
     const cacheKey = `${this.activeTab().id}-${this.displayCurrency()}`;
     this.tabCache.delete(cacheKey);
     this.loadTab(this.activeTab(), this.displayCurrency());
+    this.loadDividendData(this.displayCurrency());
   }
 
   toggleExpand(symbol: string): void {
