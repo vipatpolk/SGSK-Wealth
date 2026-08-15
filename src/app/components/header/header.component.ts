@@ -1,4 +1,4 @@
-import { Component, input, output, signal, computed } from '@angular/core';
+import { Component, input, output, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { SheetResult } from '../../services/share-lot.service';
 import { PortfolioHoldingsResponse } from '../../models/portfolio.model';
@@ -7,6 +7,7 @@ import { PortfolioDividendResponse } from '../../models/dividend.model';
 @Component({
   selector: 'app-header',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CurrencyPipe, DecimalPipe],
   templateUrl: './header.component.html'
 })

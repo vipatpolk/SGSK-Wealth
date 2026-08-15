@@ -7,6 +7,7 @@ import {
   input,
   output,
   signal,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -111,6 +112,7 @@ export const DATE_PRESETS: DatePreset[] = [
 @Component({
   selector: 'app-date-range-picker',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   templateUrl: './date-range-picker.component.html',
   styleUrl: './date-range-picker.component.css',

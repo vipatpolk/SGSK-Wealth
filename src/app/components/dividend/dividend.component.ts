@@ -1,4 +1,4 @@
-import { Component, input, output, signal, computed } from '@angular/core';
+import { Component, input, output, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CurrencyPipe, DecimalPipe, NgClass } from '@angular/common';
 import {
   PortfolioDividendResponse,
@@ -13,6 +13,7 @@ import {
 @Component({
   selector: 'app-dividend',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CurrencyPipe, DecimalPipe, NgClass],
   templateUrl: './dividend.component.html',
   styleUrl: './dividend.component.css'

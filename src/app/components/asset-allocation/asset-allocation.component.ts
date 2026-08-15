@@ -1,4 +1,4 @@
-import { Component, input, signal, computed, effect, OnInit, inject } from '@angular/core';
+import { Component, input, signal, computed, effect, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SymbolSummary, TargetAllocation, RebalanceRecommendation } from '../../models/transaction.model';
@@ -10,6 +10,7 @@ import { getAssetType, getAssetTypeLabel, getAssetColor, getSymbolColor, display
 @Component({
   selector: 'app-asset-allocation',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CurrencyPipe, DecimalPipe, FormsModule],
   templateUrl: './asset-allocation.component.html',
   styleUrls: ['./asset-allocation.component.css']

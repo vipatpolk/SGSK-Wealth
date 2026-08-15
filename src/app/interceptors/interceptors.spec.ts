@@ -26,12 +26,14 @@ describe('HTTP Interceptors', () => {
     httpMock.verify();
   });
 
-  it('should attach X-API-Key header to backend API requests', async () => {
+  it('should attach X-API-Key and application signature headers to backend API requests', async () => {
     const promise = firstValueFrom(http.get('/api/backend/share-lot/sheets'));
 
     const req = httpMock.expectOne('/api/backend/share-lot/sheets');
     expect(req.request.headers.has('X-API-Key')).toBe(true);
     expect(req.request.headers.get('X-API-Key')).toBe(environment.apiKey);
+    expect(req.request.headers.get('X-App-Source')).toBe('ShareLot');
+    expect(req.request.headers.get('X-Requested-With')).toBe('ShareLot-Client');
 
     req.flush({});
     await promise;

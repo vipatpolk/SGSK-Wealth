@@ -7,7 +7,9 @@
       "^/api/backend": ""
     },
     "headers": {
-      "X-API-Key": "dev_secret_key_change_in_prod"
+      "X-API-Key": "dev_secret_key_change_in_prod",
+      "X-App-Source": "ShareLot",
+      "X-Requested-With": "ShareLot-Client"
     }
   }
 }

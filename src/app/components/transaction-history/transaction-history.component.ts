@@ -5,6 +5,7 @@ import {
   signal,
   computed,
   effect,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {
   DecimalPipe,
@@ -46,6 +47,8 @@ export type SortOrder = 'desc' | 'asc';
 
 @Component({
   selector: 'app-transaction-history',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DecimalPipe, CurrencyPipe, DatePipe, NgIf, DateRangePickerComponent],
   templateUrl: './transaction-history.component.html',
   styleUrl: './transaction-history.component.css',

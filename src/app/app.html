@@ -103,50 +103,82 @@
   <!-- Data Loaded -->
   @if (!loading() && !error() && result()) {
     @if (currentView() === 'transactions') {
-      <app-transaction-history
-        [transactionSummaries]="result()?.transactionSummaries || []"
-        [openSummaries]="result()?.summaries || []"
-        [prices]="prices()"
-        [displayCurrency]="displayCurrency()"
-        [exchangeRate]="exchangeRate()"
-        [selectedSymbol]="selectedHistorySymbol()"
-        (symbolSelected)="selectedHistorySymbol.set($event)"
-        (backToHoldings)="openHoldingsView()"
-      ></app-transaction-history>
+      @defer (on idle) {
+        <app-transaction-history
+          [transactionSummaries]="result()?.transactionSummaries || []"
+          [openSummaries]="result()?.summaries || []"
+          [prices]="prices()"
+          [displayCurrency]="displayCurrency()"
+          [exchangeRate]="exchangeRate()"
+          [selectedSymbol]="selectedHistorySymbol()"
+          (symbolSelected)="selectedHistorySymbol.set($event)"
+          (backToHoldings)="openHoldingsView()"
+        ></app-transaction-history>
+      } @placeholder {
+        <div class="screen-loader" style="position: static; min-height: 300px;">
+          <div class="screen-loader-content">
+            <div class="screen-loader-spinner"><div class="spinner-ring"></div></div>
+          </div>
+        </div>
+      }
     } @else if (currentView() === 'allocation') {
-      <app-asset-allocation
-        [summaries]="result()?.summaries || []"
-        [pricesMap]="prices()"
-        [displayCurrency]="displayCurrency()"
-        [exchangeRate]="exchangeRate()"
-        [hasRate]="hasRate()"
-      ></app-asset-allocation>
+      @defer (on idle) {
+        <app-asset-allocation
+          [summaries]="result()?.summaries || []"
+          [pricesMap]="prices()"
+          [displayCurrency]="displayCurrency()"
+          [exchangeRate]="exchangeRate()"
+          [hasRate]="hasRate()"
+        ></app-asset-allocation>
+      } @placeholder {
+        <div class="screen-loader" style="position: static; min-height: 300px;">
+          <div class="screen-loader-content">
+            <div class="screen-loader-spinner"><div class="spinner-ring"></div></div>
+          </div>
+        </div>
+      }
     } @else if (currentView() === 'dividends') {
-      <app-dividend
-        [data]="dividendData()"
-        [loading]="dividendLoading()"
-        [error]="error()"
-        [displayCurrency]="displayCurrency()"
-        [exchangeRate]="exchangeRate()"
-        [getSymbolColor]="getSymbolColor.bind(this)"
-        [getDisplaySymbol]="getDisplaySymbol.bind(this)"
-        [getSymbolName]="getSymbolName.bind(this)"
-        [getAssetTypeClass]="getAssetTypeClass.bind(this)"
-        [getAssetTypeLabel]="getAssetTypeLabel.bind(this)"
-        (currencyChange)="displayCurrency.set($event)"
-        (refresh)="loadDividendData()"
-      ></app-dividend>
+      @defer (on idle) {
+        <app-dividend
+          [data]="dividendData()"
+          [loading]="dividendLoading()"
+          [error]="error()"
+          [displayCurrency]="displayCurrency()"
+          [exchangeRate]="exchangeRate()"
+          [getSymbolColor]="getSymbolColorFn"
+          [getDisplaySymbol]="getDisplaySymbolFn"
+          [getSymbolName]="getSymbolNameFn"
+          [getAssetTypeClass]="getAssetTypeClassFn"
+          [getAssetTypeLabel]="getAssetTypeLabelFn"
+          (currencyChange)="displayCurrency.set($event)"
+          (refresh)="loadDividendData()"
+        ></app-dividend>
+      } @placeholder {
+        <div class="screen-loader" style="position: static; min-height: 300px;">
+          <div class="screen-loader-content">
+            <div class="screen-loader-spinner"><div class="spinner-ring"></div></div>
+          </div>
+        </div>
+      }
     } @else if (currentView() === 'performance') {
-      <app-performance
-        [summaries]="result()?.summaries || []"
-        [closedSummaries]="result()?.closedSummaries || []"
-        [transactionSummaries]="result()?.transactionSummaries || []"
-        [rawTransactions]="result()?.rawTransactions || []"
-        [pricesMap]="prices()"
-        [displayCurrency]="displayCurrency()"
-        [exchangeRate]="exchangeRate()"
-        [hasRate]="hasRate()"
-      ></app-performance>
+      @defer (on idle) {
+        <app-performance
+          [summaries]="result()?.summaries || []"
+          [closedSummaries]="result()?.closedSummaries || []"
+          [transactionSummaries]="result()?.transactionSummaries || []"
+          [rawTransactions]="result()?.rawTransactions || []"
+          [pricesMap]="prices()"
+          [displayCurrency]="displayCurrency()"
+          [exchangeRate]="exchangeRate()"
+          [hasRate]="hasRate()"
+        ></app-performance>
+      } @placeholder {
+        <div class="screen-loader" style="position: static; min-height: 300px;">
+          <div class="screen-loader-content">
+            <div class="screen-loader-spinner"><div class="spinner-ring"></div></div>
+          </div>
+        </div>
+      }
     } @else {
       <!-- Toolbar -->
       <app-search-bar
@@ -159,7 +191,7 @@
         [filteredClosedSummariesCount]="filteredClosedSummaries().length"
         [isClosedTab]="isClosedTab()"
         [isAllTab]="isAllTab()"
-        [getAssetTypeClass]="getAssetTypeClass.bind(this)"
+        [getAssetTypeClass]="getAssetTypeClassFn"
         (searchInput)="onSearchInput($event)"
         (searchFocus)="onSearchFocus()"
         (searchKeydown)="onSearchKeydown($event)"
@@ -292,21 +324,21 @@
         [isExpanded]="isExpanded(summary.symbol)"
         (toggleExpand)="toggleExpand($event)"
         (openHistory)="openTransactionHistory($event)"
-        [getSymbolColor]="getSymbolColor.bind(this)"
-        [getDisplaySymbol]="getDisplaySymbol.bind(this)"
-        [getSymbolName]="getSymbolName.bind(this)"
-        [getAssetTypeClass]="getAssetTypeClass.bind(this)"
-        [getAssetTypeLabel]="getAssetTypeLabel.bind(this)"
-        [getQuantityFormat]="getQuantityFormat.bind(this)"
-        [getPriceFormat]="getPriceFormat.bind(this)"
-        [cx]="cx.bind(this)"
-        [dc]="dc.bind(this)"
-        [getCurrentPriceConverted]="getCurrentPriceConverted.bind(this)"
-        [getHoldingValue]="getHoldingValue.bind(this)"
-        [getUnrealizedPL]="getUnrealizedPL.bind(this)"
-        [getUnrealizedPLPercent]="getUnrealizedPLPercent.bind(this)"
-        [getLotHoldingValue]="getLotHoldingValue.bind(this)"
-        [getLotUnrealizedPL]="getLotUnrealizedPL.bind(this)"
+        [getSymbolColor]="getSymbolColorFn"
+        [getDisplaySymbol]="getDisplaySymbolFn"
+        [getSymbolName]="getSymbolNameFn"
+        [getAssetTypeClass]="getAssetTypeClassFn"
+        [getAssetTypeLabel]="getAssetTypeLabelFn"
+        [getQuantityFormat]="getQuantityFormatFn"
+        [getPriceFormat]="getPriceFormatFn"
+        [cx]="cxFn"
+        [dc]="dcFn"
+        [getCurrentPriceConverted]="getCurrentPriceConvertedFn"
+        [getHoldingValue]="getHoldingValueFn"
+        [getUnrealizedPL]="getUnrealizedPLFn"
+        [getUnrealizedPLPercent]="getUnrealizedPLPercentFn"
+        [getLotHoldingValue]="getLotHoldingValueFn"
+        [getLotUnrealizedPL]="getLotUnrealizedPLFn"
       ></app-summary-card>
     </ng-template>
 
@@ -322,21 +354,21 @@
         [isExpanded]="isExpanded(summary.symbol)"
         (toggleExpand)="toggleExpand($event)"
         (openHistory)="openTransactionHistory($event)"
-        [getSymbolColor]="getSymbolColor.bind(this)"
-        [getDisplaySymbol]="getDisplaySymbol.bind(this)"
-        [getSymbolName]="getSymbolName.bind(this)"
-        [getAssetTypeClass]="getAssetTypeClass.bind(this)"
-        [getAssetTypeLabel]="getAssetTypeLabel.bind(this)"
-        [getQuantityFormat]="getQuantityFormat.bind(this)"
-        [getPriceFormat]="getPriceFormat.bind(this)"
-        [cx]="cx.bind(this)"
-        [dc]="dc.bind(this)"
-        [getCurrentPriceConverted]="getCurrentPriceConverted.bind(this)"
-        [getHoldingValue]="getHoldingValue.bind(this)"
-        [getUnrealizedPL]="getUnrealizedPL.bind(this)"
-        [getUnrealizedPLPercent]="getUnrealizedPLPercent.bind(this)"
-        [getLotHoldingValue]="getLotHoldingValue.bind(this)"
-        [getLotUnrealizedPL]="getLotUnrealizedPL.bind(this)"
+        [getSymbolColor]="getSymbolColorFn"
+        [getDisplaySymbol]="getDisplaySymbolFn"
+        [getSymbolName]="getSymbolNameFn"
+        [getAssetTypeClass]="getAssetTypeClassFn"
+        [getAssetTypeLabel]="getAssetTypeLabelFn"
+        [getQuantityFormat]="getQuantityFormatFn"
+        [getPriceFormat]="getPriceFormatFn"
+        [cx]="cxFn"
+        [dc]="dcFn"
+        [getCurrentPriceConverted]="getCurrentPriceConvertedFn"
+        [getHoldingValue]="getHoldingValueFn"
+        [getUnrealizedPL]="getUnrealizedPLFn"
+        [getUnrealizedPLPercent]="getUnrealizedPLPercentFn"
+        [getLotHoldingValue]="getLotHoldingValueFn"
+        [getLotUnrealizedPL]="getLotUnrealizedPLFn"
       ></app-summary-card>
     </ng-template>
   }

@@ -1,6 +1,6 @@
 import { PerformanceComponent } from './components/performance/performance.component';
 import { DividendComponent } from './components/dividend/dividend.component';
-import { Component, inject, signal, computed, ViewEncapsulation, effect } from '@angular/core';
+import { Component, inject, signal, computed, ViewEncapsulation, effect, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe, CurrencyPipe, NgTemplateOutlet } from '@angular/common';
 import { SheetResult } from './services/share-lot.service';
 import { PriceService, PriceData } from './services/price.service';
@@ -52,6 +52,8 @@ export interface SymbolAutocompleteItem {
 
 @Component({
   selector: 'app-root',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DecimalPipe, CurrencyPipe, NgTemplateOutlet, TransactionHistoryComponent,
     HeaderComponent, TabBarComponent, SearchBarComponent, FiltersComponent,
@@ -62,6 +64,21 @@ export interface SymbolAutocompleteItem {
   encapsulation: ViewEncapsulation.None,
 })
 export class App {
+  readonly getSymbolColorFn = (symbol: string) => this.getSymbolColor(symbol);
+  readonly getDisplaySymbolFn = (symbol: string) => this.getDisplaySymbol(symbol);
+  readonly getSymbolNameFn = (symbol: string) => this.getSymbolName(symbol);
+  readonly getAssetTypeClassFn = (assetType?: string, symbol?: string) => this.getAssetTypeClass(assetType, symbol);
+  readonly getAssetTypeLabelFn = (assetType?: string, symbol?: string) => this.getAssetTypeLabel(assetType, symbol);
+  readonly getQuantityFormatFn = (symbol: string, assetType?: string) => this.getQuantityFormat(symbol, assetType);
+  readonly getPriceFormatFn = (symbol: string, assetType?: string) => this.getPriceFormat(symbol, assetType);
+  readonly cxFn = (amount: number, fromCurrency: string) => this.cx(amount, fromCurrency);
+  readonly dcFn = (originalCurrency?: string) => this.dc(originalCurrency);
+  readonly getCurrentPriceConvertedFn = (summary: PortfolioPosition | SymbolSummary) => this.getCurrentPriceConverted(summary);
+  readonly getHoldingValueFn = (summary: PortfolioPosition | SymbolSummary) => this.getHoldingValue(summary);
+  readonly getUnrealizedPLFn = (summary: PortfolioPosition | SymbolSummary) => this.getUnrealizedPL(summary);
+  readonly getUnrealizedPLPercentFn = (summary: PortfolioPosition | SymbolSummary) => this.getUnrealizedPLPercent(summary);
+  readonly getLotHoldingValueFn = (lot: PortfolioHoldingLot | ShareLot, summary: PortfolioPosition | SymbolSummary) => this.getLotHoldingValue(lot, summary);
+  readonly getLotUnrealizedPLFn = (lot: PortfolioHoldingLot | ShareLot, summary: PortfolioPosition | SymbolSummary) => this.getLotUnrealizedPL(lot, summary);
   private readonly portfolioService = inject(PortfolioService);
   private readonly priceService = inject(PriceService);
   private readonly dividendService = inject(DividendService);
