@@ -163,6 +163,30 @@ describe('HeaderComponent', () => {
     expect(metaStats?.textContent).toContain('1');
   });
 
+  it('should emit viewChange output and close dropdown when selecting tools view', () => {
+    let emittedView = '';
+    component.viewChange.subscribe((v) => (emittedView = v));
+
+    component.toggleViewDropdown();
+    component.selectView('tools');
+
+    expect(emittedView).toBe('tools');
+    expect(component.isViewDropdownOpen()).toBe(false);
+  });
+
+  it('should render page-specific meta stats for tools view', () => {
+    componentRef.setInput('result', { totalSymbols: 5, totalLots: 12, error: null } as any);
+    componentRef.setInput('currentView', 'tools');
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const metaStats = compiled.querySelector('.header-meta-stats');
+    expect(metaStats?.textContent).toContain('Tool');
+    expect(metaStats?.textContent).toContain('Avg Cost');
+    expect(metaStats?.textContent).toContain('Mode');
+    expect(metaStats?.textContent).toContain('Simulator');
+  });
+
   it('should emit privacyChange output when privacy toggle button is clicked', () => {
     let privacyToggled = false;
     component.privacyChange.subscribe(() => privacyToggled = true);

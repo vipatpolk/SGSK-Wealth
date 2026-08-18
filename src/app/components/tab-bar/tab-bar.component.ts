@@ -10,7 +10,7 @@ import { AssetTab } from '../../config/asset.constants';
   templateUrl: './tab-bar.component.html'
 })
 export class TabBarComponent {
-  currentView = input.required<'holdings' | 'transactions' | 'allocation' | 'performance' | 'dividends'>();
+  currentView = input.required<'holdings' | 'transactions' | 'allocation' | 'performance' | 'dividends' | 'tools'>();
   tabs = input.required<AssetTab[]>();
   activeTab = input.required<AssetTab>();
   isTabDropdownOpen = input.required<boolean>();

@@ -1,5 +1,6 @@
 import { PerformanceComponent } from './components/performance/performance.component';
 import { DividendComponent } from './components/dividend/dividend.component';
+import { ToolsComponent } from './components/tools/tools.component';
 import { Component, inject, signal, computed, ViewEncapsulation, effect, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe, CurrencyPipe, NgTemplateOutlet } from '@angular/common';
 import { SheetResult } from './services/share-lot.service';
@@ -57,7 +58,8 @@ export interface SymbolAutocompleteItem {
   imports: [
     DecimalPipe, CurrencyPipe, NgTemplateOutlet, TransactionHistoryComponent,
     HeaderComponent, TabBarComponent, SearchBarComponent, FiltersComponent,
-    SummaryCardComponent, AssetAllocationComponent, PerformanceComponent, DividendComponent
+    SummaryCardComponent, AssetAllocationComponent, PerformanceComponent, DividendComponent,
+    ToolsComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
@@ -86,8 +88,8 @@ export class App {
   readonly tabs = ASSET_TABS;
   readonly activeTab = signal<AssetTab>(ASSET_TABS[0]);
 
-  /** View Mode: Holdings / Positions vs Transactions History vs Allocation vs Dividends */
-  readonly currentView = signal<'holdings' | 'transactions' | 'allocation' | 'performance' | 'dividends'>('holdings');
+  /** View Mode: Holdings / Positions vs Transactions History vs Allocation vs Dividends vs Tools */
+  readonly currentView = signal<'holdings' | 'transactions' | 'allocation' | 'performance' | 'dividends' | 'tools'>('holdings');
   readonly selectedHistorySymbol = signal<string>('');
 
   readonly loading = signal(true);
@@ -159,9 +161,9 @@ export class App {
     this.currentView.set('holdings');
   }
 
-  setView(view: 'holdings' | 'transactions' | 'allocation' | 'performance' | 'dividends'): void {
+  setView(view: 'holdings' | 'transactions' | 'allocation' | 'performance' | 'dividends' | 'tools'): void {
     this.currentView.set(view);
-    if (view === 'allocation' || view === 'transactions' || view === 'performance' || view === 'dividends') {
+    if (view === 'allocation' || view === 'transactions' || view === 'performance' || view === 'dividends' || view === 'tools') {
       if (view === 'transactions') {
         this.selectedHistorySymbol.set('');
       }

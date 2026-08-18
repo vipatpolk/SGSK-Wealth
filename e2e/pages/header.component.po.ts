@@ -19,6 +19,7 @@ export class HeaderPage {
     this.viewToggleAllocationBtn = page.locator('#view-toggle-allocation');
     this.viewTogglePerformanceBtn = page.locator('#view-toggle-performance');
     this.viewToggleTransactionsBtn = page.locator('#view-toggle-transactions');
+    this.viewToggleToolsBtn = page.locator('#view-toggle-tools');
     this.currencyUsdBtn = page.locator('#currency-usd');
     this.currencyThbBtn = page.locator('#currency-thb');
     this.themeToggleBtn = page.locator('#theme-toggle-btn');
@@ -58,6 +59,15 @@ export class HeaderPage {
     } else {
       await this.viewToggleTriggerBtn.click();
       await this.viewToggleTransactionsBtn.click();
+    }
+  }
+
+  async selectToolsView() {
+    if (await this.viewToggleToolsBtn.isVisible()) {
+      await this.viewToggleToolsBtn.click();
+    } else {
+      await this.viewToggleTriggerBtn.click();
+      await this.viewToggleToolsBtn.click();
     }
   }
 

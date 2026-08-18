@@ -142,6 +142,23 @@
                 <span class="header-stat-value">{{ exchangeRate() | number:'1.2-2' }}</span>
               </div>
             }
+          } @else if (currentView() === 'tools') {
+            <div class="header-stat header-stat-compact">
+              <span class="header-stat-label">Tool</span>
+              <span class="header-stat-value" style="color: var(--color-accent);">Avg Cost</span>
+            </div>
+            <div class="header-stat-divider-dot"></div>
+            <div class="header-stat header-stat-compact">
+              <span class="header-stat-label">Mode</span>
+              <span class="header-stat-value">Simulator</span>
+            </div>
+            @if (hasRate()) {
+              <div class="header-stat-divider-dot"></div>
+              <div class="header-stat header-stat-compact">
+                <span class="header-stat-label">USD/THB</span>
+                <span class="header-stat-value">{{ exchangeRate() | number:'1.2-2' }}</span>
+              </div>
+            }
           } @else {
             <div class="header-stat header-stat-compact">
               <span class="header-stat-label">Symbols</span>
@@ -184,6 +201,9 @@
             } @else if (currentView() === 'performance') {
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
               <span class="view-toggle-label">Performance</span>
+            } @else if (currentView() === 'tools') {
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon text-indigo-400"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>
+              <span class="view-toggle-label">Tools</span>
             } @else {
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
               <span class="view-toggle-label">Allocation</span>
@@ -246,6 +266,17 @@
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
               <span class="view-toggle-label">Performance</span>
+            </button>
+            <button
+              class="view-toggle-btn"
+              [class.view-toggle-btn-active]="currentView() === 'tools'"
+              (click)="selectView('tools')"
+              id="view-toggle-tools"
+              type="button"
+              title="Financial tools, average cost calculator & simulators"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>
+              <span class="view-toggle-label">Tools</span>
             </button>
           </div>
         </div>

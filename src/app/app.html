@@ -179,6 +179,23 @@
           </div>
         </div>
       }
+    } @else if (currentView() === 'tools') {
+      @defer (on idle) {
+        <app-tools
+          [portfolioPositions]="portfolioData()?.openPositions || []"
+          [pricesMap]="prices()"
+          [displayCurrency]="displayCurrency()"
+          [exchangeRate]="exchangeRate()"
+          [hasRate]="hasRate()"
+          [privacyMode]="privacyMode()"
+        ></app-tools>
+      } @placeholder {
+        <div class="screen-loader" style="position: static; min-height: 300px;">
+          <div class="screen-loader-content">
+            <div class="screen-loader-spinner"><div class="spinner-ring"></div></div>
+          </div>
+        </div>
+      }
     } @else {
       <!-- Toolbar -->
       <app-search-bar

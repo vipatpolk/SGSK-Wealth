@@ -480,4 +480,13 @@ describe('App', () => {
     expect(app.currentView()).toBe('performance');
     expect(app.activeTab().id).toBe('all');
   });
+
+  it('should switch to tools view and reset active tab to all', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    app.setView('tools');
+    expect(app.currentView()).toBe('tools');
+    expect(app.activeTab().id).toBe('all');
+  });
 });
