@@ -62,4 +62,108 @@ test.describe('Tools Hub & Avg Cost Calculator', () => {
     // Verify amount input is visible
     await expect(page.locator('#input-amount')).toBeVisible();
   });
+
+  test('TC-TOOLS-04: Switch to TVM Calculator and calculate Future Value', async ({ page }) => {
+    await headerPage.selectToolsView();
+    await expect(page.locator('app-tools')).toBeVisible();
+
+    // Select TVM Calculator from tab selector
+    const tvmTabBtn = page.locator('.tool-tab-btn:has-text("TVM Calculator")');
+    if (await tvmTabBtn.isVisible()) {
+      await tvmTabBtn.click();
+    } else {
+      // Mobile dropdown
+      await page.locator('#tools-mobile-dropdown-trigger').click();
+      await page.locator('.tools-dropdown-item:has-text("TVM Calculator")').click();
+    }
+
+    // Verify TVM Calculator is visible
+    await expect(page.locator('app-tvm-calculator')).toBeVisible();
+
+    // Verify Hero Display is visible with projected amount
+    await expect(page.locator('.tvm-hero-display')).toBeVisible();
+    await expect(page.locator('.hero-main-value')).toBeVisible();
+
+    // Switch solve mode to PMT
+    const solvePmtBtn = page.locator('#mode-solve-pmt');
+    await solvePmtBtn.click();
+    await expect(solvePmtBtn).toHaveClass(/active/);
+    await expect(page.locator('#input-target-fv')).toBeVisible();
+
+    // Open compounding dropdown and select Quarterly
+    await page.locator('#compounding-dropdown-btn').click();
+    await expect(page.locator('.compounding-menu')).toBeVisible();
+    await page.locator('.compounding-menu-item:has-text("Quarterly")').click();
+    await expect(page.locator('.compounding-active-text')).toContainText('Quarterly');
+
+    // Toggle Schedule Table
+    const toggleScheduleBtn = page.locator('#btn-toggle-tvm-schedule');
+    await toggleScheduleBtn.click();
+    await expect(page.locator('.schedule-table')).toBeVisible();
+  });
+
+  test('TC-TOOLS-05: TVM Calculator asset class multi-selection and valuation basis', async ({ page }) => {
+    await headerPage.selectToolsView();
+    const tvmTabBtn = page.locator('.tool-tab-btn:has-text("TVM Calculator")');
+    if (await tvmTabBtn.isVisible()) {
+      await tvmTabBtn.click();
+    } else {
+      await page.locator('#tools-mobile-dropdown-trigger').click();
+      await page.locator('.tools-dropdown-item:has-text("TVM Calculator")').click();
+    }
+    await expect(page.locator('app-tvm-calculator')).toBeVisible();
+
+    // Verify PV Valuation Basis buttons
+    const investedBtn = page.locator('.pv-source-btn:has-text("Invested Cost")');
+    await investedBtn.click();
+    await expect(investedBtn).toHaveClass(/active/);
+
+    const marketValBtn = page.locator('.pv-source-btn:has-text("Market Value")');
+    await marketValBtn.click();
+    await expect(marketValBtn).toHaveClass(/active/);
+
+    // Verify Asset Type chips if present
+    const assetChips = page.locator('.asset-type-chip');
+    const chipCount = await assetChips.count();
+    if (chipCount > 1) {
+      // Click second chip (individual asset class)
+      await assetChips.nth(1).click();
+      await expect(assetChips.nth(1)).toHaveClass(/active/);
+
+      // Click first chip (All Classes) to reset
+      await assetChips.first().click();
+      await expect(assetChips.first()).toHaveClass(/active/);
+    }
+  });
+
+  test('TC-TOOLS-06: TVM Calculator Year-by-Year Growth Chart and Area/Lines toggle', async ({ page }) => {
+    await headerPage.selectToolsView();
+    const tvmTabBtn = page.locator('.tool-tab-btn:has-text("TVM Calculator")');
+    if (await tvmTabBtn.isVisible()) {
+      await tvmTabBtn.click();
+    } else {
+      await page.locator('#tools-mobile-dropdown-trigger').click();
+      await page.locator('.tools-dropdown-item:has-text("TVM Calculator")').click();
+    }
+    await expect(page.locator('app-tvm-calculator')).toBeVisible();
+
+    // Verify Chart Card & SVG are rendered
+    await expect(page.locator('.tvm-chart-card')).toBeVisible();
+    await expect(page.locator('.tvm-growth-svg')).toBeVisible();
+    await expect(page.locator('.chart-line-balance')).toBeVisible();
+    await expect(page.locator('.chart-line-invested')).toBeVisible();
+
+    // Toggle to Lines mode
+    const linesBtn = page.locator('.chart-mode-btn:has-text("Lines")');
+    await linesBtn.click();
+    await expect(linesBtn).toHaveClass(/active/);
+    await expect(page.locator('.chart-area-balance')).toHaveCount(0);
+
+    // Toggle back to Area mode
+    const areaBtn = page.locator('.chart-mode-btn:has-text("Area")');
+    await areaBtn.click();
+    await expect(areaBtn).toHaveClass(/active/);
+    await expect(page.locator('.chart-area-balance')).toBeVisible();
+  });
 });
+

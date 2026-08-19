@@ -61,10 +61,22 @@ describe('ToolsComponent', () => {
     expect(component.toolsList.length).toBeGreaterThanOrEqual(3);
     const avgCostTool = component.toolsList.find((t) => t.id === 'avg-cost-calculator');
     expect(avgCostTool?.isReady).toBe(true);
+
+    const tvmTool = component.toolsList.find((t) => t.id === 'tvm-calculator');
+    expect(tvmTool?.isReady).toBe(true);
+
+    const rebalanceTool = component.toolsList.find((t) => t.id === 'rebalance-planner');
+    expect(rebalanceTool?.isReady).toBe(false);
+  });
+
+  it('should switch to tvm-calculator when selected', () => {
+    component.selectTool('tvm-calculator');
+    expect(component.activeToolId()).toBe('tvm-calculator');
+    expect(component.activeTool().id).toBe('tvm-calculator');
   });
 
   it('should not switch to disabled/unready tools', () => {
-    component.selectTool('dca-simulator');
+    component.selectTool('rebalance-planner');
     expect(component.activeToolId()).toBe('avg-cost-calculator');
   });
 

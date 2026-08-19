@@ -183,6 +183,7 @@
       @defer (on idle) {
         <app-tools
           [portfolioPositions]="portfolioData()?.openPositions || []"
+          [portfolioSummary]="portfolioData()?.summary || null"
           [pricesMap]="prices()"
           [displayCurrency]="displayCurrency()"
           [exchangeRate]="exchangeRate()"

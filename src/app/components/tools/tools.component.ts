@@ -7,21 +7,23 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PortfolioPosition } from '../../models/portfolio.model';
+import { PortfolioPosition, PortfolioSummary } from '../../models/portfolio.model';
 import { PriceData } from '../../services/price.service';
 import { AvgCostSimulationResult, ToolDefinition, ToolId } from '../../models/tools.model';
 import { AvgCostCalculatorComponent } from './avg-cost-calculator/avg-cost-calculator.component';
+import { TvmCalculatorComponent } from './tvm-calculator/tvm-calculator.component';
 
 @Component({
   selector: 'app-tools',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, AvgCostCalculatorComponent],
+  imports: [CommonModule, AvgCostCalculatorComponent, TvmCalculatorComponent],
   templateUrl: './tools.component.html',
   styleUrls: ['./tools.component.css'],
 })
 export class ToolsComponent {
   portfolioPositions = input.required<PortfolioPosition[]>();
+  portfolioSummary = input<PortfolioSummary | null>(null);
   pricesMap = input.required<Map<string, PriceData>>();
   displayCurrency = input.required<'USD' | 'THB'>();
   exchangeRate = input.required<number>();
@@ -45,13 +47,13 @@ export class ToolsComponent {
       isReady: true,
     },
     {
-      id: 'dca-simulator',
-      title: 'DCA Investment Planner',
-      shortTitle: 'DCA Simulator',
-      description: 'Model periodic recurring investments, dividend compounding, and historical return forecasts.',
+      id: 'tvm-calculator',
+      title: 'Time Value of Money (TVM) Calculator',
+      shortTitle: 'TVM Calculator',
+      description: 'Calculate Future Value, required contributions, target growth rates, and horizons with flexible compounding frequencies.',
       icon: 'trending-up',
-      badge: 'Coming Soon',
-      isReady: false,
+      badge: 'Active',
+      isReady: true,
     },
     {
       id: 'rebalance-planner',
