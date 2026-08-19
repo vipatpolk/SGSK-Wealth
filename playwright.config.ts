@@ -8,12 +8,12 @@ export default defineConfig({
   testDir: './e2e/specs',
   timeout: 30 * 1000,
   expect: {
-    timeout: 5000,
+    timeout: 8000,
   },
   fullyParallel: true,
   forbidOnly: !!process.env['CI'],
   retries: process.env['CI'] ? 2 : 0,
-  workers: process.env['CI'] ? 4 : undefined,
+  workers: process.env['CI'] ? 2 : undefined,
   reporter: [
     ['html', { open: 'never' }],
     ['list'],

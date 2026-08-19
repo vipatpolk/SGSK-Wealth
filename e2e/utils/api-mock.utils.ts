@@ -242,6 +242,40 @@ export async function mockPortfolioAPIs(page: Page) {
       }),
     });
   });
+
+  // Mock /api/backend/portfolio/dividend
+  await page.route('**/api/backend/portfolio/dividend**', async (route) => {
+    const url = new URL(route.request().url());
+    const curr = url.searchParams.get('currency') || 'THB';
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        currency: curr,
+        exchangeRate: 35.0,
+        tabId: url.searchParams.get('tab_id') || 'all',
+        annualDividend: 1200,
+        portfolioYield: 3.5,
+        portfolioYieldOnCost: 4.2,
+        monthlyIncome: [],
+        upcomingDividends: [],
+        symbolDividends: [],
+        error: null,
+      }),
+    });
+  });
+
+  // Mock /api/backend/portfolio/tools/**
+  await page.route('**/api/backend/portfolio/tools/**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: {},
+      }),
+    });
+  });
 }
 
 export async function mockPortfolioAPIError(page: Page, statusCode = 500) {

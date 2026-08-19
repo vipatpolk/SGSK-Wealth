@@ -31,6 +31,7 @@
         <button
           type="button"
           class="tool-tab-btn"
+          [id]="'tool-tab-' + tool.id"
           [class.active]="activeToolId() === tool.id"
           [class.disabled]="!tool.isReady"
           (click)="selectTool(tool.id)"
@@ -80,6 +81,7 @@
             <button
               type="button"
               class="tools-dropdown-item"
+              [id]="'tool-dropdown-' + tool.id"
               [class.active]="activeToolId() === tool.id"
               [class.disabled]="!tool.isReady"
               (click)="selectTool(tool.id)"

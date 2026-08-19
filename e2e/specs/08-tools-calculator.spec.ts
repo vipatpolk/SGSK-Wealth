@@ -71,14 +71,14 @@ test.describe('Tools Hub & Avg Cost Calculator', () => {
     const isDesktop = viewport ? viewport.width >= 1024 : true;
 
     if (isDesktop) {
-      const desktopTab = page.locator('.tools-tab-selector .tool-tab-btn', { hasText: 'TVM' });
+      const desktopTab = page.locator('#tool-tab-tvm-calculator');
       await expect(desktopTab).toBeVisible();
       await desktopTab.click();
     } else {
       const mobileTrigger = page.locator('#tools-mobile-dropdown-trigger');
       await expect(mobileTrigger).toBeVisible();
       await mobileTrigger.click();
-      const dropdownItem = page.locator('.tools-dropdown-item', { hasText: 'TVM' });
+      const dropdownItem = page.locator('#tool-dropdown-tvm-calculator');
       await expect(dropdownItem).toBeVisible();
       await dropdownItem.click();
     }
