@@ -76,6 +76,17 @@
 - **Export to CSV**: Download transactions in standard 5-column CSV format (`Symbol,Date,Quantity,Price,Currency`) with YYYY-MM-DD dates, signed quantities (`+` for BUY/EX-IN, `-` for SELL/EX-OUT), UTF-8 BOM encoding (`\uFEFF`), and filter options (Asset Type and Open/Closed scope).
 - **Pagination & Sorting**: Configurable page size options (10, 50, 100) with responsive pagination navigation.
 
+### 🧮 Investor Tools & Financial Simulators Hub
+- **Time Value of Money (TVM) Calculator**:
+  - **5-Way Flexible Solve Modes**: Calculate Future Value ($FV$), Periodic Payment ($PMT$), Starting Principal ($PV$), Investment Horizon ($N$), and Required Annual Return Rate ($Rate$).
+  - **8 Compounding Frequencies**: Daily ($m=365$), Weekly ($m=52$), Biweekly ($m=26$), Semimonthly ($m=24$), Monthly ($m=12$), Quarterly ($m=4$), Semiannually ($m=2$), and Annually ($m=1$).
+  - **Multi-Asset Class Present Value ($PV$) Sync**: Directly sync starting principal from live portfolio market values or cost basis with multi-asset selection chips (U.S. Stocks, Thai Stocks, Crypto, Mutual Funds).
+  - **Interactive Year-by-Year Wealth Trajectory Line Graph**: Reactive SVG line & area curves, crosshair vertical guidelines, animated indicator dots, and floating tooltips displaying balance, invested capital, interest earned, and return multiples.
+  - **Expandable Accumulation Schedule**: Complete year-by-year financial table with annual deposits, yearly interest, cumulative interest, and ending balances with Privacy Mode blurring.
+- **Average Cost Basis Calculator**:
+  - Multi-step forward Buy / Sell order simulation with custom brokerage fees.
+  - Target Average Cost Solver calculating exact required shares and capital to achieve a desired cost basis.
+
 ### 📱 Responsive Experience & Tablet Optimization
 - **Segmented Capsule Header Stats**: Redesigned floating header statistics capsule with monospace typography and distinct meta stats pill badge.
 - **Tablet & iPad Breakpoints**: Optimized layout scaling for iPad Air, iPad Pro 11", and iPad Pro 12.9" preventing header stat overflow.
@@ -93,8 +104,8 @@
 | **Runtime** | [Node.js 24 LTS](https://nodejs.org/) (v24.19.0) |
 | **Backend Integration** | [FastAPI Backend (SGSKBackend)](https://github.com/vipatpolk/SGSKBackend) for data processing and API proxying |
 | **Data Source** | Google Sheets CSV Export (via Backend) |
-| **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom (**19 test suites, 165 unit tests**) |
-| **E2E Testing** | [Playwright](https://playwright.dev/) & Page Object Models (**70 automated tests** across 5 browser targets) |
+| **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom (**25 test suites, 231 unit tests**) |
+| **E2E Testing** | [Playwright](https://playwright.dev/) & Page Object Models (**70+ automated tests** across browser targets) |
 | **Deployment** | [Vercel](https://vercel.com/) (with API proxy rewrites) |
 
 ---
@@ -121,13 +132,18 @@ ShareLot/
 │   │   │   ├── search-bar/           # Autocomplete symbol search input
 │   │   │   ├── summary-card/         # Metric cards & statistics displays
 │   │   │   ├── tab-bar/              # Asset category tab navigation
+│   │   │   ├── tools/                # Tools Hub, Avg Cost Simulator & TVM Calculator
+│   │   │   │   ├── avg-cost-calculator/
+│   │   │   │   └── tvm-calculator/
 │   │   │   └── transaction-history/  # Transaction ledger, CSV export & pagination
 │   │   ├── config/             # UI tab constants & asset metadata
 │   │   │   └── asset.constants.ts
-│   │   ├── models/             # Domain models (Transaction, ShareLot, Portfolio, Performance)
+│   │   ├── models/             # Domain models (Transaction, ShareLot, Portfolio, Tools)
 │   │   │   ├── portfolio.model.ts
+│   │   │   ├── tools.model.ts
 │   │   │   └── transaction.model.ts
 │   │   ├── services/           # Data fetching & portfolio services with spec tests
+│   │   └── utils/              # Formatting & TVM math calculation utilities
 │   │   │   ├── dividend.service.ts
 │   │   │   ├── portfolio.service.ts
 │   │   │   ├── share-lot.service.ts
