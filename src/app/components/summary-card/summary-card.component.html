@@ -7,8 +7,8 @@
           <span class="symbol-badge" [style.background-color]="getSymbolColor()(summary().symbol) + '18'" [style.color]="getSymbolColor()(summary().symbol)" [style.border-color]="getSymbolColor()(summary().symbol) + '30'">
             {{ getDisplaySymbol()(summary().symbol) }}
           </span>
-          @if (getSymbolName()(summary().symbol)) {
-            <span class="symbol-name" [title]="getSymbolName()(summary().symbol)">{{ getSymbolName()(summary().symbol) }}</span>
+          @if (getSymbolName()(summary().symbol, summary().name)) {
+            <span class="symbol-name" [title]="getSymbolName()(summary().symbol, summary().name)">{{ getSymbolName()(summary().symbol, summary().name) }}</span>
           }
         </div>
         <div class="card-header-info">
@@ -162,8 +162,8 @@
           <span class="symbol-badge" [style.background-color]="getSymbolColor()(summary().symbol) + '18'" [style.color]="getSymbolColor()(summary().symbol)" [style.border-color]="getSymbolColor()(summary().symbol) + '30'">
             {{ getDisplaySymbol()(summary().symbol) }}
           </span>
-          @if (getSymbolName()(summary().symbol)) {
-            <span class="symbol-name" [title]="getSymbolName()(summary().symbol)">{{ getSymbolName()(summary().symbol) }}</span>
+          @if (getSymbolName()(summary().symbol, summary().name)) {
+            <span class="symbol-name" [title]="getSymbolName()(summary().symbol, summary().name)">{{ getSymbolName()(summary().symbol, summary().name) }}</span>
           }
         </div>
         <div class="card-header-info">

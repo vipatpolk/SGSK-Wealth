@@ -489,4 +489,55 @@ describe('App', () => {
     expect(app.currentView()).toBe('tools');
     expect(app.activeTab().id).toBe('all');
   });
+
+  it('should resolve symbol name from rawName, prices map, or portfolioData closed positions', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    // 1. Using rawName parameter
+    expect(app.getSymbolName('TTB.BK', 'TMBThanachart Bank')).toBe('TMBThanachart Bank');
+
+    // 2. From portfolioData closedPositions
+    app.portfolioData.set({
+      currency: 'THB',
+      exchangeRate: 1,
+      tabId: 'closed-position',
+      summary: {
+        totalInvested: 100,
+        totalValue: 0,
+        openInvested: 0,
+        closedInvested: 100,
+        totalUnrealizedPL: 0,
+        totalUnrealizedPLPercent: 0,
+        totalRealizedPL: 20,
+        totalRealizedPLPercent: 20,
+        totalReturn: 20,
+        totalReturnPercent: 20,
+      },
+      openPositions: [],
+      closedPositions: [
+        {
+          symbol: 'tsp5-gogetter-SSF.BKFUND',
+          displaySymbol: 'tsp5-gogetter-SSF',
+          name: 'ttb smart port 5 go-getter Super Savings Fund',
+          assetType: 'mutual-fund',
+          assetTypeLabel: 'Mutual Fund',
+          totalShares: 0,
+          closedShares: 10,
+          totalCost: 100,
+          totalProceeds: 120,
+          realizedPL: 20,
+          realizedPLPercent: 20,
+          averageBuyPrice: 10,
+          averageSellPrice: 12,
+          currency: 'THB',
+          originalCurrency: 'THB',
+          lots: [],
+        },
+      ],
+      error: null,
+    });
+
+    expect(app.getSymbolName('tsp5-gogetter-SSF.BKFUND')).toBe('ttb smart port 5 go-getter Super Savings Fund');
+  });
 });

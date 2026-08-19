@@ -68,7 +68,7 @@ export interface SymbolAutocompleteItem {
 export class App {
   readonly getSymbolColorFn = (symbol: string) => this.getSymbolColor(symbol);
   readonly getDisplaySymbolFn = (symbol: string) => this.getDisplaySymbol(symbol);
-  readonly getSymbolNameFn = (symbol: string) => this.getSymbolName(symbol);
+  readonly getSymbolNameFn = (symbol: string, rawName?: string) => this.getSymbolName(symbol, rawName);
   readonly getAssetTypeClassFn = (assetType?: string, symbol?: string) => this.getAssetTypeClass(assetType, symbol);
   readonly getAssetTypeLabelFn = (assetType?: string, symbol?: string) => this.getAssetTypeLabel(assetType, symbol);
   readonly getQuantityFormatFn = (symbol: string, assetType?: string) => this.getQuantityFormat(symbol, assetType);
@@ -181,6 +181,8 @@ export class App {
 
     const summaries: SymbolSummary[] = data.openPositions.map((p) => ({
       symbol: p.symbol,
+      displaySymbol: p.displaySymbol,
+      name: p.name,
       totalShares: p.totalShares,
       totalCost: p.totalCost,
       averageCost: p.averageCost,
@@ -198,6 +200,8 @@ export class App {
 
     const closedSummaries: ClosedSymbolSummary[] = data.closedPositions.map((c) => ({
       symbol: c.symbol,
+      displaySymbol: c.displaySymbol,
+      name: c.name,
       totalShares: 0,
       closedShares: c.closedShares,
       totalCost: c.totalCost,
@@ -789,13 +793,24 @@ export class App {
 
           // Populate price map for child components
           const pMap = new Map<string, PriceData>();
-          for (const pos of res.openPositions) {
+          for (const pos of res.openPositions || []) {
             pMap.set(pos.symbol, {
               symbol: pos.symbol,
               name: pos.name,
               price: pos.currentPrice,
               currency: pos.currency,
             });
+          }
+          for (const pos of res.closedPositions || []) {
+            if (!pMap.has(pos.symbol) || !pMap.get(pos.symbol)?.name) {
+              const existing = pMap.get(pos.symbol);
+              pMap.set(pos.symbol, {
+                symbol: pos.symbol,
+                name: pos.name || existing?.name || '',
+                price: existing?.price ?? 0,
+                currency: pos.currency || existing?.currency || '',
+              });
+            }
           }
           this.prices.set(pMap);
 
@@ -883,8 +898,22 @@ export class App {
     return displaySymbol(symbol);
   }
 
-  getSymbolName(symbol: string): string {
-    return resolveSymbolName(symbol, this.prices());
+  getSymbolName(symbol: string, rawName?: string): string {
+    if (rawName) {
+      return getSymbolName(symbol, rawName);
+    }
+    const nameFromMap = resolveSymbolName(symbol, this.prices());
+    if (nameFromMap) return nameFromMap;
+
+    const data = this.portfolioData();
+    if (data) {
+      const openPos = data.openPositions?.find((p) => p.symbol === symbol);
+      if (openPos?.name) return getSymbolName(symbol, openPos.name);
+
+      const closedPos = data.closedPositions?.find((p) => p.symbol === symbol);
+      if (closedPos?.name) return getSymbolName(symbol, closedPos.name);
+    }
+    return '';
   }
 
   getHoldingValue(summary: PortfolioPosition | SymbolSummary): number {

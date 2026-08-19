@@ -36,6 +36,8 @@ export interface ClosedShareLot {
 
 export interface SymbolSummary {
   symbol: string;
+  displaySymbol?: string;
+  name?: string;
   totalShares: number;
   totalCost: number;
   averageCost: number;
@@ -46,6 +48,8 @@ export interface SymbolSummary {
 
 export interface ClosedSymbolSummary {
   symbol: string;
+  displaySymbol?: string;
+  name?: string;
   totalShares: number;
   closedShares: number;
   totalCost: number;

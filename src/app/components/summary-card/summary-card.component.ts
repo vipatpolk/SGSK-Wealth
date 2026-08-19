@@ -23,7 +23,7 @@ export class SummaryCardComponent {
   // Formatters as inputs
   getSymbolColor = input.required<(symbol: string) => string>();
   getDisplaySymbol = input.required<(symbol: string) => string>();
-  getSymbolName = input.required<(symbol: string) => string>();
+  getSymbolName = input.required<(symbol: string, rawName?: string) => string>();
   getAssetTypeClass = input.required<(type?: string, symbol?: string) => string>();
   getAssetTypeLabel = input.required<(type?: string, symbol?: string) => string>();
   getQuantityFormat = input.required<(symbol: string) => string>();

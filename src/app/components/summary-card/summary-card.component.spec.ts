@@ -136,4 +136,32 @@ describe('SummaryCardComponent', () => {
     expect(plPercent).toBeTruthy();
     expect(plPercent?.textContent).toContain('+50.00%');
   });
+
+  it('should render symbol name for closed positions', () => {
+    const mockClosedSummary = {
+      symbol: 'TTB.BK',
+      name: 'TMBThanachart Bank Public Company Limited',
+      totalShares: 0,
+      closedShares: 100,
+      totalCost: 150,
+      totalProceeds: 180,
+      realizedPL: 30,
+      realizedPLPercent: 20,
+      averageBuyPrice: 1.5,
+      averageSellPrice: 1.8,
+      currency: 'THB',
+      assetType: 'thai-stock',
+      lots: [],
+    };
+
+    componentRef.setInput('type', 'closed');
+    componentRef.setInput('summary', mockClosedSummary);
+    componentRef.setInput('getSymbolName', (sym: string, rawName?: string) => rawName || 'TMBThanachart Bank');
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const nameEl = compiled.querySelector('.symbol-name');
+    expect(nameEl).toBeTruthy();
+    expect(nameEl?.textContent).toContain('TMBThanachart Bank');
+  });
 });
