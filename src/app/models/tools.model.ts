@@ -148,3 +148,80 @@ export interface TargetAvgCostGoalResult {
   newTotalCost: number;
   achievedAvgCost: number;
 }
+
+export type RebalanceMode = 'standard' | 'no-sell';
+export type NoSellSubMode = 'min-inflow' | 'custom-deposit';
+export type RebalanceActionType = 'BUY' | 'SELL' | 'BALANCED';
+
+export interface SymbolRebalanceItem {
+  symbol: string;
+  displaySymbol: string;
+  name: string;
+  assetType: string;
+  assetTypeLabel: string;
+  currency: string;
+  currentShares: number;
+  currentPrice: number;
+  currentValue: number;
+  currentClassPercent: number;
+  currentPortfolioPercent: number;
+  targetPercent: number;
+  targetValue: number;
+  action: RebalanceActionType;
+  deltaValue: number;
+  deltaShares: number;
+  color: string;
+  isAnchorPosition?: boolean;
+}
+
+export interface AssetClassRebalanceGroup {
+  assetType: string;
+  label: string;
+  color: string;
+  currentValue: number;
+  currentPortfolioPercent: number;
+  targetTotalPercent: number;
+  isValid: boolean;
+  minInflowRequired: number;
+  totalBuyAmount: number;
+  totalSellAmount: number;
+  symbols: SymbolRebalanceItem[];
+}
+
+export interface RebalanceTradeOrder {
+  id: string;
+  symbol: string;
+  displaySymbol: string;
+  name: string;
+  assetType: string;
+  action: 'BUY' | 'SELL';
+  shares: number;
+  price: number;
+  amount: number;
+  currency: string;
+}
+
+export interface RebalancePlanResult {
+  mode: RebalanceMode;
+  noSellSubMode: NoSellSubMode;
+  displayCurrency: 'USD' | 'THB';
+  totalCurrentPortfolioValue: number;
+  totalTargetPortfolioValue: number;
+  cashContribution: number;
+  totalBuyAmount: number;
+  totalSellAmount: number;
+  netCashDifference: number;
+  groups: AssetClassRebalanceGroup[];
+  orders: RebalanceTradeOrder[];
+  isValid: boolean;
+  errorMessage?: string;
+}
+
+export interface RebalanceSimulationInput {
+  mode: RebalanceMode;
+  noSellSubMode: NoSellSubMode;
+  customCashDeposit: number;
+  targetAllocations: Record<string, number>; // symbol -> targetPercent (0-100 within its class)
+  selectedAssetClassFilter?: string; // 'all' or specific assetType
+}
+

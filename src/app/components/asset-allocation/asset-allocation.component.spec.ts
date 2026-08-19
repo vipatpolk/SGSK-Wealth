@@ -92,36 +92,21 @@ describe('AssetAllocationComponent', () => {
     expect(enriched[0].portfolioPercent).toBeCloseTo(63.63, 1);
   });
 
-  it('should enter edit target mode and allow saving new targets', () => {
-    expect(component.isEditingTarget()).toBe(false);
-    component.startEditing();
-    expect(component.isEditingTarget()).toBe(true);
+  it('should calculate asset class recommendations and actual breakdown', () => {
+    const recs = component.recommendations();
+    expect(recs.length).toBeGreaterThanOrEqual(2);
 
-    component.updateTempTarget('us-stock', 50);
-    component.updateTempTarget('thai-stock', 20);
-    component.updateTempTarget('crypto', 15);
-    component.updateTempTarget('mutual-fund', 15);
+    const usStock = recs.find((r) => r.assetType === 'us-stock');
+    expect(usStock).toBeDefined();
+    expect(usStock?.currentValue).toBe(1800);
+    expect(usStock?.actualPercent).toBeCloseTo(63.63, 1);
 
-    expect(component.editTargetTotal()).toBe(100);
-    expect(component.isTargetValid()).toBe(true);
+    const thaiStock = recs.find((r) => r.assetType === 'thai-stock');
+    expect(thaiStock).toBeDefined();
+    expect(thaiStock?.currentValue).toBeCloseTo(1028.57, 1);
+    expect(thaiStock?.actualPercent).toBeCloseTo(36.36, 1);
 
-    component.saveTargets();
-    expect(component.isEditingTarget()).toBe(false);
-    expect(component.targetAllocation()['us-stock']).toBe(50);
-  });
-
-  it('should reject saving targets if sum does not equal 100%', () => {
-    // Mock window.alert
-    const spyAlert = vi.spyOn(window, 'alert').mockImplementation(() => {});
-
-    component.startEditing();
-    component.updateTempTarget('us-stock', 50);
-    component.updateTempTarget('thai-stock', 50);
-    component.updateTempTarget('crypto', 10); // sum = 110%
-
-    expect(component.isTargetValid()).toBe(false);
-    component.saveTargets(); // Should alert and not save
-    expect(spyAlert).toHaveBeenCalled();
-    expect(component.targetAllocation()['us-stock']).toBe(40);
+    expect(component.actualTotal()).toBeCloseTo(100, 0);
   });
 });
+

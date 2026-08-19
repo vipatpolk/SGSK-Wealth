@@ -33,10 +33,9 @@ test.describe('Target Asset Allocation & Rebalancing Engine', () => {
     }
   });
 
-  test('TC-ALC-04: Target allocation edit mode', async ({ page }) => {
-    if (await allocationPage.editTargetsBtn.isVisible()) {
-      await allocationPage.editTargetsBtn.click();
-      await expect(allocationPage.targetInputs.first()).toBeVisible();
-    }
+  test('TC-ALC-04: Asset Class Breakdown table display', async ({ page }) => {
+    await expect(page.locator('.allocation-card-title:has-text("Asset Class Breakdown")')).toBeVisible();
+    await expect(page.locator('.rebalance-list')).toBeVisible();
   });
 });
+

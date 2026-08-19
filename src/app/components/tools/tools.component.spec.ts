@@ -66,7 +66,7 @@ describe('ToolsComponent', () => {
     expect(tvmTool?.isReady).toBe(true);
 
     const rebalanceTool = component.toolsList.find((t) => t.id === 'rebalance-planner');
-    expect(rebalanceTool?.isReady).toBe(false);
+    expect(rebalanceTool?.isReady).toBe(true);
   });
 
   it('should switch to tvm-calculator when selected', () => {
@@ -75,10 +75,12 @@ describe('ToolsComponent', () => {
     expect(component.activeTool().id).toBe('tvm-calculator');
   });
 
-  it('should not switch to disabled/unready tools', () => {
+  it('should switch to rebalance-planner when selected', () => {
     component.selectTool('rebalance-planner');
-    expect(component.activeToolId()).toBe('avg-cost-calculator');
+    expect(component.activeToolId()).toBe('rebalance-planner');
+    expect(component.activeTool().id).toBe('rebalance-planner');
   });
+
 
   it('should toggle and close mobile dropdown menu', () => {
     expect(component.isDropdownOpen()).toBe(false);

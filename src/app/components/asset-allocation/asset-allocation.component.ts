@@ -1,6 +1,5 @@
 import { Component, input, signal, computed, effect, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { SymbolSummary, TargetAllocation, RebalanceRecommendation } from '../../models/transaction.model';
 import { PriceData } from '../../services/price.service';
 import { PortfolioService } from '../../services/portfolio.service';
@@ -11,7 +10,7 @@ import { getAssetType, getAssetTypeLabel, getAssetColor, getSymbolColor, display
   selector: 'app-asset-allocation',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe, FormsModule],
+  imports: [CurrencyPipe, DecimalPipe],
   templateUrl: './asset-allocation.component.html',
   styleUrls: ['./asset-allocation.component.css']
 })
@@ -32,11 +31,10 @@ export class AssetAllocationComponent implements OnInit {
   };
 
   targetAllocation = signal<TargetAllocation>(this.defaultTargets);
-  isEditingTarget = signal<boolean>(false);
-  tempTargetAllocation = signal<TargetAllocation>({});
   selectedAssetType = signal<string | null>(null);
 
   readonly serverAllocation = signal<PortfolioAllocationResponse | null>(null);
+
 
   selectAssetType(type: string | null): void {
     if (this.selectedAssetType() === type) {
@@ -281,49 +279,12 @@ export class AssetAllocationComponent implements OnInit {
     return this.recommendations().reduce((sum, r) => sum + r.actualPercent, 0);
   });
 
-  readonly editTargetTotal = computed(() => {
-    const temp = this.tempTargetAllocation();
-    return Object.values(temp).reduce((sum, val) => sum + (val || 0), 0);
-  });
-
-  readonly targetTotal = computed(() => {
-    return Object.values(this.targetAllocation()).reduce((sum, val) => sum + (val || 0), 0);
-  });
-
-  readonly isTargetValid = computed(() => {
-    return Math.abs(this.editTargetTotal() - 100) <= 0.1;
-  });
-
-  startEditing() {
-    this.tempTargetAllocation.set({ ...this.targetAllocation() });
-    this.isEditingTarget.set(true);
-  }
-
-  updateTempTarget(assetType: string, value: number) {
-    this.tempTargetAllocation.update((temp) => ({
-      ...temp,
-      [assetType]: value,
-    }));
-  }
-
-  saveTargets() {
-    if (!this.isTargetValid()) {
-      alert(`Target allocation must sum to 100%. Current sum: ${this.editTargetTotal()}%`);
-      return;
-    }
-    this.targetAllocation.set({ ...this.tempTargetAllocation() });
-    this.isEditingTarget.set(false);
-  }
-
-  cancelEditing() {
-    this.isEditingTarget.set(false);
-  }
-
   getAssetColor = getAssetColor;
 
   getAssetLabel(type: string): string {
     return getAssetTypeLabel(type);
   }
+
 
   readonly donutSegments = computed(() => {
     const selectedType = this.selectedAssetType();

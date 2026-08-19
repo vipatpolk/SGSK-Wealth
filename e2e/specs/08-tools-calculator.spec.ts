@@ -168,5 +168,104 @@ test.describe('Tools Hub & Avg Cost Calculator', () => {
     await expect(areaBtn).toHaveClass(/active/);
     await expect(page.locator('.chart-area-balance')).toBeVisible();
   });
+
+  async function selectRebalancePlanner(page: any) {
+    await expect(page.locator('app-tools')).toBeVisible();
+    const desktopTab = page.locator('#tool-tab-rebalance-planner');
+    if (await desktopTab.isVisible()) {
+      await desktopTab.click();
+    } else {
+      const mobileTrigger = page.locator('#tools-mobile-dropdown-trigger');
+      await expect(mobileTrigger).toBeVisible();
+      await mobileTrigger.click();
+      const dropdownItem = page.locator('#tool-dropdown-rebalance-planner');
+      await expect(dropdownItem).toBeVisible();
+      await dropdownItem.click();
+    }
+    await expect(page.locator('app-rebalance-calculator')).toBeVisible();
+  }
+
+
+  test('TC-TOOLS-07: Switch to Rebalance Planner tool and render asset class groups', async ({ page }) => {
+    await headerPage.selectToolsView();
+    await selectRebalancePlanner(page);
+
+    // Verify Rebalance Calculator is visible
+    await expect(page.locator('app-rebalance-calculator')).toBeVisible();
+    await expect(page.locator('.rebalance-kpi-grid')).toBeVisible();
+
+    // Verify Mode buttons
+    const stdBtn = page.locator('#btn-mode-standard');
+    await expect(stdBtn).toHaveClass(/active/);
+    const noSellBtn = page.locator('#btn-mode-nosell');
+    await expect(noSellBtn).toBeVisible();
+  });
+
+  test('TC-TOOLS-08: Rebalance Planner quick actions and target adjustments', async ({ page }) => {
+    await headerPage.selectToolsView();
+    await selectRebalancePlanner(page);
+
+    // Verify asset class groups are rendered
+    const groups = page.locator('.asset-class-card');
+    const groupCount = await groups.count();
+    if (groupCount > 0) {
+      const firstGroup = groups.first();
+      await expect(firstGroup).toBeVisible();
+
+      // Click Equal Weight
+      const equalWeightBtn = firstGroup.locator('button:has-text("Equal Weight")');
+      if (await equalWeightBtn.isVisible()) {
+        await equalWeightBtn.click();
+      }
+
+      // Verify Target Sum badge is valid
+      await expect(firstGroup.locator('.target-sum-badge')).toBeVisible();
+    }
+  });
+
+  test('TC-TOOLS-09: Rebalance Planner No-Sell mode and cash deposit calculation', async ({ page }) => {
+    await headerPage.selectToolsView();
+    await selectRebalancePlanner(page);
+
+    // Switch to No-Sell Mode
+    const noSellBtn = page.locator('#btn-mode-nosell');
+    await noSellBtn.click();
+    await expect(noSellBtn).toHaveClass(/active/);
+
+    // Verify No-Sell settings panel is shown
+    await expect(page.locator('#nosell-settings-panel')).toBeVisible();
+
+    // Switch to custom deposit radio
+    const depositRadio = page.locator('#radio-custom-deposit');
+    await depositRadio.click();
+    await expect(page.locator('#custom-cash-input')).toBeVisible();
+  });
+
+  test('TC-TOOLS-10: Rebalance Planner filter refreshes KPI grid and orders checklist', async ({ page }) => {
+    await headerPage.selectToolsView();
+    await selectRebalancePlanner(page);
+
+    // Initial All Classes KPI
+    await expect(page.locator('.rebalance-kpi-grid')).toBeVisible();
+
+    // Click on individual class filter chip if present
+    const classChips = page.locator('.class-chip');
+    const chipCount = await classChips.count();
+    if (chipCount > 1) {
+      // Click second chip (e.g. US Stock)
+      await classChips.nth(1).click();
+      await expect(classChips.nth(1)).toHaveClass(/active/);
+
+      // Verify KPI grid reflects class label
+      await expect(page.locator('.kpi-card .kpi-label').first()).toContainText('Class Value');
+
+      // Click first chip (All Classes) to reset
+      await classChips.first().click();
+      await expect(classChips.first()).toHaveClass(/active/);
+      await expect(page.locator('.kpi-card .kpi-label').first()).toContainText('Portfolio Value');
+    }
+  });
 });
+
+
 

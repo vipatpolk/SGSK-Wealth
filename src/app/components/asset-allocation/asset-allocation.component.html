@@ -53,21 +53,7 @@
     <div class="allocation-card">
       <div class="allocation-card-header">
         @if (!selectedAssetType()) {
-          <h2 class="allocation-card-title">Target Rebalancing</h2>
-          @if (!isEditingTarget()) {
-            <button class="edit-target-btn" (click)="startEditing()">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
-                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
-                <path d="m15 5 4 4"></path>
-              </svg>
-              Edit Targets
-            </button>
-          } @else {
-            <div class="edit-actions">
-              <button class="cancel-target-btn" (click)="cancelEditing()">Cancel</button>
-              <button class="save-target-btn" (click)="saveTargets()" [disabled]="!isTargetValid()" [class.disabled-btn]="!isTargetValid()">Save</button>
-            </div>
-          }
+          <h2 class="allocation-card-title">Asset Class Breakdown</h2>
         } @else {
           <div class="card-title-with-badge">
             <h2 class="allocation-card-title">Symbol Allocation in {{ selectedAssetLabel() }}</h2>
@@ -86,9 +72,8 @@
         <div class="rebalance-list">
           <div class="rebalance-list-header desktop-only">
             <div class="rebalance-col-asset">Asset Class</div>
-            <div class="rebalance-col-actual text-right">Actual %</div>
-            <div class="rebalance-col-target text-right">Target %</div>
-            <div class="rebalance-col-action" style="padding-left: 1.5rem;">Action Needed</div>
+            <div class="rebalance-col-value text-right">Value</div>
+            <div class="rebalance-col-actual text-right">Allocation %</div>
           </div>
 
           @for (rec of recommendations(); track rec.assetType) {
@@ -110,38 +95,15 @@
                 </div>
 
                 <div class="rebalance-mobile-stats">
-                  <div class="rebalance-col-actual">
-                    <span class="mobile-label">Actual:</span>
+                  <div class="rebalance-col-value text-right">
+                    <span class="mobile-label">Value:</span>
+                    <span class="font-mono">{{ rec.currentValue | currency:displayCurrency():'symbol-narrow':'1.0-0' }}</span>
+                  </div>
+
+                  <div class="rebalance-col-actual text-right">
+                    <span class="mobile-label">Allocation:</span>
                     <span class="font-mono">{{ rec.actualPercent | number:'1.1-1' }}%</span>
                   </div>
-
-                  <div class="rebalance-col-target" (click)="$event.stopPropagation()">
-                    <span class="mobile-label">Target:</span>
-                    @if (isEditingTarget()) {
-                      <input type="number" class="target-input" 
-                             [ngModel]="tempTargetAllocation()[rec.assetType]" 
-                             (ngModelChange)="updateTempTarget(rec.assetType, $event)"
-                             min="0" max="100" step="1">
-                    } @else {
-                      <span class="target-display">{{ rec.targetPercent | number:'1.1-1' }}%</span>
-                    }
-                  </div>
-
-                  <div class="rebalance-col-action font-mono" 
-                      [class.text-green]="rec.rebalanceAmount > 10" 
-                      [class.text-red]="rec.rebalanceAmount < -10"
-                      [class.text-muted]="rec.rebalanceAmount >= -10 && rec.rebalanceAmount <= 10">
-                    <span class="mobile-label">Action:</span>
-                    <span>
-                      @if (rec.rebalanceAmount > 10) {
-                        +{{ rec.rebalanceAmount | currency:displayCurrency():'symbol-narrow':'1.0-0' }}
-                      } @else if (rec.rebalanceAmount < -10) {
-                        {{ rec.rebalanceAmount | currency:displayCurrency():'symbol-narrow':'1.0-0' }}
-                      } @else {
-                        Balanced
-                      }
-                    </span>
-                </div>
                 </div>
               </div>
             </div>
@@ -153,27 +115,21 @@
                 Total
               </div>
               <div class="rebalance-mobile-stats">
-                <div class="rebalance-col-actual" style="font-weight: 600;">
-                  <span class="mobile-label">Actual:</span>
+                <div class="rebalance-col-value text-right" style="font-weight: 600;">
+                  <span class="mobile-label">Value:</span>
+                  <span class="font-mono">{{ totalValue() | currency:displayCurrency():'symbol-narrow':'1.0-0' }}</span>
+                </div>
+                <div class="rebalance-col-actual text-right" style="font-weight: 600;">
+                  <span class="mobile-label">Allocation:</span>
                   <span class="font-mono">{{ actualTotal() | number:'1.1-1' }}%</span>
                 </div>
-                <div class="rebalance-col-target">
-                  <span class="mobile-label">Target:</span>
-                  @if (isEditingTarget()) {
-                    <span class="target-display" [class.text-red]="!isTargetValid()" [class.text-green]="isTargetValid()">
-                      {{ editTargetTotal() | number:'1.0-0' }}%
-                    </span>
-                  } @else {
-                    <span class="target-display">{{ targetTotal() | number:'1.0-0' }}%</span>
-                  }
-                </div>
-                <div class="rebalance-col-action"></div>
               </div>
             </div>
           </div>
 
         </div>
       } @else {
+
         <!-- Symbol Allocation in Class Table -->
         <div class="symbol-class-list">
           <div class="symbol-class-header desktop-only">

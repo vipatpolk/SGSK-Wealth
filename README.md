@@ -52,12 +52,11 @@
 - **Multi-Currency Valuation**: Automatic conversion across `USD` $\leftrightarrow$ `USDT` $\leftrightarrow$ `THB` based on exchange rates and price quote currencies.
 - **Flexible Sorting & Status Filters**: Sort performance table by Symbol, Total Return %, Total Return $, Invested Cost, Current Value, Realized P/L, or Unrealized P/L with Open/Closed/All status filters.
 
-### ⚖️ Target Asset Allocation & Rebalancing
+### ⚖️ Target Asset Allocation & Breakdown
 - **Auto-Aggregated Portfolio Overview**: Navigating to the Allocation page automatically aggregates positions across all asset categories (`U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`).
+- **Asset Class Breakdown Table**: Clean breakdown of Asset Class, Value, and Allocation % with intuitive visual indicators.
 - **Interactive Asset Class Filtering**: Clicking any Asset Class row, Donut Chart segment, or Legend item filters the Allocation view directly to that specific asset class.
-- **"Symbol at Class" Detailed Breakdown View**: When filtered, the Target Rebalancing card dynamically transforms into **Symbol Allocation in [Asset Class]**, displaying individual holdings with a prominent **`← All Asset Classes`** reset button.
-- **Editable Target Allocation**: Interactive edit mode with icon-enhanced action buttons and real-time target sum validation (must equal 100%).
-- **Actionable Rebalance Deltas**: Calculates precise monetary actions needed to rebalance the portfolio (`+$1,000` to buy, `-$500` to sell, or `Balanced`).
+- **"Symbol at Class" Detailed Breakdown View**: When filtered, dynamically reveals individual holdings within that asset class with a prominent **`← All Asset Classes`** reset button.
 - **Concentration & Currency Exposure**: Top Holdings Concentration chart with **Show All / Show Top 5** toggle controls, alongside USD/THB currency exposure visualizer.
 
 ### 📊 FIFO Share Lot Engine
@@ -77,6 +76,13 @@
 - **Pagination & Sorting**: Configurable page size options (10, 50, 100) with responsive pagination navigation.
 
 ### 🧮 Investor Tools & Financial Simulators Hub
+- **Portfolio Rebalance Planner**:
+  - Symbol-level target allocation model grouped by asset classes (`U.S. Stocks`, `Thai Stocks`, `Crypto`, `Mutual Funds`).
+  - **Standard Two-Way Rebalance**: Computes exact buy/sell orders, turnover, and delta shares to rebalance existing capital.
+  - **No-Sell / Contribution Inflow Solver**: Solves the exact minimum cash inflow ($\Delta C_{\text{min}}$) needed based on the anchor overweight asset so zero assets are sold, plus smart deficit waterfall allocation for custom deposit budgets.
+  - **Responsive Hybrid Interface**: 6-column widescreen data table on desktop (`≥ 1024px`), two-tier split header on tablet (`768px – 1023px`), and card grid on mobile (`< 1024px`).
+  - **Filter-Aware Dynamic KPIs & Orders**: Asset class filter chips dynamically refresh portfolio/class values, buy/sell totals, required cash contribution, and copyable trade execution checklists.
+  - Interactive Target % steppers (`[-]` / `[+]`) and distribution presets (`Equal Weight`, `Set Current`, `Normalize`).
 - **Time Value of Money (TVM) Calculator**:
   - **5-Way Flexible Solve Modes**: Calculate Future Value ($FV$), Periodic Payment ($PMT$), Starting Principal ($PV$), Investment Horizon ($N$), and Required Annual Return Rate ($Rate$).
   - **8 Compounding Frequencies**: Daily ($m=365$), Weekly ($m=52$), Biweekly ($m=26$), Semimonthly ($m=24$), Monthly ($m=12$), Quarterly ($m=4$), Semiannually ($m=2$), and Annually ($m=1$).
@@ -104,9 +110,10 @@
 | **Runtime** | [Node.js 24 LTS](https://nodejs.org/) (v24.19.0) |
 | **Backend Integration** | [FastAPI Backend (SGSKBackend)](https://github.com/vipatpolk/SGSKBackend) for data processing and API proxying |
 | **Data Source** | Google Sheets CSV Export (via Backend) |
-| **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom (**25 test suites, 231 unit tests**) |
-| **E2E Testing** | [Playwright](https://playwright.dev/) & Page Object Models (**70+ automated tests** across browser targets) |
+| **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom (**27 test files, 251 unit tests**) |
+| **E2E Testing** | [Playwright](https://playwright.dev/) & Page Object Models (**150 automated tests** across 5 browser targets) |
 | **Deployment** | [Vercel](https://vercel.com/) (with API proxy rewrites) |
+
 
 ---
 

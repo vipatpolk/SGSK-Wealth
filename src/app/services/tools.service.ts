@@ -4,11 +4,16 @@ import { Observable, catchError, map, of } from 'rxjs';
 import {
   AvgCostSimulationResult,
   PositionSnapshot,
+  RebalancePlanResult,
+  RebalanceSimulationInput,
   SimulatedStep,
   TargetAvgCostGoalInput,
   TargetAvgCostGoalResult,
 } from '../models/tools.model';
+import { PortfolioPosition } from '../models/portfolio.model';
+import { PriceData } from './price.service';
 import { simulateAvgCost, solveTargetAvgCostGoal } from '../utils/calculator.utils';
+import { calculateRebalancePlan } from '../utils/rebalance-calculator.utils';
 
 export interface BackendSimulateOrderRequest {
   initialPosition?: {
@@ -154,4 +159,31 @@ export class ToolsService {
       })
     );
   }
+
+  /**
+   * Calculates portfolio rebalance plan via Backend API with local fallback
+   */
+  calculateRebalance(
+    positions: PortfolioPosition[],
+    pricesMap: Map<string, PriceData>,
+    input: RebalanceSimulationInput,
+    displayCurrency: 'USD' | 'THB' = 'USD',
+    exchangeRate: number = 1.0
+  ): Observable<RebalancePlanResult> {
+    const payload = {
+      mode: input.mode,
+      noSellSubMode: input.noSellSubMode,
+      customCashDeposit: input.customCashDeposit,
+      targetAllocations: input.targetAllocations,
+      currency: displayCurrency,
+    };
+
+    return this.http.post<RebalancePlanResult>(`${this.baseUrl}/rebalance`, payload).pipe(
+      catchError(() => {
+        // Instant local fallback calculation
+        return of(calculateRebalancePlan(positions, pricesMap, input, displayCurrency, exchangeRate));
+      })
+    );
+  }
 }
+

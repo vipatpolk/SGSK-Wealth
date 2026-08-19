@@ -12,12 +12,13 @@ import { PriceData } from '../../services/price.service';
 import { AvgCostSimulationResult, ToolDefinition, ToolId } from '../../models/tools.model';
 import { AvgCostCalculatorComponent } from './avg-cost-calculator/avg-cost-calculator.component';
 import { TvmCalculatorComponent } from './tvm-calculator/tvm-calculator.component';
+import { RebalanceCalculatorComponent } from './rebalance-calculator/rebalance-calculator.component';
 
 @Component({
   selector: 'app-tools',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, AvgCostCalculatorComponent, TvmCalculatorComponent],
+  imports: [CommonModule, AvgCostCalculatorComponent, TvmCalculatorComponent, RebalanceCalculatorComponent],
   templateUrl: './tools.component.html',
   styleUrls: ['./tools.component.css'],
 })
@@ -61,10 +62,11 @@ export class ToolsComponent {
       shortTitle: 'Rebalance',
       description: 'Compute precise trade orders and cash adjustments to match your ideal target asset allocation.',
       icon: 'pie-chart',
-      badge: 'Coming Soon',
-      isReady: false,
+      badge: 'Active',
+      isReady: true,
     },
   ];
+
 
   readonly activeTool = computed(() => {
     return this.toolsList.find((t) => t.id === this.activeToolId()) || this.toolsList[0];

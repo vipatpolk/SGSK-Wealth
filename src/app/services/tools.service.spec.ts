@@ -144,4 +144,56 @@ describe('ToolsService', () => {
     expect(req.request.method).toBe('POST');
     req.flush(mockResponse);
   });
+
+  it('should call backend rebalance endpoint or fallback to local calculation', () => {
+    const mockPositions = [
+      {
+        symbol: 'NVDA',
+        displaySymbol: 'NVDA',
+        name: 'NVIDIA',
+        assetType: 'us-stock',
+        assetTypeLabel: 'US Stock',
+        currency: 'USD',
+        originalCurrency: 'USD',
+        totalShares: 100,
+        averageCost: 100,
+        totalCost: 10000,
+        currentPrice: 150,
+        holdingValue: 15000,
+        unrealizedPL: 5000,
+        unrealizedPLPercent: 50,
+        hasPrice: true,
+        lots: [],
+      },
+    ];
+
+    const mockPrices = new Map([
+      ['NVDA', { symbol: 'NVDA', name: 'NVIDIA', price: 150, currency: 'USD' }],
+    ]);
+
+    service
+      .calculateRebalance(
+        mockPositions,
+        mockPrices,
+        {
+          mode: 'standard',
+          noSellSubMode: 'min-inflow',
+          customCashDeposit: 0,
+          targetAllocations: { NVDA: 100 },
+          selectedAssetClassFilter: 'all',
+        },
+        'USD',
+        1.0
+      )
+      .subscribe((plan) => {
+        expect(plan.mode).toBe('standard');
+        expect(plan.groups.length).toBe(1);
+        expect(plan.totalCurrentPortfolioValue).toBe(15000);
+      });
+
+    const req = httpMock.expectOne('/api/backend/portfolio/tools/rebalance');
+    expect(req.request.method).toBe('POST');
+    req.error(new ProgressEvent('error'));
+  });
 });
+
