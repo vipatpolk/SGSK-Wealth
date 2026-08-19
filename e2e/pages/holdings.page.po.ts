@@ -24,8 +24,10 @@ export class HoldingsPage {
   }
 
   async selectTab(tabLabel: string) {
-    const desktopTab = this.tabButtons.filter({ hasText: tabLabel }).first();
-    if (await desktopTab.isVisible()) {
+    const viewport = this.page.viewportSize();
+    const isDesktop = viewport ? viewport.width >= 768 : true;
+    if (isDesktop) {
+      const desktopTab = this.tabButtons.filter({ hasText: tabLabel }).first();
       await desktopTab.click();
     } else {
       const mobileDropdownBtn = this.page.locator('#tab-dropdown-btn');

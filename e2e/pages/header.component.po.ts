@@ -26,8 +26,13 @@ export class HeaderPage {
     this.viewToggleTriggerBtn = page.locator('.view-toggle-trigger');
   }
 
+  private isDesktop(): boolean {
+    const viewport = this.page.viewportSize();
+    return viewport ? viewport.width >= 640 : true;
+  }
+
   async selectHoldingsView() {
-    if (await this.viewToggleHoldingsBtn.isVisible()) {
+    if (this.isDesktop()) {
       await this.viewToggleHoldingsBtn.click();
     } else {
       await this.viewToggleTriggerBtn.click();
@@ -36,7 +41,7 @@ export class HeaderPage {
   }
 
   async selectAllocationView() {
-    if (await this.viewToggleAllocationBtn.isVisible()) {
+    if (this.isDesktop()) {
       await this.viewToggleAllocationBtn.click();
     } else {
       await this.viewToggleTriggerBtn.click();
@@ -45,7 +50,7 @@ export class HeaderPage {
   }
 
   async selectPerformanceView() {
-    if (await this.viewTogglePerformanceBtn.isVisible()) {
+    if (this.isDesktop()) {
       await this.viewTogglePerformanceBtn.click();
     } else {
       await this.viewToggleTriggerBtn.click();
@@ -54,7 +59,7 @@ export class HeaderPage {
   }
 
   async selectTransactionsView() {
-    if (await this.viewToggleTransactionsBtn.isVisible()) {
+    if (this.isDesktop()) {
       await this.viewToggleTransactionsBtn.click();
     } else {
       await this.viewToggleTriggerBtn.click();
@@ -63,7 +68,7 @@ export class HeaderPage {
   }
 
   async selectToolsView() {
-    if (await this.viewToggleToolsBtn.isVisible()) {
+    if (this.isDesktop()) {
       await this.viewToggleToolsBtn.click();
     } else {
       await this.viewToggleTriggerBtn.click();

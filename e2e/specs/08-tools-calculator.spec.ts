@@ -25,6 +25,7 @@ test.describe('Tools Hub & Avg Cost Calculator', () => {
 
   test('TC-TOOLS-02: Symbol selection and forward Buy simulation', async ({ page }) => {
     await headerPage.selectToolsView();
+    await expect(page.locator('app-tools')).toBeVisible();
     await expect(page.locator('app-avg-cost-calculator')).toBeVisible();
 
     // Open symbol dropdown
@@ -47,6 +48,7 @@ test.describe('Tools Hub & Avg Cost Calculator', () => {
 
   test('TC-TOOLS-03: Switching between Shares and Amount mode', async ({ page }) => {
     await headerPage.selectToolsView();
+    await expect(page.locator('app-tools')).toBeVisible();
     await expect(page.locator('app-avg-cost-calculator')).toBeVisible();
 
     // Enable Custom Mode
@@ -63,19 +65,32 @@ test.describe('Tools Hub & Avg Cost Calculator', () => {
     await expect(page.locator('#input-amount')).toBeVisible();
   });
 
+  async function selectTvmCalculator(page: any) {
+    await expect(page.locator('app-tools')).toBeVisible();
+    const viewport = page.viewportSize();
+    const isDesktop = viewport ? viewport.width >= 1024 : true;
+
+    if (isDesktop) {
+      const desktopTab = page.locator('.tools-tab-selector .tool-tab-btn', { hasText: 'TVM' });
+      await expect(desktopTab).toBeVisible();
+      await desktopTab.click();
+    } else {
+      const mobileTrigger = page.locator('#tools-mobile-dropdown-trigger');
+      await expect(mobileTrigger).toBeVisible();
+      await mobileTrigger.click();
+      const dropdownItem = page.locator('.tools-dropdown-item', { hasText: 'TVM' });
+      await expect(dropdownItem).toBeVisible();
+      await dropdownItem.click();
+    }
+    await expect(page.locator('app-tvm-calculator')).toBeVisible();
+  }
+
   test('TC-TOOLS-04: Switch to TVM Calculator and calculate Future Value', async ({ page }) => {
     await headerPage.selectToolsView();
     await expect(page.locator('app-tools')).toBeVisible();
 
-    // Select TVM Calculator from tab selector
-    const tvmTabBtn = page.locator('.tool-tab-btn:has-text("TVM Calculator")');
-    if (await tvmTabBtn.isVisible()) {
-      await tvmTabBtn.click();
-    } else {
-      // Mobile dropdown
-      await page.locator('#tools-mobile-dropdown-trigger').click();
-      await page.locator('.tools-dropdown-item:has-text("TVM Calculator")').click();
-    }
+    // Select TVM Calculator
+    await selectTvmCalculator(page);
 
     // Verify TVM Calculator is visible
     await expect(page.locator('app-tvm-calculator')).toBeVisible();
@@ -104,13 +119,7 @@ test.describe('Tools Hub & Avg Cost Calculator', () => {
 
   test('TC-TOOLS-05: TVM Calculator asset class multi-selection and valuation basis', async ({ page }) => {
     await headerPage.selectToolsView();
-    const tvmTabBtn = page.locator('.tool-tab-btn:has-text("TVM Calculator")');
-    if (await tvmTabBtn.isVisible()) {
-      await tvmTabBtn.click();
-    } else {
-      await page.locator('#tools-mobile-dropdown-trigger').click();
-      await page.locator('.tools-dropdown-item:has-text("TVM Calculator")').click();
-    }
+    await selectTvmCalculator(page);
     await expect(page.locator('app-tvm-calculator')).toBeVisible();
 
     // Verify PV Valuation Basis buttons
@@ -138,13 +147,7 @@ test.describe('Tools Hub & Avg Cost Calculator', () => {
 
   test('TC-TOOLS-06: TVM Calculator Year-by-Year Growth Chart and Area/Lines toggle', async ({ page }) => {
     await headerPage.selectToolsView();
-    const tvmTabBtn = page.locator('.tool-tab-btn:has-text("TVM Calculator")');
-    if (await tvmTabBtn.isVisible()) {
-      await tvmTabBtn.click();
-    } else {
-      await page.locator('#tools-mobile-dropdown-trigger').click();
-      await page.locator('.tools-dropdown-item:has-text("TVM Calculator")').click();
-    }
+    await selectTvmCalculator(page);
     await expect(page.locator('app-tvm-calculator')).toBeVisible();
 
     // Verify Chart Card & SVG are rendered
