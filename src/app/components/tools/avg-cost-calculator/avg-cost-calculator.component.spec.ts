@@ -270,4 +270,25 @@ describe('AvgCostCalculatorComponent', () => {
     expect(goal.isValid).toBe(false);
     expect(goal.errorMessage).toContain('cannot average down');
   });
+
+  it('should reactively convert position snapshot when displayCurrency switches', () => {
+    // Initial in USD (NVDA averageCost=150, currentPrice=140, totalCost=15000)
+    fixture.componentRef.setInput('displayCurrency', 'USD');
+    fixture.componentRef.setInput('exchangeRate', 35.0);
+    fixture.componentRef.setInput('hasRate', true);
+    fixture.detectChanges();
+
+    expect(component.positionSnapshot().currency).toBe('USD');
+    expect(component.positionSnapshot().averageCost).toBe(150);
+    expect(component.positionSnapshot().totalCost).toBe(15000);
+
+    // Switch to THB
+    fixture.componentRef.setInput('displayCurrency', 'THB');
+    fixture.detectChanges();
+
+    expect(component.positionSnapshot().currency).toBe('THB');
+    expect(component.positionSnapshot().averageCost).toBe(150 * 35);
+    expect(component.positionSnapshot().totalCost).toBe(15000 * 35);
+    expect(component.positionSnapshot().currentPrice).toBe(140 * 35);
+  });
 });

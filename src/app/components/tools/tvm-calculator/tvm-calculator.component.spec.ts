@@ -259,4 +259,22 @@ describe('TvmCalculatorComponent', () => {
     expect(chart.points.length).toBe(0);
     expect(chart.pathTotalBalance).toBe('');
   });
+
+  it('should reactively convert portfolioMarketValue and portfolioInvestedCost when displayCurrency changes', () => {
+    fixture.componentRef.setInput('displayCurrency', 'USD');
+    fixture.componentRef.setInput('exchangeRate', 35.0);
+    fixture.componentRef.setInput('hasRate', true);
+    fixture.detectChanges();
+
+    // mockSummary has totalValue: 23000, openInvested: 19000 (in USD)
+    expect(component.portfolioMarketValue()).toBe(23000);
+    expect(component.portfolioInvestedCost()).toBe(19000);
+
+    // Switch to THB
+    fixture.componentRef.setInput('displayCurrency', 'THB');
+    fixture.detectChanges();
+
+    expect(component.portfolioMarketValue()).toBe(23000 * 35);
+    expect(component.portfolioInvestedCost()).toBe(19000 * 35);
+  });
 });

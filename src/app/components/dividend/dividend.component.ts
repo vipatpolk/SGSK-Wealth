@@ -9,6 +9,7 @@ import {
   SymbolDividendSummary,
   FundDividendDistribution,
 } from '../../models/dividend.model';
+import { convertCurrency } from '../../utils/format.utils';
 
 @Component({
   selector: 'app-dividend',
@@ -60,6 +61,16 @@ export class DividendComponent {
     totalWht: number;
   } | null>(null);
 
+  cx(amount: number, fromCurrency?: string): number {
+    if (!amount || amount === 0) return 0;
+    const target = this.displayCurrency();
+    const orig = (fromCurrency || target).toUpperCase() === 'USDT' ? 'USD' : (fromCurrency || target).toUpperCase();
+    if (orig === target) return amount;
+    const rate = this.exchangeRate();
+    if (rate <= 0) return amount;
+    return convertCurrency(amount, orig, target, rate);
+  }
+
   // Available Years
   readonly availableYears = computed(() => {
     const d = this.data();
@@ -90,7 +101,13 @@ export class DividendComponent {
         this.getSymbolName()(r.symbol).toLowerCase().includes(q)
       );
     }
-    return recs;
+
+    return recs.map(r => ({
+      ...r,
+      convertedNetAmount: this.cx(r.netAmount, r.currency),
+      convertedGrossAmount: this.cx(r.grossAmount, r.currency),
+      convertedWithholdingTax: this.cx(r.withholdingTax, r.currency),
+    }));
   });
 
   // Filtered Symbol Summaries for the Yield on Cost & Symbol Breakdown Table
@@ -126,6 +143,13 @@ export class DividendComponent {
         if (!matchesQuery) continue;
       }
 
+      const convCost = this.cx(s.currentCostBasis || 0, s.currency);
+      const convVal = this.cx(s.currentValue || 0, s.currency);
+      const convProj = this.cx((s.currentShares || 0) * (s.trailingAnnualDPS || 0), s.currency);
+      const convGross = this.cx(s.totalGrossDividends || 0, s.currency);
+      const convNet = this.cx(s.totalNetDividends || 0, s.currency);
+      const convWht = this.cx(s.totalWithholdingTax || 0, s.currency);
+
       // If a specific year is selected, only show symbols that received dividends in that year
       if (year !== 'ALL') {
         const timeframeNet = symbolNetMap.get(s.symbol) || 0;
@@ -134,11 +158,23 @@ export class DividendComponent {
         }
         list.push({
           ...s,
+          currentCostBasis: convCost,
+          currentValue: convVal,
+          projectedAnnualIncome: convProj,
           convertedNetDividends: timeframeNet,
           convertedGrossDividends: symbolGrossMap.get(s.symbol) || 0,
+          convertedWithholdingTax: convWht,
         });
       } else {
-        list.push(s);
+        list.push({
+          ...s,
+          currentCostBasis: convCost,
+          currentValue: convVal,
+          projectedAnnualIncome: convProj,
+          convertedNetDividends: convNet,
+          convertedGrossDividends: convGross,
+          convertedWithholdingTax: convWht,
+        });
       }
     }
 
@@ -526,7 +562,14 @@ export class DividendComponent {
   getHoldingRecords(symbol: string): DividendRecord[] {
     const d = this.data();
     if (!d || !d.records) return [];
-    return d.records.filter(r => r.symbol === symbol);
+    return d.records
+      .filter((r) => r.symbol === symbol)
+      .map((r) => ({
+        ...r,
+        convertedNetAmount: this.cx(r.netAmount, r.currency),
+        convertedGrossAmount: this.cx(r.grossAmount, r.currency),
+        convertedWithholdingTax: this.cx(r.withholdingTax, r.currency),
+      }));
   }
 
   getHoldingRecordsCount(symbol: string): number {

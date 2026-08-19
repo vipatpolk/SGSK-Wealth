@@ -110,6 +110,8 @@ export class AvgCostCalculatorComponent {
     return Boolean(this.selectedSymbol()) || this.isCustomMode();
   });
 
+  private prevCurrency: string | null = null;
+
   constructor() {
     // Sync initial symbol if provided
     effect(() => {
@@ -128,6 +130,42 @@ export class AvgCostCalculatorComponent {
         this.simulationChange.emit(null);
       }
     });
+
+    // Update input price and targets only when displayCurrency actually switches
+    effect(() => {
+      const curr = this.displayCurrency();
+      if (this.prevCurrency && this.prevCurrency !== curr) {
+        this.prevCurrency = curr;
+        const sym = this.selectedSymbol();
+        if (sym && !this.isCustomMode()) {
+          const pos = this.portfolioPositions().find((p) => p.symbol === sym);
+          if (pos) {
+            const pm = this.pricesMap();
+            const pd = pm.get(sym);
+            const mktPrice = pd && pd.price > 0 ? pd.price : pos.currentPrice || pos.averageCost;
+            const mktCurr = pd?.currency || pos.currency;
+            const convMktPrice = this.toDisplayCurrency(mktPrice, mktCurr);
+            const convAvgCost = this.toDisplayCurrency(pos.averageCost, pos.currency);
+
+            this.inputPrice.set(parseFloat(convMktPrice.toFixed(4)));
+            this.inputAmount.set(parseFloat((this.inputShares() * convMktPrice).toFixed(2)));
+            this.targetBuyPrice.set(parseFloat((convMktPrice * 0.95).toFixed(4)));
+            this.targetAvgCost.set(parseFloat((convAvgCost * 0.9).toFixed(4)));
+          }
+        }
+      } else {
+        this.prevCurrency = curr;
+      }
+    });
+  }
+
+  toDisplayCurrency(amount: number, fromCurrency?: string): number {
+    if (!amount || amount === 0) return 0;
+    const target = this.displayCurrency();
+    const orig = (fromCurrency || target).toUpperCase() === 'USDT' ? 'USD' : (fromCurrency || target).toUpperCase();
+    if (orig === target) return amount;
+    if (!this.hasRate() || this.exchangeRate() <= 0) return amount;
+    return convertCurrency(amount, orig, target, this.exchangeRate());
   }
 
   readonly availableSymbols = computed<SymbolOption[]>(() => {
@@ -137,17 +175,18 @@ export class AvgCostCalculatorComponent {
     return positions.map((p) => {
       const pd = pm.get(p.symbol);
       const mktPrice = pd && pd.price > 0 ? pd.price : p.currentPrice || 0;
+      const mktCurr = pd?.currency || p.currency;
       return {
         symbol: p.symbol,
         displaySymbol: p.displaySymbol || displaySymbol(p.symbol),
         name: p.name || resolveSymbolName(p.symbol, pm),
         assetType: p.assetType,
         assetTypeLabel: p.assetTypeLabel || getAssetTypeLabel(p.assetType, p.symbol),
-        currency: p.currency,
+        currency: this.displayCurrency(),
         totalShares: p.totalShares,
-        averageCost: p.averageCost,
-        totalCost: p.totalCost,
-        currentPrice: mktPrice,
+        averageCost: this.toDisplayCurrency(p.averageCost, p.currency),
+        totalCost: this.toDisplayCurrency(p.totalCost, p.currency),
+        currentPrice: this.toDisplayCurrency(mktPrice, mktCurr),
         color: getSymbolColor(p.symbol),
       };
     });
@@ -225,9 +264,13 @@ export class AvgCostCalculatorComponent {
     const pm = this.pricesMap();
     const pd = pm.get(pos.symbol);
     const mktPrice = pd && pd.price > 0 ? pd.price : pos.currentPrice || 0;
-    const holdingVal = pos.totalShares * mktPrice;
-    const unPL = holdingVal - pos.totalCost;
-    const unPLPct = pos.totalCost > 0 ? (unPL / pos.totalCost) * 100 : 0;
+    const mktCurr = pd?.currency || pos.currency;
+    const convMktPrice = this.toDisplayCurrency(mktPrice, mktCurr);
+    const convAvgCost = this.toDisplayCurrency(pos.averageCost, pos.currency);
+    const convTotalCost = this.toDisplayCurrency(pos.totalCost, pos.currency);
+    const holdingVal = pos.totalShares * convMktPrice;
+    const unPL = holdingVal - convTotalCost;
+    const unPLPct = convTotalCost > 0 ? (unPL / convTotalCost) * 100 : 0;
 
     return {
       symbol: pos.symbol,
@@ -235,15 +278,15 @@ export class AvgCostCalculatorComponent {
       name: pos.name || resolveSymbolName(pos.symbol, pm),
       assetType: pos.assetType,
       assetTypeLabel: pos.assetTypeLabel || getAssetTypeLabel(pos.assetType, pos.symbol),
-      currency: pos.currency,
+      currency: this.displayCurrency(),
       totalShares: pos.totalShares,
-      averageCost: pos.averageCost,
-      totalCost: pos.totalCost,
-      currentPrice: mktPrice,
+      averageCost: convAvgCost,
+      totalCost: convTotalCost,
+      currentPrice: convMktPrice,
       holdingValue: holdingVal,
       unrealizedPL: unPL,
       unrealizedPLPercent: unPLPct,
-      hasPrice: mktPrice > 0,
+      hasPrice: convMktPrice > 0,
     };
   });
 
@@ -314,9 +357,13 @@ export class AvgCostCalculatorComponent {
       const pm = this.pricesMap();
       const pd = pm.get(symbol);
       const mktPrice = pd && pd.price > 0 ? pd.price : pos.currentPrice || pos.averageCost;
+      const mktCurr = pd?.currency || pos.currency;
+
+      const convMktPrice = this.toDisplayCurrency(mktPrice, mktCurr);
+      const convAvgCost = this.toDisplayCurrency(pos.averageCost, pos.currency);
 
       // Suggest default simulation parameters
-      const defaultPrice = parseFloat(mktPrice.toFixed(4));
+      const defaultPrice = parseFloat(convMktPrice.toFixed(4));
       const defaultShares = Math.max(1, Math.round(pos.totalShares * 0.25));
       this.inputPrice.set(defaultPrice);
       this.inputShares.set(defaultShares);
@@ -327,8 +374,8 @@ export class AvgCostCalculatorComponent {
       this.inputFeePercent.set(assetType === 'thai-stock' ? 0.157 : 0);
 
       // Reverse solver defaults
-      this.targetAvgCost.set(parseFloat((pos.averageCost * 0.9).toFixed(4)));
-      this.targetBuyPrice.set(parseFloat((mktPrice * 0.95).toFixed(4)));
+      this.targetAvgCost.set(parseFloat((convAvgCost * 0.9).toFixed(4)));
+      this.targetBuyPrice.set(parseFloat((convMktPrice * 0.95).toFixed(4)));
       this.targetFeePercent.set(assetType === 'thai-stock' ? 0.157 : 0);
     }
   }

@@ -114,7 +114,7 @@ export class AssetAllocationComponent implements OnInit {
   readonly totalValue = computed(() => {
     const alloc = this.serverAllocation();
     if (alloc && alloc.totalPortfolioValue > 0) {
-      return alloc.totalPortfolioValue;
+      return this.cx(alloc.totalPortfolioValue, alloc.currency);
     }
     return Object.values(this.currentValues()).reduce((a, b) => a + b, 0);
   });
@@ -124,10 +124,10 @@ export class AssetAllocationComponent implements OnInit {
     if (alloc && alloc.recommendations && alloc.recommendations.length > 0) {
       return alloc.recommendations.map((r) => ({
         assetType: r.assetType,
-        currentValue: r.currentValue,
+        currentValue: this.cx(r.currentValue, alloc.currency),
         actualPercent: r.actualPercent,
         targetPercent: r.targetPercent,
-        rebalanceAmount: r.rebalanceAmount,
+        rebalanceAmount: this.cx(r.rebalanceAmount, alloc.currency),
         deviationPercent: r.deviationPercent,
       }));
     }
@@ -163,7 +163,12 @@ export class AssetAllocationComponent implements OnInit {
   readonly currencyExposure = computed(() => {
     const alloc = this.serverAllocation();
     if (alloc && alloc.currencyExposure && (alloc.currencyExposure.usd > 0 || alloc.currencyExposure.thb > 0)) {
-      return alloc.currencyExposure;
+      return {
+        usd: this.cx(alloc.currencyExposure.usd, alloc.currency),
+        thb: this.cx(alloc.currencyExposure.thb, alloc.currency),
+        usdPercent: alloc.currencyExposure.usdPercent,
+        thbPercent: alloc.currencyExposure.thbPercent,
+      };
     }
 
     let usdVal = 0;

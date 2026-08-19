@@ -540,4 +540,66 @@ describe('App', () => {
 
     expect(app.getSymbolName('tsp5-gogetter-SSF.BKFUND')).toBe('ttb smart port 5 go-getter Super Savings Fund');
   });
+
+  it('should seamlessly switch currency without setting loading state or destroying portfolioData', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    app.exchangeRate.set(35.0);
+    app.portfolioData.set({
+      currency: 'USD',
+      exchangeRate: 35.0,
+      tabId: 'all',
+      summary: {
+        totalInvested: 1000,
+        totalValue: 1200,
+        openInvested: 1000,
+        closedInvested: 0,
+        totalUnrealizedPL: 200,
+        totalUnrealizedPLPercent: 20,
+        totalRealizedPL: 0,
+        totalRealizedPLPercent: 0,
+        totalReturn: 200,
+        totalReturnPercent: 20,
+      },
+      openPositions: [],
+      closedPositions: [],
+      error: null,
+    });
+    app.loading.set(false);
+
+    // Initial USD stats
+    app.displayCurrency.set('USD');
+    expect(app.totalCostConverted()).toBe(1000);
+    expect(app.totalHoldingConverted()).toBe(1200);
+    expect(app.totalPL()).toBe(200);
+
+    // Switch to THB
+    app.displayCurrency.set('THB');
+    // Verify loading remains false and data is retained
+    expect(app.loading()).toBe(false);
+    expect(app.portfolioData()).not.toBeNull();
+    // Verify stats instantly convert to THB (1000 * 35 = 35000, 1200 * 35 = 42000)
+    expect(app.totalCostConverted()).toBe(35000);
+    expect(app.totalHoldingConverted()).toBe(42000);
+    expect(app.totalPL()).toBe(7000);
+  });
+
+  it('should preserve expanded symbols across currency toggle', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    app.expandedSymbols.set(new Set(['AAPL', 'MSFT']));
+    expect(app.isExpanded('AAPL')).toBe(true);
+    expect(app.isExpanded('MSFT')).toBe(true);
+
+    // Switch currency
+    app.displayCurrency.set('THB');
+    expect(app.isExpanded('AAPL')).toBe(true);
+    expect(app.isExpanded('MSFT')).toBe(true);
+
+    app.displayCurrency.set('USD');
+    expect(app.isExpanded('AAPL')).toBe(true);
+    expect(app.isExpanded('MSFT')).toBe(true);
+  });
 });

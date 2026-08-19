@@ -98,11 +98,11 @@ export class PerformanceComponent {
       return perf.assetTypePerformance.map((t) => ({
         type: t.assetType,
         label: t.label,
-        investedCost: t.investedCost,
-        currentValue: t.currentValue,
-        realizedPL: t.realizedPL,
-        unrealizedPL: t.unrealizedPL,
-        totalReturn: t.totalReturn,
+        investedCost: this.cx(t.investedCost, perf.currency),
+        currentValue: this.cx(t.currentValue, perf.currency),
+        realizedPL: this.cx(t.realizedPL, perf.currency),
+        unrealizedPL: this.cx(t.unrealizedPL, perf.currency),
+        totalReturn: this.cx(t.totalReturn, perf.currency),
         totalReturnPercent: t.totalReturnPercent,
         openSymbolCount: t.openSymbolCount,
         closedSymbolCount: t.closedSymbolCount,
@@ -176,12 +176,25 @@ export class PerformanceComponent {
   rawSymbolPerformance = computed(() => {
     const perf = this.serverPerformance();
     if (perf && perf.symbolPerformance && perf.symbolPerformance.length > 0) {
-      return perf.symbolPerformance.map((s) => ({
-        ...s,
-        color: getSymbolColor(s.symbol),
-        name: s.name || resolveSymbolName(s.symbol, this.pricesMap()),
-        displaySymbol: s.displaySymbol || displaySymbol(s.symbol),
-      }));
+      return perf.symbolPerformance.map((s) => {
+        const invCost = this.cx(s.investedCost, perf.currency);
+        const curVal = this.cx(s.currentValue, perf.currency);
+        const unPL = this.cx(s.unrealizedPL, perf.currency);
+        const rePL = this.cx(s.realizedPL, perf.currency);
+        const totRet = this.cx(s.totalReturnAmount ?? s.totalReturn, perf.currency);
+        return {
+          ...s,
+          investedCost: invCost,
+          currentValue: curVal,
+          unrealizedPL: unPL,
+          realizedPL: rePL,
+          totalReturnAmount: totRet,
+          totalReturn: totRet,
+          color: getSymbolColor(s.symbol),
+          name: s.name || resolveSymbolName(s.symbol, this.pricesMap()),
+          displaySymbol: s.displaySymbol || displaySymbol(s.symbol),
+        };
+      });
     }
 
     // Fallback client computation
@@ -332,15 +345,15 @@ export class PerformanceComponent {
     const perf = this.serverPerformance();
     if (perf && perf.summary && (perf.summary.totalInvested > 0 || perf.summary.totalValue > 0)) {
       return {
-        totalInvested: perf.summary.totalInvested,
-        totalCurrentValue: perf.summary.totalValue,
-        openInvested: perf.summary.openInvested,
-        closedInvested: perf.summary.closedInvested,
-        totalUnrealizedPL: perf.summary.totalUnrealizedPL,
+        totalInvested: this.cx(perf.summary.totalInvested, perf.currency),
+        totalCurrentValue: this.cx(perf.summary.totalValue, perf.currency),
+        openInvested: this.cx(perf.summary.openInvested, perf.currency),
+        closedInvested: this.cx(perf.summary.closedInvested, perf.currency),
+        totalUnrealizedPL: this.cx(perf.summary.totalUnrealizedPL, perf.currency),
         totalUnrealizedPLPercent: perf.summary.totalUnrealizedPLPercent,
-        totalRealizedPL: perf.summary.totalRealizedPL,
+        totalRealizedPL: this.cx(perf.summary.totalRealizedPL, perf.currency),
         totalRealizedPLPercent: perf.summary.totalRealizedPLPercent,
-        totalReturn: perf.summary.totalReturn,
+        totalReturn: this.cx(perf.summary.totalReturn, perf.currency),
         totalReturnPercent: perf.summary.totalReturnPercent,
       };
     }

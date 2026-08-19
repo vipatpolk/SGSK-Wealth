@@ -125,10 +125,11 @@ export class TvmCalculatorComponent {
   /** Summarized Portfolio Values */
   readonly portfolioMarketValue = computed<number>(() => {
     const summary = this.portfolioSummary();
-    if (summary && summary.totalValue > 0) {
-      return summary.totalValue;
-    }
     const positions = this.portfolioPositions();
+    const serverCurr = positions[0]?.currency || 'THB';
+    if (summary && summary.totalValue > 0) {
+      return this.toDisplayCurrency(summary.totalValue, serverCurr);
+    }
     if (positions && positions.length > 0) {
       return positions.reduce((acc, p) => acc + this.toDisplayCurrency(p.holdingValue || p.totalCost || 0, p.currency), 0);
     }
@@ -137,15 +138,16 @@ export class TvmCalculatorComponent {
 
   readonly portfolioInvestedCost = computed<number>(() => {
     const summary = this.portfolioSummary();
-    if (summary && typeof summary.openInvested === 'number' && summary.openInvested > 0) {
-      return summary.openInvested;
-    }
     const positions = this.portfolioPositions();
+    const serverCurr = positions[0]?.currency || 'THB';
+    if (summary && typeof summary.openInvested === 'number' && summary.openInvested > 0) {
+      return this.toDisplayCurrency(summary.openInvested, serverCurr);
+    }
     if (positions && positions.length > 0) {
       return positions.reduce((acc, p) => acc + this.toDisplayCurrency(p.totalCost || 0, p.currency), 0);
     }
     if (summary && typeof summary.totalInvested === 'number' && summary.totalInvested > 0) {
-      return summary.totalInvested;
+      return this.toDisplayCurrency(summary.totalInvested, serverCurr);
     }
     return 0;
   });

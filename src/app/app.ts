@@ -260,18 +260,31 @@ export class App {
   readonly totalCostConverted = computed<number>(() => {
     const data = this.portfolioData();
     if (!data) return 0;
+    const target = this.displayCurrency();
+    const serverCurr = data.currency;
+    const rate = this.exchangeRate();
+
+    let cost = 0;
     if (this.isClosedTab()) {
-      return data.summary.closedInvested ?? data.closedPositions.reduce((acc, c) => acc + c.totalCost, 0);
+      cost = data.summary.closedInvested ?? data.closedPositions.reduce((acc, c) => acc + c.totalCost, 0);
+    } else {
+      cost = data.summary.openInvested ?? data.openPositions.reduce((acc, p) => acc + p.totalCost, 0);
     }
-    return data.summary.openInvested ?? data.openPositions.reduce((acc, p) => acc + p.totalCost, 0);
+    return convertCurrency(cost, serverCurr, target, rate);
   });
 
   readonly totalProceedsConverted = computed<number>(() => {
-    return this.portfolioData()?.closedPositions.reduce((acc, c) => acc + c.totalProceeds, 0) || 0;
+    const data = this.portfolioData();
+    if (!data) return 0;
+    const proceeds = data.closedPositions.reduce((acc, c) => acc + c.totalProceeds, 0);
+    return convertCurrency(proceeds, data.currency, this.displayCurrency(), this.exchangeRate());
   });
 
   readonly totalRealizedPLConverted = computed<number>(() => {
-    return this.portfolioData()?.summary.totalRealizedPL || 0;
+    const data = this.portfolioData();
+    if (!data) return 0;
+    const pl = data.summary.totalRealizedPL || 0;
+    return convertCurrency(pl, data.currency, this.displayCurrency(), this.exchangeRate());
   });
 
   readonly totalRealizedPLPercent = computed<number>(() => {
@@ -280,14 +293,20 @@ export class App {
 
   readonly totalHoldingConverted = computed<number>(() => {
     if (this.isClosedTab()) return 0;
-    return this.portfolioData()?.summary.totalValue || 0;
+    const data = this.portfolioData();
+    if (!data) return 0;
+    const val = data.summary.totalValue || 0;
+    return convertCurrency(val, data.currency, this.displayCurrency(), this.exchangeRate());
   });
 
   readonly totalPL = computed<number>(() => {
     if (this.isClosedTab()) {
       return this.totalRealizedPLConverted();
     }
-    return this.portfolioData()?.summary.totalUnrealizedPL || 0;
+    const data = this.portfolioData();
+    if (!data) return 0;
+    const pl = data.summary.totalUnrealizedPL || 0;
+    return convertCurrency(pl, data.currency, this.displayCurrency(), this.exchangeRate());
   });
 
   readonly totalPLPercent = computed<number>(() => {
@@ -302,13 +321,41 @@ export class App {
   constructor() {
     this.initTheme();
     this.initPrivacyMode();
+
+    // Initial load of active tab & dividend analytics
+    this.loadTab(this.activeTab(), this.displayCurrency());
+    this.loadDividendData(this.displayCurrency());
+
+    // Seamless, non-blocking background synchronization on currency toggle
     effect(() => {
-      // Re-fetch on currency change
       const curr = this.displayCurrency();
-      const tab = this.activeTab();
-      this.loadTab(tab, curr);
-      this.loadDividendData(curr);
+      this.syncCurrencyChange(curr);
     });
+  }
+
+  private syncCurrencyChange(currency: 'USD' | 'THB'): void {
+    if (this.portfolioData()) {
+      this.portfolioService.fetchHoldings(this.activeTab().id, currency).subscribe({
+        next: (res) => {
+          if (!res.error) {
+            this.portfolioData.set(res);
+            if (res.exchangeRate > 0) {
+              this.exchangeRate.set(res.exchangeRate);
+            }
+          }
+        },
+      });
+    }
+
+    if (this.dividendData()) {
+      this.dividendService.getDividendAnalytics(currency, 'all').subscribe({
+        next: (res) => {
+          if (!res.error) {
+            this.dividendData.set(res);
+          }
+        },
+      });
+    }
   }
 
   private initTheme(): void {
@@ -758,8 +805,7 @@ export class App {
       this.sortDirection.set('desc');
     }
 
-    const cacheKey = `${tab.id}-${this.displayCurrency()}`;
-    const cached = this.tabCache.get(cacheKey);
+    const cached = this.tabCache.get(tab.id);
     if (cached) {
       this.error.set(null);
       this.portfolioData.set(cached.portfolioData);
@@ -814,8 +860,7 @@ export class App {
           }
           this.prices.set(pMap);
 
-          const cacheKey = `${tab.id}-${currency}`;
-          this.tabCache.set(cacheKey, {
+          this.tabCache.set(tab.id, {
             portfolioData: res,
             prices: pMap,
             timestamp: Date.now(),
@@ -833,7 +878,9 @@ export class App {
   }
 
   loadDividendData(currency: 'USD' | 'THB' = this.displayCurrency()): void {
-    this.dividendLoading.set(true);
+    if (!this.dividendData()) {
+      this.dividendLoading.set(true);
+    }
     this.dividendService.getDividendAnalytics(currency, 'all').subscribe({
       next: (res) => {
         this.dividendData.set(res);
@@ -846,8 +893,7 @@ export class App {
   }
 
   refresh(): void {
-    const cacheKey = `${this.activeTab().id}-${this.displayCurrency()}`;
-    this.tabCache.delete(cacheKey);
+    this.tabCache.delete(this.activeTab().id);
     this.loadTab(this.activeTab(), this.displayCurrency());
     this.loadDividendData(this.displayCurrency());
   }
@@ -888,10 +934,13 @@ export class App {
   }
 
   getCurrentPriceConverted(summary: PortfolioPosition | SymbolSummary): number {
-    if ('currentPrice' in summary) {
-      return summary.currentPrice;
+    if ('currentPrice' in summary && summary.currentPrice) {
+      return convertCurrency(summary.currentPrice, summary.currency, this.displayCurrency(), this.exchangeRate());
     }
-    return this.getCurrentPrice(summary.symbol);
+    const pd = this.prices().get(summary.symbol);
+    const price = pd?.price ?? 0;
+    const curr = pd?.currency || summary.currency;
+    return convertCurrency(price, curr, this.displayCurrency(), this.exchangeRate());
   }
 
   getDisplaySymbol(symbol: string): string {
@@ -917,49 +966,57 @@ export class App {
   }
 
   getHoldingValue(summary: PortfolioPosition | SymbolSummary): number {
-    if ('holdingValue' in summary) {
-      return summary.holdingValue;
+    if ('holdingValue' in summary && summary.holdingValue) {
+      return convertCurrency(summary.holdingValue, summary.currency, this.displayCurrency(), this.exchangeRate());
     }
-    const price = this.getCurrentPrice(summary.symbol);
+    const price = this.getCurrentPriceConverted(summary);
     return summary.totalShares * price;
   }
 
   getUnrealizedPL(summary: PortfolioPosition | SymbolSummary): number {
-    if ('unrealizedPL' in summary) {
-      return summary.unrealizedPL;
+    if ('unrealizedPL' in summary && summary.unrealizedPL !== undefined) {
+      return convertCurrency(summary.unrealizedPL, summary.currency, this.displayCurrency(), this.exchangeRate());
     }
-    return this.getHoldingValue(summary) - summary.totalCost;
+    const cost = convertCurrency(summary.totalCost, summary.currency, this.displayCurrency(), this.exchangeRate());
+    return this.getHoldingValue(summary) - cost;
   }
 
   getUnrealizedPLPercent(summary: PortfolioPosition | SymbolSummary): number {
-    if ('unrealizedPLPercent' in summary) {
+    if ('unrealizedPLPercent' in summary && summary.unrealizedPLPercent !== undefined) {
       return summary.unrealizedPLPercent;
     }
-    if (summary.totalCost === 0) return 0;
-    return (this.getUnrealizedPL(summary) / summary.totalCost) * 100;
+    const cost = convertCurrency(summary.totalCost, summary.currency, this.displayCurrency(), this.exchangeRate());
+    if (cost === 0) return 0;
+    return (this.getUnrealizedPL(summary) / cost) * 100;
   }
 
   getLotHoldingValue(lot: PortfolioHoldingLot | ShareLot, summary: PortfolioPosition | SymbolSummary): number {
-    if ('holdingValue' in lot) {
-      return lot.holdingValue;
+    if ('holdingValue' in lot && lot.holdingValue) {
+      const lotCurr = ('currency' in lot ? lot.currency : summary.currency) || summary.currency;
+      return convertCurrency(lot.holdingValue, lotCurr, this.displayCurrency(), this.exchangeRate());
     }
     const price = this.getCurrentPriceConverted(summary);
     return lot.quantity * price;
   }
 
   getLotUnrealizedPL(lot: PortfolioHoldingLot | ShareLot, summary: PortfolioPosition | SymbolSummary): number {
-    if ('unrealizedPL' in lot) {
-      return lot.unrealizedPL;
+    if ('unrealizedPL' in lot && lot.unrealizedPL !== undefined) {
+      const lotCurr = ('currency' in lot ? lot.currency : summary.currency) || summary.currency;
+      return convertCurrency(lot.unrealizedPL, lotCurr, this.displayCurrency(), this.exchangeRate());
     }
-    return this.getLotHoldingValue(lot, summary) - lot.totalCost;
+    const lotCurr = ('currency' in lot ? lot.currency : summary.currency) || summary.currency;
+    const lotCost = convertCurrency(lot.totalCost, lotCurr, this.displayCurrency(), this.exchangeRate());
+    return this.getLotHoldingValue(lot, summary) - lotCost;
   }
 
   getLotUnrealizedPLPercent(lot: PortfolioHoldingLot | ShareLot, summary: PortfolioPosition | SymbolSummary): number {
-    if ('unrealizedPLPercent' in lot) {
+    if ('unrealizedPLPercent' in lot && lot.unrealizedPLPercent !== undefined) {
       return lot.unrealizedPLPercent;
     }
-    if (lot.totalCost === 0) return 0;
-    return (this.getLotUnrealizedPL(lot, summary) / lot.totalCost) * 100;
+    const lotCurr = ('currency' in lot ? lot.currency : summary.currency) || summary.currency;
+    const lotCost = convertCurrency(lot.totalCost, lotCurr, this.displayCurrency(), this.exchangeRate());
+    if (lotCost === 0) return 0;
+    return (this.getLotUnrealizedPL(lot, summary) / lotCost) * 100;
   }
 
   hasPriceData(symbol: string): boolean {
