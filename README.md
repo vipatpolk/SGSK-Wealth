@@ -70,7 +70,7 @@
 - **Normalized Table Layout**: Standardized column widths across all type filters with multi-line symbol name display.
 - **Context-Aware Asset Units**: Dynamically formats unit labels:
   - **Cryptocurrency**: Displays unit as `coins` / `coin` (e.g., `+0.2500 coins`, `@ $98,400.00 / coin`).
-  - **Mutual Funds**: Identified strictly by `.BKFUND` suffix; displays unit as `units` / `unit`.
+  - **Mutual Funds**: Identified strictly by `.FUND` suffix; displays unit as `units` / `unit`.
   - **Stocks**: Displays unit as `shares` / `share`.
 - **Export to CSV**: Download transactions in standard 5-column CSV format (`Symbol,Date,Quantity,Price,Currency`) with YYYY-MM-DD dates, signed quantities (`+` for BUY/EX-IN, `-` for SELL/EX-OUT), UTF-8 BOM encoding (`\uFEFF`), and filter options (Asset Type and Open/Closed scope).
 - **Pagination & Sorting**: Configurable page size options (10, 50, 100) with responsive pagination navigation.

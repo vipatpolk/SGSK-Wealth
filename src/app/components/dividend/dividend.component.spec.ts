@@ -98,7 +98,7 @@ describe('DividendComponent', () => {
         recentDistributions: []
       },
       {
-        symbol: 'K-USA-A(D).BKFUND',
+        symbol: 'K-USA-A(D).FUND',
         displaySymbol: 'K-USA-A(D)',
         name: 'K USA Fund',
         assetType: 'mutual-fund',

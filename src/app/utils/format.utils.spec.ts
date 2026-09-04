@@ -27,6 +27,7 @@ describe('FormatUtils', () => {
     it('should format stock quantities with up to 7 decimals', () => {
       expect(getQuantityFormat('AAPL')).toBe('1.0-7');
       expect(getQuantityFormat('PTT.BK')).toBe('1.0-7');
+      expect(getQuantityFormat('ES-GTECHSSF.FUND')).toBe('1.0-7');
       expect(getQuantityFormat('ES-GTECHSSF.BKFUND')).toBe('1.0-7');
     });
   });
@@ -49,7 +50,9 @@ describe('FormatUtils', () => {
       expect(toYahooSymbol('CPF.BK')).toBe('CPF.BK');
     });
 
-    it('should strip .BKFUND and .CRYPTO suffixes', () => {
+    it('should strip .FUND, .BKFUND, and .CRYPTO suffixes', () => {
+      expect(toYahooSymbol('ES-GTECHSSF.FUND')).toBe('ES-GTECHSSF');
+      expect(toYahooSymbol('SCBSFF.FUND')).toBe('SCBSFF');
       expect(toYahooSymbol('ES-GTECHSSF.BKFUND')).toBe('ES-GTECHSSF');
       expect(toYahooSymbol('SCBSFF.BKFUND')).toBe('SCBSFF');
       expect(toYahooSymbol('BTC.CRYPTO')).toBe('BTC');
@@ -78,7 +81,11 @@ describe('FormatUtils', () => {
       expect(displaySymbol('BTC.CRYPTO')).toBe('BTC');
     });
 
-    it('should strip .BKFUND suffix', () => {
+    it('should strip .FUND and .BKFUND suffixes', () => {
+      expect(displaySymbol('ES-GTECHSSF.FUND')).toBe('ES-GTECHSSF');
+      expect(displaySymbol('SCBSFF.FUND')).toBe('SCBSFF');
+      expect(displaySymbol('SCBGOLDH-SSF.FUND')).toBe('SCBGOLDH-SSF');
+      expect(displaySymbol('UGSTAR-SSF-D.FUND')).toBe('UGSTAR-SSF-D');
       expect(displaySymbol('ES-GTECHSSF.BKFUND')).toBe('ES-GTECHSSF');
       expect(displaySymbol('SCBSFF.BKFUND')).toBe('SCBSFF');
       expect(displaySymbol('SCBGOLDH-SSF.BKFUND')).toBe('SCBGOLDH-SSF');
@@ -102,6 +109,7 @@ describe('FormatUtils', () => {
 
     it('should return 1.2-4 for stocks and funds', () => {
       expect(getPriceFormat('AAPL')).toBe('1.2-4');
+      expect(getPriceFormat('ES-GTECHSSF.FUND')).toBe('1.2-4');
       expect(getPriceFormat('ES-GTECHSSF.BKFUND')).toBe('1.2-4');
     });
   });
@@ -112,6 +120,7 @@ describe('FormatUtils', () => {
       expect(getSymbolColor('AAPL')).toMatch(hexPattern);
       expect(getSymbolColor('BTC.CRYPTO')).toMatch(hexPattern);
       expect(getSymbolColor('PTT.BK')).toMatch(hexPattern);
+      expect(getSymbolColor('ES-GTECHSSF.FUND')).toMatch(hexPattern);
       expect(getSymbolColor('ES-GTECHSSF.BKFUND')).toMatch(hexPattern);
       expect(getSymbolColor('UNKNOWN_SYM_12345')).toMatch(hexPattern);
     });
@@ -120,6 +129,7 @@ describe('FormatUtils', () => {
       expect(getSymbolColor('BTC.CRYPTO')).toBe(getSymbolColor('BTC'));
       expect(getSymbolColor('btc.crypto')).toBe(getSymbolColor('BTC'));
       expect(getSymbolColor('PTT.BK')).toBe(getSymbolColor('PTT'));
+      expect(getSymbolColor('ES-GTECHSSF.FUND')).toBe(getSymbolColor('ES-GTECHSSF'));
       expect(getSymbolColor('ES-GTECHSSF.BKFUND')).toBe(getSymbolColor('ES-GTECHSSF'));
       expect(getSymbolColor('AAPL')).toBe(getSymbolColor('aapl'));
     });
@@ -139,6 +149,7 @@ describe('FormatUtils', () => {
     it('should preserve formatted raw name provided from API', () => {
       expect(getSymbolName('AAPL', 'Apple Inc.')).toBe('Apple Inc.');
       expect(getSymbolName('SCBSFF', 'SCB Short Term Fixed Income Fund')).toBe('SCB Short Term Fixed Income Fund');
+      expect(getSymbolName('SCBSFF.FUND', 'SCB Short Term Fixed Income Fund')).toBe('SCB Short Term Fixed Income Fund');
       expect(getSymbolName('SCBSFF.BKFUND', 'SCB Short Term Fixed Income Fund')).toBe('SCB Short Term Fixed Income Fund');
       expect(getSymbolName('BTC', 'Bitcoin')).toBe('Bitcoin');
     });
@@ -167,6 +178,7 @@ describe('FormatUtils', () => {
       ['AAPL', { name: 'Apple Inc.' }],
       ['PTT.BK', { name: 'PTT_PETROLEUM PUBLIC' }],
       ['BTC.CRYPTO', { name: 'Bitcoin USD' }],
+      ['SCBSFF.FUND', { name: 'SCB Short Term Fixed Income Fund' }],
       ['SCBSFF.BKFUND', { name: 'SCB Short Term Fixed Income Fund' }],
     ]);
 
@@ -221,6 +233,8 @@ describe('FormatUtils', () => {
       expect(getAssetType(undefined, 'AAPL')).toBe('us-stock');
       expect(getAssetType(undefined, 'CPALL.BK')).toBe('thai-stock');
       expect(getAssetType(undefined, 'ETH.CRYPTO')).toBe('crypto');
+      expect(getAssetType(undefined, 'ES-GTECHSSF.FUND')).toBe('mutual-fund');
+      expect(getAssetType(undefined, 'SCBSFF.FUND')).toBe('mutual-fund');
       expect(getAssetType(undefined, 'ES-GTECHSSF.BKFUND')).toBe('mutual-fund');
       expect(getAssetType(undefined, 'SCBSFF.BKFUND')).toBe('mutual-fund');
     });
@@ -233,6 +247,7 @@ describe('FormatUtils', () => {
       expect(getAssetType('mutual-fund', 'ES-GTECHSSF')).toBe('mutual-fund');
       expect(getAssetType('Mutual Fund', 'UGSTAR-SSF-D')).toBe('mutual-fund');
       expect(getAssetType('fund', 'SCBSFF')).toBe('mutual-fund');
+      expect(getAssetType('Mutual Fund', 'SCBSFF.FUND')).toBe('mutual-fund');
       expect(getAssetType('Mutual Fund', 'SCBSFF.BKFUND')).toBe('mutual-fund');
     });
 
@@ -242,6 +257,7 @@ describe('FormatUtils', () => {
       expect(getAssetTypeLabel('crypto')).toBe('Cryptocurrency');
       expect(getAssetTypeLabel('mutual-fund')).toBe('Mutual Fund');
       expect(getAssetTypeLabel(undefined, 'BTC.CRYPTO')).toBe('Cryptocurrency');
+      expect(getAssetTypeLabel(undefined, 'ES-GTECHSSF.FUND')).toBe('Mutual Fund');
       expect(getAssetTypeLabel(undefined, 'ES-GTECHSSF.BKFUND')).toBe('Mutual Fund');
       expect(getAssetTypeLabel('crypto', 'ADA')).toBe('Cryptocurrency');
     });
@@ -251,6 +267,7 @@ describe('FormatUtils', () => {
       expect(getAssetTypeClass('thai-stock')).toBe('asset-type-tag asset-type-thai-stock');
       expect(getAssetTypeClass('crypto')).toBe('asset-type-tag asset-type-crypto');
       expect(getAssetTypeClass('mutual-fund')).toBe('asset-type-tag asset-type-mutual-fund');
+      expect(getAssetTypeClass(undefined, 'ES-GTECHSSF.FUND')).toBe('asset-type-tag asset-type-mutual-fund');
       expect(getAssetTypeClass(undefined, 'ES-GTECHSSF.BKFUND')).toBe('asset-type-tag asset-type-mutual-fund');
     });
 
@@ -289,8 +306,10 @@ describe('FormatUtils', () => {
     });
 
     it('should return units/unit for mutual fund transactions', () => {
+      expect(getUnitLabel('SCBSFF.FUND')).toBe('units');
       expect(getUnitLabel('SCBSFF.BKFUND')).toBe('units');
       expect(getUnitLabel('K-CHANGE', 'mutual-fund')).toBe('units');
+      expect(getUnitLabelSingular('SCBSFF.FUND')).toBe('unit');
       expect(getUnitLabelSingular('SCBSFF.BKFUND')).toBe('unit');
       expect(getUnitLabelSingular('K-CHANGE', 'mutual-fund')).toBe('unit');
     });

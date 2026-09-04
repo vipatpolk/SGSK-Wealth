@@ -1,6 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { of } from 'rxjs';
+import { PortfolioService } from './services/portfolio.service';
+import { DividendService } from './services/dividend.service';
+import { PortfolioDividendResponse } from './models/dividend.model';
 import { App } from './app';
 import { ASSET_TABS } from './config/asset.constants';
 
@@ -164,7 +168,7 @@ describe('App', () => {
           lots: [],
         },
         {
-          symbol: 'ES-GTECHSSF.BKFUND',
+          symbol: 'ES-GTECHSSF.FUND',
           displaySymbol: 'ES-GTECHSSF',
           name: 'Eastspring Global Tech',
           totalShares: 0,
@@ -193,7 +197,7 @@ describe('App', () => {
     // Filter by mutual-fund
     app.setClosedAssetTypeFilter('mutual-fund');
     expect(app.filteredClosedSummaries().length).toBe(1);
-    expect(app.filteredClosedSummaries()[0].symbol).toBe('ES-GTECHSSF.BKFUND');
+    expect(app.filteredClosedSummaries()[0].symbol).toBe('ES-GTECHSSF.FUND');
 
     // Filter by us-stock
     app.setClosedAssetTypeFilter('us-stock');
@@ -326,10 +330,12 @@ describe('App', () => {
     expect(app.totalCostConverted()).toBe(5000);
   });
 
-  it('should format display symbols correctly stripping .BKFUND, .BK, and .CRYPTO suffixes', () => {
+  it('should format display symbols correctly stripping .FUND, .BKFUND, .BK, and .CRYPTO suffixes', () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;
 
+    expect(app.getDisplaySymbol('ES-GTECHSSF.FUND')).toBe('ES-GTECHSSF');
+    expect(app.getDisplaySymbol('SCBSFF.FUND')).toBe('SCBSFF');
     expect(app.getDisplaySymbol('ES-GTECHSSF.BKFUND')).toBe('ES-GTECHSSF');
     expect(app.getDisplaySymbol('SCBSFF.BKFUND')).toBe('SCBSFF');
     expect(app.getDisplaySymbol('PTT.BK')).toBe('PTT');
@@ -517,7 +523,7 @@ describe('App', () => {
       openPositions: [],
       closedPositions: [
         {
-          symbol: 'tsp5-gogetter-SSF.BKFUND',
+          symbol: 'tsp5-gogetter-SSF.FUND',
           displaySymbol: 'tsp5-gogetter-SSF',
           name: 'ttb smart port 5 go-getter Super Savings Fund',
           assetType: 'mutual-fund',
@@ -538,7 +544,7 @@ describe('App', () => {
       error: null,
     });
 
-    expect(app.getSymbolName('tsp5-gogetter-SSF.BKFUND')).toBe('ttb smart port 5 go-getter Super Savings Fund');
+    expect(app.getSymbolName('tsp5-gogetter-SSF.FUND')).toBe('ttb smart port 5 go-getter Super Savings Fund');
   });
 
   it('should seamlessly switch currency without setting loading state or destroying portfolioData', () => {
@@ -601,5 +607,93 @@ describe('App', () => {
     app.displayCurrency.set('USD');
     expect(app.isExpanded('AAPL')).toBe(true);
     expect(app.isExpanded('MSFT')).toBe(true);
+  });
+
+  it('should not cause infinite loop when portfolioData updates or currency changes', async () => {
+    const portfolioService = TestBed.inject(PortfolioService);
+    const dividendService = TestBed.inject(DividendService);
+
+    const fetchHoldingsSpy = vi.spyOn(portfolioService, 'fetchHoldings').mockReturnValue(
+      of({
+        currency: 'USD',
+        exchangeRate: 35.0,
+        tabId: 'all',
+        summary: {
+          totalInvested: 100,
+          totalValue: 120,
+          openInvested: 100,
+          closedInvested: 0,
+          totalUnrealizedPL: 20,
+          totalUnrealizedPLPercent: 20,
+          totalRealizedPL: 0,
+          totalRealizedPLPercent: 0,
+          totalReturn: 20,
+          totalReturnPercent: 20,
+        },
+        openPositions: [],
+        closedPositions: [],
+        error: null,
+      })
+    );
+    const mockDividendResponse: PortfolioDividendResponse = {
+      currency: 'USD',
+      exchangeRate: 35.0,
+      totalGrossDividends: 0,
+      totalNetDividends: 0,
+      totalWithholdingTax: 0,
+      effectiveTaxRate: 0,
+      projectedAnnualDividends: 0,
+      portfolioDividendYield: 0,
+      portfolioYieldOnCost: 0,
+      annualDividends: [],
+      monthlyDividends: [],
+      assetTypeSummaries: [],
+      symbolSummaries: [],
+      records: [],
+      error: null,
+    };
+    const dividendSpy = vi.spyOn(dividendService, 'getDividendAnalytics').mockReturnValue(
+      of(mockDividendResponse)
+    );
+
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+    await fixture.whenStable();
+
+    const initialFetchCount = fetchHoldingsSpy.mock.calls.length;
+    const initialDividendCount = dividendSpy.mock.calls.length;
+
+    // Mutating portfolioData should NOT trigger the effect or any more API calls
+    app.portfolioData.set({
+      currency: 'USD',
+      exchangeRate: 35.0,
+      tabId: 'all',
+      summary: {
+        totalInvested: 200,
+        totalValue: 250,
+        openInvested: 200,
+        closedInvested: 0,
+        totalUnrealizedPL: 50,
+        totalUnrealizedPLPercent: 25,
+        totalRealizedPL: 0,
+        totalRealizedPLPercent: 0,
+        totalReturn: 50,
+        totalReturnPercent: 25,
+      },
+      openPositions: [],
+      closedPositions: [],
+      error: null,
+    });
+
+    await fixture.whenStable();
+    expect(fetchHoldingsSpy.mock.calls.length).toBe(initialFetchCount);
+    expect(dividendSpy.mock.calls.length).toBe(initialDividendCount);
+
+    // Toggling currency triggers background sync once, not an infinite loop
+    app.displayCurrency.set('USD');
+    await fixture.whenStable();
+
+    expect(fetchHoldingsSpy.mock.calls.length).toBe(initialFetchCount + 1);
+    expect(dividendSpy.mock.calls.length).toBe(initialDividendCount + 1);
   });
 });

@@ -65,7 +65,7 @@ export async function mockPortfolioAPIs(page: Page) {
 
       return {
         symbol: s.symbol,
-        displaySymbol: s.displaySymbol || s.symbol.replace(/\.(BKFUND|BK|CRYPTO)$/i, ''),
+        displaySymbol: s.displaySymbol || s.symbol.replace(/\.(FUND|BKFUND|BK|CRYPTO)$/i, ''),
         name: s.name || pd?.name || '',
         assetType: s.assetType,
         assetTypeLabel: s.assetType,
@@ -119,7 +119,7 @@ export async function mockPortfolioAPIs(page: Page) {
 
       return {
         symbol: c.symbol,
-        displaySymbol: c.displaySymbol || c.symbol.replace(/\.(BKFUND|BK|CRYPTO)$/i, ''),
+        displaySymbol: c.displaySymbol || c.symbol.replace(/\.(FUND|BKFUND|BK|CRYPTO)$/i, ''),
         name: c.name || '',
         assetType: c.assetType,
         assetTypeLabel: c.assetType,

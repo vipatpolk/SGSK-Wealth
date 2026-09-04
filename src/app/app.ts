@@ -1,7 +1,7 @@
 import { PerformanceComponent } from './components/performance/performance.component';
 import { DividendComponent } from './components/dividend/dividend.component';
 import { ToolsComponent } from './components/tools/tools.component';
-import { Component, inject, signal, computed, ViewEncapsulation, effect, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, ViewEncapsulation, effect, untracked, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe, CurrencyPipe, NgTemplateOutlet } from '@angular/common';
 import { SheetResult } from './services/share-lot.service';
 import { PriceService, PriceData } from './services/price.service';
@@ -318,6 +318,8 @@ export class App {
 
   readonly hasRate = computed<boolean>(() => this.exchangeRate() > 0);
 
+  private prevCurrency: 'USD' | 'THB' | null = null;
+
   constructor() {
     this.initTheme();
     this.initPrivacyMode();
@@ -325,37 +327,45 @@ export class App {
     // Initial load of active tab & dividend analytics
     this.loadTab(this.activeTab(), this.displayCurrency());
     this.loadDividendData(this.displayCurrency());
+    this.prevCurrency = this.displayCurrency();
 
     // Seamless, non-blocking background synchronization on currency toggle
     effect(() => {
       const curr = this.displayCurrency();
-      this.syncCurrencyChange(curr);
+      if (this.prevCurrency !== null && this.prevCurrency !== curr) {
+        this.prevCurrency = curr;
+        untracked(() => {
+          this.syncCurrencyChange(curr);
+        });
+      }
     });
   }
 
   private syncCurrencyChange(currency: 'USD' | 'THB'): void {
-    if (this.portfolioData()) {
-      this.portfolioService.fetchHoldings(this.activeTab().id, currency).subscribe({
-        next: (res) => {
-          if (!res.error) {
-            this.portfolioData.set(res);
-            if (res.exchangeRate > 0) {
-              this.exchangeRate.set(res.exchangeRate);
+    untracked(() => {
+      if (this.portfolioData()) {
+        this.portfolioService.fetchHoldings(this.activeTab().id, currency).subscribe({
+          next: (res) => {
+            if (!res.error) {
+              this.portfolioData.set(res);
+              if (res.exchangeRate > 0) {
+                this.exchangeRate.set(res.exchangeRate);
+              }
             }
-          }
-        },
-      });
-    }
+          },
+        });
+      }
 
-    if (this.dividendData()) {
-      this.dividendService.getDividendAnalytics(currency, 'all').subscribe({
-        next: (res) => {
-          if (!res.error) {
-            this.dividendData.set(res);
-          }
-        },
-      });
-    }
+      if (this.dividendData()) {
+        this.dividendService.getDividendAnalytics(currency, 'all').subscribe({
+          next: (res) => {
+            if (!res.error) {
+              this.dividendData.set(res);
+            }
+          },
+        });
+      }
+    });
   }
 
   private initTheme(): void {

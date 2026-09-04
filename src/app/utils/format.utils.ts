@@ -3,12 +3,15 @@ export function getQuantityFormat(symbol: string, assetType?: string): string {
 }
 
 export function displaySymbol(symbol: string): string {
-  return symbol.replace(/\.(BKFUND|BK|CRYPTO)$/i, '');
+  return symbol.replace(/\.(FUND|BKFUND|BK|CRYPTO)$/i, '');
 }
 
 export function toYahooSymbol(symbol: string): string {
   if (!symbol) return '';
   const trimmed = symbol.trim();
+  if (trimmed.toUpperCase().endsWith('.FUND')) {
+    return trimmed.replace(/\.FUND$/i, '');
+  }
   if (trimmed.toUpperCase().endsWith('.BKFUND')) {
     return trimmed.replace(/\.BKFUND$/i, '');
   }
@@ -122,6 +125,8 @@ export function resolveSymbolName(
     pricesMap.get(symbol)?.name ||
     pricesMap.get(symbol + '.CRYPTO')?.name ||
     pricesMap.get(symbol.replace(/\.CRYPTO$/i, ''))?.name ||
+    pricesMap.get(symbol + '.FUND')?.name ||
+    pricesMap.get(symbol.replace(/\.FUND$/i, ''))?.name ||
     pricesMap.get(symbol + '.BKFUND')?.name ||
     pricesMap.get(symbol.replace(/\.BKFUND$/i, ''))?.name ||
     pricesMap.get(symbol + '.BK')?.name ||
@@ -185,7 +190,7 @@ export function getAssetType(assetType?: string, symbol?: string): string {
   }
   if (symbol) {
     const sym = symbol.toUpperCase();
-    if (sym.endsWith('.BKFUND')) return 'mutual-fund';
+    if (sym.endsWith('.FUND') || sym.endsWith('.BKFUND')) return 'mutual-fund';
     if (sym.endsWith('.BK')) return 'thai-stock';
     if (sym.endsWith('.CRYPTO')) return 'crypto';
   }
