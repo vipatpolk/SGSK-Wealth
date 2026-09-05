@@ -13,6 +13,7 @@
               </div>
             } @else if (hasSelectedSymbol() && positionSnapshot().symbol !== 'NONE') {
               <div class="symbol-selected-badge" [style.background-color]="getSymbolColor(positionSnapshot().symbol) + '20'" [style.border-color]="getSymbolColor(positionSnapshot().symbol) + '50'">
+                <app-symbol-icon [symbol]="positionSnapshot().symbol" [assetType]="positionSnapshot().assetType" [size]="'sm'"></app-symbol-icon>
                 <span class="badge-tag" [style.color]="getSymbolColor(positionSnapshot().symbol)">{{ positionSnapshot().displaySymbol }}</span>
                 <span class="badge-name">{{ positionSnapshot().name }}</span>
                 <span class="badge-type" [ngClass]="getAssetTypeClass(positionSnapshot().assetType, positionSnapshot().symbol)">{{ positionSnapshot().assetTypeLabel }}</span>
@@ -71,6 +72,7 @@
                     (click)="selectSymbol(opt.symbol)"
                   >
                     <div class="option-left">
+                      <app-symbol-icon [symbol]="opt.symbol" [assetType]="opt.assetType" [size]="'sm'"></app-symbol-icon>
                       <span class="opt-badge" [style.background-color]="opt.color + '25'" [style.color]="opt.color">
                         {{ opt.displaySymbol }}
                       </span>

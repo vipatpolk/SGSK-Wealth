@@ -953,6 +953,24 @@ export class App {
     return convertCurrency(price, curr, this.displayCurrency(), this.exchangeRate());
   }
 
+  readonly symbolNameMap = computed<Map<string, string>>(() => {
+    const map = new Map<string, string>();
+    const prices = this.prices();
+    for (const [sym, pd] of prices.entries()) {
+      if (pd.name) map.set(sym, pd.name);
+    }
+    const data = this.portfolioData();
+    if (data) {
+      for (const p of data.openPositions || []) {
+        if (p.name && !map.has(p.symbol)) map.set(p.symbol, getSymbolName(p.symbol, p.name));
+      }
+      for (const c of data.closedPositions || []) {
+        if (c.name && !map.has(c.symbol)) map.set(c.symbol, getSymbolName(c.symbol, c.name));
+      }
+    }
+    return map;
+  });
+
   getDisplaySymbol(symbol: string): string {
     return displaySymbol(symbol);
   }
@@ -961,18 +979,7 @@ export class App {
     if (rawName) {
       return getSymbolName(symbol, rawName);
     }
-    const nameFromMap = resolveSymbolName(symbol, this.prices());
-    if (nameFromMap) return nameFromMap;
-
-    const data = this.portfolioData();
-    if (data) {
-      const openPos = data.openPositions?.find((p) => p.symbol === symbol);
-      if (openPos?.name) return getSymbolName(symbol, openPos.name);
-
-      const closedPos = data.closedPositions?.find((p) => p.symbol === symbol);
-      if (closedPos?.name) return getSymbolName(symbol, closedPos.name);
-    }
-    return '';
+    return this.symbolNameMap().get(symbol) || resolveSymbolName(symbol, this.prices());
   }
 
   getHoldingValue(summary: PortfolioPosition | SymbolSummary): number {

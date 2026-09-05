@@ -1,11 +1,12 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CurrencyPipe, DecimalPipe, DatePipe } from '@angular/common';
+import { SymbolIconComponent } from '../symbol-icon/symbol-icon.component';
 
 @Component({
   selector: 'app-summary-card',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe, DatePipe],
+  imports: [CurrencyPipe, DecimalPipe, DatePipe, SymbolIconComponent],
   templateUrl: './summary-card.component.html'
 })
 export class SummaryCardComponent {

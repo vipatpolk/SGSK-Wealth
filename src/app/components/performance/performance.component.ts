@@ -1,6 +1,7 @@
 import { Component, input, signal, computed, inject, effect, ChangeDetectionStrategy } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { DateRangePickerComponent, DateRange } from '../date-range-picker/date-range-picker.component';
+import { SymbolIconComponent } from '../symbol-icon/symbol-icon.component';
 import { SymbolSummary, ClosedSymbolSummary, SymbolTransactionSummary, Transaction } from '../../models/transaction.model';
 import { PriceData } from '../../services/price.service';
 import { PortfolioService } from '../../services/portfolio.service';
@@ -11,7 +12,7 @@ import { getAssetType, getAssetTypeLabel, getAssetColor, getSymbolColor, display
   selector: 'app-performance',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe, DateRangePickerComponent],
+  imports: [CurrencyPipe, DecimalPipe, DateRangePickerComponent, SymbolIconComponent],
   templateUrl: './performance.component.html',
   styleUrls: ['./performance.component.css']
 })

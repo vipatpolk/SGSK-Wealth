@@ -1163,6 +1163,13 @@
   padding-right: 0.5rem;
 }
 
+.symbol-identity-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
 .symbol-identity {
   display: flex;
   flex-direction: column;

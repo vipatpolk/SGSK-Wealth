@@ -14,6 +14,7 @@ import {
   NgIf,
 } from '@angular/common';
 import { DateRangePickerComponent, DateRange } from '../date-range-picker/date-range-picker.component';
+import { SymbolIconComponent } from '../symbol-icon/symbol-icon.component';
 import {
   SymbolTransaction,
   SymbolTransactionSummary,
@@ -49,7 +50,7 @@ export type SortOrder = 'desc' | 'asc';
   selector: 'app-transaction-history',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe, CurrencyPipe, DatePipe, NgIf, DateRangePickerComponent],
+  imports: [DecimalPipe, CurrencyPipe, DatePipe, NgIf, DateRangePickerComponent, SymbolIconComponent],
   templateUrl: './transaction-history.component.html',
   styleUrl: './transaction-history.component.css',
 })

@@ -1,5 +1,6 @@
 import { Component, input, output, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CurrencyPipe, DecimalPipe, NgClass } from '@angular/common';
+import { SymbolIconComponent } from '../symbol-icon/symbol-icon.component';
 import {
   PortfolioDividendResponse,
   DividendRecord,
@@ -15,7 +16,7 @@ import { convertCurrency } from '../../utils/format.utils';
   selector: 'app-dividend',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe, NgClass],
+  imports: [CurrencyPipe, DecimalPipe, NgClass, SymbolIconComponent],
   templateUrl: './dividend.component.html',
   styleUrl: './dividend.component.css'
 })

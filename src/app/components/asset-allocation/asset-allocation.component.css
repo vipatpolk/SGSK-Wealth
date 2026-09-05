@@ -637,3 +637,9 @@
   font-size: 0.9375rem;
 }
 
+.concentration-symbol {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+

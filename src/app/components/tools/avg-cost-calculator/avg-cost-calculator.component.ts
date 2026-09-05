@@ -49,11 +49,13 @@ export interface SymbolOption {
   color: string;
 }
 
+import { SymbolIconComponent } from '../../symbol-icon/symbol-icon.component';
+
 @Component({
   selector: 'app-avg-cost-calculator',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, CurrencyPipe, DecimalPipe, FormsModule],
+  imports: [CommonModule, CurrencyPipe, DecimalPipe, FormsModule, SymbolIconComponent],
   templateUrl: './avg-cost-calculator.component.html',
   styleUrls: ['./avg-cost-calculator.component.css'],
 })

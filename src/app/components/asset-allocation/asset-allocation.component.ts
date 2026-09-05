@@ -1,5 +1,6 @@
 import { Component, input, signal, computed, effect, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
+import { SymbolIconComponent } from '../symbol-icon/symbol-icon.component';
 import { SymbolSummary, TargetAllocation, RebalanceRecommendation } from '../../models/transaction.model';
 import { PriceData } from '../../services/price.service';
 import { PortfolioService } from '../../services/portfolio.service';
@@ -10,7 +11,7 @@ import { getAssetType, getAssetTypeLabel, getAssetColor, getSymbolColor, display
   selector: 'app-asset-allocation',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe],
+  imports: [CurrencyPipe, DecimalPipe, SymbolIconComponent],
   templateUrl: './asset-allocation.component.html',
   styleUrls: ['./asset-allocation.component.css']
 })

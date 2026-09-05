@@ -1373,6 +1373,12 @@
   max-width: 100%;
 }
 
+.tx-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
 .symbol-link-btn:hover {
   opacity: 0.85;
 }

@@ -59,6 +59,7 @@
               (mouseenter)="setSearchActiveIndex.emit(i)"
             >
               <div class="item-left">
+                <app-symbol-icon [symbol]="item.symbol" [assetType]="item.assetType" [size]="'sm'"></app-symbol-icon>
                 <span
                   class="symbol-badge symbol-badge-xs"
                   [style.background-color]="item.color + '18'"

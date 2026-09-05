@@ -78,6 +78,7 @@
         <div class="perf-gainers-list">
           @for (gainer of topGainers(); track gainer.symbol) {
             <div class="perf-rank-item">
+              <app-symbol-icon [symbol]="gainer.symbol" [assetType]="gainer.assetType" [size]="'sm'"></app-symbol-icon>
               <span
                 class="symbol-badge symbol-badge-sm perf-rank-sym"
                 [style.background-color]="gainer.color + '18'"
@@ -102,6 +103,7 @@
         <div class="perf-losers-list">
           @for (loser of topLosers(); track loser.symbol) {
             <div class="perf-rank-item">
+              <app-symbol-icon [symbol]="loser.symbol" [assetType]="loser.assetType" [size]="'sm'"></app-symbol-icon>
               <span
                 class="symbol-badge symbol-badge-sm perf-rank-sym"
                 [style.background-color]="loser.color + '18'"
@@ -182,6 +184,7 @@
                   (mouseenter)="searchActiveIndex.set(i)"
                 >
                   <div class="perf-autocomplete-item-left">
+                    <app-symbol-icon [symbol]="item.symbol" [assetType]="item.assetType" [size]="'xs'"></app-symbol-icon>
                     <span
                       class="symbol-badge symbol-badge-xs"
                       [style.background-color]="item.color + '18'"
@@ -264,6 +267,7 @@
         @for (sym of filteredSymbolPerformance(); track sym.symbol) {
           <div class="perf-table-row">
             <div class="perf-symbol-col">
+              <app-symbol-icon [symbol]="sym.symbol" [assetType]="sym.assetType" [size]="'sm'"></app-symbol-icon>
               <span
                 class="symbol-badge symbol-badge-sm"
                 [style.background-color]="sym.color + '18'"

@@ -143,6 +143,7 @@
           @for (item of enrichedClassHoldings(); track item.symbol) {
             <div class="symbol-class-item">
               <div class="symbol-col-info">
+                <app-symbol-icon [symbol]="item.symbol" [size]="'sm'"></app-symbol-icon>
                 <span class="symbol-badge" 
                       [style.background-color]="item.color + '18'" 
                       [style.color]="item.color" 
@@ -233,6 +234,7 @@
           @for (holding of displayedHoldings(); track holding.symbol) {
             <div class="concentration-item">
               <div class="concentration-symbol">
+                <app-symbol-icon [symbol]="holding.symbol" [size]="'sm'"></app-symbol-icon>
                 <span class="symbol-badge" 
                       [style.background-color]="holding.color + '18'" 
                       [style.color]="holding.color" 

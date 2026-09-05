@@ -24,6 +24,7 @@
           [class.has-selection]="!!activeSummary()"
         >
           @if (activeSummary()) {
+            <app-symbol-icon [symbol]="activeSummary()!.symbol" [assetType]="activeSummary()!.assetType" [size]="'sm'"></app-symbol-icon>
             <span
               class="symbol-badge symbol-badge-sm"
               [style.background-color]="getSymbolColor(activeSummary()!.symbol) + '18'"
@@ -138,6 +139,7 @@
                   <div class="dropdown-item-left">
                     <div class="dropdown-item-details">
                       <div class="dropdown-item-symbol-row">
+                        <app-symbol-icon [symbol]="item.symbol" [assetType]="item.assetType" [size]="'xs'"></app-symbol-icon>
                         <span
                           class="symbol-badge symbol-badge-xs"
                           [style.background-color]="getSymbolColor(item.symbol) + '18'"
@@ -181,6 +183,7 @@
     <div class="symbol-hero-card" id="symbol-hero-card">
       <div class="symbol-hero-header">
         <div class="symbol-hero-identity">
+          <app-symbol-icon [symbol]="activeSummary()!.symbol" [assetType]="activeSummary()!.assetType" [size]="40"></app-symbol-icon>
           <span
             class="symbol-badge symbol-badge-lg"
             [style.background-color]="getSymbolColor(activeSummary()!.symbol) + '1c'"
@@ -735,14 +738,17 @@
                 @if (!activeSummary()) {
                   <td class="col-symbol">
                     <button class="symbol-link-btn" (click)="selectSymbol(tx.symbol)" type="button" [title]="getSymbolName(tx.symbol) || getDisplaySymbol(tx.symbol)">
-                      <span
-                        class="symbol-badge symbol-badge-xs"
-                        [style.background-color]="getSymbolColor(tx.symbol) + '18'"
-                        [style.color]="getSymbolColor(tx.symbol)"
-                        [style.border-color]="getSymbolColor(tx.symbol) + '30'"
-                      >
-                        {{ getDisplaySymbol(tx.symbol) }}
-                      </span>
+                      <div class="tx-badge-row">
+                        <app-symbol-icon [symbol]="tx.symbol" [size]="'xs'"></app-symbol-icon>
+                        <span
+                          class="symbol-badge symbol-badge-xs"
+                          [style.background-color]="getSymbolColor(tx.symbol) + '18'"
+                          [style.color]="getSymbolColor(tx.symbol)"
+                          [style.border-color]="getSymbolColor(tx.symbol) + '30'"
+                        >
+                          {{ getDisplaySymbol(tx.symbol) }}
+                        </span>
+                      </div>
                       @if (getSymbolName(tx.symbol)) {
                         <span class="tx-symbol-name" [title]="getSymbolName(tx.symbol)">{{ getSymbolName(tx.symbol) }}</span>
                       }
@@ -895,14 +901,17 @@
             <div class="mobile-card-identity">
               @if (!activeSummary()) {
                 <button class="symbol-link-btn mobile-symbol-link" (click)="selectSymbol(tx.symbol)" type="button" [title]="getSymbolName(tx.symbol) || getDisplaySymbol(tx.symbol)">
-                  <span
-                    class="symbol-badge symbol-badge-xs"
-                    [style.background-color]="getSymbolColor(tx.symbol) + '18'"
-                    [style.color]="getSymbolColor(tx.symbol)"
-                    [style.border-color]="getSymbolColor(tx.symbol) + '30'"
-                  >
-                    {{ getDisplaySymbol(tx.symbol) }}
-                  </span>
+                  <div class="tx-badge-row">
+                    <app-symbol-icon [symbol]="tx.symbol" [size]="'xs'"></app-symbol-icon>
+                    <span
+                      class="symbol-badge symbol-badge-xs"
+                      [style.background-color]="getSymbolColor(tx.symbol) + '18'"
+                      [style.color]="getSymbolColor(tx.symbol)"
+                      [style.border-color]="getSymbolColor(tx.symbol) + '30'"
+                    >
+                      {{ getDisplaySymbol(tx.symbol) }}
+                    </span>
+                  </div>
                   @if (getSymbolName(tx.symbol)) {
                     <span class="mobile-tx-symbol-name" [title]="getSymbolName(tx.symbol)">{{ getSymbolName(tx.symbol) }}</span>
                   }

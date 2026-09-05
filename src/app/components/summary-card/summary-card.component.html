@@ -3,13 +3,16 @@
     <!-- Card Header -->
     <button class="card-header" (click)="toggleExpand.emit(summary().symbol)" [id]="'toggle-' + summary().symbol">
       <div class="card-header-left">
-        <div class="symbol-identity">
-          <span class="symbol-badge" [style.background-color]="getSymbolColor()(summary().symbol) + '18'" [style.color]="getSymbolColor()(summary().symbol)" [style.border-color]="getSymbolColor()(summary().symbol) + '30'">
-            {{ getDisplaySymbol()(summary().symbol) }}
-          </span>
-          @if (getSymbolName()(summary().symbol, summary().name)) {
-            <span class="symbol-name" [title]="getSymbolName()(summary().symbol, summary().name)">{{ getSymbolName()(summary().symbol, summary().name) }}</span>
-          }
+        <div class="symbol-identity-row">
+          <app-symbol-icon [symbol]="summary().symbol" [assetType]="summary().assetType" [size]="'md'"></app-symbol-icon>
+          <div class="symbol-identity">
+            <span class="symbol-badge" [style.background-color]="getSymbolColor()(summary().symbol) + '18'" [style.color]="getSymbolColor()(summary().symbol)" [style.border-color]="getSymbolColor()(summary().symbol) + '30'">
+              {{ getDisplaySymbol()(summary().symbol) }}
+            </span>
+            @if (getSymbolName()(summary().symbol, summary().name)) {
+              <span class="symbol-name" [title]="getSymbolName()(summary().symbol, summary().name)">{{ getSymbolName()(summary().symbol, summary().name) }}</span>
+            }
+          </div>
         </div>
         <div class="card-header-info">
           @if (isAllTab() || isClosedTab()) {
@@ -110,7 +113,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (lot of summary().lots; track $index; let i = $index) {
+              @for (lot of summary().lots; track (lot.purchaseDate + '-' + lot.quantity + '-' + lot.costBasis); let i = $index) {
                 <tr class="lot-row">
                   <td class="lot-col-num">
                     <span class="lot-number">{{ i + 1 }}</span>
@@ -158,13 +161,16 @@
     <!-- Card Header -->
     <button class="card-header" (click)="toggleExpand.emit(summary().symbol)" [id]="'toggle-' + summary().symbol">
       <div class="card-header-left">
-        <div class="symbol-identity">
-          <span class="symbol-badge" [style.background-color]="getSymbolColor()(summary().symbol) + '18'" [style.color]="getSymbolColor()(summary().symbol)" [style.border-color]="getSymbolColor()(summary().symbol) + '30'">
-            {{ getDisplaySymbol()(summary().symbol) }}
-          </span>
-          @if (getSymbolName()(summary().symbol, summary().name)) {
-            <span class="symbol-name" [title]="getSymbolName()(summary().symbol, summary().name)">{{ getSymbolName()(summary().symbol, summary().name) }}</span>
-          }
+        <div class="symbol-identity-row">
+          <app-symbol-icon [symbol]="summary().symbol" [assetType]="summary().assetType" [size]="'md'"></app-symbol-icon>
+          <div class="symbol-identity">
+            <span class="symbol-badge" [style.background-color]="getSymbolColor()(summary().symbol) + '18'" [style.color]="getSymbolColor()(summary().symbol)" [style.border-color]="getSymbolColor()(summary().symbol) + '30'">
+              {{ getDisplaySymbol()(summary().symbol) }}
+            </span>
+            @if (getSymbolName()(summary().symbol, summary().name)) {
+              <span class="symbol-name" [title]="getSymbolName()(summary().symbol, summary().name)">{{ getSymbolName()(summary().symbol, summary().name) }}</span>
+            }
+          </div>
         </div>
         <div class="card-header-info">
           @if (isAllTab() || isClosedTab()) {
@@ -249,7 +255,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (lot of summary().lots; track $index; let i = $index) {
+              @for (lot of summary().lots; track (lot.purchaseDate + '-' + (lot.closeDate || '') + '-' + lot.quantity); let i = $index) {
                 <tr class="lot-row">
                   <td class="lot-col-num">
                     <span class="lot-number">{{ i + 1 }}</span>

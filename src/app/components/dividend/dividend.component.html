@@ -289,7 +289,7 @@
                 [class.highlighted]="highlightedIndex() === idx"
                 (mousedown)="selectAutocomplete(s)">
                 <div class="autocomplete-item-left">
-                  <span class="color-dot" [style.backgroundColor]="getSymbolColor()(s.symbol)"></span>
+                  <app-symbol-icon [symbol]="s.symbol" [assetType]="s.assetType" [size]="'sm'"></app-symbol-icon>
                   <div class="autocomplete-info">
                     <div class="autocomplete-symbol-row">
                       <span class="autocomplete-symbol">{{ s.displaySymbol }}</span>
@@ -333,7 +333,7 @@
             <tr>
               <td>
                 <div class="symbol-col">
-                  <span class="color-dot" [style.backgroundColor]="getSymbolColor()(s.symbol)"></span>
+                  <app-symbol-icon [symbol]="s.symbol" [assetType]="s.assetType" [size]="'sm'"></app-symbol-icon>
                   <div>
                     <div class="symbol-main">
                       <span>{{ getDisplaySymbol()(s.symbol) }}</span>
@@ -417,7 +417,7 @@
         <div class="div-mobile-card">
           <div class="mobile-card-top">
             <div class="mobile-card-identity">
-              <span class="color-dot" [style.backgroundColor]="getSymbolColor()(s.symbol)"></span>
+              <app-symbol-icon [symbol]="s.symbol" [assetType]="s.assetType" [size]="'sm'"></app-symbol-icon>
               <div>
                 <div class="mobile-symbol-title">
                   <span>{{ getDisplaySymbol()(s.symbol) }}</span>
@@ -740,7 +740,7 @@
         <div class="modal-header">
           <div class="modal-title-wrap">
             <div class="modal-symbol-row">
-              <span class="color-dot" [style.backgroundColor]="getSymbolColor()(holding.symbol)"></span>
+              <app-symbol-icon [symbol]="holding.symbol" [assetType]="holding.assetType" [size]="'sm'"></app-symbol-icon>
               <h4 class="modal-title">{{ holding.displaySymbol }}</h4>
               <span class="asset-badge" [ngClass]="getAssetTypeClass()(holding.assetType, holding.symbol)">
                 {{ holding.assetTypeLabel }}
