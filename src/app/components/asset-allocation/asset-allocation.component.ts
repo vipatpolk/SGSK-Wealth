@@ -28,7 +28,8 @@ export class AssetAllocationComponent implements OnInit {
     'us-stock': 40,
     'thai-stock': 30,
     'crypto': 15,
-    'mutual-fund': 15
+    'mutual-fund': 15,
+    'bond': 0,
   };
 
   targetAllocation = signal<TargetAllocation>(this.defaultTargets);
@@ -90,12 +91,9 @@ export class AssetAllocationComponent implements OnInit {
   }
 
   readonly currentValues = computed(() => {
-    const vals: Record<string, number> = {
-      'us-stock': 0,
-      'thai-stock': 0,
-      crypto: 0,
-      'mutual-fund': 0,
-    };
+    const vals: Record<string, number> = Object.fromEntries(
+      Object.keys(this.defaultTargets).map((k) => [k, 0])
+    );
     const pm = this.pricesMap();
     for (const s of this.summaries()) {
       const pd = pm.get(s.symbol);
@@ -137,7 +135,7 @@ export class AssetAllocationComponent implements OnInit {
     const total = this.totalValue();
     const targets = this.targetAllocation();
 
-    const defaultKeys = ['us-stock', 'thai-stock', 'crypto', 'mutual-fund'];
+    const defaultKeys = Object.keys(this.defaultTargets);
     const extraKeys = Object.keys({ ...vals, ...targets }).filter((k) => !defaultKeys.includes(k));
     const keys = [...defaultKeys, ...extraKeys];
 

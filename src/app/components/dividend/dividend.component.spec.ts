@@ -309,7 +309,7 @@ describe('DividendComponent', () => {
     const chartData = component.monthlyChartData();
     expect(chartData.length).toBe(2);
     expect(chartData[0].percentHeight).toBeGreaterThan(0);
-    expect(chartData[0].thaiPercent + chartData[0].usPercent + chartData[0].fundPercent).toBeCloseTo(100);
+    expect(chartData[0].thaiPercent + chartData[0].usPercent + chartData[0].fundPercent + chartData[0].bondPercent).toBeCloseTo(100);
   });
 
   it('should filter whole page metrics by global asset type', () => {

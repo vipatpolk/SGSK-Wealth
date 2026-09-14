@@ -49,6 +49,14 @@
           <span class="color-dot" style="background-color: #f59e0b;"></span>
           Mutual Funds
         </button>
+        <button
+          type="button"
+          (click)="setAssetType('bond')"
+          class="global-pill-btn"
+          [class.active]="selectedAssetType() === 'bond'">
+          <span class="color-dot" style="background-color: #06b6d4;"></span>
+          Bonds
+        </button>
       </div>
 
       <!-- Historical Year Switcher -->
@@ -185,6 +193,9 @@
               @if (m.fundAmount > 0) {
                 <div class="tooltip-sub" style="color: #f59e0b;">Fund: {{ m.fundAmount | currency:displayCurrency():'symbol-narrow':'1.0-0' }}</div>
               }
+              @if (m.bondAmount > 0) {
+                <div class="tooltip-sub" style="color: #06b6d4;">Bond: {{ m.bondAmount | currency:displayCurrency():'symbol-narrow':'1.0-0' }}</div>
+              }
             </div>
 
             <!-- Segmented Bar Track -->
@@ -198,6 +209,9 @@
                 }
                 @if (m.fundAmount > 0) {
                   <div class="chart-bar-seg" style="background-color: #f59e0b;" [style.height.%]="m.fundPercent"></div>
+                }
+                @if (m.bondAmount > 0) {
+                  <div class="chart-bar-seg" style="background-color: #06b6d4;" [style.height.%]="m.bondPercent"></div>
                 }
               </div>
             </div>
@@ -223,9 +237,7 @@
         (click)="setAssetType(selectedAssetType() === at.assetType ? 'all' : at.assetType)">
         <div class="asset-card-top">
           <div class="asset-card-title">
-            <span class="color-dot"
-                  [style.background-color]="at.assetType === 'us-stock' ? '#3b82f6' : (at.assetType === 'thai-stock' ? '#10b981' : '#f59e0b')">
-            </span>
+            <span class="color-dot" [style.background-color]="getAssetColor(at.assetType)"></span>
             <span>{{ at.assetTypeLabel }}</span>
           </div>
           <span class="asset-badge font-mono">{{ at.percentageOfTotal | number:'1.1-1' }}%</span>

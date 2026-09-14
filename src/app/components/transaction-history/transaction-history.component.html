@@ -102,6 +102,12 @@
                 (click)="setAssetFilter('mutual-fund')"
                 type="button"
               >Fund</button>
+              <button
+                class="dropdown-asset-pill"
+                [class.active]="assetFilter() === 'bond'"
+                (click)="setAssetFilter('bond')"
+                type="button"
+              >Bond</button>
             </div>
 
             <div class="dropdown-list">
@@ -697,6 +703,16 @@
                 >
                   <span class="asset-type-tag asset-type-mutual-fund export-tag">Fund</span>
                   <span class="export-grid-title">Mutual Fund</span>
+                </button>
+
+                <button
+                  class="export-grid-card"
+                  (click)="exportCsv('bond', exportStatusScope())"
+                  id="btn-export-bond"
+                  type="button"
+                >
+                  <span class="asset-type-tag asset-type-bond export-tag">Bond</span>
+                  <span class="export-grid-title">Bond</span>
                 </button>
               </div>
             </div>

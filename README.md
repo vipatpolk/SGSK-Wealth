@@ -34,18 +34,18 @@
 - **Percentage Visibility**: Crucial performance percentages (`P/L %`, `Realized %`, `Yield on Cost %`, `Target %`, `Return %`, `Allocation %`) remain clearly readable and unblurred for safe public demonstrations or casual tracking.
 
 ### 💵 Dividend & Income Yield Tracking
-- **100% API-Driven Dividend Engine**: Fetches complete dividend distributions automatically from Yahoo Finance (US & Thai stocks) and the SEC Thailand Fund API (Mutual Funds).
+- **100% API-Driven Dividend Engine**: Fetches complete dividend distributions automatically from Yahoo Finance (US & Thai stocks, Bonds) and the SEC Thailand Fund API (Mutual Funds).
 - **Exact Ex-Date Share Accounting**: Evaluates historical trade logs to calculate exact shares held on each dividend ex-date ($T$):
   $$\text{Shares Held}(T) = \sum_{\text{Tx Date } \le T} \text{Buy Quantity} - \sum_{\text{Tx Date } \le T} \text{Sell Quantity}$$
 - **Forward Income & Yield on Cost (YOC)**: Displays trailing 12-month DPS, current market yield %, Yield on Cost %, and forward projected annual income.
-- **Interactive Monthly Cashflow Timeline**: Visual stacked bar chart tracking monthly dividend income split across Thai Stocks, US Stocks, and Mutual Funds.
+- **Interactive Monthly Cashflow Timeline**: Visual stacked bar chart tracking monthly dividend income split across Thai Stocks, US Stocks, Mutual Funds, and Bonds.
 - **Holdings Distribution Ledger Popup Modal**: Responsive popup modal with a desktop table ($\ge 640\text{px}$) and touch-friendly mobile cards ($< 640\text{px}$) showing individual dividend payouts, withholding tax, and net amounts.
-- **Global Asset Type & Year Filtering**: Filter summary metrics, monthly timeline chart, holdings breakdown, and transaction ledger across `All Assets`, `U.S. Stocks`, `Thai Stocks`, and `Mutual Funds` or specific calendar years.
+- **Global Asset Type & Year Filtering**: Filter summary metrics, monthly timeline chart, holdings breakdown, and transaction ledger across `All Assets`, `U.S. Stocks`, `Thai Stocks`, `Mutual Funds`, and `Bonds` or specific calendar years.
 - **Fuzzy Autocomplete & Ledger Pagination**: Real-time autocomplete suggestions with keyboard navigation (`↑`, `↓`, `Enter`, `Escape`) and paginated historical payout ledger.
 
 ### 📈 Investment Performance & Returns Analytics
 - **Portfolio Summary Grid**: Five high-level KPI cards displaying *Total Invested*, *Total Value*, *P/L (Unrealized)*, *Realized P/L*, and *Total Return* with color-coded profit/loss amounts and relative return percentages.
-- **Asset Type Performance Breakdown**: Grouped returns analysis by asset class (`U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`), featuring proportional horizontal return bar charts and open/closed symbol counts.
+- **Asset Type Performance Breakdown**: Grouped returns analysis by asset class (`U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`, `Bond`), featuring proportional horizontal return bar charts and open/closed symbol counts.
 - **Top Movers Ranking**: Dynamic top 5 **Gainers** and top 5 **Losers** leaderboards with badge styling, progress bars, and percentage return indicators.
 - **Time Frame Selection & Date Filtering**: Integrated [`DateRangePickerComponent`](src/app/components/date-range-picker/date-range-picker.component.ts) with presets (`YTD`, `1M`, `3M`, `6M`, `1Y`, `All Time`, or custom bounds) to dynamically filter closed-lot realized gains over specific timeframes.
 - **Interactive Symbol Search & Autocomplete**: Fast search toolbar with keyboard-accessible autocomplete suggestions (`↑`, `↓`, `Enter`, `Escape`), active index highlighting, asset badges, status pills, and clickable filter actions.
@@ -53,7 +53,7 @@
 - **Flexible Sorting & Status Filters**: Sort performance table by Symbol, Total Return %, Total Return $, Invested Cost, Current Value, Realized P/L, or Unrealized P/L with Open/Closed/All status filters.
 
 ### ⚖️ Target Asset Allocation & Breakdown
-- **Auto-Aggregated Portfolio Overview**: Navigating to the Allocation page automatically aggregates positions across all asset categories (`U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`).
+- **Auto-Aggregated Portfolio Overview**: Navigating to the Allocation page automatically aggregates positions across all asset categories (`U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`, `Bond`).
 - **Asset Class Breakdown Table**: Clean breakdown of Asset Class, Value, and Allocation % with intuitive visual indicators.
 - **Interactive Asset Class Filtering**: Clicking any Asset Class row, Donut Chart segment, or Legend item filters the Allocation view directly to that specific asset class.
 - **"Symbol at Class" Detailed Breakdown View**: When filtered, dynamically reveals individual holdings within that asset class with a prominent **`← All Asset Classes`** reset button.
@@ -77,7 +77,7 @@
 
 ### 🧮 Investor Tools & Financial Simulators Hub
 - **Portfolio Rebalance Planner**:
-  - Symbol-level target allocation model grouped by asset classes (`U.S. Stocks`, `Thai Stocks`, `Crypto`, `Mutual Funds`).
+  - Symbol-level target allocation model grouped by asset classes (`U.S. Stocks`, `Thai Stocks`, `Crypto`, `Mutual Funds`, `Bonds`).
   - **Standard Two-Way Rebalance**: Computes exact buy/sell orders, turnover, and delta shares to rebalance existing capital.
   - **No-Sell / Contribution Inflow Solver**: Solves the exact minimum cash inflow ($\Delta C_{\text{min}}$) needed based on the anchor overweight asset so zero assets are sold, plus smart deficit waterfall allocation for custom deposit budgets.
   - **Responsive Hybrid Interface**: 6-column widescreen data table on desktop (`≥ 1024px`), two-tier split header on tablet (`768px – 1023px`), and card grid on mobile (`< 1024px`).
@@ -86,7 +86,7 @@
 - **Time Value of Money (TVM) Calculator**:
   - **5-Way Flexible Solve Modes**: Calculate Future Value ($FV$), Periodic Payment ($PMT$), Starting Principal ($PV$), Investment Horizon ($N$), and Required Annual Return Rate ($Rate$).
   - **8 Compounding Frequencies**: Daily ($m=365$), Weekly ($m=52$), Biweekly ($m=26$), Semimonthly ($m=24$), Monthly ($m=12$), Quarterly ($m=4$), Semiannually ($m=2$), and Annually ($m=1$).
-  - **Multi-Asset Class Present Value ($PV$) Sync**: Directly sync starting principal from live portfolio market values or cost basis with multi-asset selection chips (U.S. Stocks, Thai Stocks, Crypto, Mutual Funds).
+  - **Multi-Asset Class Present Value ($PV$) Sync**: Directly sync starting principal from live portfolio market values or cost basis with multi-asset selection chips (U.S. Stocks, Thai Stocks, Crypto, Mutual Funds, Bonds).
   - **Interactive Year-by-Year Wealth Trajectory Line Graph**: Reactive SVG line & area curves, crosshair vertical guidelines, animated indicator dots, and floating tooltips displaying balance, invested capital, interest earned, and return multiples.
   - **Expandable Accumulation Schedule**: Complete year-by-year financial table with annual deposits, yearly interest, cumulative interest, and ending balances with Privacy Mode blurring.
 - **Average Cost Basis Calculator**:
@@ -110,7 +110,7 @@
 | **Runtime** | [Node.js 24 LTS](https://nodejs.org/) (v24.19.0) |
 | **Backend Integration** | [FastAPI Backend (SGSKBackend)](https://github.com/vipatpolk/SGSKBackend) for data processing and API proxying |
 | **Data Source** | Google Sheets CSV Export (via Backend) |
-| **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom (**27 test files, 251 unit tests**) |
+| **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom (**29 test files, 280 unit tests**) |
 | **E2E Testing** | [Playwright](https://playwright.dev/) & Page Object Models (**150 automated tests** across 5 browser targets) |
 | **Deployment** | [Vercel](https://vercel.com/) (with API proxy rewrites) |
 
@@ -209,7 +209,7 @@ Navigate to `http://localhost:4200/` in your browser. The application will autom
 
 ### Running Unit Tests
 
-Execute unit tests using Vitest (19 test files, 165 unit tests):
+Execute unit tests using Vitest (29 test files, 280 unit tests):
 
 ```bash
 npm test
@@ -217,7 +217,7 @@ npm test
 
 ### Running End-to-End (E2E) Tests
 
-ShareLot includes a comprehensive Playwright E2E suite covering **70 automated tests** across 5 browser target environments (Chromium, Firefox, WebKit, Mobile Safari, Mobile Chrome):
+ShareLot includes a comprehensive Playwright E2E suite covering **150 automated tests** across 5 browser target environments (Chromium, Firefox, WebKit, Mobile Safari, Mobile Chrome):
 
 ```bash
 # Run all E2E tests in headless mode across all 5 browser targets
@@ -261,7 +261,7 @@ The top header enables instant switching across the 5 primary views:
 
 ### Asset Category Configuration
 
-Asset categories (`All`, `U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`, `Closed Position`) and brand colors are configured in [src/app/config/asset.constants.ts](src/app/config/asset.constants.ts) and [src/app/utils/format.utils.ts](src/app/utils/format.utils.ts).
+Asset categories (`All`, `U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`, `Bond`, `Closed Position`) and brand colors are configured in [src/app/config/asset.constants.ts](src/app/config/asset.constants.ts) and [src/app/utils/format.utils.ts](src/app/utils/format.utils.ts).
 
 ### Backend Data Source
 

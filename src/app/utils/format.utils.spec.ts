@@ -14,6 +14,7 @@ import {
   normalizeAssetType,
   getUnitLabel,
   getUnitLabelSingular,
+  generateAssetTypeOptions,
 } from './format.utils';
 
 describe('FormatUtils', () => {
@@ -227,6 +228,7 @@ describe('FormatUtils', () => {
       expect(getAssetType('thai-stock')).toBe('thai-stock');
       expect(getAssetType('crypto')).toBe('crypto');
       expect(getAssetType('mutual-fund')).toBe('mutual-fund');
+      expect(getAssetType('bond')).toBe('bond');
     });
 
     it('should correctly infer asset types from symbol when assetType is missing or generic', () => {
@@ -249,6 +251,8 @@ describe('FormatUtils', () => {
       expect(getAssetType('fund', 'SCBSFF')).toBe('mutual-fund');
       expect(getAssetType('Mutual Fund', 'SCBSFF.FUND')).toBe('mutual-fund');
       expect(getAssetType('Mutual Fund', 'SCBSFF.BKFUND')).toBe('mutual-fund');
+      expect(getAssetType('bond', 'BND')).toBe('bond');
+      expect(getAssetType('bond', 'TLT')).toBe('bond');
     });
 
     it('should return appropriate labels for display', () => {
@@ -256,6 +260,7 @@ describe('FormatUtils', () => {
       expect(getAssetTypeLabel('thai-stock')).toBe('Thai Stock');
       expect(getAssetTypeLabel('crypto')).toBe('Cryptocurrency');
       expect(getAssetTypeLabel('mutual-fund')).toBe('Mutual Fund');
+      expect(getAssetTypeLabel('bond')).toBe('Bond');
       expect(getAssetTypeLabel(undefined, 'BTC.CRYPTO')).toBe('Cryptocurrency');
       expect(getAssetTypeLabel(undefined, 'ES-GTECHSSF.FUND')).toBe('Mutual Fund');
       expect(getAssetTypeLabel(undefined, 'ES-GTECHSSF.BKFUND')).toBe('Mutual Fund');
@@ -267,6 +272,7 @@ describe('FormatUtils', () => {
       expect(getAssetTypeClass('thai-stock')).toBe('asset-type-tag asset-type-thai-stock');
       expect(getAssetTypeClass('crypto')).toBe('asset-type-tag asset-type-crypto');
       expect(getAssetTypeClass('mutual-fund')).toBe('asset-type-tag asset-type-mutual-fund');
+      expect(getAssetTypeClass('bond')).toBe('asset-type-tag asset-type-bond');
       expect(getAssetTypeClass(undefined, 'ES-GTECHSSF.FUND')).toBe('asset-type-tag asset-type-mutual-fund');
       expect(getAssetTypeClass(undefined, 'ES-GTECHSSF.BKFUND')).toBe('asset-type-tag asset-type-mutual-fund');
     });
@@ -276,6 +282,8 @@ describe('FormatUtils', () => {
       expect(normalizeAssetType('U.S. Stock')).toBe('us-stock');
       expect(normalizeAssetType('Cryptocurrency')).toBe('crypto');
       expect(normalizeAssetType('Mutual Fund')).toBe('mutual-fund');
+      expect(normalizeAssetType('Bond')).toBe('bond');
+      expect(normalizeAssetType('bonds')).toBe('bond');
       expect(normalizeAssetType('')).toBeNull();
     });
 
@@ -284,6 +292,7 @@ describe('FormatUtils', () => {
       expect(getAssetType('U.S. Stock')).toBe('us-stock');
       expect(getAssetType('Cryptocurrency')).toBe('crypto');
       expect(getAssetType('Mutual Fund')).toBe('mutual-fund');
+      expect(getAssetType('Bond')).toBe('bond');
     });
 
     it('should return correct asset type brand color in getAssetColor', () => {
@@ -291,6 +300,7 @@ describe('FormatUtils', () => {
       expect(getAssetColor('thai-stock')).toBe('#10b981');
       expect(getAssetColor('crypto')).toBe('#f59e0b');
       expect(getAssetColor('mutual-fund')).toBe('#8b5cf6');
+      expect(getAssetColor('bond')).toBe('#06b6d4');
       expect(getAssetColor(undefined, 'BTC.CRYPTO')).toBe('#f59e0b');
       expect(getAssetColor(undefined, 'PTT.BK')).toBe('#10b981');
       expect(getAssetColor('unknown-type')).toBe('#9ca3af');
@@ -321,4 +331,21 @@ describe('FormatUtils', () => {
       expect(getUnitLabelSingular('PTT.BK', 'thai-stock')).toBe('share');
     });
   });
+
+  describe('generateAssetTypeOptions', () => {
+    it('should generate options with counts and filter empty categories', () => {
+      const items = [
+        { symbol: 'AAPL', assetType: 'us-stock' },
+        { symbol: 'BND', assetType: 'bond' },
+        { symbol: 'TLT', assetType: 'bond' },
+      ];
+      const options = generateAssetTypeOptions(items);
+      expect(options).toEqual([
+        { id: 'all', label: 'All Types', count: 3 },
+        { id: 'us-stock', label: 'U.S. Stock', count: 1 },
+        { id: 'bond', label: 'Bond', count: 2 },
+      ]);
+    });
+  });
 });
+

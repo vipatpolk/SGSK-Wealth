@@ -15,6 +15,7 @@ import {
   TvmCalculationResult,
   TvmSolveMode,
 } from '../../../models/tools.model';
+import { KNOWN_ASSET_TYPES } from '../../../config/asset.constants';
 import {
   calculateTVM,
   COMPOUNDING_FREQUENCIES,
@@ -170,7 +171,7 @@ export class TvmCalculatorComponent {
       typeMap.set(typeKey, cur);
     }
 
-    const order = ['us-stock', 'thai-stock', 'crypto', 'mutual-fund'];
+    const order = KNOWN_ASSET_TYPES;
     const result: AssetTypeOption[] = [];
 
     // Add ordered known asset types

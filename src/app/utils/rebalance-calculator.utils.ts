@@ -10,6 +10,7 @@ import {
   RebalanceTradeOrder,
   SymbolRebalanceItem,
 } from '../models/tools.model';
+import { KNOWN_ASSET_TYPES } from '../config/asset.constants';
 import {
   convertCurrency,
   displaySymbol,
@@ -36,7 +37,7 @@ export interface RawSymbolPosition {
 /**
  * Standard ordered known asset classes for consistent UI grouping
  */
-export const ORDERED_ASSET_CLASSES = ['us-stock', 'thai-stock', 'crypto', 'mutual-fund'];
+export const ORDERED_ASSET_CLASSES: readonly string[] = KNOWN_ASSET_TYPES;
 
 /**
  * Converts value from original position currency to active display currency (USD / THB)

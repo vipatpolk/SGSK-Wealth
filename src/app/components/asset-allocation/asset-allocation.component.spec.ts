@@ -60,6 +60,7 @@ describe('AssetAllocationComponent', () => {
     expect(targets['thai-stock']).toBe(30);
     expect(targets['crypto']).toBe(15);
     expect(targets['mutual-fund']).toBe(15);
+    expect(targets['bond']).toBe(0);
   });
 
   it('should calculate current values converted to display currency (USD)', () => {

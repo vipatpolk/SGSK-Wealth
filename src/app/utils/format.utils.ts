@@ -1,3 +1,5 @@
+import { KNOWN_ASSET_TYPES } from '../config/asset.constants';
+
 export function getQuantityFormat(symbol: string, assetType?: string): string {
   return symbol.toUpperCase().endsWith('.CRYPTO') || assetType === 'crypto' ? '1.0-10' : '1.0-7';
 }
@@ -177,6 +179,9 @@ export function normalizeAssetType(rawType?: string): string | null {
   if (normalized === 'mutual-fund' || normalized.includes('fund') || normalized.includes('mutual')) {
     return 'mutual-fund';
   }
+  if (normalized === 'bond' || normalized.includes('bond')) {
+    return 'bond';
+  }
   return null;
 }
 
@@ -202,6 +207,7 @@ const ASSET_TYPE_CONFIG: Record<string, { label: string; cssClass: string; color
   'thai-stock': { label: 'Thai Stock', cssClass: 'asset-type-tag asset-type-thai-stock', color: '#10b981' },
   'crypto': { label: 'Cryptocurrency', cssClass: 'asset-type-tag asset-type-crypto', color: '#f59e0b' },
   'mutual-fund': { label: 'Mutual Fund', cssClass: 'asset-type-tag asset-type-mutual-fund', color: '#8b5cf6' },
+  'bond': { label: 'Bond', cssClass: 'asset-type-tag asset-type-bond', color: '#06b6d4' },
 };
 
 export function getAssetTypeLabel(assetType?: string, symbol?: string): string {
@@ -237,11 +243,10 @@ export interface AssetTypeOption {
 export function generateAssetTypeOptions(list: { assetType?: string; symbol: string }[]): AssetTypeOption[] {
   const countByType: Record<string, number> = {
     all: list.length,
-    'us-stock': 0,
-    'thai-stock': 0,
-    crypto: 0,
-    'mutual-fund': 0,
   };
+  for (const type of KNOWN_ASSET_TYPES) {
+    countByType[type] = 0;
+  }
 
   for (const item of list) {
     const type = getAssetType(item.assetType, item.symbol);
@@ -254,10 +259,11 @@ export function generateAssetTypeOptions(list: { assetType?: string; symbol: str
 
   return [
     { id: 'all', label: 'All Types', count: countByType['all'] },
-    { id: 'us-stock', label: 'U.S. Stock', count: countByType['us-stock'] },
-    { id: 'thai-stock', label: 'Thai Stock', count: countByType['thai-stock'] },
-    { id: 'crypto', label: 'Cryptocurrency', count: countByType['crypto'] },
-    { id: 'mutual-fund', label: 'Mutual Fund', count: countByType['mutual-fund'] },
+    ...KNOWN_ASSET_TYPES.map((type) => ({
+      id: type,
+      label: getAssetTypeLabel(type),
+      count: countByType[type] || 0,
+    })),
   ].filter((opt) => opt.id === 'all' || opt.count > 0);
 }
 

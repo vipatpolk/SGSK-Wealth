@@ -23,7 +23,7 @@ describe('TabBarComponent', () => {
   it('should create tab bar component', () => {
     expect(component).toBeTruthy();
     expect(component.activeTab().id).toBe('all');
-    expect(component.tabs().length).toBe(6);
+    expect(component.tabs().length).toBe(7);
   });
 
   it('should emit tabSelect when a tab is selected', () => {

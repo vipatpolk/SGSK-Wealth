@@ -10,7 +10,8 @@ import {
   SymbolDividendSummary,
   FundDividendDistribution,
 } from '../../models/dividend.model';
-import { convertCurrency } from '../../utils/format.utils';
+import { DIVIDEND_ASSET_TYPES } from '../../config/asset.constants';
+import { convertCurrency, getAssetColor } from '../../utils/format.utils';
 
 @Component({
   selector: 'app-dividend',
@@ -33,6 +34,7 @@ export class DividendComponent {
   getSymbolName = input.required<(symbol: string) => string>();
   getAssetTypeClass = input.required<(type?: string, symbol?: string) => string>();
   getAssetTypeLabel = input.required<(type?: string, symbol?: string) => string>();
+  readonly getAssetColor = getAssetColor;
 
   // Outputs
   refresh = output<void>();
@@ -40,7 +42,7 @@ export class DividendComponent {
 
   // State Filters
   readonly selectedYear = signal<string>('ALL'); // 'ALL' or '2026', '2025', etc.
-  readonly selectedAssetType = signal<string>('all'); // 'all', 'us-stock', 'thai-stock', 'mutual-fund'
+  readonly selectedAssetType = signal<string>('all'); // 'all', 'us-stock', 'thai-stock', 'mutual-fund', 'bond'
   readonly searchQuery = signal<string>('');
   readonly sortField = signal<'netDividends' | 'yoc' | 'currentYield' | 'projected' | 'name'>('netDividends');
   readonly sortDirection = signal<'asc' | 'desc'>('desc');
@@ -209,11 +211,13 @@ export class DividendComponent {
     const recs = this.filteredRecords();
     const totalNet = this.activeNetTotal();
 
-    const map: Record<string, { gross: number; net: number; wht: number; symbols: Set<string>; count: number }> = {
-      'us-stock': { gross: 0, net: 0, wht: 0, symbols: new Set(), count: 0 },
-      'thai-stock': { gross: 0, net: 0, wht: 0, symbols: new Set(), count: 0 },
-      'mutual-fund': { gross: 0, net: 0, wht: 0, symbols: new Set(), count: 0 },
-    };
+    const map: Record<string, { gross: number; net: number; wht: number; symbols: Set<string>; count: number }> =
+      Object.fromEntries(
+        DIVIDEND_ASSET_TYPES.map((at) => [
+          at,
+          { gross: 0, net: 0, wht: 0, symbols: new Set<string>(), count: 0 },
+        ])
+      );
 
     for (const r of recs) {
       if (map[r.assetType]) {
@@ -225,15 +229,15 @@ export class DividendComponent {
       }
     }
 
-    return ['us-stock', 'thai-stock', 'mutual-fund'].map(atKey => ({
+    return DIVIDEND_ASSET_TYPES.map((atKey) => ({
       assetType: atKey,
       assetTypeLabel: this.getAssetTypeLabel()(atKey),
-      totalGrossDividends: map[atKey].gross,
-      totalNetDividends: map[atKey].net,
-      totalWithholdingTax: map[atKey].wht,
-      percentageOfTotal: totalNet > 0 ? (map[atKey].net / totalNet) * 100 : 0,
-      symbolCount: map[atKey].symbols.size,
-      recordCount: map[atKey].count,
+      totalGrossDividends: map[atKey]?.gross || 0,
+      totalNetDividends: map[atKey]?.net || 0,
+      totalWithholdingTax: map[atKey]?.wht || 0,
+      percentageOfTotal: totalNet > 0 && map[atKey] ? (map[atKey].net / totalNet) * 100 : 0,
+      symbolCount: map[atKey]?.symbols.size || 0,
+      recordCount: map[atKey]?.count || 0,
     }));
   });
 
@@ -249,6 +253,7 @@ export class DividendComponent {
       usAmount: number;
       thaiAmount: number;
       fundAmount: number;
+      bondAmount: number;
       count: number;
     }>();
 
@@ -262,6 +267,7 @@ export class DividendComponent {
           usAmount: 0,
           thaiAmount: 0,
           fundAmount: 0,
+          bondAmount: 0,
           count: 0,
         });
       }
@@ -272,6 +278,7 @@ export class DividendComponent {
       if (r.assetType === 'us-stock') entry.usAmount += r.convertedNetAmount;
       else if (r.assetType === 'thai-stock') entry.thaiAmount += r.convertedNetAmount;
       else if (r.assetType === 'mutual-fund') entry.fundAmount += r.convertedNetAmount;
+      else if (r.assetType === 'bond') entry.bondAmount += r.convertedNetAmount;
     }
 
     // Chronological order (oldest to newest)
@@ -284,6 +291,7 @@ export class DividendComponent {
       usPercent: m.netAmount > 0 ? (m.usAmount / m.netAmount) * 100 : 0,
       thaiPercent: m.netAmount > 0 ? (m.thaiAmount / m.netAmount) * 100 : 0,
       fundPercent: m.netAmount > 0 ? (m.fundAmount / m.netAmount) * 100 : 0,
+      bondPercent: m.netAmount > 0 ? (m.bondAmount / m.netAmount) * 100 : 0,
     }));
   });
 
