@@ -9,7 +9,10 @@ class Settings(BaseSettings):
     allowed_origins: list[str] = ["http://localhost:4200"]
     sec_subscription_key: str = "your_sec_subscription_key_here"
     google_spreadsheet_id: str = "your_google_spreadsheet_id_here"
+    google_pvd_spreadsheet_id: str = "your_google_pvd_spreadsheet_id_here"
     google_service_account_json: str = ""
+    sec_pvd_proj_id: str = "V0001_2553"
+    sec_pvd_base_url: str = "https://api.sec.or.th/v1/pvd"
 
     model_config = SettingsConfigDict(
         env_file=".env",
