@@ -5,7 +5,7 @@ export interface AssetTab {
   currency: string;
 }
 
-export type AssetType = 'us-stock' | 'thai-stock' | 'crypto' | 'mutual-fund' | 'bond';
+export type AssetType = 'us-stock' | 'thai-stock' | 'crypto' | 'mutual-fund' | 'bond' | 'provident-fund';
 
 export const KNOWN_ASSET_TYPES: readonly AssetType[] = [
   'us-stock',
@@ -13,6 +13,7 @@ export const KNOWN_ASSET_TYPES: readonly AssetType[] = [
   'crypto',
   'mutual-fund',
   'bond',
+  'provident-fund',
 ] as const;
 
 export const DIVIDEND_ASSET_TYPES: readonly AssetType[] = [
@@ -58,6 +59,12 @@ export const ASSET_TABS: AssetTab[] = [
     label: 'Bond',
     icon: 'landmark',
     currency: 'USD',
+  },
+  {
+    id: 'provident-fund',
+    label: 'Provident Fund',
+    icon: 'briefcase',
+    currency: 'THB',
   },
   {
     id: 'closed-position',

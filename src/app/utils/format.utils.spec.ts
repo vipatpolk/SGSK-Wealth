@@ -229,6 +229,7 @@ describe('FormatUtils', () => {
       expect(getAssetType('crypto')).toBe('crypto');
       expect(getAssetType('mutual-fund')).toBe('mutual-fund');
       expect(getAssetType('bond')).toBe('bond');
+      expect(getAssetType('provident-fund')).toBe('provident-fund');
     });
 
     it('should correctly infer asset types from symbol when assetType is missing or generic', () => {
@@ -239,6 +240,8 @@ describe('FormatUtils', () => {
       expect(getAssetType(undefined, 'SCBSFF.FUND')).toBe('mutual-fund');
       expect(getAssetType(undefined, 'ES-GTECHSSF.BKFUND')).toBe('mutual-fund');
       expect(getAssetType(undefined, 'SCBSFF.BKFUND')).toBe('mutual-fund');
+      expect(getAssetType(undefined, 'PVDSP500')).toBe('provident-fund');
+      expect(getAssetType(undefined, 'EQ.PVD')).toBe('provident-fund');
     });
 
     it('should correctly identify asset types when assetType is provided from data source', () => {
@@ -253,6 +256,7 @@ describe('FormatUtils', () => {
       expect(getAssetType('Mutual Fund', 'SCBSFF.BKFUND')).toBe('mutual-fund');
       expect(getAssetType('bond', 'BND')).toBe('bond');
       expect(getAssetType('bond', 'TLT')).toBe('bond');
+      expect(getAssetType('provident-fund', 'PVDSP500')).toBe('provident-fund');
     });
 
     it('should return appropriate labels for display', () => {
@@ -261,9 +265,11 @@ describe('FormatUtils', () => {
       expect(getAssetTypeLabel('crypto')).toBe('Cryptocurrency');
       expect(getAssetTypeLabel('mutual-fund')).toBe('Mutual Fund');
       expect(getAssetTypeLabel('bond')).toBe('Bond');
+      expect(getAssetTypeLabel('provident-fund')).toBe('Provident Fund');
       expect(getAssetTypeLabel(undefined, 'BTC.CRYPTO')).toBe('Cryptocurrency');
       expect(getAssetTypeLabel(undefined, 'ES-GTECHSSF.FUND')).toBe('Mutual Fund');
       expect(getAssetTypeLabel(undefined, 'ES-GTECHSSF.BKFUND')).toBe('Mutual Fund');
+      expect(getAssetTypeLabel(undefined, 'PVDSP500')).toBe('Provident Fund');
       expect(getAssetTypeLabel('crypto', 'ADA')).toBe('Cryptocurrency');
     });
 
@@ -273,8 +279,10 @@ describe('FormatUtils', () => {
       expect(getAssetTypeClass('crypto')).toBe('asset-type-tag asset-type-crypto');
       expect(getAssetTypeClass('mutual-fund')).toBe('asset-type-tag asset-type-mutual-fund');
       expect(getAssetTypeClass('bond')).toBe('asset-type-tag asset-type-bond');
+      expect(getAssetTypeClass('provident-fund')).toBe('asset-type-tag asset-type-provident-fund');
       expect(getAssetTypeClass(undefined, 'ES-GTECHSSF.FUND')).toBe('asset-type-tag asset-type-mutual-fund');
       expect(getAssetTypeClass(undefined, 'ES-GTECHSSF.BKFUND')).toBe('asset-type-tag asset-type-mutual-fund');
+      expect(getAssetTypeClass(undefined, 'PVDSP500')).toBe('asset-type-tag asset-type-provident-fund');
     });
 
     it('should normalize raw type strings from Google Sheets', () => {
@@ -284,6 +292,8 @@ describe('FormatUtils', () => {
       expect(normalizeAssetType('Mutual Fund')).toBe('mutual-fund');
       expect(normalizeAssetType('Bond')).toBe('bond');
       expect(normalizeAssetType('bonds')).toBe('bond');
+      expect(normalizeAssetType('Provident Fund')).toBe('provident-fund');
+      expect(normalizeAssetType('pvd')).toBe('provident-fund');
       expect(normalizeAssetType('')).toBeNull();
     });
 
@@ -293,6 +303,8 @@ describe('FormatUtils', () => {
       expect(getAssetType('Cryptocurrency')).toBe('crypto');
       expect(getAssetType('Mutual Fund')).toBe('mutual-fund');
       expect(getAssetType('Bond')).toBe('bond');
+      expect(getAssetType('Provident Fund')).toBe('provident-fund');
+      expect(getAssetType('pvd')).toBe('provident-fund');
     });
 
     it('should return correct asset type brand color in getAssetColor', () => {
@@ -301,8 +313,10 @@ describe('FormatUtils', () => {
       expect(getAssetColor('crypto')).toBe('#f59e0b');
       expect(getAssetColor('mutual-fund')).toBe('#8b5cf6');
       expect(getAssetColor('bond')).toBe('#06b6d4');
+      expect(getAssetColor('provident-fund')).toBe('#6366f1');
       expect(getAssetColor(undefined, 'BTC.CRYPTO')).toBe('#f59e0b');
       expect(getAssetColor(undefined, 'PTT.BK')).toBe('#10b981');
+      expect(getAssetColor(undefined, 'PVDSP500')).toBe('#6366f1');
       expect(getAssetColor('unknown-type')).toBe('#9ca3af');
     });
   });
@@ -324,6 +338,13 @@ describe('FormatUtils', () => {
       expect(getUnitLabelSingular('K-CHANGE', 'mutual-fund')).toBe('unit');
     });
 
+    it('should return units/unit for provident fund transactions', () => {
+      expect(getUnitLabel('PVDSP500')).toBe('units');
+      expect(getUnitLabel('PVDWEQ', 'provident-fund')).toBe('units');
+      expect(getUnitLabelSingular('PVDSP500')).toBe('unit');
+      expect(getUnitLabelSingular('PVDWEQ', 'provident-fund')).toBe('unit');
+    });
+
     it('should return shares/share for stock transactions', () => {
       expect(getUnitLabel('AAPL')).toBe('shares');
       expect(getUnitLabel('PTT.BK', 'thai-stock')).toBe('shares');
@@ -338,12 +359,14 @@ describe('FormatUtils', () => {
         { symbol: 'AAPL', assetType: 'us-stock' },
         { symbol: 'BND', assetType: 'bond' },
         { symbol: 'TLT', assetType: 'bond' },
+        { symbol: 'PVDSP500', assetType: 'provident-fund' },
       ];
       const options = generateAssetTypeOptions(items);
       expect(options).toEqual([
-        { id: 'all', label: 'All Types', count: 3 },
+        { id: 'all', label: 'All Types', count: 4 },
         { id: 'us-stock', label: 'U.S. Stock', count: 1 },
         { id: 'bond', label: 'Bond', count: 2 },
+        { id: 'provident-fund', label: 'Provident Fund', count: 1 },
       ]);
     });
   });

@@ -66,6 +66,14 @@ describe('symbol-icon.utils', () => {
       expect(config.monogram).toBe('SC');
     });
 
+    it('returns isMutualFund: true and no CDN URLs for Provident Funds', () => {
+      const config = getSymbolLogoConfig('PVDSP500', 'provident-fund');
+      expect(config.isMutualFund).toBe(true);
+      expect(config.primaryUrl).toBeNull();
+      expect(config.secondaryUrl).toBeNull();
+      expect(config.monogram).toBe('PV');
+    });
+
     it('handles empty symbol safely', () => {
       const config = getSymbolLogoConfig('');
       expect(config.primaryUrl).toBeNull();

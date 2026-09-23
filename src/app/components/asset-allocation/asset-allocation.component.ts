@@ -30,6 +30,7 @@ export class AssetAllocationComponent implements OnInit {
     'crypto': 15,
     'mutual-fund': 15,
     'bond': 0,
+    'provident-fund': 0,
   };
 
   targetAllocation = signal<TargetAllocation>(this.defaultTargets);

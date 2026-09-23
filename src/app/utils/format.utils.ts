@@ -162,6 +162,9 @@ export function convertCurrency(
 export function normalizeAssetType(rawType?: string): string | null {
   if (!rawType) return null;
   const normalized = rawType.trim().toLowerCase();
+  if (normalized === 'provident-fund' || normalized.includes('provident') || normalized === 'pvd') {
+    return 'provident-fund';
+  }
   if (normalized === 'thai-stock' || normalized.includes('thai') || normalized === 'th') {
     return 'thai-stock';
   }
@@ -195,6 +198,7 @@ export function getAssetType(assetType?: string, symbol?: string): string {
   }
   if (symbol) {
     const sym = symbol.toUpperCase();
+    if (sym.startsWith('PVD') || sym.endsWith('.PVD')) return 'provident-fund';
     if (sym.endsWith('.FUND') || sym.endsWith('.BKFUND')) return 'mutual-fund';
     if (sym.endsWith('.BK')) return 'thai-stock';
     if (sym.endsWith('.CRYPTO')) return 'crypto';
@@ -208,6 +212,7 @@ const ASSET_TYPE_CONFIG: Record<string, { label: string; cssClass: string; color
   'crypto': { label: 'Cryptocurrency', cssClass: 'asset-type-tag asset-type-crypto', color: '#f59e0b' },
   'mutual-fund': { label: 'Mutual Fund', cssClass: 'asset-type-tag asset-type-mutual-fund', color: '#8b5cf6' },
   'bond': { label: 'Bond', cssClass: 'asset-type-tag asset-type-bond', color: '#06b6d4' },
+  'provident-fund': { label: 'Provident Fund', cssClass: 'asset-type-tag asset-type-provident-fund', color: '#6366f1' },
 };
 
 export function getAssetTypeLabel(assetType?: string, symbol?: string): string {
@@ -270,14 +275,14 @@ export function generateAssetTypeOptions(list: { assetType?: string; symbol: str
 export function getUnitLabel(symbol?: string, assetType?: string): string {
   const type = getAssetType(assetType, symbol);
   if (type === 'crypto') return 'coins';
-  if (type === 'mutual-fund') return 'units';
+  if (type === 'mutual-fund' || type === 'provident-fund') return 'units';
   return 'shares';
 }
 
 export function getUnitLabelSingular(symbol?: string, assetType?: string): string {
   const type = getAssetType(assetType, symbol);
   if (type === 'crypto') return 'coin';
-  if (type === 'mutual-fund') return 'unit';
+  if (type === 'mutual-fund' || type === 'provident-fund') return 'unit';
   return 'share';
 }
 

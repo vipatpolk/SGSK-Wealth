@@ -633,6 +633,40 @@ describe('TransactionHistoryComponent', () => {
     expect(plAmount).toBeTruthy();
     expect(plPercentSub).toBeTruthy();
   });
+
+  it('should exclude provident-fund from transaction history trade summaries and symbols', () => {
+    const pvdSummary: SymbolTransactionSummary = {
+      symbol: 'PVDSP500',
+      assetType: 'provident-fund',
+      currency: 'THB',
+      totalTransactions: 1,
+      buyCount: 1,
+      sellCount: 0,
+      totalBuyShares: 100,
+      totalSellShares: 0,
+      totalBuyAmount: 1500,
+      totalSellAmount: 0,
+      averageBuyPrice: 15,
+      averageSellPrice: 0,
+      netShares: 100,
+      netInvested: 1500,
+      currentStatus: 'OPEN',
+      realizedPL: 0,
+      realizedPLPercent: 0,
+      firstTradeDate: '2026-01-01',
+      lastTradeDate: '2026-01-01',
+      transactions: [],
+    };
+
+    fixture.componentRef.setInput('transactionSummaries', [...mockTransactionSummaries, pvdSummary]);
+    fixture.detectChanges();
+
+    const symbols = component.availableSymbols().map((s) => s.symbol);
+    expect(symbols).not.toContain('PVDSP500');
+
+    const assetTypes = component.assetTypeOptions().map((opt) => opt.id);
+    expect(assetTypes).not.toContain('provident-fund');
+  });
 });
 
 

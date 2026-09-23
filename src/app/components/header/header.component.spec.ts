@@ -206,4 +206,22 @@ describe('HeaderComponent', () => {
     expect(button.classList.contains('privacy-active')).toBe(true);
     expect(button.getAttribute('title')).toContain('Show sensitive');
   });
+
+  it('should render Total Cost, Holding Value, and P/L when on Provident Fund tab', () => {
+    componentRef.setInput('isProvidentFundTab', true);
+    componentRef.setInput('result', { totalSymbols: 5, totalLots: 10, error: null } as any);
+    componentRef.setInput('totalHoldingConverted', 205135.89);
+    componentRef.setInput('totalCostConverted', 174820.98);
+    componentRef.setInput('totalPL', 30314.91);
+    componentRef.setInput('totalPLPercent', 17.34);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const statLabels = Array.from(compiled.querySelectorAll('.header-financial-stats .header-stat-label')).map((el) =>
+      el.textContent?.trim()
+    );
+    expect(statLabels).toContain('Total Cost');
+    expect(statLabels).toContain('Holding Value');
+    expect(statLabels).toContain('P/L');
+  });
 });

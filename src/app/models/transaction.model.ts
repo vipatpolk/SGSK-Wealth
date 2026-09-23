@@ -8,6 +8,7 @@ export interface Transaction {
   exchangeFrom?: string;
   exchangeTo?: string;
   txType?: string;
+  note?: string;
 }
 
 export interface ShareLot {
@@ -17,6 +18,7 @@ export interface ShareLot {
   costBasis: number;
   totalCost: number;
   assetType: string;
+  note?: string;
 }
 
 export interface ClosedShareLot {
@@ -44,6 +46,8 @@ export interface SymbolSummary {
   currency: string;
   lots: ShareLot[];
   assetType: string;
+  employeeShares?: number;
+  employerShares?: number;
 }
 
 export interface ClosedSymbolSummary {

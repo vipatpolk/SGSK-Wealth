@@ -59,6 +59,16 @@
 - **"Symbol at Class" Detailed Breakdown View**: When filtered, dynamically reveals individual holdings within that asset class with a prominent **`← All Asset Classes`** reset button.
 - **Concentration & Currency Exposure**: Top Holdings Concentration chart with **Show All / Show Top 5** toggle controls, alongside USD/THB currency exposure visualizer.
 
+### 💼 Provident Fund (PVD) Tracking & Contribution Breakdown
+- **Dedicated Asset Tab**: Seamlessly navigates to the Provident Fund portfolio view via the tab bar (`briefcase` icon, `#6366f1` brand indigo).
+- **Contribution Split Bar**: Visual header progress bar detailing Employee vs. Company contribution shares and percentages (e.g. `Emp 58% Co 42%`).
+- **Laser-Aligned Layout**: Header cards maintain unified horizontal columns across desktop, tablet, and mobile, with the contribution split bar occupying the exact same slot as the Transactions button on trading asset types.
+- **Dedicated Expanded Contribution Breakdown**:
+  - **Employee Contribution Card**: Displays Employee Total Contribution ($), Cumulative Earnings ($), and percentage of total plan.
+  - **Employer Matching Card**: Displays Employer Matching Contribution ($), Cumulative Company Earnings ($), and percentage of total plan.
+  - **Official Snapshot Footer Banner**: Shows plan policy name, sub-policy ID, SEC Thailand AIMC classification, risk level, and aggregate portfolio valuation.
+- **Transaction History Exemption**: Provident Fund positions reflect official balance snapshots without manual buy/sell trade logs, cleanly excluding PVD from the trading feed and transaction CSV export.
+
 ### 📊 FIFO Share Lot Engine
 - Automatically matches buy and sell transaction queues according to First-In, First-Out (FIFO) principles.
 - Computes remaining open lots, weighted average cost basis, and acquisition dates.
@@ -70,14 +80,14 @@
 - **Normalized Table Layout**: Standardized column widths across all type filters with multi-line symbol name display.
 - **Context-Aware Asset Units**: Dynamically formats unit labels:
   - **Cryptocurrency**: Displays unit as `coins` / `coin` (e.g., `+0.2500 coins`, `@ $98,400.00 / coin`).
-  - **Mutual Funds**: Identified strictly by `.FUND` suffix; displays unit as `units` / `unit`.
+  - **Mutual Funds & Provident Funds**: Displays unit as `units` / `unit` (e.g., `10,335.6092 units`, `32,772.99 units`).
   - **Stocks**: Displays unit as `shares` / `share`.
 - **Export to CSV**: Download transactions in standard 5-column CSV format (`Symbol,Date,Quantity,Price,Currency`) with YYYY-MM-DD dates, signed quantities (`+` for BUY/EX-IN, `-` for SELL/EX-OUT), UTF-8 BOM encoding (`\uFEFF`), and filter options (Asset Type and Open/Closed scope).
 - **Pagination & Sorting**: Configurable page size options (10, 50, 100) with responsive pagination navigation.
 
 ### 🧮 Investor Tools & Financial Simulators Hub
 - **Portfolio Rebalance Planner**:
-  - Symbol-level target allocation model grouped by asset classes (`U.S. Stocks`, `Thai Stocks`, `Crypto`, `Mutual Funds`, `Bonds`).
+  - Symbol-level target allocation model grouped by asset classes (`U.S. Stocks`, `Thai Stocks`, `Crypto`, `Mutual Funds`, `Bonds`, `Provident Funds`).
   - **Standard Two-Way Rebalance**: Computes exact buy/sell orders, turnover, and delta shares to rebalance existing capital.
   - **No-Sell / Contribution Inflow Solver**: Solves the exact minimum cash inflow ($\Delta C_{\text{min}}$) needed based on the anchor overweight asset so zero assets are sold, plus smart deficit waterfall allocation for custom deposit budgets.
   - **Responsive Hybrid Interface**: 6-column widescreen data table on desktop (`≥ 1024px`), two-tier split header on tablet (`768px – 1023px`), and card grid on mobile (`< 1024px`).
@@ -209,7 +219,7 @@ Navigate to `http://localhost:4200/` in your browser. The application will autom
 
 ### Running Unit Tests
 
-Execute unit tests using Vitest (29 test files, 280 unit tests):
+Execute unit tests using Vitest (29 test files, 286 unit tests):
 
 ```bash
 npm test
@@ -261,7 +271,7 @@ The top header enables instant switching across the 5 primary views:
 
 ### Asset Category Configuration
 
-Asset categories (`All`, `U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`, `Bond`, `Closed Position`) and brand colors are configured in [src/app/config/asset.constants.ts](src/app/config/asset.constants.ts) and [src/app/utils/format.utils.ts](src/app/utils/format.utils.ts).
+Asset categories (`All`, `U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`, `Bond`, `Provident Fund`, `Closed Position`) and brand colors are configured in [src/app/config/asset.constants.ts](src/app/config/asset.constants.ts) and [src/app/utils/format.utils.ts](src/app/utils/format.utils.ts).
 
 ### Backend Data Source
 

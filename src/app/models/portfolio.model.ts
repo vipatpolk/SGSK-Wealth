@@ -13,6 +13,7 @@ export interface PortfolioHoldingLot {
   currency: string;
   originalCostBasis: number;
   originalCurrency: string;
+  note?: string;
 }
 
 export interface PortfolioPosition {
@@ -32,6 +33,15 @@ export interface PortfolioPosition {
   originalCurrency: string;
   hasPrice: boolean;
   lots: PortfolioHoldingLot[];
+  employeeShares?: number;
+  employerShares?: number;
+  employeeContribution?: number;
+  employeeEarnings?: number;
+  employerMatching?: number;
+  employerEarnings?: number;
+  policyName?: string;
+  aimcType?: string;
+  riskLevel?: string;
 }
 
 export interface ClosedPortfolioPosition {

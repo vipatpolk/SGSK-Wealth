@@ -23,6 +23,7 @@ export class HeaderComponent {
   totalPLPercent = input.required<number>();
   isClosedTab = input.required<boolean>();
   isAllTab = input.required<boolean>();
+  isProvidentFundTab = input<boolean>(false);
   totalHoldingConverted = input.required<number>();
   totalRealizedPLConverted = input.required<number>();
   totalRealizedPLPercent = input.required<number>();

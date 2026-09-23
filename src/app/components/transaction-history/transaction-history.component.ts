@@ -172,15 +172,21 @@ export class TransactionHistoryComponent {
     this.isSymbolDropdownOpen.set(false);
   }
 
+  readonly tradeSummaries = computed<SymbolTransactionSummary[]>(() => {
+    return this.transactionSummaries().filter(
+      (s) => getAssetType(s.assetType, s.symbol) !== 'provident-fund'
+    );
+  });
+
   readonly assetTypeOptions = computed(() => {
-    const list = this.transactionSummaries();
+    const list = this.tradeSummaries();
     return generateAssetTypeOptions(list);
   });
 
   /** Matched summaries based on assetFilter */
   readonly filteredSummaries = computed<SymbolTransactionSummary[]>(() => {
     const assetFilter = this.assetFilter();
-    const all = this.transactionSummaries();
+    const all = this.tradeSummaries();
     if (assetFilter === 'all') return all;
     return all.filter(
       (s) => getAssetType(s.assetType, s.symbol) === assetFilter
@@ -222,7 +228,7 @@ export class TransactionHistoryComponent {
   readonly activeSummary = computed<SymbolTransactionSummary | null>(() => {
     const sym = this.currentSymbol();
     if (!sym) return null;
-    return this.transactionSummaries().find((s) => s.symbol === sym) || null;
+    return this.tradeSummaries().find((s) => s.symbol === sym) || null;
   });
 
   /** Open summary for the active symbol (if open) */
@@ -596,13 +602,13 @@ export class TransactionHistoryComponent {
     if (!txs || txs.length === 0) return;
 
     const openSymbols = new Set(
-      this.transactionSummaries()
+      this.tradeSummaries()
         .filter((s) => s.currentStatus === 'OPEN')
         .map((s) => s.symbol)
     );
 
     const closedSymbols = new Set(
-      this.transactionSummaries()
+      this.tradeSummaries()
         .filter((s) => s.currentStatus === 'CLOSED')
         .map((s) => s.symbol)
     );

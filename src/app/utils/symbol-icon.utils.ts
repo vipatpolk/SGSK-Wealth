@@ -40,8 +40,8 @@ export function getSymbolLogoConfig(symbol: string, assetType?: string): SymbolL
   const brandColor = getSymbolColor(symbol);
   const monogram = getSymbolMonogram(symbol);
 
-  // Thai mutual funds: skip external logo lookup and use dedicated placeholder
-  if (type === 'mutual-fund') {
+  // Thai mutual funds and Provident funds: skip external logo lookup and use dedicated placeholder
+  if (type === 'mutual-fund' || type === 'provident-fund') {
     return {
       primaryUrl: null,
       secondaryUrl: null,

@@ -164,4 +164,149 @@ describe('SummaryCardComponent', () => {
     expect(nameEl).toBeTruthy();
     expect(nameEl?.textContent).toContain('TMBThanachart Bank');
   });
+
+  it('should render NAV label, units, and pvd split for provident-fund open position', () => {
+    const mockPvdSummary = {
+      symbol: 'PVDSP500',
+      name: 'นโยบายกองทุนรวมต่างประเทศ หุ้นยูเอส',
+      totalShares: 1000,
+      employeeShares: 500,
+      employerShares: 500,
+      totalCost: 15000,
+      averageCost: 15,
+      currency: 'THB',
+      assetType: 'provident-fund',
+      lots: [
+        {
+          purchaseDate: '2026-01-01',
+          quantity: 500,
+          costBasis: 15,
+          totalCost: 7500,
+          note: 'Employee Contribution',
+        },
+        {
+          purchaseDate: '2026-01-01',
+          quantity: 500,
+          costBasis: 15,
+          totalCost: 7500,
+          note: 'Employer Matching',
+        },
+      ],
+    };
+
+    componentRef.setInput('type', 'open');
+    componentRef.setInput('summary', mockPvdSummary);
+    componentRef.setInput('getHoldingValue', (s: any) => s.totalCost || 15000);
+    componentRef.setInput('isExpanded', true);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    // Units label
+    const sharesEl = compiled.querySelector('.card-shares');
+    expect(sharesEl?.textContent).toContain('units');
+
+    // Split bar & labels
+    const splitEl = compiled.querySelector('.card-pvd-split');
+    expect(splitEl).toBeTruthy();
+    expect(splitEl?.textContent).toContain('Emp 50%');
+    expect(splitEl?.textContent).toContain('Co 50%');
+    const splitBar = compiled.querySelector('.card-pvd-bar');
+    expect(splitBar).toBeTruthy();
+    expect(compiled.querySelector('.pvd-segment-employee')).toBeTruthy();
+    expect(compiled.querySelector('.pvd-segment-employer')).toBeTruthy();
+
+    // Metric labels: Avg Cost, Total Cost, NAV, Holding Value, P/L
+    const metricLabels = Array.from(compiled.querySelectorAll('.card-metric-label'));
+    const navLabel = metricLabels.find((el) => el.textContent?.trim() === 'NAV');
+    expect(navLabel).toBeTruthy();
+    const holdingValLabel = metricLabels.find((el) => el.textContent?.trim() === 'Holding Value');
+    expect(holdingValLabel).toBeTruthy();
+    const plLabel = metricLabels.find((el) => el.textContent?.trim() === 'P/L');
+    expect(plLabel).toBeTruthy();
+
+    // Transactions button must NOT be rendered for provident fund
+    const tradesBtn = compiled.querySelector('.card-trades-btn');
+    expect(tradesBtn).toBeNull();
+
+    // Dedicated dual contribution cards in expanded view
+    const dualCards = compiled.querySelector('.pvd-dual-cards');
+    expect(dualCards).toBeTruthy();
+    const empCard = compiled.querySelector('.pvd-card-employee');
+    expect(empCard).toBeTruthy();
+    expect(empCard?.textContent).toContain('Employee Contribution');
+    expect(empCard?.textContent).toContain('7,500.00');
+    expect(empCard?.textContent).toContain('50.0%');
+
+    const coCard = compiled.querySelector('.pvd-card-employer');
+    expect(coCard).toBeTruthy();
+    expect(coCard?.textContent).toContain('Employer Matching');
+    expect(coCard?.textContent).toContain('7,500.00');
+    expect(coCard?.textContent).toContain('50.0%');
+
+    // Footer banner
+    const footerBanner = compiled.querySelector('.pvd-footer-banner');
+    expect(footerBanner).toBeTruthy();
+    expect(footerBanner?.textContent).toContain('Total Value');
+    expect(footerBanner?.textContent).toContain('15,000.00');
+  });
+
+  it('should render contribution breakdown and earnings when available for provident fund', () => {
+    const mockPvdWithEarnings = {
+      symbol: 'PVDSP500',
+      displaySymbol: 'PVDSP500',
+      name: 'นโยบายกองทุนรวมต่างประเทศ หุ้นยูเอส',
+      assetType: 'provident-fund',
+      totalShares: 14299.97,
+      totalCost: 174820.98,
+      averageCost: 12.2253,
+      currentPrice: 14.3452,
+      holdingValue: 205135.89,
+      unrealizedPL: 30314.91,
+      unrealizedPLPercent: 17.34,
+      currency: 'THB',
+      employeeShares: 8294.68,
+      employerShares: 6005.29,
+      employeeContribution: 100858.26,
+      employeeEarnings: 18130.55,
+      employerMatching: 73962.72,
+      employerEarnings: 12184.36,
+      lots: [
+        {
+          purchaseDate: '2026-01-01',
+          quantity: 8294.68,
+          costBasis: 12.1594,
+          totalCost: 100858.26,
+          note: 'Employee Contribution',
+        },
+        {
+          purchaseDate: '2026-01-01',
+          quantity: 6005.29,
+          costBasis: 12.3163,
+          totalCost: 73962.72,
+          note: 'Employer Matching',
+        },
+      ],
+    };
+
+    componentRef.setInput('type', 'open');
+    componentRef.setInput('summary', mockPvdWithEarnings);
+    componentRef.setInput('getHoldingValue', (s: any) => s.holdingValue || 205135.89);
+    componentRef.setInput('isExpanded', true);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const empCard = compiled.querySelector('.pvd-card-employee');
+    expect(empCard?.textContent).toContain('100,858.26');
+    expect(empCard?.textContent).toContain('18,130.55');
+
+    const coCard = compiled.querySelector('.pvd-card-employer');
+    expect(coCard?.textContent).toContain('73,962.72');
+    expect(coCard?.textContent).toContain('12,184.36');
+
+    const footerBanner = compiled.querySelector('.pvd-footer-banner');
+    expect(footerBanner?.textContent).toContain('Total Earnings');
+    expect(footerBanner?.textContent).toContain('30,314.91');
+    expect(footerBanner?.textContent).toContain('205,135.89');
+  });
 });
