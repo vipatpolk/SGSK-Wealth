@@ -14,6 +14,7 @@ export class TabBarComponent {
   tabs = input.required<AssetTab[]>();
   activeTab = input.required<AssetTab>();
   isTabDropdownOpen = input.required<boolean>();
+  tabCounts = input<Record<string, number>>({});
 
   tabSelect = output<AssetTab>();
   toggleDropdown = output<void>();

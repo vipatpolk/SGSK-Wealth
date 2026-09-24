@@ -7,10 +7,13 @@ export class HeaderPage {
   readonly viewToggleAllocationBtn: Locator;
   readonly viewTogglePerformanceBtn: Locator;
   readonly viewToggleTransactionsBtn: Locator;
+  readonly viewToggleToolsBtn: Locator;
   readonly currencyUsdBtn: Locator;
   readonly currencyThbBtn: Locator;
   readonly themeToggleBtn: Locator;
   readonly viewToggleTriggerBtn: Locator;
+  readonly sideNavCloseBtn: Locator;
+  readonly sideNavBackdrop: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -24,56 +27,33 @@ export class HeaderPage {
     this.currencyThbBtn = page.locator('#currency-thb');
     this.themeToggleBtn = page.locator('#theme-toggle-btn');
     this.viewToggleTriggerBtn = page.locator('.view-toggle-trigger');
+    this.sideNavCloseBtn = page.locator('#side-nav-close-btn');
+    this.sideNavBackdrop = page.locator('.view-toggle-backdrop');
   }
 
   private isDesktop(): boolean {
     const viewport = this.page.viewportSize();
-    return viewport ? viewport.width >= 640 : true;
+    return viewport ? viewport.width > 1200 : true;
   }
 
   async selectHoldingsView() {
-    if (this.isDesktop()) {
-      await this.viewToggleHoldingsBtn.click();
-    } else {
-      await this.viewToggleTriggerBtn.click();
-      await this.viewToggleHoldingsBtn.click();
-    }
+    await this.viewToggleHoldingsBtn.click();
   }
 
   async selectAllocationView() {
-    if (this.isDesktop()) {
-      await this.viewToggleAllocationBtn.click();
-    } else {
-      await this.viewToggleTriggerBtn.click();
-      await this.viewToggleAllocationBtn.click();
-    }
+    await this.viewToggleAllocationBtn.click();
   }
 
   async selectPerformanceView() {
-    if (this.isDesktop()) {
-      await this.viewTogglePerformanceBtn.click();
-    } else {
-      await this.viewToggleTriggerBtn.click();
-      await this.viewTogglePerformanceBtn.click();
-    }
+    await this.viewTogglePerformanceBtn.click();
   }
 
   async selectTransactionsView() {
-    if (this.isDesktop()) {
-      await this.viewToggleTransactionsBtn.click();
-    } else {
-      await this.viewToggleTriggerBtn.click();
-      await this.viewToggleTransactionsBtn.click();
-    }
+    await this.viewToggleTransactionsBtn.click();
   }
 
   async selectToolsView() {
-    if (this.isDesktop()) {
-      await this.viewToggleToolsBtn.click();
-    } else {
-      await this.viewToggleTriggerBtn.click();
-      await this.viewToggleToolsBtn.click();
-    }
+    await this.viewToggleToolsBtn.click();
   }
 
   async switchToUSD() {

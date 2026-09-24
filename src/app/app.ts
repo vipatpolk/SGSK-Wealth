@@ -146,6 +146,22 @@ export class App {
   readonly isClosedTab = computed<boolean>(() => this.activeTab().id === 'closed-position');
   readonly isAllTab = computed<boolean>(() => this.activeTab().id === 'all');
 
+  readonly tabCounts = computed<Record<string, number>>(() => {
+    const data = this.portfolioData();
+    if (!data) return {};
+    const open = data.openPositions || [];
+    const closed = data.closedPositions || [];
+    const counts: Record<string, number> = {
+      'all': open.length,
+      'closed-position': closed.length,
+    };
+    for (const pos of open) {
+      const type = pos.assetType || 'us-stock';
+      counts[type] = (counts[type] || 0) + 1;
+    }
+    return counts;
+  });
+
   openTransactionHistory(symbol: string = ''): void {
     this.selectedHistorySymbol.set(symbol);
     this.currentView.set('transactions');
@@ -374,8 +390,6 @@ export class App {
         const savedTheme = localStorage.getItem('sharelot_theme') as 'dark' | 'light' | null;
         if (savedTheme === 'light' || savedTheme === 'dark') {
           this.setTheme(savedTheme);
-        } else if (window.matchMedia?.('(prefers-color-scheme: light)').matches) {
-          this.setTheme('light');
         } else {
           this.setTheme('dark');
         }

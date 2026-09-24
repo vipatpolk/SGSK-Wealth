@@ -2,284 +2,131 @@
   <div class="header-content">
     <div class="header-left">
       <div class="logo-mark">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="logo-icon">
-          <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
-          <polyline points="16 7 22 7 22 13"></polyline>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="logo-icon">
+          <defs>
+            <linearGradient id="logo-crest-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#1661D8"/>
+              <stop offset="100%" stop-color="#00B4D8"/>
+            </linearGradient>
+          </defs>
+          <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" fill="url(#logo-crest-grad)" fill-opacity="0.25" stroke="url(#logo-crest-grad)" stroke-width="1.8"/>
+          <path d="M8 12.5l2.8 2.8 5.2-5.3" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
-      <div>
-        <h1 class="logo-text">ShareLot</h1>
+      <div class="logo-text-group">
+        <div class="logo-title-row">
+          <h1 class="logo-text">ShareLot</h1>
+          <span class="logo-pro-badge">PRO</span>
+        </div>
         <p class="logo-subtitle">FIFO Share Lot Tracker</p>
       </div>
     </div>
 
+    <!-- Main Navigation Bar (Desktop Header Capsule / Mobile & Tablet Native Bottom Nav) -->
     @if (!loading() && !error() && result()) {
-      <div class="header-stats-wrapper">
-        <div class="header-financial-stats" [class.grid-4-items]="isAllTab() && totalHoldingConverted() > 0 && totalRealizedPLConverted() !== 0">
-          <div class="header-stat">
-            <span class="header-stat-label">Total Cost</span>
-            <span class="header-stat-value">{{ totalCostConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
-          </div>
-          @if (isClosedTab()) {
-            <div class="header-stat">
-              <span class="header-stat-label">Total Proceeds</span>
-              <span class="header-stat-value">{{ totalProceedsConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
-            </div>
-            <div class="header-stat">
-              <span class="header-stat-label">Realized P/L</span>
-              <span class="header-stat-value" [class.pl-positive]="totalPL() >= 0" [class.pl-negative]="totalPL() < 0">
-                {{ totalPL() >= 0 ? '+' : '' }}{{ totalPLPercent() | number:'1.2-2' }}%
-              </span>
-            </div>
-          } @else if (isAllTab()) {
-            @if (totalHoldingConverted() > 0) {
-              <div class="header-stat">
-                <span class="header-stat-label">Holding Value</span>
-                <span class="header-stat-value">{{ totalHoldingConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
-              </div>
-              <div class="header-stat">
-                <span class="header-stat-label">P/L</span>
-                <span class="header-stat-value" [class.pl-positive]="totalPL() >= 0" [class.pl-negative]="totalPL() < 0">
-                  {{ totalPL() >= 0 ? '+' : '' }}{{ totalPLPercent() | number:'1.2-2' }}%
-                </span>
-              </div>
-            }
-            @if (totalRealizedPLConverted() !== 0) {
-              <div class="header-stat">
-                <span class="header-stat-label">Realized P/L</span>
-                <span class="header-stat-value" [class.pl-positive]="totalRealizedPLConverted() >= 0" [class.pl-negative]="totalRealizedPLConverted() < 0">
-                  {{ totalRealizedPLConverted() >= 0 ? '+' : '' }}{{ totalRealizedPLPercent() | number:'1.2-2' }}%
-                </span>
-              </div>
-            }
-          } @else if (totalHoldingConverted() > 0) {
-            <div class="header-stat">
-              <span class="header-stat-label">Holding Value</span>
-              <span class="header-stat-value">{{ totalHoldingConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
-            </div>
-            <div class="header-stat">
-              <span class="header-stat-label">P/L</span>
-              <span class="header-stat-value" [class.pl-positive]="totalPL() >= 0" [class.pl-negative]="totalPL() < 0">
-                {{ totalPL() >= 0 ? '+' : '' }}{{ totalPLPercent() | number:'1.2-2' }}%
-              </span>
-            </div>
-          }
-        </div>
-        <div class="header-stat-divider desktop-only"></div>
-        <!-- Meta Stats (Context-aware per page) -->
-        <div class="header-meta-stats">
-          @if (currentView() === 'dividends') {
-            <div class="header-stat header-stat-compact">
-              <span class="header-stat-label">Assets</span>
-              <span class="header-stat-value">{{ dividendPayingAssetsCount() }}</span>
-            </div>
-            <div class="header-stat-divider-dot"></div>
-            <div class="header-stat header-stat-compact">
-              <span class="header-stat-label">Payouts</span>
-              <span class="header-stat-value">{{ dividendDistributionsCount() }}</span>
-            </div>
-            @if (dividendYOC() > 0) {
-              <div class="header-stat-divider-dot"></div>
-              <div class="header-stat header-stat-compact">
-                <span class="header-stat-label">YOC</span>
-                <span class="header-stat-value" style="color: var(--color-pl-positive);">{{ dividendYOC() | number:'1.2-2' }}%</span>
-              </div>
-            } @else if (hasRate()) {
-              <div class="header-stat-divider-dot"></div>
-              <div class="header-stat header-stat-compact">
-                <span class="header-stat-label">USD/THB</span>
-                <span class="header-stat-value">{{ exchangeRate() | number:'1.2-2' }}</span>
-              </div>
-            }
-          } @else if (currentView() === 'allocation') {
-            <div class="header-stat header-stat-compact">
-              <span class="header-stat-label">Classes</span>
-              <span class="header-stat-value">{{ distinctAssetClassesCount() }}</span>
-            </div>
-            <div class="header-stat-divider-dot"></div>
-            <div class="header-stat header-stat-compact">
-              <span class="header-stat-label">Holdings</span>
-              <span class="header-stat-value">{{ openPositions().length || result()!.totalSymbols }}</span>
-            </div>
-            @if (hasRate()) {
-              <div class="header-stat-divider-dot"></div>
-              <div class="header-stat header-stat-compact">
-                <span class="header-stat-label">USD/THB</span>
-                <span class="header-stat-value">{{ exchangeRate() | number:'1.2-2' }}</span>
-              </div>
-            }
-          } @else if (currentView() === 'transactions') {
-            <div class="header-stat header-stat-compact">
-              <span class="header-stat-label">Total Tx</span>
-              <span class="header-stat-value">{{ totalTransactionsCount() }}</span>
-            </div>
-            <div class="header-stat-divider-dot"></div>
-            <div class="header-stat header-stat-compact">
-              <span class="header-stat-label">Symbols</span>
-              <span class="header-stat-value">{{ result()!.totalSymbols }}</span>
-            </div>
-            @if (hasRate()) {
-              <div class="header-stat-divider-dot"></div>
-              <div class="header-stat header-stat-compact">
-                <span class="header-stat-label">USD/THB</span>
-                <span class="header-stat-value">{{ exchangeRate() | number:'1.2-2' }}</span>
-              </div>
-            }
-          } @else if (currentView() === 'performance') {
-            <div class="header-stat header-stat-compact">
-              <span class="header-stat-label">Gainers</span>
-              <span class="header-stat-value" style="color: var(--color-pl-positive);">{{ gainersCount() }}</span>
-            </div>
-            <div class="header-stat-divider-dot"></div>
-            <div class="header-stat header-stat-compact">
-              <span class="header-stat-label">Losers</span>
-              <span class="header-stat-value" style="color: var(--color-pl-negative);">{{ losersCount() }}</span>
-            </div>
-            @if (hasRate()) {
-              <div class="header-stat-divider-dot"></div>
-              <div class="header-stat header-stat-compact">
-                <span class="header-stat-label">USD/THB</span>
-                <span class="header-stat-value">{{ exchangeRate() | number:'1.2-2' }}</span>
-              </div>
-            }
-          } @else if (currentView() === 'tools') {
-            <div class="header-stat header-stat-compact">
-              <span class="header-stat-label">Tool</span>
-              <span class="header-stat-value" style="color: var(--color-accent);">Avg Cost</span>
-            </div>
-            <div class="header-stat-divider-dot"></div>
-            <div class="header-stat header-stat-compact">
-              <span class="header-stat-label">Mode</span>
-              <span class="header-stat-value">Simulator</span>
-            </div>
-            @if (hasRate()) {
-              <div class="header-stat-divider-dot"></div>
-              <div class="header-stat header-stat-compact">
-                <span class="header-stat-label">USD/THB</span>
-                <span class="header-stat-value">{{ exchangeRate() | number:'1.2-2' }}</span>
-              </div>
-            }
-          } @else {
-            <div class="header-stat header-stat-compact">
-              <span class="header-stat-label">Symbols</span>
-              <span class="header-stat-value">{{ result()!.totalSymbols }}</span>
-            </div>
-            <div class="header-stat-divider-dot"></div>
-            <div class="header-stat header-stat-compact">
-              <span class="header-stat-label">Lots</span>
-              <span class="header-stat-value">{{ result()!.totalLots }}</span>
-            </div>
-            @if (hasRate()) {
-              <div class="header-stat-divider-dot"></div>
-              <div class="header-stat header-stat-compact">
-                <span class="header-stat-label">USD/THB</span>
-                <span class="header-stat-value">{{ exchangeRate() | number:'1.2-2' }}</span>
-              </div>
-            }
-          }
-        </div>
+      <div class="header-center">
+        <nav class="view-toggle" id="view-toggle" aria-label="Main Navigation">
+          <button
+            class="view-toggle-btn"
+            [class.view-toggle-btn-active]="currentView() === 'holdings'"
+            (click)="selectView('holdings')"
+            id="view-toggle-holdings"
+            type="button"
+            title="Holdings & Lots"
+            aria-label="Holdings"
+          >
+            <span class="nav-btn-icon-wrapper">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            </span>
+            <span class="view-toggle-label">Holdings</span>
+          </button>
+
+          <button
+            class="view-toggle-btn"
+            [class.view-toggle-btn-active]="currentView() === 'allocation'"
+            (click)="selectView('allocation')"
+            id="view-toggle-allocation"
+            type="button"
+            title="Asset Allocation"
+            aria-label="Allocation"
+          >
+            <span class="nav-btn-icon-wrapper">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+            </span>
+            <span class="view-toggle-label">Allocation</span>
+          </button>
+
+          <button
+            class="view-toggle-btn"
+            [class.view-toggle-btn-active]="currentView() === 'performance'"
+            (click)="selectView('performance')"
+            id="view-toggle-performance"
+            type="button"
+            title="Performance & Returns"
+            aria-label="Performance"
+          >
+            <span class="nav-btn-icon-wrapper">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            </span>
+            <span class="view-toggle-label">Performance</span>
+          </button>
+
+          <button
+            class="view-toggle-btn"
+            [class.view-toggle-btn-active]="currentView() === 'dividends'"
+            (click)="selectView('dividends')"
+            id="view-toggle-dividends"
+            type="button"
+            title="Dividends & Yield"
+            aria-label="Dividends"
+          >
+            <span class="nav-btn-icon-wrapper">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </span>
+            <span class="view-toggle-label">Dividends</span>
+          </button>
+
+          <button
+            class="view-toggle-btn"
+            [class.view-toggle-btn-active]="currentView() === 'transactions'"
+            (click)="selectView('transactions')"
+            id="view-toggle-transactions"
+            type="button"
+            title="Transactions History"
+            aria-label="Transactions"
+          >
+            <span class="nav-btn-icon-wrapper">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+            </span>
+            <span class="view-toggle-label">Transactions</span>
+          </button>
+
+          <button
+            class="view-toggle-btn"
+            [class.view-toggle-btn-active]="currentView() === 'tools'"
+            (click)="selectView('tools')"
+            id="view-toggle-tools"
+            type="button"
+            title="Financial Tools & Simulators"
+            aria-label="Tools"
+          >
+            <span class="nav-btn-icon-wrapper">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>
+            </span>
+            <span class="view-toggle-label">Tools</span>
+          </button>
+        </nav>
       </div>
     }
 
     <div class="header-right">
       @if (!loading() && !error() && result()) {
-        <div class="view-toggle-wrapper" [class.dropdown-open]="isViewDropdownOpen()">
-          @if (isViewDropdownOpen()) {
-            <div class="view-toggle-backdrop" (click)="isViewDropdownOpen.set(false)"></div>
-          }
-          
-          <button class="view-toggle-trigger" (click)="toggleViewDropdown()">
-            @if (currentView() === 'holdings') {
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-              <span class="view-toggle-label">Holdings</span>
-            } @else if (currentView() === 'dividends') {
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon text-emerald-400"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <span class="view-toggle-label">Dividends</span>
-            } @else if (currentView() === 'transactions') {
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
-              <span class="view-toggle-label">Transactions</span>
-            } @else if (currentView() === 'performance') {
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-              <span class="view-toggle-label">Performance</span>
-            } @else if (currentView() === 'tools') {
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon text-indigo-400"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>
-              <span class="view-toggle-label">Tools</span>
-            } @else {
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
-              <span class="view-toggle-label">Allocation</span>
-            }
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon dropdown-chevron"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </button>
-
-          <div class="view-toggle" id="view-toggle">
-            <button
-              class="view-toggle-btn"
-              [class.view-toggle-btn-active]="currentView() === 'holdings'"
-              (click)="selectView('holdings')"
-              id="view-toggle-holdings"
-              type="button"
-              title="View holdings and share lots"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-              <span class="view-toggle-label">Holdings</span>
-            </button>
-            <button
-              class="view-toggle-btn"
-              [class.view-toggle-btn-active]="currentView() === 'dividends'"
-              (click)="selectView('dividends')"
-              id="view-toggle-dividends"
-              type="button"
-              title="View dividend cashflow & yield on cost"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <span class="view-toggle-label">Dividends</span>
-            </button>
-            <button
-              class="view-toggle-btn"
-              [class.view-toggle-btn-active]="currentView() === 'allocation'"
-              (click)="selectView('allocation')"
-              id="view-toggle-allocation"
-              type="button"
-              title="View asset allocation & rebalancing"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
-              <span class="view-toggle-label">Allocation</span>
-            </button>
-            <button
-              class="view-toggle-btn"
-              [class.view-toggle-btn-active]="currentView() === 'transactions'"
-              (click)="selectView('transactions')"
-              id="view-toggle-transactions"
-              type="button"
-              title="View transactions history & trade ledger"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
-              <span class="view-toggle-label">Transactions</span>
-            </button>
-            <button
-              class="view-toggle-btn"
-              [class.view-toggle-btn-active]="currentView() === 'performance'"
-              (click)="selectView('performance')"
-              id="view-toggle-performance"
-              type="button"
-              title="View investment performance & returns"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-              <span class="view-toggle-label">Performance</span>
-            </button>
-            <button
-              class="view-toggle-btn"
-              [class.view-toggle-btn-active]="currentView() === 'tools'"
-              (click)="selectView('tools')"
-              id="view-toggle-tools"
-              type="button"
-              title="Financial tools, average cost calculator & simulators"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>
-              <span class="view-toggle-label">Tools</span>
-            </button>
+        @if (hasRate()) {
+          <div class="header-rate-badge desktop-only" [title]="'Exchange Rate: 1 USD = ' + (exchangeRate() | number:'1.2-2') + ' THB'">
+            <span class="rate-badge-label">USD/THB</span>
+            <span class="rate-badge-val font-mono">{{ exchangeRate() | number:'1.2-2' }}</span>
           </div>
-        </div>
+        }
 
         <div class="currency-toggle" id="currency-toggle">
           <button

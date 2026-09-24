@@ -146,12 +146,16 @@ export class DividendComponent {
         if (!matchesQuery) continue;
       }
 
-      const convCost = this.cx(s.currentCostBasis || 0, s.currency);
-      const convVal = this.cx(s.currentValue || 0, s.currency);
-      const convProj = this.cx((s.currentShares || 0) * (s.trailingAnnualDPS || 0), s.currency);
-      const convGross = this.cx(s.totalGrossDividends || 0, s.currency);
-      const convNet = this.cx(s.totalNetDividends || 0, s.currency);
-      const convWht = this.cx(s.totalWithholdingTax || 0, s.currency);
+      const convCost = this.cx(s.currentCostBasis || 0, d.currency);
+      const convVal = this.cx(s.currentValue || 0, d.currency);
+      const convProj = s.projectedAnnualIncome != null && s.projectedAnnualIncome > 0
+        ? this.cx(s.projectedAnnualIncome, d.currency)
+        : this.cx((s.currentShares || 0) * (s.trailingAnnualDPS || 0), s.currency);
+      const convGross = this.cx(s.convertedGrossDividends ?? s.totalGrossDividends ?? 0, d.currency);
+      const convNet = this.cx(s.convertedNetDividends ?? s.totalNetDividends ?? 0, d.currency);
+      const convWht = this.cx(s.convertedWithholdingTax ?? s.totalWithholdingTax ?? 0, d.currency);
+      const symYoc = convCost > 0 ? (convProj / convCost) * 100 : (s.yieldOnCostPercent || 0);
+      const symYield = convVal > 0 ? (convProj / convVal) * 100 : (s.currentYieldPercent || 0);
 
       // If a specific year is selected, only show symbols that received dividends in that year
       if (year !== 'ALL') {
@@ -164,6 +168,8 @@ export class DividendComponent {
           currentCostBasis: convCost,
           currentValue: convVal,
           projectedAnnualIncome: convProj,
+          yieldOnCostPercent: symYoc,
+          currentYieldPercent: symYield,
           convertedNetDividends: timeframeNet,
           convertedGrossDividends: symbolGrossMap.get(s.symbol) || 0,
           convertedWithholdingTax: convWht,
@@ -174,6 +180,8 @@ export class DividendComponent {
           currentCostBasis: convCost,
           currentValue: convVal,
           projectedAnnualIncome: convProj,
+          yieldOnCostPercent: symYoc,
+          currentYieldPercent: symYield,
           convertedNetDividends: convNet,
           convertedGrossDividends: convGross,
           convertedWithholdingTax: convWht,
@@ -208,6 +216,7 @@ export class DividendComponent {
 
   // Dynamic Asset Type Summaries Filtered by Selected Year & Search
   readonly activeAssetTypeSummaries = computed<AssetTypeDividendSummary[]>(() => {
+    const d = this.data();
     const recs = this.filteredRecords();
     const totalNet = this.activeNetTotal();
 
@@ -229,16 +238,69 @@ export class DividendComponent {
       }
     }
 
-    return DIVIDEND_ASSET_TYPES.map((atKey) => ({
-      assetType: atKey,
-      assetTypeLabel: this.getAssetTypeLabel()(atKey),
-      totalGrossDividends: map[atKey]?.gross || 0,
-      totalNetDividends: map[atKey]?.net || 0,
-      totalWithholdingTax: map[atKey]?.wht || 0,
-      percentageOfTotal: totalNet > 0 && map[atKey] ? (map[atKey].net / totalNet) * 100 : 0,
-      symbolCount: map[atKey]?.symbols.size || 0,
-      recordCount: map[atKey]?.count || 0,
-    }));
+    const backendAtMap = new Map<string, AssetTypeDividendSummary>();
+    if (d?.assetTypeSummaries) {
+      for (const ats of d.assetTypeSummaries) {
+        backendAtMap.set(ats.assetType, ats);
+      }
+    }
+
+    // Accumulate cost basis, current value, and forward projected income per asset type
+    const costMap = new Map<string, number>();
+    const valMap = new Map<string, number>();
+    const projMap = new Map<string, number>();
+
+    if (d?.symbolSummaries) {
+      for (const s of d.symbolSummaries) {
+        const at = s.assetType;
+        const convCost = this.cx(s.currentCostBasis || 0, d.currency);
+        const convVal = this.cx(s.currentValue || 0, d.currency);
+        const convProj = s.projectedAnnualIncome != null && s.projectedAnnualIncome > 0
+          ? this.cx(s.projectedAnnualIncome, d.currency)
+          : this.cx((s.currentShares || 0) * (s.trailingAnnualDPS || 0), s.currency);
+        costMap.set(at, (costMap.get(at) || 0) + convCost);
+        valMap.set(at, (valMap.get(at) || 0) + convVal);
+        projMap.set(at, (projMap.get(at) || 0) + convProj);
+        if (map[at] && (s.currentShares || 0) > 0) {
+          map[at].symbols.add(s.symbol);
+        }
+      }
+    }
+
+    return DIVIDEND_ASSET_TYPES.map((atKey) => {
+      const bAt = backendAtMap.get(atKey);
+      const totalCostBasis = costMap.has(atKey)
+        ? costMap.get(atKey)!
+        : (bAt?.totalCostBasis ? this.cx(bAt.totalCostBasis, d?.currency) : 0);
+      const currentValue = valMap.has(atKey)
+        ? valMap.get(atKey)!
+        : (bAt?.currentValue ? this.cx(bAt.currentValue, d?.currency) : 0);
+      const projectedAnnualDividends = projMap.has(atKey)
+        ? projMap.get(atKey)!
+        : (bAt?.projectedAnnualDividends ? this.cx(bAt.projectedAnnualDividends, d?.currency) : 0);
+      const yieldOnCostPercent = totalCostBasis > 0
+        ? (projectedAnnualDividends / totalCostBasis) * 100
+        : (bAt?.yieldOnCostPercent || 0);
+      const currentYieldPercent = currentValue > 0
+        ? (projectedAnnualDividends / currentValue) * 100
+        : (bAt?.currentYieldPercent || 0);
+
+      return {
+        assetType: atKey,
+        assetTypeLabel: this.getAssetTypeLabel()(atKey),
+        totalGrossDividends: map[atKey]?.gross || 0,
+        totalNetDividends: map[atKey]?.net || 0,
+        totalWithholdingTax: map[atKey]?.wht || 0,
+        percentageOfTotal: totalNet > 0 && map[atKey] ? (map[atKey].net / totalNet) * 100 : 0,
+        symbolCount: map[atKey]?.symbols.size || bAt?.symbolCount || 0,
+        recordCount: map[atKey]?.count || 0,
+        totalCostBasis,
+        currentValue,
+        projectedAnnualDividends,
+        yieldOnCostPercent,
+        currentYieldPercent,
+      };
+    });
   });
 
   // Filtered Monthly Summary for the Chart derived from filteredRecords
@@ -353,8 +415,8 @@ export class DividendComponent {
     const list = this.filteredSymbolSummaries();
     const totalCost = list.reduce((acc, s) => acc + (s.currentCostBasis || 0), 0);
     const totalProj = list.reduce((acc, s) => acc + (s.projectedAnnualIncome || 0), 0);
-    if (at === 'all') {
-      return this.data()?.portfolioYieldOnCost || 0;
+    if (at === 'all' && !this.searchQuery().trim() && this.selectedYear() === 'ALL') {
+      return this.data()?.portfolioYieldOnCost || (totalCost > 0 ? (totalProj / totalCost) * 100 : 0);
     }
     return totalCost > 0 ? (totalProj / totalCost) * 100 : 0;
   });
@@ -364,8 +426,8 @@ export class DividendComponent {
     const list = this.filteredSymbolSummaries();
     const totalVal = list.reduce((acc, s) => acc + (s.currentValue || 0), 0);
     const totalProj = list.reduce((acc, s) => acc + (s.projectedAnnualIncome || 0), 0);
-    if (at === 'all') {
-      return this.data()?.portfolioDividendYield || 0;
+    if (at === 'all' && !this.searchQuery().trim() && this.selectedYear() === 'ALL') {
+      return this.data()?.portfolioDividendYield || (totalVal > 0 ? (totalProj / totalVal) * 100 : 0);
     }
     return totalVal > 0 ? (totalProj / totalVal) * 100 : 0;
   });

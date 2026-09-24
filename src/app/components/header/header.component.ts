@@ -1,5 +1,5 @@
-import { Component, input, output, signal, computed, ChangeDetectionStrategy } from '@angular/core';
-import { CurrencyPipe, DecimalPipe } from '@angular/common';
+import { Component, input, output, signal, computed, ChangeDetectionStrategy, HostListener } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { SheetResult } from '../../services/share-lot.service';
 import { PortfolioHoldingsResponse } from '../../models/portfolio.model';
 import { PortfolioDividendResponse } from '../../models/dividend.model';
@@ -8,7 +8,7 @@ import { PortfolioDividendResponse } from '../../models/dividend.model';
   selector: 'app-header',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe],
+  imports: [DecimalPipe],
   templateUrl: './header.component.html'
 })
 export class HeaderComponent {
@@ -17,16 +17,6 @@ export class HeaderComponent {
   result = input.required<SheetResult | null>();
   portfolioData = input<PortfolioHoldingsResponse | null>(null);
   dividendData = input<PortfolioDividendResponse | null>(null);
-  totalCostConverted = input.required<number>();
-  totalProceedsConverted = input.required<number>();
-  totalPL = input.required<number>();
-  totalPLPercent = input.required<number>();
-  isClosedTab = input.required<boolean>();
-  isAllTab = input.required<boolean>();
-  isProvidentFundTab = input<boolean>(false);
-  totalHoldingConverted = input.required<number>();
-  totalRealizedPLConverted = input.required<number>();
-  totalRealizedPLPercent = input.required<number>();
   hasRate = input.required<boolean>();
   exchangeRate = input.required<number>();
   currentView = input.required<'holdings' | 'transactions' | 'allocation' | 'performance' | 'dividends' | 'tools'>();
@@ -75,8 +65,19 @@ export class HeaderComponent {
     this.isViewDropdownOpen.update(v => !v);
   }
 
+  closeSideNav() {
+    this.isViewDropdownOpen.set(false);
+  }
+
+  @HostListener('window:keydown.escape')
+  onEscape() {
+    if (this.isViewDropdownOpen()) {
+      this.closeSideNav();
+    }
+  }
+
   selectView(view: 'holdings' | 'transactions' | 'allocation' | 'performance' | 'dividends' | 'tools') {
     this.viewChange.emit(view);
-    this.isViewDropdownOpen.set(false);
+    this.closeSideNav();
   }
 }

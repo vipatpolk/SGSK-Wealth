@@ -56,6 +56,11 @@ export interface AssetTypeDividendSummary {
   percentageOfTotal: number;
   symbolCount: number;
   recordCount: number;
+  totalCostBasis?: number;
+  currentValue?: number;
+  projectedAnnualDividends?: number;
+  yieldOnCostPercent?: number;
+  currentYieldPercent?: number;
 }
 
 export interface SymbolDividendSummary {

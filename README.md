@@ -37,8 +37,9 @@
 - **100% API-Driven Dividend Engine**: Fetches complete dividend distributions automatically from Yahoo Finance (US & Thai stocks, Bonds) and the SEC Thailand Fund API (Mutual Funds).
 - **Exact Ex-Date Share Accounting**: Evaluates historical trade logs to calculate exact shares held on each dividend ex-date ($T$):
   $$\text{Shares Held}(T) = \sum_{\text{Tx Date } \le T} \text{Buy Quantity} - \sum_{\text{Tx Date } \le T} \text{Sell Quantity}$$
+- **Per-Asset-Type Yield on Cost (YOC) & Current Yield**: Detailed breakdown of cost basis, market value, forward annual dividends, and Yield on Cost % calculated individually across `Thai Stocks`, `U.S. Stocks`, `Mutual Funds`, and `Bonds` with zero currency distortion.
 - **Forward Income & Yield on Cost (YOC)**: Displays trailing 12-month DPS, current market yield %, Yield on Cost %, and forward projected annual income.
-- **Interactive Monthly Cashflow Timeline**: Visual stacked bar chart tracking monthly dividend income split across Thai Stocks, US Stocks, Mutual Funds, and Bonds.
+- **Interactive Monthly Cashflow Timeline with Bonds**: Visual stacked bar chart tracking monthly dividend income split across Thai Stocks (`#22c55e`), US Stocks (`#3b82f6`), Mutual Funds (`#a855f7`), and Bonds (`#06b6d4`).
 - **Holdings Distribution Ledger Popup Modal**: Responsive popup modal with a desktop table ($\ge 640\text{px}$) and touch-friendly mobile cards ($< 640\text{px}$) showing individual dividend payouts, withholding tax, and net amounts.
 - **Global Asset Type & Year Filtering**: Filter summary metrics, monthly timeline chart, holdings breakdown, and transaction ledger across `All Assets`, `U.S. Stocks`, `Thai Stocks`, `Mutual Funds`, and `Bonds` or specific calendar years.
 - **Fuzzy Autocomplete & Ledger Pagination**: Real-time autocomplete suggestions with keyboard navigation (`↑`, `↓`, `Enter`, `Escape`) and paginated historical payout ledger.
@@ -104,9 +105,10 @@
   - Target Average Cost Solver calculating exact required shares and capital to achieve a desired cost basis.
 
 ### 📱 Responsive Experience & Tablet Optimization
-- **Segmented Capsule Header Stats**: Redesigned floating header statistics capsule with monospace typography and distinct meta stats pill badge.
-- **Tablet & iPad Breakpoints**: Optimized layout scaling for iPad Air, iPad Pro 11", and iPad Pro 12.9" preventing header stat overflow.
-- **Fluid Touch Navigation**: Responsive view selector dropdown and touch-friendly controls across all mobile form factors.
+- **Native Bottom Navigation for Mobile & Tablet**: Modern native app navigation bar docked at the bottom of the viewport with active pill indicators and instant view switching (`Holdings`, `Allocation`, `Performance`, `Dividends`, `Transactions`, `Tools`).
+- **Executive Portfolio Hero Dashboard Card**: Centered executive summary card displaying Net Portfolio Value, dual-currency approximations, Total Invested, Realized Return, Open Positions count, and Total Lots.
+- **Desktop Header Navigation Capsule**: Floating capsule navigation for widescreen displays paired with quick USD/THB currency toggle, privacy mode, and dark/light theme switchers.
+- **Tablet & Mobile Touch UX**: Optimized layout scaling for tablets (iPad Air, iPad Pro) and phones with touch-friendly controls and zero horizontal overflow.
 
 ---
 
@@ -120,8 +122,8 @@
 | **Runtime** | [Node.js 24 LTS](https://nodejs.org/) (v24.19.0) |
 | **Backend Integration** | [FastAPI Backend (SGSKBackend)](https://github.com/vipatpolk/SGSKBackend) for data processing and API proxying |
 | **Data Source** | Google Sheets CSV Export (via Backend) |
-| **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom (**29 test files, 280 unit tests**) |
-| **E2E Testing** | [Playwright](https://playwright.dev/) & Page Object Models (**150 automated tests** across 5 browser targets) |
+| **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom (**29 test files, 290 unit tests**) |
+| **E2E Testing** | [Playwright](https://playwright.dev/) & Page Object Models (**180 automated tests** across 5 browser targets) |
 | **Deployment** | [Vercel](https://vercel.com/) (with API proxy rewrites) |
 
 
@@ -219,7 +221,7 @@ Navigate to `http://localhost:4200/` in your browser. The application will autom
 
 ### Running Unit Tests
 
-Execute unit tests using Vitest (29 test files, 286 unit tests):
+Execute unit tests using Vitest (29 test files, 290 unit tests):
 
 ```bash
 npm test
@@ -227,7 +229,7 @@ npm test
 
 ### Running End-to-End (E2E) Tests
 
-ShareLot includes a comprehensive Playwright E2E suite covering **150 automated tests** across 5 browser target environments (Chromium, Firefox, WebKit, Mobile Safari, Mobile Chrome):
+ShareLot includes a comprehensive Playwright E2E suite covering **180 automated tests** across 5 browser target environments (Chromium, Firefox, WebKit, Mobile Safari, Mobile Chrome):
 
 ```bash
 # Run all E2E tests in headless mode across all 5 browser targets

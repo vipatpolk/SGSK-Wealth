@@ -173,6 +173,10 @@
           <span class="color-dot" style="background-color: #f59e0b;"></span>
           <span>Mutual Funds</span>
         </div>
+        <div class="legend-item">
+          <span class="color-dot" style="background-color: #06b6d4;"></span>
+          <span>Bonds</span>
+        </div>
       </div>
     </div>
 
@@ -250,6 +254,11 @@
         <div class="asset-card-sub font-mono">
           <span>Gross: {{ at.totalGrossDividends | currency:displayCurrency():'symbol-narrow':'1.0-0' }}</span>
           <span>{{ at.symbolCount }} symbols</span>
+        </div>
+
+        <div class="asset-card-metrics font-mono">
+          <span title="Yield on Cost (Projected 12M Income / Total Cost Basis)">YOC: <strong class="yoc-value">{{ (at.yieldOnCostPercent || 0) | number:'1.2-2' }}%</strong></span>
+          <span title="Market Dividend Yield (Projected 12M Income / Current Value)">Yield: {{ (at.currentYieldPercent || 0) | number:'1.2-2' }}%</span>
         </div>
       </div>
     }

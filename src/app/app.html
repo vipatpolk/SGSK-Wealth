@@ -4,16 +4,6 @@
   [result]="result()"
   [portfolioData]="portfolioData()"
   [dividendData]="dividendData()"
-  [totalCostConverted]="totalCostConverted()"
-  [totalProceedsConverted]="totalProceedsConverted()"
-  [totalPL]="totalPL()"
-  [totalPLPercent]="totalPLPercent()"
-  [isClosedTab]="isClosedTab()"
-  [isAllTab]="isAllTab()"
-  [isProvidentFundTab]="activeTab().id === 'provident-fund'"
-  [totalHoldingConverted]="totalHoldingConverted()"
-  [totalRealizedPLConverted]="totalRealizedPLConverted()"
-  [totalRealizedPLPercent]="totalRealizedPLPercent()"
   [hasRate]="hasRate()"
   [exchangeRate]="exchangeRate()"
   [currentView]="currentView()"
@@ -25,18 +15,6 @@
   (themeChange)="toggleTheme()"
   (privacyChange)="togglePrivacyMode()"
 ></app-header>
-
-<!-- Tab Bar -->
-@if (currentView() === 'holdings') {
-  <app-tab-bar
-    [currentView]="currentView()"
-    [tabs]="tabs"
-    [activeTab]="activeTab()"
-    [isTabDropdownOpen]="isTabDropdownOpen()"
-    (tabSelect)="selectTab($event)"
-    (toggleDropdown)="toggleTabDropdown()"
-  ></app-tab-bar>
-}
 
 <!-- Screen Loading Overlay (Hides contents while data is loading) -->
 @if (loading()) {
@@ -199,6 +177,84 @@
         </div>
       }
     } @else {
+      <!-- Executive Portfolio Hero Dashboard Card -->
+      <div class="portfolio-hero-card" id="portfolio-hero">
+        <div class="hero-header">
+          <div class="hero-badge">
+            <span class="live-dot"></span>
+            <span>PORTFOLIO OVERVIEW</span>
+          </div>
+          @if (hasRate()) {
+            <div class="hero-rate-pill">
+              <span class="hero-rate-label">USD/THB</span>
+              <span class="hero-rate-val font-mono">{{ exchangeRate() | number:'1.2-2' }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="hero-main-row">
+          <div class="hero-value-group">
+            <span class="hero-label">Net Portfolio Value</span>
+            <div class="hero-val-stack">
+              <h2 class="hero-total-val privacy-mask font-mono">
+                {{ (totalHoldingConverted() > 0 ? totalHoldingConverted() : totalCostConverted()) | currency:dc():'symbol-narrow':'1.2-2' }}
+              </h2>
+              @if (displayCurrency() === 'THB' && hasRate() && exchangeRate() > 0) {
+                <span class="hero-sub-currency font-mono privacy-mask">
+                  ≈ {{ ((totalHoldingConverted() > 0 ? totalHoldingConverted() : totalCostConverted()) / exchangeRate()) | currency:'USD':'symbol-narrow':'1.2-2' }}
+                </span>
+              } @else if (displayCurrency() === 'USD' && hasRate() && exchangeRate() > 0) {
+                <span class="hero-sub-currency font-mono privacy-mask">
+                  ≈ {{ ((totalHoldingConverted() > 0 ? totalHoldingConverted() : totalCostConverted()) * exchangeRate()) | currency:'THB':'symbol-narrow':'1.2-2' }}
+                </span>
+              }
+            </div>
+          </div>
+          @if (totalPL() !== 0) {
+            <div class="hero-return-badge" [class.pl-positive]="totalPL() >= 0" [class.pl-negative]="totalPL() < 0">
+              <span class="trend-icon">{{ totalPL() >= 0 ? '▲' : '▼' }}</span>
+              <span class="hero-return-pct font-mono">{{ totalPL() >= 0 ? '+' : '' }}{{ totalPLPercent() | number:'1.2-2' }}%</span>
+              <span class="hero-return-amount font-mono">({{ totalPL() >= 0 ? '+' : '' }}{{ totalPL() | currency:dc():'symbol-narrow':'1.2-2' }})</span>
+            </div>
+          }
+        </div>
+
+        <div class="hero-metrics-grid">
+          <div class="hero-metric-item">
+            <span class="hero-metric-label">Total Invested</span>
+            <span class="hero-metric-val privacy-mask font-mono">{{ totalCostConverted() | currency:dc():'symbol-narrow':'1.2-2' }}</span>
+          </div>
+          <div class="hero-metric-item">
+            <span class="hero-metric-label">Realized Return</span>
+            <span class="hero-metric-val font-mono" [class.pl-positive]="totalRealizedPLConverted() >= 0" [class.pl-negative]="totalRealizedPLConverted() < 0">
+              {{ totalRealizedPLConverted() >= 0 ? '+' : '' }}{{ totalRealizedPLConverted() | currency:dc():'symbol-narrow':'1.2-2' }}
+              @if (totalRealizedPLConverted() !== 0) {
+                <span class="hero-metric-sub">({{ totalRealizedPLPercent() >= 0 ? '+' : '' }}{{ totalRealizedPLPercent() | number:'1.2-2' }}%)</span>
+              }
+            </span>
+          </div>
+          <div class="hero-metric-item">
+            <span class="hero-metric-label">Open Positions</span>
+            <span class="hero-metric-val">{{ filteredSummaries().length }} {{ filteredSummaries().length === 1 ? 'Symbol' : 'Symbols' }}</span>
+          </div>
+          <div class="hero-metric-item">
+            <span class="hero-metric-label">Total Lots</span>
+            <span class="hero-metric-val">{{ result()?.totalLots || 0 }} Lots</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Bar (Asset Filter Tabs with Counts) -->
+      <app-tab-bar
+        [currentView]="currentView()"
+        [tabs]="tabs"
+        [activeTab]="activeTab()"
+        [tabCounts]="tabCounts()"
+        [isTabDropdownOpen]="isTabDropdownOpen()"
+        (tabSelect)="selectTab($event)"
+        (toggleDropdown)="toggleTabDropdown()"
+      ></app-tab-bar>
+
       <!-- Toolbar -->
       <app-search-bar
         [searchQuery]="searchQuery()"

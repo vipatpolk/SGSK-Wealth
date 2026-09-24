@@ -99,6 +99,9 @@
             >
               <ng-container *ngTemplateOutlet="tabIconTpl; context: { $implicit: tab.icon }"></ng-container>
               <span>{{ tab.label }}</span>
+              @if (tabCounts()[tab.id] !== undefined && tabCounts()[tab.id] > 0) {
+                <span class="tab-count-pill">{{ tabCounts()[tab.id] }}</span>
+              }
             </button>
           }
         </div>
@@ -116,6 +119,9 @@
       >
         <ng-container *ngTemplateOutlet="tabIconTpl; context: { $implicit: tab.icon }"></ng-container>
         <span class="tab-label">{{ tab.label }}</span>
+        @if (tabCounts()[tab.id] !== undefined && tabCounts()[tab.id] > 0) {
+          <span class="tab-count-pill">{{ tabCounts()[tab.id] }}</span>
+        }
       </button>
     }
   </div>

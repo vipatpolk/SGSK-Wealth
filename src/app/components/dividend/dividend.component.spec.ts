@@ -58,7 +58,12 @@ describe('DividendComponent', () => {
         totalWithholdingTax: 700,
         percentageOfTotal: 70,
         symbolCount: 1,
-        recordCount: 2
+        recordCount: 2,
+        totalCostBasis: 35000,
+        currentValue: 38000,
+        projectedAnnualDividends: 2600,
+        yieldOnCostPercent: 7.43,
+        currentYieldPercent: 6.84,
       },
       {
         assetType: 'us-stock',
@@ -68,7 +73,12 @@ describe('DividendComponent', () => {
         totalWithholdingTax: 300,
         percentageOfTotal: 30,
         symbolCount: 1,
-        recordCount: 1
+        recordCount: 1,
+        totalCostBasis: 65000,
+        currentValue: 70000,
+        projectedAnnualDividends: 350,
+        yieldOnCostPercent: 0.54,
+        currentYieldPercent: 0.50,
       }
     ],
     symbolSummaries: [
@@ -95,6 +105,31 @@ describe('DividendComponent', () => {
         currentYieldPercent: 6.84,
         yieldOnCostPercent: 7.43,
         projectedAnnualIncome: 2600,
+        recentDistributions: []
+      },
+      {
+        symbol: 'AAPL',
+        displaySymbol: 'AAPL',
+        name: 'Apple Inc.',
+        assetType: 'us-stock',
+        assetTypeLabel: 'U.S. Stock',
+        currency: 'USD',
+        totalGrossDividends: 3000,
+        totalNetDividends: 2700,
+        totalWithholdingTax: 300,
+        convertedNetDividends: 2700,
+        convertedGrossDividends: 3000,
+        convertedWithholdingTax: 300,
+        dividendCount: 1,
+        firstDividendDate: '2026-02-15',
+        lastDividendDate: '2026-02-15',
+        currentShares: 10,
+        currentCostBasis: 65000,
+        currentValue: 70000,
+        trailingAnnualDPS: 1.0,
+        currentYieldPercent: 0.50,
+        yieldOnCostPercent: 0.54,
+        projectedAnnualIncome: 350,
         recentDistributions: []
       },
       {
@@ -214,7 +249,7 @@ describe('DividendComponent', () => {
     const symbols = component.filteredSymbolSummaries();
     const ptt = symbols.find(s => s.symbol === 'PTT.BK');
     expect(ptt).toBeDefined();
-    expect(ptt?.yieldOnCostPercent).toBe(7.43);
+    expect(ptt?.yieldOnCostPercent).toBeCloseTo(7.43, 2);
     expect(ptt?.trailingAnnualDPS).toBe(2.6);
   });
 
@@ -305,11 +340,20 @@ describe('DividendComponent', () => {
     expect(component.currentPage()).toBe(1);
   });
 
-  it('should compute monthlyChartData with bar heights and segments', () => {
+  it('should compute monthlyChartData with bar heights and segments including Bonds', () => {
     const chartData = component.monthlyChartData();
     expect(chartData.length).toBe(2);
     expect(chartData[0].percentHeight).toBeGreaterThan(0);
     expect(chartData[0].thaiPercent + chartData[0].usPercent + chartData[0].fundPercent + chartData[0].bondPercent).toBeCloseTo(100);
+
+    // Verify Bonds is present in the Monthly Cashflow Timeline legend
+    const compiled = fixture.nativeElement as HTMLElement;
+    const legend = compiled.querySelector('.div-legend');
+    expect(legend).toBeTruthy();
+    expect(legend?.textContent).toContain('Bonds');
+    expect(legend?.textContent).toContain('U.S. Stocks');
+    expect(legend?.textContent).toContain('Thai Stocks');
+    expect(legend?.textContent).toContain('Mutual Funds');
   });
 
   it('should filter whole page metrics by global asset type', () => {
@@ -325,6 +369,59 @@ describe('DividendComponent', () => {
 
     expect(component.activeProjectedAnnualDividends()).toBeGreaterThan(0);
     expect(component.activeYieldOnCost()).toBeGreaterThan(0);
+  });
+
+  it('should calculate accurate Yield on Cost for each asset type in activeYieldOnCost', () => {
+    // All assets (default)
+    component.setAssetType('all');
+    expect(component.activeYieldOnCost()).toBe(7.5);
+
+    // Thai Stocks: 2600 projected / 35000 cost = 7.428%
+    component.setAssetType('thai-stock');
+    expect(component.activeYieldOnCost()).toBeCloseTo(7.42857, 2);
+
+    // U.S. Stocks: 350 projected / 65000 cost = 0.538% (verifying no 35x double currency distortion)
+    component.setAssetType('us-stock');
+    expect(component.activeYieldOnCost()).toBeCloseTo(0.53846, 2);
+
+    // Mutual Funds: 250 projected / 10000 cost = 2.50%
+    component.setAssetType('mutual-fund');
+    expect(component.activeYieldOnCost()).toBeCloseTo(2.5, 2);
+
+    // Bonds: 0 projected / 0 cost = 0.00%
+    component.setAssetType('bond');
+    expect(component.activeYieldOnCost()).toBe(0);
+  });
+
+  it('should populate per-asset-type Yield on Cost and Market Yield in activeAssetTypeSummaries', () => {
+    const summaries = component.activeAssetTypeSummaries();
+
+    const thai = summaries.find(a => a.assetType === 'thai-stock');
+    expect(thai).toBeDefined();
+    expect(thai?.totalCostBasis).toBe(35000);
+    expect(thai?.currentValue).toBe(38000);
+    expect(thai?.yieldOnCostPercent).toBeCloseTo(7.42857, 2);
+    expect(thai?.currentYieldPercent).toBeCloseTo(6.8421, 2);
+
+    const us = summaries.find(a => a.assetType === 'us-stock');
+    expect(us).toBeDefined();
+    expect(us?.totalCostBasis).toBe(65000);
+    expect(us?.currentValue).toBe(70000);
+    expect(us?.yieldOnCostPercent).toBeCloseTo(0.53846, 2);
+    expect(us?.currentYieldPercent).toBeCloseTo(0.50, 2);
+
+    const fund = summaries.find(a => a.assetType === 'mutual-fund');
+    expect(fund).toBeDefined();
+    expect(fund?.totalCostBasis).toBe(10000);
+    expect(fund?.currentValue).toBe(11000);
+    expect(fund?.yieldOnCostPercent).toBeCloseTo(2.5, 2);
+    expect(fund?.currentYieldPercent).toBeCloseTo(2.2727, 2);
+
+    const bond = summaries.find(a => a.assetType === 'bond');
+    expect(bond).toBeDefined();
+    expect(bond?.totalCostBasis).toBe(0);
+    expect(bond?.yieldOnCostPercent).toBe(0);
+    expect(bond?.currentYieldPercent).toBe(0);
   });
 
   it('should provide autocomplete suggestions and allow selection and clearing', () => {

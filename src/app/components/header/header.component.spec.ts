@@ -19,15 +19,6 @@ describe('HeaderComponent', () => {
     componentRef.setInput('loading', false);
     componentRef.setInput('error', null);
     componentRef.setInput('result', null);
-    componentRef.setInput('totalCostConverted', 10000);
-    componentRef.setInput('totalProceedsConverted', 0);
-    componentRef.setInput('totalPL', 2500);
-    componentRef.setInput('totalPLPercent', 25.0);
-    componentRef.setInput('isClosedTab', false);
-    componentRef.setInput('isAllTab', false);
-    componentRef.setInput('totalHoldingConverted', 12500);
-    componentRef.setInput('totalRealizedPLConverted', 0);
-    componentRef.setInput('totalRealizedPLPercent', 0);
     componentRef.setInput('hasRate', true);
     componentRef.setInput('exchangeRate', 35.0);
     componentRef.setInput('currentView', 'holdings');
@@ -45,6 +36,31 @@ describe('HeaderComponent', () => {
     expect(component.isViewDropdownOpen()).toBe(false);
     component.toggleViewDropdown();
     expect(component.isViewDropdownOpen()).toBe(true);
+  });
+
+  it('should close side nav via closeSideNav method', () => {
+    component.isViewDropdownOpen.set(true);
+    component.closeSideNav();
+    expect(component.isViewDropdownOpen()).toBe(false);
+  });
+
+  it('should close side nav on escape key press', () => {
+    component.isViewDropdownOpen.set(true);
+    component.onEscape();
+    expect(component.isViewDropdownOpen()).toBe(false);
+  });
+
+  it('should emit viewChange when nav button is clicked in template', () => {
+    componentRef.setInput('result', { totalSymbols: 5, totalLots: 12, error: null } as any);
+    fixture.detectChanges();
+
+    let emittedView = '';
+    component.viewChange.subscribe(v => emittedView = v);
+
+    const allocBtn = fixture.nativeElement.querySelector('#view-toggle-allocation') as HTMLButtonElement;
+    expect(allocBtn).toBeTruthy();
+    allocBtn.click();
+    expect(emittedView).toBe('allocation');
   });
 
   it('should emit viewChange output and close dropdown when selecting view', () => {
@@ -73,20 +89,24 @@ describe('HeaderComponent', () => {
     expect(component.dc('USD')).toBe('USD');
   });
 
-  it('should render page-specific meta stats for holdings view', () => {
+  it('should not render header-stats-wrapper in the DOM', () => {
+    componentRef.setInput('result', { totalSymbols: 5, totalLots: 12, error: null } as any);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.header-stats-wrapper')).toBeNull();
+  });
+
+  it('should compute page-specific meta stats for holdings view', () => {
     componentRef.setInput('result', { totalSymbols: 5, totalLots: 12, error: null } as any);
     componentRef.setInput('currentView', 'holdings');
     fixture.detectChanges();
 
-    const compiled = fixture.nativeElement as HTMLElement;
-    const metaStats = compiled.querySelector('.header-meta-stats');
-    expect(metaStats?.textContent).toContain('Symbols');
-    expect(metaStats?.textContent).toContain('5');
-    expect(metaStats?.textContent).toContain('Lots');
-    expect(metaStats?.textContent).toContain('12');
+    expect(component.result()?.totalSymbols).toBe(5);
+    expect(component.result()?.totalLots).toBe(12);
   });
 
-  it('should render page-specific meta stats for dividends view', () => {
+  it('should compute page-specific meta stats for dividends view', () => {
     componentRef.setInput('result', { totalSymbols: 5, totalLots: 12, error: null } as any);
     componentRef.setInput('dividendData', {
       symbolSummaries: [{ symbol: 'AAPL' }, { symbol: 'MSFT' }],
@@ -96,17 +116,12 @@ describe('HeaderComponent', () => {
     componentRef.setInput('currentView', 'dividends');
     fixture.detectChanges();
 
-    const compiled = fixture.nativeElement as HTMLElement;
-    const metaStats = compiled.querySelector('.header-meta-stats');
-    expect(metaStats?.textContent).toContain('Assets');
-    expect(metaStats?.textContent).toContain('2');
-    expect(metaStats?.textContent).toContain('Payouts');
-    expect(metaStats?.textContent).toContain('3');
-    expect(metaStats?.textContent).toContain('YOC');
-    expect(metaStats?.textContent).toContain('4.85%');
+    expect(component.dividendPayingAssetsCount()).toBe(2);
+    expect(component.dividendDistributionsCount()).toBe(3);
+    expect(component.dividendYOC()).toBe(4.85);
   });
 
-  it('should render page-specific meta stats for allocation view', () => {
+  it('should compute page-specific meta stats for allocation view', () => {
     componentRef.setInput('result', { totalSymbols: 5, totalLots: 12, error: null } as any);
     componentRef.setInput('portfolioData', {
       openPositions: [
@@ -117,15 +132,11 @@ describe('HeaderComponent', () => {
     componentRef.setInput('currentView', 'allocation');
     fixture.detectChanges();
 
-    const compiled = fixture.nativeElement as HTMLElement;
-    const metaStats = compiled.querySelector('.header-meta-stats');
-    expect(metaStats?.textContent).toContain('Classes');
-    expect(metaStats?.textContent).toContain('2');
-    expect(metaStats?.textContent).toContain('Holdings');
-    expect(metaStats?.textContent).toContain('2');
+    expect(component.distinctAssetClassesCount()).toBe(2);
+    expect(component.openPositions().length).toBe(2);
   });
 
-  it('should render page-specific meta stats for transactions view', () => {
+  it('should compute page-specific meta stats for transactions view', () => {
     componentRef.setInput('result', {
       totalSymbols: 5,
       totalLots: 12,
@@ -135,15 +146,11 @@ describe('HeaderComponent', () => {
     componentRef.setInput('currentView', 'transactions');
     fixture.detectChanges();
 
-    const compiled = fixture.nativeElement as HTMLElement;
-    const metaStats = compiled.querySelector('.header-meta-stats');
-    expect(metaStats?.textContent).toContain('Total Tx');
-    expect(metaStats?.textContent).toContain('4');
-    expect(metaStats?.textContent).toContain('Symbols');
-    expect(metaStats?.textContent).toContain('5');
+    expect(component.totalTransactionsCount()).toBe(4);
+    expect(component.result()?.totalSymbols).toBe(5);
   });
 
-  it('should render page-specific meta stats for performance view', () => {
+  it('should compute page-specific meta stats for performance view', () => {
     componentRef.setInput('result', { totalSymbols: 5, totalLots: 12, error: null } as any);
     componentRef.setInput('portfolioData', {
       openPositions: [
@@ -155,12 +162,8 @@ describe('HeaderComponent', () => {
     componentRef.setInput('currentView', 'performance');
     fixture.detectChanges();
 
-    const compiled = fixture.nativeElement as HTMLElement;
-    const metaStats = compiled.querySelector('.header-meta-stats');
-    expect(metaStats?.textContent).toContain('Gainers');
-    expect(metaStats?.textContent).toContain('2');
-    expect(metaStats?.textContent).toContain('Losers');
-    expect(metaStats?.textContent).toContain('1');
+    expect(component.gainersCount()).toBe(2);
+    expect(component.losersCount()).toBe(1);
   });
 
   it('should emit viewChange output and close dropdown when selecting tools view', () => {
@@ -172,19 +175,6 @@ describe('HeaderComponent', () => {
 
     expect(emittedView).toBe('tools');
     expect(component.isViewDropdownOpen()).toBe(false);
-  });
-
-  it('should render page-specific meta stats for tools view', () => {
-    componentRef.setInput('result', { totalSymbols: 5, totalLots: 12, error: null } as any);
-    componentRef.setInput('currentView', 'tools');
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
-    const metaStats = compiled.querySelector('.header-meta-stats');
-    expect(metaStats?.textContent).toContain('Tool');
-    expect(metaStats?.textContent).toContain('Avg Cost');
-    expect(metaStats?.textContent).toContain('Mode');
-    expect(metaStats?.textContent).toContain('Simulator');
   });
 
   it('should emit privacyChange output when privacy toggle button is clicked', () => {
@@ -205,23 +195,5 @@ describe('HeaderComponent', () => {
     const button = fixture.nativeElement.querySelector('#privacy-toggle-btn') as HTMLButtonElement;
     expect(button.classList.contains('privacy-active')).toBe(true);
     expect(button.getAttribute('title')).toContain('Show sensitive');
-  });
-
-  it('should render Total Cost, Holding Value, and P/L when on Provident Fund tab', () => {
-    componentRef.setInput('isProvidentFundTab', true);
-    componentRef.setInput('result', { totalSymbols: 5, totalLots: 10, error: null } as any);
-    componentRef.setInput('totalHoldingConverted', 205135.89);
-    componentRef.setInput('totalCostConverted', 174820.98);
-    componentRef.setInput('totalPL', 30314.91);
-    componentRef.setInput('totalPLPercent', 17.34);
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
-    const statLabels = Array.from(compiled.querySelectorAll('.header-financial-stats .header-stat-label')).map((el) =>
-      el.textContent?.trim()
-    );
-    expect(statLabels).toContain('Total Cost');
-    expect(statLabels).toContain('Holding Value');
-    expect(statLabels).toContain('P/L');
   });
 });
