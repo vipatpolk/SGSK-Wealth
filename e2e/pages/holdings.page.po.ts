@@ -23,7 +23,17 @@ export class HoldingsPage {
     this.retryBtn = page.locator('#retry-btn');
   }
 
+  async navigateToHoldings() {
+    const holdingsBtn = this.page.locator('#view-toggle-holdings');
+    const isHoldingsActive = await holdingsBtn.evaluate((el) => el.classList.contains('view-toggle-btn-active')).catch(() => false);
+    if (!isHoldingsActive) {
+      await holdingsBtn.click();
+      await this.page.locator('app-tab-bar').waitFor({ state: 'visible' });
+    }
+  }
+
   async selectTab(tabLabel: string) {
+    await this.navigateToHoldings();
     const viewport = this.page.viewportSize();
     const isDesktop = viewport ? viewport.width >= 768 : true;
     if (isDesktop) {
@@ -37,10 +47,12 @@ export class HoldingsPage {
   }
 
   async searchSymbol(query: string) {
+    await this.navigateToHoldings();
     await this.searchInput.fill(query);
   }
 
   async clickSymbolRow(symbol: string) {
+    await this.navigateToHoldings();
     await this.page.locator(`#toggle-${symbol}`).click();
   }
 }

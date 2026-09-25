@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong>A modern, real-time investment portfolio tracker, FIFO share lot accounting dashboard, asset allocation rebalancer, dividend cash flow tracker, and performance analytics engine.</strong>
+  <strong>A modern, real-time investment portfolio tracker, executive dashboard, FIFO share lot accounting engine, asset allocation rebalancer, dividend cash flow tracker, and performance analytics suite.</strong>
 </p>
 
 <p align="center">
@@ -27,6 +27,16 @@
 ---
 
 ## Key Features
+
+### 📊 Executive Dashboard Landing Page
+- **Primary Landing View**: The root route (`/`) automatically lands on the Executive Dashboard, providing a comprehensive multi-aspect portfolio overview at a single glance.
+- **Executive Portfolio Hero Banner**: High-contrast headline displaying Net Portfolio Value with dual-currency approximations ($ $\leftrightarrow$ ฿), live USD/THB exchange rate badge, and a 4-card metric strip (*Invested Capital*, *Unrealized P&L*, *Realized Gains*, and *Projected Dividend*).
+- **Asset Allocation Snapshot**: Interactive SVG Donut Chart with class legend badges, class values, percentages, and one-click drill-down navigation into the full Allocation view.
+- **Top Movers Leaderboard**: Highlights the top 4 Gainers and top 4 Lagging positions with brand icons, tickers, market prices, and return percentages, with direct navigation to the Performance view.
+- **Forward Dividend Cashflow & Yield**: Trailing/forward annual dividend income, Yield on Cost (YOC %), and Current Yield % with direct link to the Dividends hub.
+- **Provident Fund (PVD) / Portfolio Vitality**: Accumulated PVD balance, employee vs. employer matching ratio bar, and policy details (or vitality metrics when PVD is absent).
+- **Recent Activity Feed**: Latest 5 transaction orders with trade type badges (`BUY`, `SELL`, `EX-IN`, `EX-OUT`), symbols, quantities, and converted totals.
+- **Financial Tools Launchpad**: One-click action cards deep-linking directly into *Rebalance Planner*, *TVM Wealth Calculator*, *Average Cost Calculator*, and *FIFO Share Lots*.
 
 ### 🔒 Privacy Protection Mode
 - **Instant Masking**: One-click toggle in the header to activate Privacy Mode (state preserved in `localStorage`).
@@ -105,8 +115,8 @@
   - Target Average Cost Solver calculating exact required shares and capital to achieve a desired cost basis.
 
 ### 📱 Responsive Experience & Tablet Optimization
-- **Native Bottom Navigation for Mobile & Tablet**: Modern native app navigation bar docked at the bottom of the viewport with active pill indicators and instant view switching (`Holdings`, `Allocation`, `Performance`, `Dividends`, `Transactions`, `Tools`).
-- **Executive Portfolio Hero Dashboard Card**: Centered executive summary card displaying Net Portfolio Value, dual-currency approximations, Total Invested, Realized Return, Open Positions count, and Total Lots.
+- **Native Bottom Navigation for Mobile & Tablet**: Modern native app navigation bar docked at the bottom of the viewport with active pill indicators and instant view switching across 7 views (`Dashboard`, `Holdings`, `Allocation`, `Performance`, `Dividends`, `Transactions`, `Tools`).
+- **Distinct Navigation Iconography**: Clear visual distinction between the 4-card asymmetric **Dashboard** icon and the 3-tier isometric stacked **Holdings** icon (`layers`).
 - **Desktop Header Navigation Capsule**: Floating capsule navigation for widescreen displays paired with quick USD/THB currency toggle, privacy mode, and dark/light theme switchers.
 - **Tablet & Mobile Touch UX**: Optimized layout scaling for tablets (iPad Air, iPad Pro) and phones with touch-friendly controls and zero horizontal overflow.
 
@@ -122,8 +132,8 @@
 | **Runtime** | [Node.js 24 LTS](https://nodejs.org/) (v24.19.0) |
 | **Backend Integration** | [FastAPI Backend (SGSKBackend)](https://github.com/vipatpolk/SGSKBackend) for data processing and API proxying |
 | **Data Source** | Google Sheets CSV Export (via Backend) |
-| **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom (**29 test files, 290 unit tests**) |
-| **E2E Testing** | [Playwright](https://playwright.dev/) & Page Object Models (**180 automated tests** across 5 browser targets) |
+| **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom (**30 test files, 300 unit tests**) |
+| **E2E Testing** | [Playwright](https://playwright.dev/) & Page Object Models (**210 automated tests** across 5 browser targets) |
 | **Deployment** | [Vercel](https://vercel.com/) (with API proxy rewrites) |
 
 
@@ -143,6 +153,7 @@ ShareLot/
 │   ├── app/
 │   │   ├── components/         # Reusable UI feature components & co-located unit tests
 │   │   │   ├── asset-allocation/     # Asset allocation & target rebalancing
+│   │   │   ├── dashboard/            # Executive portfolio landing dashboard
 │   │   │   ├── date-range-picker/    # Preset & custom date range picker
 │   │   │   ├── dividend/             # Dividend cash flows, YOC, timeline & ledger modal
 │   │   │   ├── filters/              # Filter pill buttons & dropdowns
@@ -221,7 +232,7 @@ Navigate to `http://localhost:4200/` in your browser. The application will autom
 
 ### Running Unit Tests
 
-Execute unit tests using Vitest (29 test files, 290 unit tests):
+Execute unit tests using Vitest (30 test files, 300 unit tests):
 
 ```bash
 npm test
@@ -229,7 +240,7 @@ npm test
 
 ### Running End-to-End (E2E) Tests
 
-ShareLot includes a comprehensive Playwright E2E suite covering **180 automated tests** across 5 browser target environments (Chromium, Firefox, WebKit, Mobile Safari, Mobile Chrome):
+ShareLot includes a comprehensive Playwright E2E suite covering **210 automated tests** across 5 browser target environments (Chromium, Firefox, WebKit, Mobile Safari, Mobile Chrome):
 
 ```bash
 # Run all E2E tests in headless mode across all 5 browser targets
@@ -264,12 +275,14 @@ The compiled output will be generated inside the `dist/` directory, ready for de
 
 ### Views and Navigation
 
-The top header enables instant switching across the 5 primary views:
-- **Holdings**: Real-time open positions, FIFO lots, cost basis, and unrealized gains.
-- **Dividends**: FIFO cashflow accounting, Yield on Cost (YOC), monthly timeline charts, and distribution ledgers.
+The top header enables instant switching across the 7 primary views:
+- **Dashboard**: Primary landing page featuring executive portfolio hero banner, asset allocation donut snapshot, top movers, forward dividends, PVD/vitality metrics, recent activity feed, and financial tools launchpad.
+- **Holdings**: Real-time open positions, FIFO lots, cost basis, and unrealized gains (represented by 3-tier isometric layers icon).
 - **Allocation**: Target asset allocation, rebalancing recommendations, and concentration breakdown.
 - **Performance**: Return percentages, asset type breakdown charts, top movers, and symbol metrics with date filtering.
+- **Dividends**: FIFO cashflow accounting, Yield on Cost (YOC), monthly timeline charts, and distribution ledgers.
 - **Transactions**: Complete transaction history ledger, trade type filters, and CSV export.
+- **Tools**: Investor tools & financial simulators hub (Portfolio Rebalance Planner, TVM Calculator, Average Cost Simulator).
 
 ### Asset Category Configuration
 

@@ -476,15 +476,21 @@ describe('App', () => {
     expect(app.isSearchDropdownOpen()).toBe(false);
   });
 
-  it('should switch view mode to performance', () => {
+  it('should default to dashboard view and switch view mode to performance and holdings', () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;
 
-    expect(app.currentView()).toBe('holdings');
+    expect(app.currentView()).toBe('dashboard');
 
     app.setView('performance');
     expect(app.currentView()).toBe('performance');
     expect(app.activeTab().id).toBe('all');
+
+    app.setView('holdings');
+    expect(app.currentView()).toBe('holdings');
+
+    app.openDashboardView();
+    expect(app.currentView()).toBe('dashboard');
   });
 
   it('should switch to tools view and reset active tab to all', () => {

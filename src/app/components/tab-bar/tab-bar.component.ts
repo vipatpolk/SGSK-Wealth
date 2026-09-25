@@ -1,6 +1,6 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { AssetTab } from '../../config/asset.constants';
+import { AssetTab, AppView } from '../../config/asset.constants';
 
 @Component({
   selector: 'app-tab-bar',
@@ -10,7 +10,7 @@ import { AssetTab } from '../../config/asset.constants';
   templateUrl: './tab-bar.component.html'
 })
 export class TabBarComponent {
-  currentView = input.required<'holdings' | 'transactions' | 'allocation' | 'performance' | 'dividends' | 'tools'>();
+  currentView = input.required<AppView>();
   tabs = input.required<AssetTab[]>();
   activeTab = input.required<AssetTab>();
   isTabDropdownOpen = input.required<boolean>();

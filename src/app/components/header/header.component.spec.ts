@@ -63,6 +63,19 @@ describe('HeaderComponent', () => {
     expect(emittedView).toBe('allocation');
   });
 
+  it('should emit viewChange when dashboard nav button is clicked', () => {
+    componentRef.setInput('result', { totalSymbols: 5, totalLots: 12, error: null } as any);
+    fixture.detectChanges();
+
+    let emittedView = '';
+    component.viewChange.subscribe(v => emittedView = v);
+
+    const dashBtn = fixture.nativeElement.querySelector('#view-toggle-dashboard') as HTMLButtonElement;
+    expect(dashBtn).toBeTruthy();
+    dashBtn.click();
+    expect(emittedView).toBe('dashboard');
+  });
+
   it('should emit viewChange output and close dropdown when selecting view', () => {
     let emittedView = '';
     component.viewChange.subscribe(v => emittedView = v);

@@ -81,7 +81,28 @@
 
   <!-- Data Loaded -->
   @if (!loading() && !error() && result()) {
-    @if (currentView() === 'transactions') {
+    @if (currentView() === 'dashboard') {
+      @defer (on idle) {
+        <app-dashboard
+          [portfolioData]="portfolioData()"
+          [dividendData]="dividendData()"
+          [pricesMap]="prices()"
+          [displayCurrency]="displayCurrency()"
+          [exchangeRate]="exchangeRate()"
+          [hasRate]="hasRate()"
+          [privacyMode]="privacyMode()"
+          (navigateView)="setView($event)"
+          (symbolSelected)="openTransactionHistory($event)"
+          (toolSelected)="navigateToTool($event)"
+        ></app-dashboard>
+      } @placeholder {
+        <div class="screen-loader" style="position: static; min-height: 300px;">
+          <div class="screen-loader-content">
+            <div class="screen-loader-spinner"><div class="spinner-ring"></div></div>
+          </div>
+        </div>
+      }
+    } @else if (currentView() === 'transactions') {
       @defer (on idle) {
         <app-transaction-history
           [transactionSummaries]="result()?.transactionSummaries || []"
@@ -168,6 +189,7 @@
           [exchangeRate]="exchangeRate()"
           [hasRate]="hasRate()"
           [privacyMode]="privacyMode()"
+          [initialToolId]="selectedToolId()"
         ></app-tools>
       } @placeholder {
         <div class="screen-loader" style="position: static; min-height: 300px;">

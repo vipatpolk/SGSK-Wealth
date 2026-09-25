@@ -3,6 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { SheetResult } from '../../services/share-lot.service';
 import { PortfolioHoldingsResponse } from '../../models/portfolio.model';
 import { PortfolioDividendResponse } from '../../models/dividend.model';
+import { AppView } from '../../config/asset.constants';
 
 @Component({
   selector: 'app-header',
@@ -19,12 +20,12 @@ export class HeaderComponent {
   dividendData = input<PortfolioDividendResponse | null>(null);
   hasRate = input.required<boolean>();
   exchangeRate = input.required<number>();
-  currentView = input.required<'holdings' | 'transactions' | 'allocation' | 'performance' | 'dividends' | 'tools'>();
+  currentView = input.required<AppView>();
   displayCurrency = input.required<string>();
   theme = input.required<string>();
   privacyMode = input<boolean>(false);
 
-  viewChange = output<'holdings' | 'transactions' | 'allocation' | 'performance' | 'dividends' | 'tools'>();
+  viewChange = output<AppView>();
   currencyChange = output<'USD' | 'THB'>();
   themeChange = output<void>();
   privacyChange = output<void>();
@@ -76,7 +77,7 @@ export class HeaderComponent {
     }
   }
 
-  selectView(view: 'holdings' | 'transactions' | 'allocation' | 'performance' | 'dividends' | 'tools') {
+  selectView(view: AppView) {
     this.viewChange.emit(view);
     this.closeSideNav();
   }

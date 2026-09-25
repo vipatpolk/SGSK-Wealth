@@ -11,8 +11,12 @@ test.describe('Global Navigation & Header Controls', () => {
     await page.goto('/');
   });
 
-  test('TC-NAV-01: View Mode Switcher navigates between Holdings, Allocation, Performance, and Transactions', async ({ page }) => {
-    // Default should be Holdings
+  test('TC-NAV-01: View Mode Switcher navigates between Dashboard, Holdings, Allocation, Performance, and Transactions', async ({ page }) => {
+    // Default should be Dashboard landing page
+    await expect(page.locator('#dashboard-view')).toBeVisible();
+
+    // Switch to Holdings view
+    await headerPage.selectHoldingsView();
     await expect(page.locator('app-tab-bar')).toBeVisible();
 
     // Switch to Allocation view
@@ -27,9 +31,9 @@ test.describe('Global Navigation & Header Controls', () => {
     await headerPage.selectTransactionsView();
     await expect(page.locator('app-transaction-history')).toBeVisible();
 
-    // Switch back to Holdings
-    await headerPage.selectHoldingsView();
-    await expect(page.locator('app-tab-bar')).toBeVisible();
+    // Switch back to Dashboard
+    await headerPage.selectDashboardView();
+    await expect(page.locator('#dashboard-view')).toBeVisible();
   });
 
   test('TC-NAV-02: Currency Toggle switches display currency between USD and THB', async ({ page }) => {

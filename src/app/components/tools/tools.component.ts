@@ -4,6 +4,7 @@ import {
   output,
   signal,
   computed,
+  effect,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -30,12 +31,22 @@ export class ToolsComponent {
   exchangeRate = input.required<number>();
   hasRate = input.required<boolean>();
   privacyMode = input<boolean>(false);
+  initialToolId = input<ToolId | undefined>(undefined);
 
   selectedSymbolChange = output<string>();
 
   readonly activeToolId = signal<ToolId>('avg-cost-calculator');
   readonly selectedToolSymbol = signal<string>('');
   readonly isDropdownOpen = signal<boolean>(false);
+
+  constructor() {
+    effect(() => {
+      const tool = this.initialToolId();
+      if (tool) {
+        this.selectTool(tool);
+      }
+    });
+  }
 
   readonly toolsList: ToolDefinition[] = [
     {

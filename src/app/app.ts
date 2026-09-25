@@ -1,6 +1,8 @@
+import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { PerformanceComponent } from './components/performance/performance.component';
 import { DividendComponent } from './components/dividend/dividend.component';
 import { ToolsComponent } from './components/tools/tools.component';
+import { ToolId } from './models/tools.model';
 import { Component, inject, signal, computed, ViewEncapsulation, effect, untracked, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe, CurrencyPipe, NgTemplateOutlet } from '@angular/common';
 import { SheetResult } from './services/share-lot.service';
@@ -10,7 +12,7 @@ import { DividendService } from './services/dividend.service';
 import { PortfolioHoldingsResponse, PortfolioPosition, ClosedPortfolioPosition, PortfolioHoldingLot } from './models/portfolio.model';
 import { PortfolioDividendResponse } from './models/dividend.model';
 import { SymbolSummary, ClosedSymbolSummary, ShareLot, ClosedShareLot } from './models/transaction.model';
-import { AssetTab, ASSET_TABS } from './config/asset.constants';
+import { AssetTab, ASSET_TABS, AppView } from './config/asset.constants';
 import { TransactionHistoryComponent } from './components/transaction-history/transaction-history.component';
 import { HeaderComponent } from './components/header/header.component';
 import { TabBarComponent } from './components/tab-bar/tab-bar.component';
@@ -59,7 +61,7 @@ export interface SymbolAutocompleteItem {
     DecimalPipe, CurrencyPipe, NgTemplateOutlet, TransactionHistoryComponent,
     HeaderComponent, TabBarComponent, SearchBarComponent, FiltersComponent,
     SummaryCardComponent, AssetAllocationComponent, PerformanceComponent, DividendComponent,
-    ToolsComponent
+    ToolsComponent, DashboardComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
@@ -88,8 +90,9 @@ export class App {
   readonly tabs = ASSET_TABS;
   readonly activeTab = signal<AssetTab>(ASSET_TABS[0]);
 
-  /** View Mode: Holdings / Positions vs Transactions History vs Allocation vs Dividends vs Tools */
-  readonly currentView = signal<'holdings' | 'transactions' | 'allocation' | 'performance' | 'dividends' | 'tools'>('holdings');
+  /** View Mode: Dashboard vs Holdings / Positions vs Transactions History vs Allocation vs Dividends vs Tools */
+  readonly currentView = signal<AppView>('dashboard');
+  readonly selectedToolId = signal<ToolId>('avg-cost-calculator');
   readonly selectedHistorySymbol = signal<string>('');
 
   readonly loading = signal(true);
@@ -173,20 +176,32 @@ export class App {
     }
   }
 
-  openHoldingsView(): void {
-    this.currentView.set('holdings');
+  openDashboardView(): void {
+    this.setView('dashboard');
   }
 
-  setView(view: 'holdings' | 'transactions' | 'allocation' | 'performance' | 'dividends' | 'tools'): void {
+  openHoldingsView(): void {
+    this.setView('holdings');
+  }
+
+  navigateToTool(toolId: ToolId): void {
+    this.selectedToolId.set(toolId);
+    this.setView('tools');
+  }
+
+  setView(view: AppView): void {
     this.currentView.set(view);
-    if (view === 'allocation' || view === 'transactions' || view === 'performance' || view === 'dividends' || view === 'tools') {
+    if (view !== 'holdings') {
       if (view === 'transactions') {
         this.selectedHistorySymbol.set('');
       }
       this.selectTab(ASSET_TABS[0]);
     }
-    if (view === 'dividends') {
+    if (view === 'dividends' || view === 'dashboard') {
       this.loadDividendData();
+    }
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 

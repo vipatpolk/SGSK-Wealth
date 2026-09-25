@@ -207,7 +207,7 @@
     margin: 0 !important;
     z-index: 1000 !important;
     display: grid !important;
-    grid-template-columns: repeat(6, 1fr) !important;
+    grid-template-columns: repeat(7, 1fr) !important;
     align-items: center !important;
     justify-items: center !important;
     background: rgba(10, 16, 29, 0.92) !important;
@@ -344,7 +344,7 @@
 /* Tablet Refinements (769px to 1200px) - Centered Floating Dock */
 @media (min-width: 769px) and (max-width: 1200px) {
   .view-toggle {
-    max-width: 680px !important;
+    max-width: 740px !important;
     left: 50% !important;
     right: auto !important;
     transform: translateX(-50%) !important;

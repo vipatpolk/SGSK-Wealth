@@ -41,12 +41,19 @@ test.describe('Mobile Responsiveness & Touch Layouts', () => {
   });
 
   test('TC-MOB-03: Native bottom navigation bar highlights active tab and switches views smoothly', async ({ page }) => {
+    const dashTab = page.locator('#view-toggle-dashboard');
     const holdingsTab = page.locator('#view-toggle-holdings');
     const perfTab = page.locator('#view-toggle-performance');
     const divTab = page.locator('#view-toggle-dividends');
 
-    // Default active tab should be Holdings
+    // Default active tab should be Dashboard
+    await expect(dashTab).toHaveClass(/view-toggle-btn-active/);
+
+    // Switch to Holdings via bottom nav
+    await holdingsTab.click();
     await expect(holdingsTab).toHaveClass(/view-toggle-btn-active/);
+    await expect(dashTab).not.toHaveClass(/view-toggle-btn-active/);
+    await expect(page.locator('app-tab-bar')).toBeVisible();
 
     // Switch to Performance via bottom nav
     await perfTab.click();

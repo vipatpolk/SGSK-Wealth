@@ -7,6 +7,15 @@ export interface AssetTab {
 
 export type AssetType = 'us-stock' | 'thai-stock' | 'crypto' | 'mutual-fund' | 'bond' | 'provident-fund';
 
+export type AppView =
+  | 'dashboard'
+  | 'holdings'
+  | 'transactions'
+  | 'allocation'
+  | 'performance'
+  | 'dividends'
+  | 'tools';
+
 export const KNOWN_ASSET_TYPES: readonly AssetType[] = [
   'us-stock',
   'thai-stock',

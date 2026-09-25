@@ -28,6 +28,21 @@
         <nav class="view-toggle" id="view-toggle" aria-label="Main Navigation">
           <button
             class="view-toggle-btn"
+            [class.view-toggle-btn-active]="currentView() === 'dashboard'"
+            (click)="selectView('dashboard')"
+            id="view-toggle-dashboard"
+            type="button"
+            title="Executive Dashboard"
+            aria-label="Dashboard"
+          >
+            <span class="nav-btn-icon-wrapper">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>
+            </span>
+            <span class="view-toggle-label">Dashboard</span>
+          </button>
+
+          <button
+            class="view-toggle-btn"
             [class.view-toggle-btn-active]="currentView() === 'holdings'"
             (click)="selectView('holdings')"
             id="view-toggle-holdings"
@@ -36,7 +51,7 @@
             aria-label="Holdings"
           >
             <span class="nav-btn-icon-wrapper">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="view-toggle-icon"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
             </span>
             <span class="view-toggle-label">Holdings</span>
           </button>
