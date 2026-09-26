@@ -476,15 +476,23 @@ describe('App', () => {
     expect(app.isSearchDropdownOpen()).toBe(false);
   });
 
-  it('should default to dashboard view and switch view mode to performance and holdings', () => {
+  it('should default to dashboard view and switch view mode to analytics and holdings', () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;
 
     expect(app.currentView()).toBe('dashboard');
 
-    app.setView('performance');
-    expect(app.currentView()).toBe('performance');
+    app.setView('analytics');
+    expect(app.currentView()).toBe('analytics');
     expect(app.activeTab().id).toBe('all');
+
+    app.setView('performance');
+    expect(app.currentView()).toBe('analytics');
+    expect(app.analyticsSubTab()).toBe('performance');
+
+    app.setView('allocation');
+    expect(app.currentView()).toBe('analytics');
+    expect(app.analyticsSubTab()).toBe('allocation');
 
     app.setView('holdings');
     expect(app.currentView()).toBe('holdings');
@@ -550,7 +558,9 @@ describe('App', () => {
       error: null,
     });
 
-    expect(app.getSymbolName('tsp5-gogetter-SSF.FUND')).toBe('ttb smart port 5 go-getter Super Savings Fund');
+    expect(app.getSymbolName('tsp5-gogetter-SSF.FUND')).toBe(
+      'ttb smart port 5 go-getter Super Savings Fund',
+    );
   });
 
   it('should seamlessly switch currency without setting loading state or destroying portfolioData', () => {
@@ -639,7 +649,7 @@ describe('App', () => {
         openPositions: [],
         closedPositions: [],
         error: null,
-      })
+      }),
     );
     const mockDividendResponse: PortfolioDividendResponse = {
       currency: 'USD',
@@ -658,9 +668,9 @@ describe('App', () => {
       records: [],
       error: null,
     };
-    const dividendSpy = vi.spyOn(dividendService, 'getDividendAnalytics').mockReturnValue(
-      of(mockDividendResponse)
-    );
+    const dividendSpy = vi
+      .spyOn(dividendService, 'getDividendAnalytics')
+      .mockReturnValue(of(mockDividendResponse));
 
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;

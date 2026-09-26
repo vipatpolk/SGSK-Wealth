@@ -11,7 +11,9 @@ test.describe('Global Navigation & Header Controls', () => {
     await page.goto('/');
   });
 
-  test('TC-NAV-01: View Mode Switcher navigates between Dashboard, Holdings, Allocation, Performance, and Transactions', async ({ page }) => {
+  test('TC-NAV-01: View Mode Switcher navigates between Dashboard, Holdings, Allocation, Performance, and Transactions', async ({
+    page,
+  }) => {
     // Default should be Dashboard landing page
     await expect(page.locator('#dashboard-view')).toBeVisible();
 
@@ -19,11 +21,15 @@ test.describe('Global Navigation & Header Controls', () => {
     await headerPage.selectHoldingsView();
     await expect(page.locator('app-tab-bar')).toBeVisible();
 
-    // Switch to Allocation view
+    // Switch to Analytics view
+    await headerPage.selectAnalyticsView();
+    await expect(page.locator('app-analytics')).toBeVisible();
+
+    // Switch to Allocation sub-tab
     await headerPage.selectAllocationView();
     await expect(page.locator('app-asset-allocation')).toBeVisible();
 
-    // Switch to Performance view
+    // Switch to Performance sub-tab
     await headerPage.selectPerformanceView();
     await expect(page.locator('app-performance')).toBeVisible();
 
@@ -36,7 +42,9 @@ test.describe('Global Navigation & Header Controls', () => {
     await expect(page.locator('#dashboard-view')).toBeVisible();
   });
 
-  test('TC-NAV-02: Currency Toggle switches display currency between USD and THB', async ({ page }) => {
+  test('TC-NAV-02: Currency Toggle switches display currency between USD and THB', async ({
+    page,
+  }) => {
     // Switch to USD
     await headerPage.switchToUSD();
     await expect(headerPage.currencyUsdBtn).toHaveClass(/currency-btn-active/);
@@ -49,10 +57,12 @@ test.describe('Global Navigation & Header Controls', () => {
   test('TC-NAV-03: Theme Switcher toggles dark and light theme state', async ({ page }) => {
     const htmlElement = page.locator('html');
 
-    // Click theme toggle
+    // Click theme toggle to light
     await headerPage.toggleTheme();
-    
-    // Toggle back
+    await expect(htmlElement).toHaveAttribute('data-theme', 'light');
+
+    // Toggle back to dark
     await headerPage.toggleTheme();
+    await expect(htmlElement).toHaveAttribute('data-theme', 'dark');
   });
 });

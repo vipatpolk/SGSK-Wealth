@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong>A modern, real-time investment portfolio tracker, executive dashboard, FIFO share lot accounting engine, asset allocation rebalancer, dividend cash flow tracker, and performance analytics suite.</strong>
+  <strong>A modern, real-time investment portfolio tracker, executive dashboard, FIFO share lot accounting engine, unified portfolio analytics (allocation & performance), dividend cash flow tracker, and financial tools suite.</strong>
 </p>
 
 <p align="center">
@@ -29,21 +29,24 @@
 ## Key Features
 
 ### 📊 Executive Dashboard Landing Page
+
 - **Primary Landing View**: The root route (`/`) automatically lands on the Executive Dashboard, providing a comprehensive multi-aspect portfolio overview at a single glance.
-- **Executive Portfolio Hero Banner**: High-contrast headline displaying Net Portfolio Value with dual-currency approximations ($ $\leftrightarrow$ ฿), live USD/THB exchange rate badge, and a 4-card metric strip (*Invested Capital*, *Unrealized P&L*, *Realized Gains*, and *Projected Dividend*).
-- **Asset Allocation Snapshot**: Interactive SVG Donut Chart with class legend badges, class values, percentages, and one-click drill-down navigation into the full Allocation view.
-- **Top Movers Leaderboard**: Highlights the top 4 Gainers and top 4 Lagging positions with brand icons, tickers, market prices, and return percentages, with direct navigation to the Performance view.
+- **Executive Portfolio Hero Banner**: High-contrast headline displaying Net Portfolio Value with dual-currency approximations ($ $\leftrightarrow$ ฿), live USD/THB exchange rate badge, seamless dark/light theme switching, and a 4-card metric strip (_Invested Capital_, _Unrealized P&L_, _Realized Gains_, and _Projected Dividend_).
+- **Asset Allocation Snapshot**: Interactive SVG Donut Chart with class legend badges, class values, percentages, and one-click deep link into the Analytics (Allocation) view.
+- **Top Movers Leaderboard**: Highlights the top 4 Gainers and top 4 Lagging positions with brand icons, tickers, market prices, and return percentages, with direct navigation to the Analytics (Performance) view.
 - **Forward Dividend Cashflow & Yield**: Trailing/forward annual dividend income, Yield on Cost (YOC %), and Current Yield % with direct link to the Dividends hub.
-- **Provident Fund (PVD) / Portfolio Vitality**: Accumulated PVD balance, employee vs. employer matching ratio bar, and policy details (or vitality metrics when PVD is absent).
-- **Recent Activity Feed**: Latest 5 transaction orders with trade type badges (`BUY`, `SELL`, `EX-IN`, `EX-OUT`), symbols, quantities, and converted totals.
-- **Financial Tools Launchpad**: One-click action cards deep-linking directly into *Rebalance Planner*, *TVM Wealth Calculator*, *Average Cost Calculator*, and *FIFO Share Lots*.
+- **Provident Fund (PVD) / Portfolio Vitality**: Accumulated PVD balance, employee vs. employer matching ratio bar, and policy details (strictly displays provident fund assets, or vitality metrics when PVD is absent).
+- **Recent Activity Feed**: Latest 5 genuine trade transaction orders with trade type badges (`BUY`, `SELL`, `EX-IN`, `EX-OUT`), dynamic asset units (`shares`, `coins`, `units`), and converted totals (excluding synthetic provident fund entries).
+- **Financial Tools Launchpad**: One-click action cards deep-linking directly into _Rebalance Planner_, _TVM Wealth Calculator_, _Average Cost Calculator_, and _FIFO Share Lots_.
 
 ### 🔒 Privacy Protection Mode
+
 - **Instant Masking**: One-click toggle in the header to activate Privacy Mode (state preserved in `localStorage`).
 - **Targeted Masking**: Automatically blurs sensitive monetary amounts, portfolio values, total cost, proceeds, shares, net received, and dividend payments.
 - **Percentage Visibility**: Crucial performance percentages (`P/L %`, `Realized %`, `Yield on Cost %`, `Target %`, `Return %`, `Allocation %`) remain clearly readable and unblurred for safe public demonstrations or casual tracking.
 
 ### 💵 Dividend & Income Yield Tracking
+
 - **100% API-Driven Dividend Engine**: Fetches complete dividend distributions automatically from Yahoo Finance (US & Thai stocks, Bonds) and the SEC Thailand Fund API (Mutual Funds).
 - **Exact Ex-Date Share Accounting**: Evaluates historical trade logs to calculate exact shares held on each dividend ex-date ($T$):
   $$\text{Shares Held}(T) = \sum_{\text{Tx Date } \le T} \text{Buy Quantity} - \sum_{\text{Tx Date } \le T} \text{Sell Quantity}$$
@@ -54,23 +57,25 @@
 - **Global Asset Type & Year Filtering**: Filter summary metrics, monthly timeline chart, holdings breakdown, and transaction ledger across `All Assets`, `U.S. Stocks`, `Thai Stocks`, `Mutual Funds`, and `Bonds` or specific calendar years.
 - **Fuzzy Autocomplete & Ledger Pagination**: Real-time autocomplete suggestions with keyboard navigation (`↑`, `↓`, `Enter`, `Escape`) and paginated historical payout ledger.
 
-### 📈 Investment Performance & Returns Analytics
-- **Portfolio Summary Grid**: Five high-level KPI cards displaying *Total Invested*, *Total Value*, *P/L (Unrealized)*, *Realized P/L*, and *Total Return* with color-coded profit/loss amounts and relative return percentages.
-- **Asset Type Performance Breakdown**: Grouped returns analysis by asset class (`U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`, `Bond`), featuring proportional horizontal return bar charts and open/closed symbol counts.
-- **Top Movers Ranking**: Dynamic top 5 **Gainers** and top 5 **Losers** leaderboards with badge styling, progress bars, and percentage return indicators.
-- **Time Frame Selection & Date Filtering**: Integrated [`DateRangePickerComponent`](src/app/components/date-range-picker/date-range-picker.component.ts) with presets (`YTD`, `1M`, `3M`, `6M`, `1Y`, `All Time`, or custom bounds) to dynamically filter closed-lot realized gains over specific timeframes.
-- **Interactive Symbol Search & Autocomplete**: Fast search toolbar with keyboard-accessible autocomplete suggestions (`↑`, `↓`, `Enter`, `Escape`), active index highlighting, asset badges, status pills, and clickable filter actions.
-- **Multi-Currency Valuation**: Automatic conversion across `USD` $\leftrightarrow$ `USDT` $\leftrightarrow$ `THB` based on exchange rates and price quote currencies.
-- **Flexible Sorting & Status Filters**: Sort performance table by Symbol, Total Return %, Total Return $, Invested Cost, Current Value, Realized P/L, or Unrealized P/L with Open/Closed/All status filters.
+### 📊 Unified Portfolio Analytics (Overview, Allocation & Performance)
 
-### ⚖️ Target Asset Allocation & Breakdown
-- **Auto-Aggregated Portfolio Overview**: Navigating to the Allocation page automatically aggregates positions across all asset categories (`U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`, `Bond`).
-- **Asset Class Breakdown Table**: Clean breakdown of Asset Class, Value, and Allocation % with intuitive visual indicators.
-- **Interactive Asset Class Filtering**: Clicking any Asset Class row, Donut Chart segment, or Legend item filters the Allocation view directly to that specific asset class.
-- **"Symbol at Class" Detailed Breakdown View**: When filtered, dynamically reveals individual holdings within that asset class with a prominent **`← All Asset Classes`** reset button.
-- **Concentration & Currency Exposure**: Top Holdings Concentration chart with **Show All / Show Top 5** toggle controls, alongside USD/THB currency exposure visualizer.
+- **Unified Navigation Hub**: Consolidates Portfolio Overview, Target Asset Allocation, and Investment Returns Performance into a single unified component (`app-analytics`) with sub-tab controls (`Overview`, `Allocation`, `Performance`).
+- **Overview Sub-tab**: High-level portfolio cockpit featuring 5-card summary KPI strip (_Total Invested_, _Total Value_, _Unrealized P&L_, _Realized P&L_, _Total Return_), asset class distribution bars with value and percentage breakdown, top 5 portfolio concentration rankings, and top gainers / losers movers.
+- **Allocation Sub-tab**:
+  - **Auto-Aggregated Portfolio Breakdown**: Visualizes asset distribution across categories (`U.S. Stock`, `Thai Stock`, `Cryptocurrency`, `Mutual Fund`, `Bond`, `Provident Fund`).
+  - **Asset Class Breakdown Table**: Detailed table showing Asset Class, Value, and Allocation % with color-coded legend indicators.
+  - **Interactive Asset Class Filtering**: Clicking any Asset Class row, Donut Chart segment, or Legend item isolates that specific asset class, with a prominent **`← All Asset Classes`** reset button.
+  - **Concentration & Currency Exposure**: Top Holdings Concentration chart with **Show All / Show Top 5** toggle controls, alongside USD/THB currency exposure visualizer.
+- **Performance Sub-tab**:
+  - **Portfolio Summary Grid**: Five high-level KPI cards displaying return percentages on both unrealized and realized P/L.
+  - **Asset Type Performance Breakdown**: Grouped returns analysis by asset class with proportional horizontal return bar charts and open/closed symbol counts.
+  - **Top Movers Ranking**: Dynamic top 5 **Gainers** and top 5 **Losers** leaderboards with badge styling, progress bars, and percentage return indicators.
+  - **Time Frame Selection & Date Filtering**: Integrated [`DateRangePickerComponent`](src/app/components/date-range-picker/date-range-picker.component.ts) with presets (`YTD`, `1M`, `3M`, `6M`, `1Y`, `All Time`, or custom bounds) to dynamically filter closed-lot realized gains over specific timeframes.
+  - **Interactive Symbol Search & Autocomplete**: Fast search toolbar with keyboard-accessible autocomplete suggestions (`↑`, `↓`, `Enter`, `Escape`), active index highlighting, asset badges, status pills, and clickable filter actions.
+  - **Multi-Currency Valuation & Sorting**: Automatic conversion across `USD` $\leftrightarrow$ `USDT` $\leftrightarrow$ `THB` and sorting by Symbol, Total Return %, Total Return $, Invested Cost, Current Value, Realized P/L, or Unrealized P/L with Open/Closed/All status filters.
 
 ### 💼 Provident Fund (PVD) Tracking & Contribution Breakdown
+
 - **Dedicated Asset Tab**: Seamlessly navigates to the Provident Fund portfolio view via the tab bar (`briefcase` icon, `#6366f1` brand indigo).
 - **Contribution Split Bar**: Visual header progress bar detailing Employee vs. Company contribution shares and percentages (e.g. `Emp 58% Co 42%`).
 - **Laser-Aligned Layout**: Header cards maintain unified horizontal columns across desktop, tablet, and mobile, with the contribution split bar occupying the exact same slot as the Transactions button on trading asset types.
@@ -81,12 +86,14 @@
 - **Transaction History Exemption**: Provident Fund positions reflect official balance snapshots without manual buy/sell trade logs, cleanly excluding PVD from the trading feed and transaction CSV export.
 
 ### 📊 FIFO Share Lot Engine
+
 - Automatically matches buy and sell transaction queues according to First-In, First-Out (FIFO) principles.
 - Computes remaining open lots, weighted average cost basis, and acquisition dates.
 - **Mutual Fund Exchange Trades (`EX-OUT` & `EX-IN`)**: Renders purple exchange badges (`.tag-exchange`), connected fund pills (`From [K-CASH]` / `To [K-USA]`), and realized P/L tracking.
 - Analyzes closed positions with realized gains/losses, hold durations, and sell execution prices.
 
 ### 📜 Full Transaction History Ledger
+
 - **Initial Unfiltered Feed**: Opening the Transactions view automatically consolidates all asset classes and trade types (`BUY`, `SELL`, `EX-IN`, `EX-OUT`) across all symbols.
 - **Normalized Table Layout**: Standardized column widths across all type filters with multi-line symbol name display.
 - **Context-Aware Asset Units**: Dynamically formats unit labels:
@@ -97,6 +104,7 @@
 - **Pagination & Sorting**: Configurable page size options (10, 50, 100) with responsive pagination navigation.
 
 ### 🧮 Investor Tools & Financial Simulators Hub
+
 - **Portfolio Rebalance Planner**:
   - Symbol-level target allocation model grouped by asset classes (`U.S. Stocks`, `Thai Stocks`, `Crypto`, `Mutual Funds`, `Bonds`, `Provident Funds`).
   - **Standard Two-Way Rebalance**: Computes exact buy/sell orders, turnover, and delta shares to rebalance existing capital.
@@ -115,7 +123,8 @@
   - Target Average Cost Solver calculating exact required shares and capital to achieve a desired cost basis.
 
 ### 📱 Responsive Experience & Tablet Optimization
-- **Native Bottom Navigation for Mobile & Tablet**: Modern native app navigation bar docked at the bottom of the viewport with active pill indicators and instant view switching across 7 views (`Dashboard`, `Holdings`, `Allocation`, `Performance`, `Dividends`, `Transactions`, `Tools`).
+
+- **Native Bottom Navigation for Mobile & Tablet**: Modern native app navigation bar docked at the bottom of the viewport with active pill indicators and instant view switching across 6 primary views (`Dashboard`, `Holdings`, `Analytics`, `Dividends`, `Transactions`, `Tools`) with equal 6-slot dock spread (`repeat(6, 1fr)`).
 - **Distinct Navigation Iconography**: Clear visual distinction between the 4-card asymmetric **Dashboard** icon and the 3-tier isometric stacked **Holdings** icon (`layers`).
 - **Desktop Header Navigation Capsule**: Floating capsule navigation for widescreen displays paired with quick USD/THB currency toggle, privacy mode, and dark/light theme switchers.
 - **Tablet & Mobile Touch UX**: Optimized layout scaling for tablets (iPad Air, iPad Pro) and phones with touch-friendly controls and zero horizontal overflow.
@@ -124,18 +133,17 @@
 
 ## Tech Stack
 
-| Layer | Technology |
-| :--- | :--- |
-| **Framework** | [Angular 22](https://angular.dev/) (Standalone Components, Signals, Computed Signals) |
-| **Styling** | Custom Design System with Modern CSS & [Tailwind CSS v4.3](https://tailwindcss.com/) |
-| **Language** | [TypeScript 6.0](https://www.typescriptlang.org/) |
-| **Runtime** | [Node.js 24 LTS](https://nodejs.org/) (v24.19.0) |
+| Layer                   | Technology                                                                                                     |
+| :---------------------- | :------------------------------------------------------------------------------------------------------------- |
+| **Framework**           | [Angular 22](https://angular.dev/) (Standalone Components, Signals, Computed Signals)                          |
+| **Styling**             | Custom Design System with Modern CSS & [Tailwind CSS v4.3](https://tailwindcss.com/)                           |
+| **Language**            | [TypeScript 6.0](https://www.typescriptlang.org/)                                                              |
+| **Runtime**             | [Node.js 24 LTS](https://nodejs.org/) (v24.19.0)                                                               |
 | **Backend Integration** | [FastAPI Backend (SGSKBackend)](https://github.com/vipatpolk/SGSKBackend) for data processing and API proxying |
-| **Data Source** | Google Sheets CSV Export (via Backend) |
-| **Unit Testing** | [Vitest](https://vitest.dev/) & jsdom (**30 test files, 300 unit tests**) |
-| **E2E Testing** | [Playwright](https://playwright.dev/) & Page Object Models (**210 automated tests** across 5 browser targets) |
-| **Deployment** | [Vercel](https://vercel.com/) (with API proxy rewrites) |
-
+| **Data Source**         | Google Sheets CSV Export (via Backend)                                                                         |
+| **Unit Testing**        | [Vitest](https://vitest.dev/) & jsdom (**31 test files, 311 unit tests**)                                      |
+| **E2E Testing**         | [Playwright](https://playwright.dev/) & Page Object Models (**210 automated tests** across 5 browser targets)  |
+| **Deployment**          | [Vercel](https://vercel.com/) (with API proxy rewrites)                                                        |
 
 ---
 
@@ -152,6 +160,7 @@ ShareLot/
 ├── src/
 │   ├── app/
 │   │   ├── components/         # Reusable UI feature components & co-located unit tests
+│   │   │   ├── analytics/            # Unified Portfolio Analytics (Overview, Allocation, Performance)
 │   │   │   ├── asset-allocation/     # Asset allocation & target rebalancing
 │   │   │   ├── dashboard/            # Executive portfolio landing dashboard
 │   │   │   ├── date-range-picker/    # Preset & custom date range picker
@@ -173,15 +182,17 @@ ShareLot/
 │   │   │   ├── tools.model.ts
 │   │   │   └── transaction.model.ts
 │   │   ├── services/           # Data fetching & portfolio services with spec tests
-│   │   └── utils/              # Formatting & TVM math calculation utilities
 │   │   │   ├── dividend.service.ts
 │   │   │   ├── portfolio.service.ts
 │   │   │   ├── share-lot.service.ts
 │   │   │   ├── price.service.ts
 │   │   │   └── nav.service.ts
-│   │   ├── utils/              # Dynamic formatting helpers & unit tests
+│   │   ├── utils/              # Dynamic formatting & calculation helpers & unit tests
+│   │   │   ├── calculator.utils.ts
 │   │   │   ├── csv-exporter.utils.ts
-│   │   │   └── format.utils.ts
+│   │   │   ├── format.utils.ts
+│   │   │   ├── rebalance-calculator.utils.ts
+│   │   │   └── tvm-calculator.utils.ts
 │   │   ├── app.ts              # Root component logic, signal state & privacy management
 │   │   ├── app.html            # Dashboard layout & view switching
 │   │   └── app.css             # Root component styling, animations & privacy filters
@@ -232,7 +243,7 @@ Navigate to `http://localhost:4200/` in your browser. The application will autom
 
 ### Running Unit Tests
 
-Execute unit tests using Vitest (30 test files, 300 unit tests):
+Execute unit tests using Vitest (31 test files, 311 unit tests):
 
 ```bash
 npm test
@@ -275,11 +286,11 @@ The compiled output will be generated inside the `dist/` directory, ready for de
 
 ### Views and Navigation
 
-The top header enables instant switching across the 7 primary views:
-- **Dashboard**: Primary landing page featuring executive portfolio hero banner, asset allocation donut snapshot, top movers, forward dividends, PVD/vitality metrics, recent activity feed, and financial tools launchpad.
+The top header enables instant switching across the 6 primary views:
+
+- **Dashboard**: Primary landing page featuring executive portfolio hero banner with dark/light theme switching, asset allocation donut snapshot, top movers, forward dividends, PVD metrics, recent trade activity feed, and financial tools launchpad.
 - **Holdings**: Real-time open positions, FIFO lots, cost basis, and unrealized gains (represented by 3-tier isometric layers icon).
-- **Allocation**: Target asset allocation, rebalancing recommendations, and concentration breakdown.
-- **Performance**: Return percentages, asset type breakdown charts, top movers, and symbol metrics with date filtering.
+- **Analytics**: Unified portfolio analytics combining Portfolio Overview (KPI summary, distribution, concentration, top movers), Target Asset Allocation (interactive donut chart, asset class drill-down, currency exposure), and Investment Performance (timeframe filtering, asset class return bars, symbol rankings).
 - **Dividends**: FIFO cashflow accounting, Yield on Cost (YOC), monthly timeline charts, and distribution ledgers.
 - **Transactions**: Complete transaction history ledger, trade type filters, and CSV export.
 - **Tools**: Investor tools & financial simulators hub (Portfolio Rebalance Planner, TVM Calculator, Average Cost Simulator).

@@ -207,6 +207,9 @@ describe('DashboardComponent', () => {
     component.onNavigate('performance');
     expect(targetView).toBe('performance');
 
+    component.onNavigate('analytics');
+    expect(targetView).toBe('analytics');
+
     component.onNavigate('dividends');
     expect(targetView).toBe('dividends');
   });
@@ -240,5 +243,172 @@ describe('DashboardComponent', () => {
     expect(component.topLosers().length).toBe(0);
     expect(component.recentTransactions().length).toBe(0);
     expect(component.assetAllocationList().length).toBe(0);
+  });
+
+  it('should only include provident-fund assets in pvdPositions and ignore other asset types', () => {
+    const mixedPositions: PortfolioPosition[] = [
+      {
+        symbol: 'PVD-EQ',
+        displaySymbol: 'PVD-EQ',
+        name: 'Provident Equity Fund',
+        assetType: 'provident-fund',
+        assetTypeLabel: 'Provident Fund',
+        totalShares: 100,
+        totalCost: 10000,
+        averageCost: 100,
+        currentPrice: 110,
+        holdingValue: 11000,
+        unrealizedPL: 1000,
+        unrealizedPLPercent: 10,
+        currency: 'THB',
+        originalCurrency: 'THB',
+        hasPrice: true,
+        lots: [],
+        employeeContribution: 5000,
+        employerMatching: 5000,
+      },
+      {
+        symbol: 'AAPL',
+        displaySymbol: 'AAPL',
+        name: 'Apple Inc.',
+        assetType: 'us-stock',
+        assetTypeLabel: 'U.S. Stocks',
+        totalShares: 10,
+        totalCost: 1500,
+        averageCost: 150,
+        currentPrice: 200,
+        holdingValue: 2000,
+        unrealizedPL: 500,
+        unrealizedPLPercent: 33.33,
+        currency: 'USD',
+        originalCurrency: 'USD',
+        hasPrice: true,
+        lots: [],
+        employeeShares: 10, // Non-PVD asset that might have employeeShares defined
+      },
+    ];
+
+    fixture.componentRef.setInput('portfolioData', {
+      currency: 'THB',
+      exchangeRate: 1.0,
+      tabId: 'all',
+      summary: { totalInvested: 11500, totalValue: 13000 } as any,
+      openPositions: mixedPositions,
+      closedPositions: [],
+    });
+    fixture.detectChanges();
+
+    expect(component.hasPvd()).toBe(true);
+    expect(component.pvdPositions().length).toBe(1);
+    expect(component.pvdPositions()[0].symbol).toBe('PVD-EQ');
+    expect(component.pvdPositions()[0].assetType).toBe('provident-fund');
+    expect(component.pvdEmployeeContribution()).toBe(5000);
+    expect(component.pvdEmployerMatching()).toBe(5000);
+  });
+
+  it('should exclude provident-fund records from recentTransactions and only show real trades', () => {
+    fixture.componentRef.setInput('portfolioData', {
+      currency: 'USD',
+      exchangeRate: 35.0,
+      tabId: 'all',
+      summary: {} as any,
+      openPositions: [],
+      closedPositions: [],
+      rawTransactions: [
+        {
+          date: '2026-03-01',
+          txType: 'BUY',
+          symbol: 'PVD-FUND',
+          quantity: 100,
+          price: 15,
+          currency: 'THB',
+          assetType: 'provident-fund',
+        },
+        {
+          date: '2026-02-15',
+          txType: 'SELL',
+          symbol: 'BTC.CRYPTO',
+          quantity: 0.5,
+          price: 90000,
+          currency: 'USD',
+          assetType: 'crypto',
+        },
+        {
+          date: '2026-01-10',
+          txType: 'BUY',
+          symbol: 'NVDA',
+          quantity: 20,
+          price: 120,
+          currency: 'USD',
+          assetType: 'us-stock',
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    const recent = component.recentTransactions();
+    expect(recent.length).toBe(2);
+    // PVD-FUND must be omitted
+    expect(recent.find((tx) => tx.symbol === 'PVD-FUND')).toBeUndefined();
+    // Sorted descending by date
+    expect(recent[0].symbol).toBe('BTC.CRYPTO');
+    expect(recent[0].type).toBe('SELL');
+    expect(recent[1].symbol).toBe('NVDA');
+    expect(recent[1].type).toBe('BUY');
+  });
+
+  it('should exclude provident-fund summaries and invalid quantities from transactionSummaries', () => {
+    fixture.componentRef.setInput('portfolioData', {
+      currency: 'USD',
+      exchangeRate: 35.0,
+      tabId: 'all',
+      summary: {} as any,
+      openPositions: [],
+      closedPositions: [],
+      transactionSummaries: [
+        {
+          symbol: 'PVD-BOND',
+          assetType: 'provident-fund',
+          transactions: [
+            {
+              id: 'pvd-1',
+              date: '2026-03-01',
+              type: 'BUY',
+              quantity: 200,
+              price: 10,
+              currency: 'THB',
+            } as any,
+          ],
+        } as any,
+        {
+          symbol: 'SCB.BK',
+          assetType: 'thai-stock',
+          transactions: [
+            {
+              id: 'tx-scb-0',
+              date: '2026-01-01',
+              type: 'BUY',
+              quantity: 0, // Zero quantity should be omitted
+              price: 100,
+              currency: 'THB',
+            } as any,
+            {
+              id: 'tx-scb-1',
+              date: '2026-02-01',
+              type: 'BUY',
+              quantity: 100,
+              price: 105,
+              currency: 'THB',
+            } as any,
+          ],
+        } as any,
+      ],
+    });
+    fixture.detectChanges();
+
+    const recent = component.recentTransactions();
+    expect(recent.length).toBe(1);
+    expect(recent[0].symbol).toBe('SCB.BK');
+    expect(recent[0].quantity).toBe(100);
   });
 });

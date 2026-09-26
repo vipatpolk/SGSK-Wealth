@@ -1,25 +1,43 @@
 import { DashboardComponent } from './components/dashboard/dashboard.component';
-import { PerformanceComponent } from './components/performance/performance.component';
 import { DividendComponent } from './components/dividend/dividend.component';
 import { ToolsComponent } from './components/tools/tools.component';
+import { AnalyticsComponent } from './components/analytics/analytics.component';
 import { ToolId } from './models/tools.model';
-import { Component, inject, signal, computed, ViewEncapsulation, effect, untracked, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  computed,
+  ViewEncapsulation,
+  effect,
+  untracked,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { DecimalPipe, CurrencyPipe, NgTemplateOutlet } from '@angular/common';
 import { SheetResult } from './services/share-lot.service';
 import { PriceService, PriceData } from './services/price.service';
 import { PortfolioService } from './services/portfolio.service';
 import { DividendService } from './services/dividend.service';
-import { PortfolioHoldingsResponse, PortfolioPosition, ClosedPortfolioPosition, PortfolioHoldingLot } from './models/portfolio.model';
+import {
+  PortfolioHoldingsResponse,
+  PortfolioPosition,
+  ClosedPortfolioPosition,
+  PortfolioHoldingLot,
+} from './models/portfolio.model';
 import { PortfolioDividendResponse } from './models/dividend.model';
-import { SymbolSummary, ClosedSymbolSummary, ShareLot, ClosedShareLot } from './models/transaction.model';
-import { AssetTab, ASSET_TABS, AppView } from './config/asset.constants';
+import {
+  SymbolSummary,
+  ClosedSymbolSummary,
+  ShareLot,
+  ClosedShareLot,
+} from './models/transaction.model';
+import { AssetTab, ASSET_TABS, AppView, AnalyticsSubTab } from './config/asset.constants';
 import { TransactionHistoryComponent } from './components/transaction-history/transaction-history.component';
 import { HeaderComponent } from './components/header/header.component';
 import { TabBarComponent } from './components/tab-bar/tab-bar.component';
 import { SearchBarComponent } from './components/search-bar/search-bar.component';
 import { FiltersComponent } from './components/filters/filters.component';
 import { SummaryCardComponent } from './components/summary-card/summary-card.component';
-import { AssetAllocationComponent } from './components/asset-allocation/asset-allocation.component';
 import {
   getQuantityFormat,
   displaySymbol,
@@ -58,10 +76,19 @@ export interface SymbolAutocompleteItem {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    DecimalPipe, CurrencyPipe, NgTemplateOutlet, TransactionHistoryComponent,
-    HeaderComponent, TabBarComponent, SearchBarComponent, FiltersComponent,
-    SummaryCardComponent, AssetAllocationComponent, PerformanceComponent, DividendComponent,
-    ToolsComponent, DashboardComponent
+    DecimalPipe,
+    CurrencyPipe,
+    NgTemplateOutlet,
+    TransactionHistoryComponent,
+    HeaderComponent,
+    TabBarComponent,
+    SearchBarComponent,
+    FiltersComponent,
+    SummaryCardComponent,
+    DividendComponent,
+    ToolsComponent,
+    DashboardComponent,
+    AnalyticsComponent,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
@@ -70,19 +97,34 @@ export interface SymbolAutocompleteItem {
 export class App {
   readonly getSymbolColorFn = (symbol: string) => this.getSymbolColor(symbol);
   readonly getDisplaySymbolFn = (symbol: string) => this.getDisplaySymbol(symbol);
-  readonly getSymbolNameFn = (symbol: string, rawName?: string) => this.getSymbolName(symbol, rawName);
-  readonly getAssetTypeClassFn = (assetType?: string, symbol?: string) => this.getAssetTypeClass(assetType, symbol);
-  readonly getAssetTypeLabelFn = (assetType?: string, symbol?: string) => this.getAssetTypeLabel(assetType, symbol);
-  readonly getQuantityFormatFn = (symbol: string, assetType?: string) => this.getQuantityFormat(symbol, assetType);
-  readonly getPriceFormatFn = (symbol: string, assetType?: string) => this.getPriceFormat(symbol, assetType);
+  readonly getSymbolNameFn = (symbol: string, rawName?: string) =>
+    this.getSymbolName(symbol, rawName);
+  readonly getAssetTypeClassFn = (assetType?: string, symbol?: string) =>
+    this.getAssetTypeClass(assetType, symbol);
+  readonly getAssetTypeLabelFn = (assetType?: string, symbol?: string) =>
+    this.getAssetTypeLabel(assetType, symbol);
+  readonly getQuantityFormatFn = (symbol: string, assetType?: string) =>
+    this.getQuantityFormat(symbol, assetType);
+  readonly getPriceFormatFn = (symbol: string, assetType?: string) =>
+    this.getPriceFormat(symbol, assetType);
   readonly cxFn = (amount: number, fromCurrency: string) => this.cx(amount, fromCurrency);
   readonly dcFn = (originalCurrency?: string) => this.dc(originalCurrency);
-  readonly getCurrentPriceConvertedFn = (summary: PortfolioPosition | SymbolSummary) => this.getCurrentPriceConverted(summary);
-  readonly getHoldingValueFn = (summary: PortfolioPosition | SymbolSummary) => this.getHoldingValue(summary);
-  readonly getUnrealizedPLFn = (summary: PortfolioPosition | SymbolSummary) => this.getUnrealizedPL(summary);
-  readonly getUnrealizedPLPercentFn = (summary: PortfolioPosition | SymbolSummary) => this.getUnrealizedPLPercent(summary);
-  readonly getLotHoldingValueFn = (lot: PortfolioHoldingLot | ShareLot, summary: PortfolioPosition | SymbolSummary) => this.getLotHoldingValue(lot, summary);
-  readonly getLotUnrealizedPLFn = (lot: PortfolioHoldingLot | ShareLot, summary: PortfolioPosition | SymbolSummary) => this.getLotUnrealizedPL(lot, summary);
+  readonly getCurrentPriceConvertedFn = (summary: PortfolioPosition | SymbolSummary) =>
+    this.getCurrentPriceConverted(summary);
+  readonly getHoldingValueFn = (summary: PortfolioPosition | SymbolSummary) =>
+    this.getHoldingValue(summary);
+  readonly getUnrealizedPLFn = (summary: PortfolioPosition | SymbolSummary) =>
+    this.getUnrealizedPL(summary);
+  readonly getUnrealizedPLPercentFn = (summary: PortfolioPosition | SymbolSummary) =>
+    this.getUnrealizedPLPercent(summary);
+  readonly getLotHoldingValueFn = (
+    lot: PortfolioHoldingLot | ShareLot,
+    summary: PortfolioPosition | SymbolSummary,
+  ) => this.getLotHoldingValue(lot, summary);
+  readonly getLotUnrealizedPLFn = (
+    lot: PortfolioHoldingLot | ShareLot,
+    summary: PortfolioPosition | SymbolSummary,
+  ) => this.getLotUnrealizedPL(lot, summary);
   private readonly portfolioService = inject(PortfolioService);
   private readonly priceService = inject(PriceService);
   private readonly dividendService = inject(DividendService);
@@ -92,6 +134,7 @@ export class App {
 
   /** View Mode: Dashboard vs Holdings / Positions vs Transactions History vs Allocation vs Dividends vs Tools */
   readonly currentView = signal<AppView>('dashboard');
+  readonly analyticsSubTab = signal<AnalyticsSubTab>('overview');
   readonly selectedToolId = signal<ToolId>('avg-cost-calculator');
   readonly selectedHistorySymbol = signal<string>('');
 
@@ -104,11 +147,14 @@ export class App {
   readonly pricesLoading = signal(false);
 
   /** Per-tab cache to avoid redundant network requests on tab switch */
-  private readonly tabCache = new Map<string, {
-    portfolioData: PortfolioHoldingsResponse;
-    prices: Map<string, PriceData>;
-    timestamp: number;
-  }>();
+  private readonly tabCache = new Map<
+    string,
+    {
+      portfolioData: PortfolioHoldingsResponse;
+      prices: Map<string, PriceData>;
+      timestamp: number;
+    }
+  >();
 
   /** Currency conversion */
   readonly displayCurrency = signal<'USD' | 'THB'>('THB');
@@ -155,7 +201,7 @@ export class App {
     const open = data.openPositions || [];
     const closed = data.closedPositions || [];
     const counts: Record<string, number> = {
-      'all': open.length,
+      all: open.length,
       'closed-position': closed.length,
     };
     for (const pos of open) {
@@ -189,8 +235,22 @@ export class App {
     this.setView('tools');
   }
 
-  setView(view: AppView): void {
-    this.currentView.set(view);
+  setView(view: AppView, subTab?: AnalyticsSubTab): void {
+    if (view === 'allocation') {
+      this.currentView.set('analytics');
+      this.analyticsSubTab.set('allocation');
+    } else if (view === 'performance') {
+      this.currentView.set('analytics');
+      this.analyticsSubTab.set('performance');
+    } else if (view === 'analytics') {
+      this.currentView.set('analytics');
+      if (subTab) {
+        this.analyticsSubTab.set(subTab);
+      }
+    } else {
+      this.currentView.set(view);
+    }
+
     if (view !== 'holdings') {
       if (view === 'transactions') {
         this.selectedHistorySymbol.set('');
@@ -297,9 +357,12 @@ export class App {
 
     let cost = 0;
     if (this.isClosedTab()) {
-      cost = data.summary.closedInvested ?? data.closedPositions.reduce((acc, c) => acc + c.totalCost, 0);
+      cost =
+        data.summary.closedInvested ??
+        data.closedPositions.reduce((acc, c) => acc + c.totalCost, 0);
     } else {
-      cost = data.summary.openInvested ?? data.openPositions.reduce((acc, p) => acc + p.totalCost, 0);
+      cost =
+        data.summary.openInvested ?? data.openPositions.reduce((acc, p) => acc + p.totalCost, 0);
     }
     return convertCurrency(cost, serverCurr, target, rate);
   });
@@ -487,7 +550,7 @@ export class App {
           (s) =>
             s.symbol.toUpperCase().includes(query) ||
             s.displaySymbol.toUpperCase().includes(query) ||
-            s.name.toUpperCase().includes(query)
+            s.name.toUpperCase().includes(query),
         )
       : [...data.openPositions];
 
@@ -548,7 +611,7 @@ export class App {
         (s) =>
           s.symbol.toUpperCase().includes(query) ||
           s.displaySymbol.toUpperCase().includes(query) ||
-          s.name.toUpperCase().includes(query)
+          s.name.toUpperCase().includes(query),
       );
     }
 
@@ -786,7 +849,11 @@ export class App {
         this.scrollActiveSuggestionIntoView(nextIndex);
       }
     } else if (event.key === 'Enter') {
-      if (isOpen && this.searchActiveIndex() >= 0 && this.searchActiveIndex() < suggestions.length) {
+      if (
+        isOpen &&
+        this.searchActiveIndex() >= 0 &&
+        this.searchActiveIndex() < suggestions.length
+      ) {
         event.preventDefault();
         this.selectAutocompleteItem(suggestions[this.searchActiveIndex()]);
       } else {
@@ -974,7 +1041,12 @@ export class App {
 
   getCurrentPriceConverted(summary: PortfolioPosition | SymbolSummary): number {
     if ('currentPrice' in summary && summary.currentPrice) {
-      return convertCurrency(summary.currentPrice, summary.currency, this.displayCurrency(), this.exchangeRate());
+      return convertCurrency(
+        summary.currentPrice,
+        summary.currency,
+        this.displayCurrency(),
+        this.exchangeRate(),
+      );
     }
     const pd = this.prices().get(summary.symbol);
     const price = pd?.price ?? 0;
@@ -1013,7 +1085,12 @@ export class App {
 
   getHoldingValue(summary: PortfolioPosition | SymbolSummary): number {
     if ('holdingValue' in summary && summary.holdingValue) {
-      return convertCurrency(summary.holdingValue, summary.currency, this.displayCurrency(), this.exchangeRate());
+      return convertCurrency(
+        summary.holdingValue,
+        summary.currency,
+        this.displayCurrency(),
+        this.exchangeRate(),
+      );
     }
     const price = this.getCurrentPriceConverted(summary);
     return summary.totalShares * price;
@@ -1021,9 +1098,19 @@ export class App {
 
   getUnrealizedPL(summary: PortfolioPosition | SymbolSummary): number {
     if ('unrealizedPL' in summary && summary.unrealizedPL !== undefined) {
-      return convertCurrency(summary.unrealizedPL, summary.currency, this.displayCurrency(), this.exchangeRate());
+      return convertCurrency(
+        summary.unrealizedPL,
+        summary.currency,
+        this.displayCurrency(),
+        this.exchangeRate(),
+      );
     }
-    const cost = convertCurrency(summary.totalCost, summary.currency, this.displayCurrency(), this.exchangeRate());
+    const cost = convertCurrency(
+      summary.totalCost,
+      summary.currency,
+      this.displayCurrency(),
+      this.exchangeRate(),
+    );
     return this.getHoldingValue(summary) - cost;
   }
 
@@ -1031,36 +1118,70 @@ export class App {
     if ('unrealizedPLPercent' in summary && summary.unrealizedPLPercent !== undefined) {
       return summary.unrealizedPLPercent;
     }
-    const cost = convertCurrency(summary.totalCost, summary.currency, this.displayCurrency(), this.exchangeRate());
+    const cost = convertCurrency(
+      summary.totalCost,
+      summary.currency,
+      this.displayCurrency(),
+      this.exchangeRate(),
+    );
     if (cost === 0) return 0;
     return (this.getUnrealizedPL(summary) / cost) * 100;
   }
 
-  getLotHoldingValue(lot: PortfolioHoldingLot | ShareLot, summary: PortfolioPosition | SymbolSummary): number {
+  getLotHoldingValue(
+    lot: PortfolioHoldingLot | ShareLot,
+    summary: PortfolioPosition | SymbolSummary,
+  ): number {
     if ('holdingValue' in lot && lot.holdingValue) {
       const lotCurr = ('currency' in lot ? lot.currency : summary.currency) || summary.currency;
-      return convertCurrency(lot.holdingValue, lotCurr, this.displayCurrency(), this.exchangeRate());
+      return convertCurrency(
+        lot.holdingValue,
+        lotCurr,
+        this.displayCurrency(),
+        this.exchangeRate(),
+      );
     }
     const price = this.getCurrentPriceConverted(summary);
     return lot.quantity * price;
   }
 
-  getLotUnrealizedPL(lot: PortfolioHoldingLot | ShareLot, summary: PortfolioPosition | SymbolSummary): number {
+  getLotUnrealizedPL(
+    lot: PortfolioHoldingLot | ShareLot,
+    summary: PortfolioPosition | SymbolSummary,
+  ): number {
     if ('unrealizedPL' in lot && lot.unrealizedPL !== undefined) {
       const lotCurr = ('currency' in lot ? lot.currency : summary.currency) || summary.currency;
-      return convertCurrency(lot.unrealizedPL, lotCurr, this.displayCurrency(), this.exchangeRate());
+      return convertCurrency(
+        lot.unrealizedPL,
+        lotCurr,
+        this.displayCurrency(),
+        this.exchangeRate(),
+      );
     }
     const lotCurr = ('currency' in lot ? lot.currency : summary.currency) || summary.currency;
-    const lotCost = convertCurrency(lot.totalCost, lotCurr, this.displayCurrency(), this.exchangeRate());
+    const lotCost = convertCurrency(
+      lot.totalCost,
+      lotCurr,
+      this.displayCurrency(),
+      this.exchangeRate(),
+    );
     return this.getLotHoldingValue(lot, summary) - lotCost;
   }
 
-  getLotUnrealizedPLPercent(lot: PortfolioHoldingLot | ShareLot, summary: PortfolioPosition | SymbolSummary): number {
+  getLotUnrealizedPLPercent(
+    lot: PortfolioHoldingLot | ShareLot,
+    summary: PortfolioPosition | SymbolSummary,
+  ): number {
     if ('unrealizedPLPercent' in lot && lot.unrealizedPLPercent !== undefined) {
       return lot.unrealizedPLPercent;
     }
     const lotCurr = ('currency' in lot ? lot.currency : summary.currency) || summary.currency;
-    const lotCost = convertCurrency(lot.totalCost, lotCurr, this.displayCurrency(), this.exchangeRate());
+    const lotCost = convertCurrency(
+      lot.totalCost,
+      lotCurr,
+      this.displayCurrency(),
+      this.exchangeRate(),
+    );
     if (lotCost === 0) return 0;
     return (this.getLotUnrealizedPL(lot, summary) / lotCost) * 100;
   }

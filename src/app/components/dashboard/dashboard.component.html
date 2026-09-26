@@ -1,6 +1,10 @@
 <div class="dashboard-container" id="dashboard-view">
   <!-- Executive Portfolio Hero Banner -->
-  <section class="dashboard-hero-card" id="dashboard-hero" aria-label="Executive Portfolio Overview">
+  <section
+    class="dashboard-hero-card"
+    id="dashboard-hero"
+    aria-label="Executive Portfolio Overview"
+  >
     <div class="hero-top-row">
       <div class="hero-badge">
         <span class="live-dot" aria-hidden="true"></span>
@@ -9,9 +13,12 @@
 
       <div class="hero-top-right">
         @if (hasRate()) {
-          <div class="hero-fx-pill" [title]="'Exchange Rate: 1 USD = ' + (exchangeRate() | number:'1.2-2') + ' THB'">
+          <div
+            class="hero-fx-pill"
+            [title]="'Exchange Rate: 1 USD = ' + (exchangeRate() | number: '1.2-2') + ' THB'"
+          >
             <span class="fx-label">USD/THB</span>
-            <span class="fx-val font-mono">{{ exchangeRate() | number:'1.2-2' }}</span>
+            <span class="fx-val font-mono">{{ exchangeRate() | number: '1.2-2' }}</span>
           </div>
         }
         <div class="hero-date-pill">
@@ -26,12 +33,15 @@
         <span class="hero-section-caption">Total Net Portfolio Value</span>
         <div class="hero-net-worth-row">
           <h1 class="hero-net-worth privacy-mask font-mono" id="dashboard-net-worth">
-            {{ netPortfolioValue() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+            {{ netPortfolioValue() | currency: displayCurrency() : 'symbol-narrow' : '1.2-2' }}
           </h1>
 
           @if (secondaryNetValue() !== null) {
             <span class="hero-secondary-currency privacy-mask font-mono">
-              ≈ {{ secondaryNetValue() | currency:secondaryCurrencyLabel():'symbol-narrow':'1.2-2' }}
+              ≈
+              {{
+                secondaryNetValue() | currency: secondaryCurrencyLabel() : 'symbol-narrow' : '1.2-2'
+              }}
             </span>
           }
         </div>
@@ -45,9 +55,12 @@
           id="dashboard-total-return-badge"
         >
           <span class="return-arrow" aria-hidden="true">{{ totalReturn() >= 0 ? '▲' : '▼' }}</span>
-          <span class="return-pct font-mono">{{ totalReturn() >= 0 ? '+' : '' }}{{ totalReturnPercent() | number:'1.2-2' }}%</span>
+          <span class="return-pct font-mono"
+            >{{ totalReturn() >= 0 ? '+' : '' }}{{ totalReturnPercent() | number: '1.2-2' }}%</span
+          >
           <span class="return-amt font-mono privacy-mask">
-            ({{ totalReturn() >= 0 ? '+' : '' }}{{ totalReturn() | currency:displayCurrency():'symbol-narrow':'1.2-2' }})
+            ({{ totalReturn() >= 0 ? '+' : ''
+            }}{{ totalReturn() | currency: displayCurrency() : 'symbol-narrow' : '1.2-2' }})
           </span>
         </div>
       }
@@ -59,12 +72,26 @@
       <div class="kpi-card" id="kpi-invested">
         <div class="kpi-header">
           <span class="kpi-icon-wrap icon-invested">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="kpi-svg"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="kpi-svg"
+            >
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            </svg>
           </span>
           <span class="kpi-title">Invested Capital</span>
         </div>
         <div class="kpi-value-row">
-          <span class="kpi-primary-val privacy-mask font-mono">{{ totalInvested() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}</span>
+          <span class="kpi-primary-val privacy-mask font-mono">{{
+            totalInvested() | currency: displayCurrency() : 'symbol-narrow' : '1.2-2'
+          }}</span>
           <span class="kpi-sub-text font-mono">{{ openPositions().length }} Open Positions</span>
         </div>
       </div>
@@ -72,8 +99,24 @@
       <!-- Unrealized P&L -->
       <div class="kpi-card" id="kpi-unrealized">
         <div class="kpi-header">
-          <span class="kpi-icon-wrap" [class.icon-positive]="unrealizedPL() >= 0" [class.icon-negative]="unrealizedPL() < 0">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="kpi-svg"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+          <span
+            class="kpi-icon-wrap"
+            [class.icon-positive]="unrealizedPL() >= 0"
+            [class.icon-negative]="unrealizedPL() < 0"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="kpi-svg"
+            >
+              <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+              <polyline points="16 7 22 7 22 13"></polyline>
+            </svg>
           </span>
           <span class="kpi-title">Unrealized P&L</span>
         </div>
@@ -83,14 +126,16 @@
             [class.text-positive]="unrealizedPL() >= 0"
             [class.text-negative]="unrealizedPL() < 0"
           >
-            {{ unrealizedPL() >= 0 ? '+' : '' }}{{ unrealizedPL() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+            {{ unrealizedPL() >= 0 ? '+' : ''
+            }}{{ unrealizedPL() | currency: displayCurrency() : 'symbol-narrow' : '1.2-2' }}
           </span>
           <span
             class="kpi-sub-badge font-mono"
             [class.badge-positive]="unrealizedPLPercent() >= 0"
             [class.badge-negative]="unrealizedPLPercent() < 0"
           >
-            {{ unrealizedPLPercent() >= 0 ? '+' : '' }}{{ unrealizedPLPercent() | number:'1.2-2' }}%
+            {{ unrealizedPLPercent() >= 0 ? '+' : ''
+            }}{{ unrealizedPLPercent() | number: '1.2-2' }}%
           </span>
         </div>
       </div>
@@ -98,8 +143,24 @@
       <!-- Realized Return -->
       <div class="kpi-card" id="kpi-realized">
         <div class="kpi-header">
-          <span class="kpi-icon-wrap" [class.icon-positive]="realizedPL() >= 0" [class.icon-negative]="realizedPL() < 0">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="kpi-svg"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+          <span
+            class="kpi-icon-wrap"
+            [class.icon-positive]="realizedPL() >= 0"
+            [class.icon-negative]="realizedPL() < 0"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="kpi-svg"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 14 14"></polyline>
+            </svg>
           </span>
           <span class="kpi-title">Realized Gains</span>
         </div>
@@ -109,12 +170,17 @@
             [class.text-positive]="realizedPL() >= 0"
             [class.text-negative]="realizedPL() < 0"
           >
-            {{ realizedPL() >= 0 ? '+' : '' }}{{ realizedPL() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+            {{ realizedPL() >= 0 ? '+' : ''
+            }}{{ realizedPL() | currency: displayCurrency() : 'symbol-narrow' : '1.2-2' }}
           </span>
           <span class="kpi-sub-text font-mono">
             @if (realizedPLPercent() !== 0) {
-              <span [class.text-positive]="realizedPLPercent() > 0" [class.text-negative]="realizedPLPercent() < 0">
-                ({{ realizedPLPercent() >= 0 ? '+' : '' }}{{ realizedPLPercent() | number:'1.2-2' }}%)
+              <span
+                [class.text-positive]="realizedPLPercent() > 0"
+                [class.text-negative]="realizedPLPercent() < 0"
+              >
+                ({{ realizedPLPercent() >= 0 ? '+' : ''
+                }}{{ realizedPLPercent() | number: '1.2-2' }}%)
               </span>
             } @else {
               <span>{{ closedPositions().length }} Closed Trades</span>
@@ -127,18 +193,36 @@
       <div class="kpi-card" id="kpi-dividends">
         <div class="kpi-header">
           <span class="kpi-icon-wrap icon-dividend">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="kpi-svg"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="kpi-svg"
+            >
+              <path
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              ></path>
+            </svg>
           </span>
           <span class="kpi-title">Projected Dividend</span>
         </div>
         <div class="kpi-value-row">
           <span class="kpi-primary-val font-mono privacy-mask text-emerald">
-            {{ annualProjectedDividendConverted() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+            {{
+              annualProjectedDividendConverted()
+                | currency: displayCurrency() : 'symbol-narrow' : '1.2-2'
+            }}
           </span>
           <span class="kpi-sub-text font-mono">
-            <span class="badge-accent">{{ portfolioYieldOnCost() | number:'1.2-2' }}% YOC</span>
+            <span class="badge-accent">{{ portfolioYieldOnCost() | number: '1.2-2' }}% YOC</span>
             @if (portfolioCurrentYield() > 0) {
-              <span class="text-muted ml-1">({{ portfolioCurrentYield() | number:'1.2-2' }}% Curr)</span>
+              <span class="text-muted ml-1"
+                >({{ portfolioCurrentYield() | number: '1.2-2' }}% Curr)</span
+              >
             }
           </span>
         </div>
@@ -153,7 +237,19 @@
       <div class="card-header">
         <div class="card-title-group">
           <div class="card-icon-bubble bubble-allocation">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="card-title-svg"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="card-title-svg"
+            >
+              <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+              <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+            </svg>
           </div>
           <div>
             <h2 class="card-heading">Asset Allocation</h2>
@@ -168,7 +264,19 @@
           title="Open Asset Allocation view"
         >
           <span>Allocation</span>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="arrow-svg"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="arrow-svg"
+          >
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
         </button>
       </div>
 
@@ -218,8 +326,10 @@
                 <span class="legend-count font-mono">({{ item.symbolCount }})</span>
               </div>
               <div class="legend-values">
-                <span class="legend-amount privacy-mask font-mono">{{ item.value | currency:displayCurrency():'symbol-narrow':'1.0-0' }}</span>
-                <span class="legend-pct font-mono">{{ item.percentage | number:'1.1-1' }}%</span>
+                <span class="legend-amount privacy-mask font-mono">{{
+                  item.value | currency: displayCurrency() : 'symbol-narrow' : '1.0-0'
+                }}</span>
+                <span class="legend-pct font-mono">{{ item.percentage | number: '1.1-1' }}%</span>
               </div>
             </div>
           }
@@ -232,12 +342,25 @@
       <div class="card-header">
         <div class="card-title-group">
           <div class="card-icon-bubble bubble-performance">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="card-title-svg"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="card-title-svg"
+            >
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
           </div>
           <div>
             <h2 class="card-heading">Top Movers</h2>
             <p class="card-subheading">
-              <span class="text-positive">{{ winningPositionsCount() }} Profitable</span> · 
+              <span class="text-positive">{{ winningPositionsCount() }} Profitable</span> ·
               <span class="text-negative">{{ losingPositionsCount() }} Down</span>
             </p>
           </div>
@@ -250,7 +373,19 @@
           title="Open Performance Analytics view"
         >
           <span>Performance</span>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="arrow-svg"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="arrow-svg"
+          >
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
         </button>
       </div>
 
@@ -268,15 +403,23 @@
                 [title]="'View ' + pos.symbol + ' in transactions'"
               >
                 <div class="mover-symbol-info">
-                  <app-symbol-icon [symbol]="pos.symbol" [assetType]="pos.assetType" size="sm"></app-symbol-icon>
+                  <app-symbol-icon
+                    [symbol]="pos.symbol"
+                    [assetType]="pos.assetType"
+                    size="sm"
+                  ></app-symbol-icon>
                   <div class="mover-text-stack">
                     <span class="mover-display-symbol">{{ displaySymbol(pos.symbol) }}</span>
                     <span class="mover-name">{{ getSymbolName(pos.symbol, pos.name) }}</span>
                   </div>
                 </div>
                 <div class="mover-stats">
-                  <span class="mover-price font-mono privacy-mask">{{ pos.currentPrice | currency:displayCurrency():'symbol-narrow':'1.2-2' }}</span>
-                  <span class="mover-pct-badge badge-positive font-mono">+{{ pos.unrealizedPLPercent | number:'1.2-2' }}%</span>
+                  <span class="mover-price font-mono privacy-mask">{{
+                    pos.currentPrice | currency: displayCurrency() : 'symbol-narrow' : '1.2-2'
+                  }}</span>
+                  <span class="mover-pct-badge badge-positive font-mono"
+                    >+{{ pos.unrealizedPLPercent | number: '1.2-2' }}%</span
+                  >
                 </div>
               </div>
             } @empty {
@@ -298,15 +441,23 @@
                 [title]="'View ' + pos.symbol + ' in transactions'"
               >
                 <div class="mover-symbol-info">
-                  <app-symbol-icon [symbol]="pos.symbol" [assetType]="pos.assetType" size="sm"></app-symbol-icon>
+                  <app-symbol-icon
+                    [symbol]="pos.symbol"
+                    [assetType]="pos.assetType"
+                    size="sm"
+                  ></app-symbol-icon>
                   <div class="mover-text-stack">
                     <span class="mover-display-symbol">{{ displaySymbol(pos.symbol) }}</span>
                     <span class="mover-name">{{ getSymbolName(pos.symbol, pos.name) }}</span>
                   </div>
                 </div>
                 <div class="mover-stats">
-                  <span class="mover-price font-mono privacy-mask">{{ pos.currentPrice | currency:displayCurrency():'symbol-narrow':'1.2-2' }}</span>
-                  <span class="mover-pct-badge badge-negative font-mono">{{ pos.unrealizedPLPercent | number:'1.2-2' }}%</span>
+                  <span class="mover-price font-mono privacy-mask">{{
+                    pos.currentPrice | currency: displayCurrency() : 'symbol-narrow' : '1.2-2'
+                  }}</span>
+                  <span class="mover-pct-badge badge-negative font-mono"
+                    >{{ pos.unrealizedPLPercent | number: '1.2-2' }}%</span
+                  >
                 </div>
               </div>
             } @empty {
@@ -325,7 +476,20 @@
       <div class="card-header">
         <div class="card-title-group">
           <div class="card-icon-bubble bubble-dividend">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="card-title-svg"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="card-title-svg"
+            >
+              <path
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              ></path>
+            </svg>
           </div>
           <div>
             <h2 class="card-heading">Dividend Cashflow</h2>
@@ -340,7 +504,19 @@
           title="Open Dividends analytics"
         >
           <span>Dividends</span>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="arrow-svg"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="arrow-svg"
+          >
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
         </button>
       </div>
 
@@ -349,7 +525,10 @@
           <div class="div-metric-box">
             <span class="div-box-label">Annual Projected</span>
             <span class="div-box-val font-mono privacy-mask text-emerald">
-              {{ annualProjectedDividendConverted() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+              {{
+                annualProjectedDividendConverted()
+                  | currency: displayCurrency() : 'symbol-narrow' : '1.2-2'
+              }}
             </span>
             <span class="div-box-sub">Forward 12-Month Est.</span>
           </div>
@@ -357,7 +536,7 @@
           <div class="div-metric-box">
             <span class="div-box-label">Yield on Cost (YOC)</span>
             <span class="div-box-val font-mono text-cyan">
-              {{ portfolioYieldOnCost() | number:'1.2-2' }}%
+              {{ portfolioYieldOnCost() | number: '1.2-2' }}%
             </span>
             <span class="div-box-sub">On Original Cost Basis</span>
           </div>
@@ -365,7 +544,7 @@
           <div class="div-metric-box">
             <span class="div-box-label">Current Yield</span>
             <span class="div-box-val font-mono text-purple">
-              {{ portfolioCurrentYield() | number:'1.2-2' }}%
+              {{ portfolioCurrentYield() | number: '1.2-2' }}%
             </span>
             <span class="div-box-sub">On Current Market Value</span>
           </div>
@@ -374,7 +553,10 @@
         <div class="dividend-banner-callout">
           <div class="callout-icon">💡</div>
           <div class="callout-text">
-            <span>Historical share-weighted dividends & dynamic yield tracking for US stocks, Thai stocks (.BK), Mutual Funds, and Bonds.</span>
+            <span
+              >Historical share-weighted dividends & dynamic yield tracking for US stocks, Thai
+              stocks (.BK), Mutual Funds, and Bonds.</span
+            >
           </div>
         </div>
       </div>
@@ -386,7 +568,19 @@
         <div class="card-header">
           <div class="card-title-group">
             <div class="card-icon-bubble bubble-pvd">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="card-title-svg"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="card-title-svg"
+              >
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+              </svg>
             </div>
             <div>
               <h2 class="card-heading">Provident Fund (PVD)</h2>
@@ -401,7 +595,19 @@
             title="Open Holdings tab"
           >
             <span>Holdings</span>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="arrow-svg"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="arrow-svg"
+            >
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
           </button>
         </div>
 
@@ -409,7 +615,7 @@
           <div class="pvd-net-strip">
             <span class="pvd-net-label">Accumulated PVD Balance</span>
             <span class="pvd-net-val font-mono privacy-mask text-rose">
-              {{ pvdTotalValue() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+              {{ pvdTotalValue() | currency: displayCurrency() : 'symbol-narrow' : '1.2-2' }}
             </span>
           </div>
 
@@ -417,17 +623,37 @@
           @if (pvdEmployeeContribution() + pvdEmployerMatching() > 0) {
             <div class="pvd-split-container">
               <div class="pvd-split-labels">
-                <span class="split-label-emp">Employee: {{ (pvdEmployeeContribution() / (pvdEmployeeContribution() + pvdEmployerMatching()) * 100) | number:'1.0-0' }}%</span>
-                <span class="split-label-empr">Employer Match: {{ (pvdEmployerMatching() / (pvdEmployeeContribution() + pvdEmployerMatching()) * 100) | number:'1.0-0' }}%</span>
+                <span class="split-label-emp"
+                  >Employee:
+                  {{
+                    (pvdEmployeeContribution() /
+                      (pvdEmployeeContribution() + pvdEmployerMatching())) *
+                      100 | number: '1.0-0'
+                  }}%</span
+                >
+                <span class="split-label-empr"
+                  >Employer Match:
+                  {{
+                    (pvdEmployerMatching() / (pvdEmployeeContribution() + pvdEmployerMatching())) *
+                      100 | number: '1.0-0'
+                  }}%</span
+                >
               </div>
               <div class="pvd-split-bar">
                 <div
                   class="pvd-bar-segment emp-segment"
-                  [style.width.%]="(pvdEmployeeContribution() / (pvdEmployeeContribution() + pvdEmployerMatching()) * 100)"
+                  [style.width.%]="
+                    (pvdEmployeeContribution() /
+                      (pvdEmployeeContribution() + pvdEmployerMatching())) *
+                    100
+                  "
                 ></div>
                 <div
                   class="pvd-bar-segment empr-segment"
-                  [style.width.%]="(pvdEmployerMatching() / (pvdEmployeeContribution() + pvdEmployerMatching()) * 100)"
+                  [style.width.%]="
+                    (pvdEmployerMatching() / (pvdEmployeeContribution() + pvdEmployerMatching())) *
+                    100
+                  "
                 ></div>
               </div>
             </div>
@@ -437,7 +663,10 @@
             @for (pos of pvdPositions(); track pos.symbol) {
               <div class="pvd-mini-row">
                 <span class="pvd-mini-name">{{ pos.policyName || pos.name || pos.symbol }}</span>
-                <span class="pvd-mini-val font-mono privacy-mask">{{ (pos.holdingValue || pos.totalCost) | currency:pos.currency:'symbol-narrow':'1.2-2' }}</span>
+                <span class="pvd-mini-val font-mono privacy-mask">{{
+                  pos.holdingValue || pos.totalCost
+                    | currency: pos.currency : 'symbol-narrow' : '1.2-2'
+                }}</span>
               </div>
             }
           </div>
@@ -447,7 +676,18 @@
         <div class="card-header">
           <div class="card-title-group">
             <div class="card-icon-bubble bubble-health">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="card-title-svg"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="card-title-svg"
+              >
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+              </svg>
             </div>
             <div>
               <h2 class="card-heading">Portfolio Vitality</h2>
@@ -462,7 +702,19 @@
             title="Open Holdings tab"
           >
             <span>Holdings</span>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="arrow-svg"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="arrow-svg"
+            >
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
           </button>
         </div>
 
@@ -495,7 +747,19 @@
       <div class="card-header">
         <div class="card-title-group">
           <div class="card-icon-bubble bubble-transactions">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="card-title-svg"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="card-title-svg"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 14 14"></polyline>
+            </svg>
           </div>
           <div>
             <h2 class="card-heading">Recent Activity</h2>
@@ -510,7 +774,19 @@
           title="Open Transaction History"
         >
           <span>History</span>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="arrow-svg"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="arrow-svg"
+          >
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
         </button>
       </div>
 
@@ -530,16 +806,25 @@
               >
                 {{ tx.type }}
               </span>
-              <app-symbol-icon [symbol]="tx.symbol" [assetType]="tx.assetType" size="sm"></app-symbol-icon>
+              <app-symbol-icon
+                [symbol]="tx.symbol"
+                [assetType]="tx.assetType"
+                size="sm"
+              ></app-symbol-icon>
               <div class="tx-text-stack">
                 <span class="tx-symbol-title">{{ tx.displaySymbol }}</span>
-                <span class="tx-date font-mono">{{ tx.date | date:'dd MMM yyyy' }}</span>
+                <span class="tx-date font-mono">{{ tx.date | date: 'dd MMM yyyy' }}</span>
               </div>
             </div>
 
             <div class="activity-right">
-              <span class="tx-shares font-mono privacy-mask">{{ tx.quantity | number:getQuantityFormat(tx.symbol, tx.assetType) }} shares</span>
-              <span class="tx-total font-mono privacy-mask">{{ tx.totalAmount | currency:tx.currency:'symbol-narrow':'1.2-2' }}</span>
+              <span class="tx-shares font-mono privacy-mask"
+                >{{ tx.quantity | number: getQuantityFormat(tx.symbol, tx.assetType) }}
+                {{ getUnitLabel(tx.symbol, tx.assetType) }}</span
+              >
+              <span class="tx-total font-mono privacy-mask">{{
+                tx.totalAmount | currency: tx.currency : 'symbol-narrow' : '1.2-2'
+              }}</span>
             </div>
           </div>
         } @empty {
@@ -553,7 +838,27 @@
       <div class="card-header">
         <div class="card-title-group">
           <div class="card-icon-bubble bubble-tools">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="card-title-svg"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="card-title-svg"
+            >
+              <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+              <line x1="8" y1="6" x2="16" y2="6"></line>
+              <line x1="16" y1="14" x2="16" y2="18"></line>
+              <path d="M16 10h.01"></path>
+              <path d="M12 10h.01"></path>
+              <path d="M8 10h.01"></path>
+              <path d="M12 14h.01"></path>
+              <path d="M8 14h.01"></path>
+              <path d="M12 18h.01"></path>
+              <path d="M8 18h.01"></path>
+            </svg>
           </div>
           <div>
             <h2 class="card-heading">Financial Tools Hub</h2>
@@ -568,7 +873,19 @@
           title="Open Financial Tools"
         >
           <span>Tools</span>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="arrow-svg"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="arrow-svg"
+          >
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
         </button>
       </div>
 
@@ -581,7 +898,21 @@
         >
           <div class="tool-launch-top">
             <div class="tool-launch-icon-wrap icon-rebalance">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tool-svg"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="tool-svg"
+              >
+                <circle cx="12" cy="12" r="3"></circle>
+                <path
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+                ></path>
+              </svg>
             </div>
             <span class="tool-launch-badge">Simulator</span>
           </div>
@@ -597,7 +928,19 @@
         >
           <div class="tool-launch-top">
             <div class="tool-launch-icon-wrap icon-tvm">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tool-svg"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="tool-svg"
+              >
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
             </div>
             <span class="tool-launch-badge">Growth</span>
           </div>
@@ -613,12 +956,27 @@
         >
           <div class="tool-launch-top">
             <div class="tool-launch-icon-wrap icon-avgcost">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tool-svg"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="tool-svg"
+              >
+                <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+                <line x1="8" y1="6" x2="16" y2="6"></line>
+                <line x1="16" y1="14" x2="16" y2="18"></line>
+              </svg>
             </div>
             <span class="tool-launch-badge">DCA</span>
           </div>
           <h3 class="tool-launch-title">Avg Cost Calculator</h3>
-          <p class="tool-launch-desc">Simulate multi-trade buy/sell chains & target break-even cost.</p>
+          <p class="tool-launch-desc">
+            Simulate multi-trade buy/sell chains & target break-even cost.
+          </p>
         </div>
 
         <!-- Tool 4: FIFO Lots Deep Dive -->
@@ -629,12 +987,27 @@
         >
           <div class="tool-launch-top">
             <div class="tool-launch-icon-wrap icon-lots">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tool-svg"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="tool-svg"
+              >
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+              </svg>
             </div>
             <span class="tool-launch-badge">Ledger</span>
           </div>
           <h3 class="tool-launch-title">FIFO Share Lots</h3>
-          <p class="tool-launch-desc">Explore lot queues, acquisition dates, and tax basis per holding.</p>
+          <p class="tool-launch-desc">
+            Explore lot queues, acquisition dates, and tax basis per holding.
+          </p>
         </div>
       </div>
     </div>

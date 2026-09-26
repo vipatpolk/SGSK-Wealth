@@ -5,16 +5,20 @@ export interface AssetTab {
   currency: string;
 }
 
-export type AssetType = 'us-stock' | 'thai-stock' | 'crypto' | 'mutual-fund' | 'bond' | 'provident-fund';
+export type AssetType =
+  'us-stock' | 'thai-stock' | 'crypto' | 'mutual-fund' | 'bond' | 'provident-fund';
 
 export type AppView =
   | 'dashboard'
   | 'holdings'
   | 'transactions'
+  | 'analytics'
   | 'allocation'
   | 'performance'
   | 'dividends'
   | 'tools';
+
+export type AnalyticsSubTab = 'overview' | 'allocation' | 'performance';
 
 export const KNOWN_ASSET_TYPES: readonly AssetType[] = [
   'us-stock',

@@ -9,7 +9,7 @@ describe('HeaderComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [HeaderComponent]
+      imports: [HeaderComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HeaderComponent);
@@ -55,12 +55,14 @@ describe('HeaderComponent', () => {
     fixture.detectChanges();
 
     let emittedView = '';
-    component.viewChange.subscribe(v => emittedView = v);
+    component.viewChange.subscribe((v) => (emittedView = v));
 
-    const allocBtn = fixture.nativeElement.querySelector('#view-toggle-allocation') as HTMLButtonElement;
-    expect(allocBtn).toBeTruthy();
-    allocBtn.click();
-    expect(emittedView).toBe('allocation');
+    const analyticsBtn = fixture.nativeElement.querySelector(
+      '#view-toggle-analytics',
+    ) as HTMLButtonElement;
+    expect(analyticsBtn).toBeTruthy();
+    analyticsBtn.click();
+    expect(emittedView).toBe('analytics');
   });
 
   it('should emit viewChange when dashboard nav button is clicked', () => {
@@ -68,9 +70,11 @@ describe('HeaderComponent', () => {
     fixture.detectChanges();
 
     let emittedView = '';
-    component.viewChange.subscribe(v => emittedView = v);
+    component.viewChange.subscribe((v) => (emittedView = v));
 
-    const dashBtn = fixture.nativeElement.querySelector('#view-toggle-dashboard') as HTMLButtonElement;
+    const dashBtn = fixture.nativeElement.querySelector(
+      '#view-toggle-dashboard',
+    ) as HTMLButtonElement;
     expect(dashBtn).toBeTruthy();
     dashBtn.click();
     expect(emittedView).toBe('dashboard');
@@ -78,7 +82,7 @@ describe('HeaderComponent', () => {
 
   it('should emit viewChange output and close dropdown when selecting view', () => {
     let emittedView = '';
-    component.viewChange.subscribe(v => emittedView = v);
+    component.viewChange.subscribe((v) => (emittedView = v));
 
     component.toggleViewDropdown();
     component.selectView('allocation');
@@ -87,9 +91,20 @@ describe('HeaderComponent', () => {
     expect(component.isViewDropdownOpen()).toBe(false);
   });
 
+  it('should emit viewChange output and close dropdown when selecting analytics view', () => {
+    let emittedView = '';
+    component.viewChange.subscribe((v) => (emittedView = v));
+
+    component.toggleViewDropdown();
+    component.selectView('analytics');
+
+    expect(emittedView).toBe('analytics');
+    expect(component.isViewDropdownOpen()).toBe(false);
+  });
+
   it('should emit viewChange output and close dropdown when selecting performance view', () => {
     let emittedView = '';
-    component.viewChange.subscribe(v => emittedView = v);
+    component.viewChange.subscribe((v) => (emittedView = v));
 
     component.toggleViewDropdown();
     component.selectView('performance');
@@ -124,7 +139,7 @@ describe('HeaderComponent', () => {
     componentRef.setInput('dividendData', {
       symbolSummaries: [{ symbol: 'AAPL' }, { symbol: 'MSFT' }],
       records: [{ id: '1' }, { id: '2' }, { id: '3' }],
-      portfolioYieldOnCost: 4.85
+      portfolioYieldOnCost: 4.85,
     } as any);
     componentRef.setInput('currentView', 'dividends');
     fixture.detectChanges();
@@ -139,8 +154,8 @@ describe('HeaderComponent', () => {
     componentRef.setInput('portfolioData', {
       openPositions: [
         { symbol: 'AAPL', assetType: 'us-stock', unrealizedPL: 500 },
-        { symbol: 'SCB.BK', assetType: 'thai-stock', unrealizedPL: -200 }
-      ]
+        { symbol: 'SCB.BK', assetType: 'thai-stock', unrealizedPL: -200 },
+      ],
     } as any);
     componentRef.setInput('currentView', 'allocation');
     fixture.detectChanges();
@@ -154,7 +169,7 @@ describe('HeaderComponent', () => {
       totalSymbols: 5,
       totalLots: 12,
       rawTransactions: [{ id: 'tx-1' }, { id: 'tx-2' }, { id: 'tx-3' }, { id: 'tx-4' }],
-      error: null
+      error: null,
     } as any);
     componentRef.setInput('currentView', 'transactions');
     fixture.detectChanges();
@@ -169,8 +184,8 @@ describe('HeaderComponent', () => {
       openPositions: [
         { symbol: 'AAPL', unrealizedPL: 500 },
         { symbol: 'NVDA', unrealizedPL: 1200 },
-        { symbol: 'SCB.BK', unrealizedPL: -200 }
-      ]
+        { symbol: 'SCB.BK', unrealizedPL: -200 },
+      ],
     } as any);
     componentRef.setInput('currentView', 'performance');
     fixture.detectChanges();
@@ -192,7 +207,7 @@ describe('HeaderComponent', () => {
 
   it('should emit privacyChange output when privacy toggle button is clicked', () => {
     let privacyToggled = false;
-    component.privacyChange.subscribe(() => privacyToggled = true);
+    component.privacyChange.subscribe(() => (privacyToggled = true));
 
     const button = fixture.nativeElement.querySelector('#privacy-toggle-btn') as HTMLButtonElement;
     expect(button).toBeTruthy();

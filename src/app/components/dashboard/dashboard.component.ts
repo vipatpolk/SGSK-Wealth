@@ -1,10 +1,4 @@
-import {
-  Component,
-  input,
-  output,
-  computed,
-  ChangeDetectionStrategy,
-} from '@angular/core';
+import { Component, input, output, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, CurrencyPipe, DecimalPipe, DatePipe } from '@angular/common';
 import { PortfolioHoldingsResponse, PortfolioPosition } from '../../models/portfolio.model';
 import { PortfolioDividendResponse } from '../../models/dividend.model';
@@ -15,13 +9,12 @@ import { SymbolIconComponent } from '../symbol-icon/symbol-icon.component';
 import {
   displaySymbol,
   getSymbolName,
-  getSymbolColor,
   getAssetType,
   getAssetTypeLabel,
   getAssetColor,
   convertCurrency,
-  getPriceFormat,
   getQuantityFormat,
+  getUnitLabel,
 } from '../../utils/format.utils';
 
 export interface AssetAllocationItem {
@@ -74,12 +67,11 @@ export class DashboardComponent {
   // Formatting helpers
   readonly displaySymbol = displaySymbol;
   readonly getSymbolName = getSymbolName;
-  readonly getSymbolColor = getSymbolColor;
   readonly getAssetType = getAssetType;
   readonly getAssetTypeLabel = getAssetTypeLabel;
   readonly getAssetColor = getAssetColor;
-  readonly getPriceFormat = getPriceFormat;
   readonly getQuantityFormat = getQuantityFormat;
+  readonly getUnitLabel = getUnitLabel;
 
   private cx(value: number, originalCurrency: string): number {
     if (!this.hasRate()) return value;
@@ -150,7 +142,9 @@ export class DashboardComponent {
   readonly totalReturn = computed<number>(() => {
     const data = this.portfolioData();
     if (!data) return 0;
-    const rawReturn = data.summary?.totalReturn ?? (data.summary?.totalUnrealizedPL ?? 0) + (data.summary?.totalRealizedPL ?? 0);
+    const rawReturn =
+      data.summary?.totalReturn ??
+      (data.summary?.totalUnrealizedPL ?? 0) + (data.summary?.totalRealizedPL ?? 0);
     return this.cx(rawReturn, data.currency);
   });
 
@@ -217,12 +211,16 @@ export class DashboardComponent {
   // Top Gainers & Losers
   readonly topGainers = computed<PortfolioPosition[]>(() => {
     const list = this.openPositions().filter((p) => (p.unrealizedPLPercent || 0) > 0);
-    return [...list].sort((a, b) => (b.unrealizedPLPercent || 0) - (a.unrealizedPLPercent || 0)).slice(0, 4);
+    return [...list]
+      .sort((a, b) => (b.unrealizedPLPercent || 0) - (a.unrealizedPLPercent || 0))
+      .slice(0, 4);
   });
 
   readonly topLosers = computed<PortfolioPosition[]>(() => {
     const list = this.openPositions().filter((p) => (p.unrealizedPLPercent || 0) < 0);
-    return [...list].sort((a, b) => (a.unrealizedPLPercent || 0) - (b.unrealizedPLPercent || 0)).slice(0, 4);
+    return [...list]
+      .sort((a, b) => (a.unrealizedPLPercent || 0) - (b.unrealizedPLPercent || 0))
+      .slice(0, 4);
   });
 
   readonly winningPositionsCount = computed<number>(() => {
@@ -254,7 +252,9 @@ export class DashboardComponent {
 
   // Provident Fund (PVD) specific insights (if present)
   readonly pvdPositions = computed<PortfolioPosition[]>(() => {
-    return this.openPositions().filter((p) => p.assetType === 'provident-fund' || p.employeeShares !== undefined);
+    return this.openPositions().filter(
+      (p) => getAssetType(p.assetType, p.symbol) === 'provident-fund',
+    );
   });
 
   readonly hasPvd = computed<boolean>(() => {
@@ -262,7 +262,10 @@ export class DashboardComponent {
   });
 
   readonly pvdTotalValue = computed<number>(() => {
-    return this.pvdPositions().reduce((acc, pos) => acc + this.cx(pos.holdingValue || pos.totalCost, pos.currency), 0);
+    return this.pvdPositions().reduce(
+      (acc, pos) => acc + this.cx(pos.holdingValue || pos.totalCost, pos.currency),
+      0,
+    );
   });
 
   readonly pvdEmployeeContribution = computed<number>(() => {
@@ -273,30 +276,48 @@ export class DashboardComponent {
     return this.pvdPositions().reduce((acc, pos) => acc + (pos.employerMatching || 0), 0);
   });
 
-  // Recent transactions feed
+  // Recent transactions feed (actual trade transactions only, excluding provident fund)
   readonly recentTransactions = computed<RecentTransactionItem[]>(() => {
     const data = this.portfolioData();
     if (!data) return [];
 
     const items: RecentTransactionItem[] = [];
 
-    if (data.transactionSummaries && data.transactionSummaries.length > 0) {
+    const hasValidSummaries = data.transactionSummaries?.some(
+      (s) => getAssetType(s.assetType, s.symbol) !== 'provident-fund',
+    );
+
+    if (data.transactionSummaries && data.transactionSummaries.length > 0 && hasValidSummaries) {
       for (const sum of data.transactionSummaries) {
+        if (getAssetType(sum.assetType, sum.symbol) === 'provident-fund') {
+          continue;
+        }
         if (sum.transactions) {
           for (const tx of sum.transactions) {
+            const assetType = tx.assetType || sum.assetType;
+            const symbol = tx.symbol || sum.symbol;
+            if (getAssetType(assetType, symbol) === 'provident-fund') {
+              continue;
+            }
+            if (!tx.quantity || tx.quantity <= 0 || !tx.date) {
+              continue;
+            }
+
             let t: 'BUY' | 'SELL' | 'EX-IN' | 'EX-OUT' = 'BUY';
             if (tx.type === 'SELL') t = 'SELL';
             else if (tx.type === 'EXCHANGE_IN' || tx.type === 'EXCHANGE') t = 'EX-IN';
             else if (tx.type === 'EXCHANGE_OUT') t = 'EX-OUT';
+            else if (tx.type === 'BUY') t = 'BUY';
+            else continue;
 
             items.push({
-              id: tx.id || `tx-${sum.symbol}-${tx.date}`,
+              id: tx.id || `tx-${symbol}-${tx.date}-${tx.quantity}`,
               date: tx.date,
               type: t,
-              symbol: sum.symbol,
-              displaySymbol: displaySymbol(sum.symbol),
-              name: getSymbolName(sum.symbol),
-              assetType: tx.assetType || sum.assetType,
+              symbol: symbol,
+              displaySymbol: displaySymbol(symbol),
+              name: getSymbolName(symbol),
+              assetType: assetType,
               quantity: tx.quantity,
               price: this.cx(tx.price, tx.currency || 'USD'),
               totalAmount: this.cx(tx.totalAmount || tx.quantity * tx.price, tx.currency || 'USD'),
@@ -308,11 +329,20 @@ export class DashboardComponent {
     } else if (data.rawTransactions && data.rawTransactions.length > 0) {
       for (let i = 0; i < data.rawTransactions.length; i++) {
         const tx = data.rawTransactions[i];
+        if (getAssetType(tx.assetType, tx.symbol) === 'provident-fund') {
+          continue;
+        }
+        if (!tx.quantity || tx.quantity <= 0 || !tx.date) {
+          continue;
+        }
+
         let t: 'BUY' | 'SELL' | 'EX-IN' | 'EX-OUT' = 'BUY';
         const rawType = (tx.txType || 'BUY').toUpperCase();
         if (rawType.includes('SELL')) t = 'SELL';
-        else if (rawType.includes('IN')) t = 'EX-IN';
+        else if (rawType.includes('IN') || rawType === 'EXCHANGE') t = 'EX-IN';
         else if (rawType.includes('OUT')) t = 'EX-OUT';
+        else if (rawType.includes('BUY')) t = 'BUY';
+        else continue;
 
         items.push({
           id: `raw-${i}-${tx.symbol}-${tx.date}`,

@@ -1,11 +1,31 @@
-import { Component, input, signal, computed, effect, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  input,
+  signal,
+  computed,
+  effect,
+  OnInit,
+  inject,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { SymbolIconComponent } from '../symbol-icon/symbol-icon.component';
-import { SymbolSummary, TargetAllocation, RebalanceRecommendation } from '../../models/transaction.model';
+import {
+  SymbolSummary,
+  TargetAllocation,
+  RebalanceRecommendation,
+} from '../../models/transaction.model';
 import { PriceData } from '../../services/price.service';
 import { PortfolioService } from '../../services/portfolio.service';
 import { PortfolioAllocationResponse } from '../../models/portfolio.model';
-import { getAssetType, getAssetTypeLabel, getAssetColor, getSymbolColor, displaySymbol, resolveSymbolName } from '../../utils/format.utils';
+import {
+  getAssetType,
+  getAssetTypeLabel,
+  getAssetColor,
+  getSymbolColor,
+  displaySymbol,
+  resolveSymbolName,
+} from '../../utils/format.utils';
 
 @Component({
   selector: 'app-asset-allocation',
@@ -13,7 +33,7 @@ import { getAssetType, getAssetTypeLabel, getAssetColor, getSymbolColor, display
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CurrencyPipe, DecimalPipe, SymbolIconComponent],
   templateUrl: './asset-allocation.component.html',
-  styleUrls: ['./asset-allocation.component.css']
+  styleUrls: ['./asset-allocation.component.css'],
 })
 export class AssetAllocationComponent implements OnInit {
   private readonly portfolioService = inject(PortfolioService);
@@ -27,9 +47,9 @@ export class AssetAllocationComponent implements OnInit {
   private defaultTargets: TargetAllocation = {
     'us-stock': 40,
     'thai-stock': 30,
-    'crypto': 15,
+    crypto: 15,
     'mutual-fund': 15,
-    'bond': 0,
+    bond: 0,
     'provident-fund': 0,
   };
 
@@ -37,7 +57,6 @@ export class AssetAllocationComponent implements OnInit {
   selectedAssetType = signal<string | null>(null);
 
   readonly serverAllocation = signal<PortfolioAllocationResponse | null>(null);
-
 
   selectAssetType(type: string | null): void {
     if (this.selectedAssetType() === type) {
@@ -93,7 +112,7 @@ export class AssetAllocationComponent implements OnInit {
 
   readonly currentValues = computed(() => {
     const vals: Record<string, number> = Object.fromEntries(
-      Object.keys(this.defaultTargets).map((k) => [k, 0])
+      Object.keys(this.defaultTargets).map((k) => [k, 0]),
     );
     const pm = this.pricesMap();
     for (const s of this.summaries()) {
@@ -162,7 +181,11 @@ export class AssetAllocationComponent implements OnInit {
 
   readonly currencyExposure = computed(() => {
     const alloc = this.serverAllocation();
-    if (alloc && alloc.currencyExposure && (alloc.currencyExposure.usd > 0 || alloc.currencyExposure.thb > 0)) {
+    if (
+      alloc &&
+      alloc.currencyExposure &&
+      (alloc.currencyExposure.usd > 0 || alloc.currencyExposure.thb > 0)
+    ) {
       return {
         usd: this.cx(alloc.currencyExposure.usd, alloc.currency),
         thb: this.cx(alloc.currencyExposure.thb, alloc.currency),
@@ -289,7 +312,6 @@ export class AssetAllocationComponent implements OnInit {
   getAssetLabel(type: string): string {
     return getAssetTypeLabel(type);
   }
-
 
   readonly donutSegments = computed(() => {
     const selectedType = this.selectedAssetType();

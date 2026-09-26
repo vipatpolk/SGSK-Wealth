@@ -5,8 +5,12 @@ export class HeaderPage {
   readonly logoText: Locator;
   readonly viewToggleDashboardBtn: Locator;
   readonly viewToggleHoldingsBtn: Locator;
+  readonly viewToggleAnalyticsBtn: Locator;
   readonly viewToggleAllocationBtn: Locator;
   readonly viewTogglePerformanceBtn: Locator;
+  readonly analyticsTabOverviewBtn: Locator;
+  readonly analyticsTabAllocationBtn: Locator;
+  readonly analyticsTabPerformanceBtn: Locator;
   readonly viewToggleTransactionsBtn: Locator;
   readonly viewToggleToolsBtn: Locator;
   readonly currencyUsdBtn: Locator;
@@ -22,8 +26,16 @@ export class HeaderPage {
     this.logoText = page.locator('.logo-text');
     this.viewToggleDashboardBtn = page.locator('#view-toggle-dashboard');
     this.viewToggleHoldingsBtn = page.locator('#view-toggle-holdings');
-    this.viewToggleAllocationBtn = page.locator('#view-toggle-allocation');
-    this.viewTogglePerformanceBtn = page.locator('#view-toggle-performance');
+    this.viewToggleAnalyticsBtn = page.locator('#view-toggle-analytics');
+    this.analyticsTabOverviewBtn = page.locator('#analytics-tab-overview');
+    this.analyticsTabAllocationBtn = page.locator('#analytics-tab-allocation');
+    this.analyticsTabPerformanceBtn = page.locator('#analytics-tab-performance');
+    this.viewToggleAllocationBtn = page.locator(
+      '#view-toggle-analytics, #analytics-tab-allocation',
+    );
+    this.viewTogglePerformanceBtn = page.locator(
+      '#view-toggle-analytics, #analytics-tab-performance',
+    );
     this.viewToggleTransactionsBtn = page.locator('#view-toggle-transactions');
     this.viewToggleToolsBtn = page.locator('#view-toggle-tools');
     this.currencyUsdBtn = page.locator('#currency-usd');
@@ -48,12 +60,22 @@ export class HeaderPage {
     await this.viewToggleHoldingsBtn.click();
   }
 
+  async selectAnalyticsView() {
+    await this.viewToggleAnalyticsBtn.click();
+  }
+
   async selectAllocationView() {
-    await this.viewToggleAllocationBtn.click();
+    await this.viewToggleAnalyticsBtn.click();
+    if (await this.analyticsTabAllocationBtn.isVisible()) {
+      await this.analyticsTabAllocationBtn.click();
+    }
   }
 
   async selectPerformanceView() {
-    await this.viewTogglePerformanceBtn.click();
+    await this.viewToggleAnalyticsBtn.click();
+    if (await this.analyticsTabPerformanceBtn.isVisible()) {
+      await this.analyticsTabPerformanceBtn.click();
+    }
   }
 
   async selectTransactionsView() {

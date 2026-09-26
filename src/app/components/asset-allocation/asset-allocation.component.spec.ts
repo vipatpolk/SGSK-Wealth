@@ -17,7 +17,7 @@ describe('AssetAllocationComponent', () => {
       averageCost: 150,
       currency: 'USD',
       assetType: 'us-stock',
-      lots: []
+      lots: [],
     },
     {
       symbol: 'PTT.BK',
@@ -26,18 +26,18 @@ describe('AssetAllocationComponent', () => {
       averageCost: 35,
       currency: 'THB',
       assetType: 'thai-stock',
-      lots: []
-    }
+      lots: [],
+    },
   ];
 
   const mockPricesMap = new Map<string, PriceData>([
     ['AAPL', { symbol: 'AAPL', name: 'Apple Inc.', price: 180, currency: 'USD' }],
-    ['PTT.BK', { symbol: 'PTT.BK', name: 'PTT Public Co.', price: 36, currency: 'THB' }]
+    ['PTT.BK', { symbol: 'PTT.BK', name: 'PTT Public Co.', price: 36, currency: 'THB' }],
   ]);
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AssetAllocationComponent]
+      imports: [AssetAllocationComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AssetAllocationComponent);
@@ -111,4 +111,3 @@ describe('AssetAllocationComponent', () => {
     expect(component.actualTotal()).toBeCloseTo(100, 0);
   });
 });
-
