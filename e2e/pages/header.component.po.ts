@@ -66,16 +66,12 @@ export class HeaderPage {
 
   async selectAllocationView() {
     await this.viewToggleAnalyticsBtn.click();
-    if (await this.analyticsTabAllocationBtn.isVisible()) {
-      await this.analyticsTabAllocationBtn.click();
-    }
+    await this.analyticsTabAllocationBtn.click();
   }
 
   async selectPerformanceView() {
     await this.viewToggleAnalyticsBtn.click();
-    if (await this.analyticsTabPerformanceBtn.isVisible()) {
-      await this.analyticsTabPerformanceBtn.click();
-    }
+    await this.analyticsTabPerformanceBtn.click();
   }
 
   async selectTransactionsView() {
