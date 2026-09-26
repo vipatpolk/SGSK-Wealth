@@ -12,6 +12,7 @@ export interface DividendRecord {
   symbol: string;
   displaySymbol: string;
   date: string;
+  recordDate?: string;
   assetType: string;
   assetTypeLabel: string;
   shares: number;

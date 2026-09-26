@@ -527,7 +527,14 @@
         <tbody>
           @for (r of paginatedRecords(); track r.id) {
             <tr>
-              <td class="font-mono">{{ r.date }}</td>
+              <td class="font-mono">
+                <div>{{ r.date }}</div>
+                @if (r.recordDate && r.recordDate !== r.date) {
+                  <div style="font-size: 0.7rem; color: var(--color-text-muted);" title="Entitlement snapshot date">
+                    snap: {{ r.recordDate }}
+                  </div>
+                }
+              </td>
               <td style="font-weight: 700;">{{ getDisplaySymbol()(r.symbol) }}</td>
               <td>
                 <span class="asset-badge" [ngClass]="getAssetTypeClass()(r.assetType, r.symbol)">
@@ -811,7 +818,14 @@
             <tbody>
               @for (r of holding.records; track r.id) {
                 <tr>
-                  <td class="font-mono">{{ r.date }}</td>
+                  <td class="font-mono">
+                    <div>{{ r.date }}</div>
+                    @if (r.recordDate && r.recordDate !== r.date) {
+                      <div style="font-size: 0.7rem; color: var(--color-text-muted);" title="Entitlement snapshot date">
+                        snap: {{ r.recordDate }}
+                      </div>
+                    }
+                  </td>
                   <td class="text-right font-mono">{{ r.shares | number:'1.0-4' }}</td>
                   <td class="text-right font-mono">{{ r.dividendPerShare | number:'1.2-4' }} {{ r.currency }}</td>
                   <td class="text-right font-mono">{{ r.grossAmount | currency:r.currency:'symbol-narrow':'1.2-2' }}</td>
