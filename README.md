@@ -12,8 +12,12 @@
   <img src="https://img.shields.io/badge/Angular-22.1-DD0031?style=flat-square&logo=angular&logoColor=white" alt="Angular 22" />
   <img src="https://img.shields.io/badge/TailwindCSS-v4.3-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS v4.3" />
   <img src="https://img.shields.io/badge/TypeScript-6.0-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript 6.0" />
+  <img src="https://img.shields.io/badge/Cucumber-BDD-23D96C?style=flat-square&logo=cucumber&logoColor=white" alt="Cucumber BDD" />
+  <img src="https://img.shields.io/badge/Serenity%2FJS-Living_Doc-5B9BD5?style=flat-square" alt="Serenity/JS Reporting" />
+  <img src="https://img.shields.io/badge/PactumJS-API_Testing-FF6C37?style=flat-square" alt="PactumJS" />
   <img src="https://img.shields.io/badge/Playwright-1.50-45BA4B?style=flat-square&logo=playwright&logoColor=white" alt="Playwright E2E" />
   <img src="https://img.shields.io/badge/Vitest-4.1-FCC72B?style=flat-square&logo=vitest&logoColor=black" alt="Vitest Unit Testing" />
+  <a href="https://vipatpolk.github.io/ShareLot/"><img src="https://img.shields.io/badge/Living_Docs-GitHub_Pages-2ea44f?style=flat-square&logo=githubpages&logoColor=white" alt="Living Documentation" /></a>
   <img src="https://img.shields.io/badge/Node.js-24.19_LTS-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js 24 LTS" />
   <img src="https://img.shields.io/badge/Deploy-Vercel-000000?style=flat-square&logo=vercel&logoColor=white" alt="Vercel" />
 </p>
@@ -142,7 +146,7 @@
 | **Backend Integration** | [FastAPI Backend (SGSKBackend)](https://github.com/vipatpolk/SGSKBackend) for data processing and API proxying |
 | **Data Source**         | Google Sheets CSV Export (via Backend)                                                                         |
 | **Unit Testing**        | [Vitest](https://vitest.dev/) & jsdom (**31 test files, 311 unit tests**)                                      |
-| **E2E Testing**         | [Playwright](https://playwright.dev/) & Page Object Models (**210 automated tests** across 5 browser targets)  |
+| **E2E & API Testing**   | [Cucumber BDD](https://cucumber.io/), [Serenity/JS](https://serenity-js.org/) & [PactumJS](https://pactumjs.github.io/) (**51 scenarios: 41 UI, 10 API**) |
 | **Deployment**          | [Vercel](https://vercel.com/) (with API proxy rewrites)                                                        |
 
 ---
@@ -151,10 +155,16 @@
 
 ```
 ShareLot/
-├── e2e/                        # Playwright End-to-End (E2E) Test Suite
-│   ├── fixtures/               # Deterministic mock JSON payloads (sheets, prices, rates)
+├── e2e/                        # Unified Cucumber BDD, Serenity/JS & PactumJS Test Suite
+│   ├── features/               # Gherkin .feature specifications (UI and API)
+│   │   ├── api/                # REST API contract and service features
+│   │   └── ui/                 # End-to-end user journey features
+│   ├── step_definitions/       # Step definition implementations
+│   │   ├── api/                # PactumJS REST API step definitions
+│   │   └── ui/                 # Playwright UI step definitions
+│   ├── support/                # Serenity actors, lifecycle hooks & Pactum config
 │   ├── pages/                  # Page Object Model (POM) classes
-│   ├── specs/                  # E2E test spec suites across core functional areas
+│   ├── fixtures/               # Deterministic mock JSON payloads (sheets, prices, rates)
 │   └── utils/                  # Network interception utilities (page.route)
 ├── public/                     # Static assets & favicons
 ├── src/
@@ -249,26 +259,45 @@ Execute unit tests using Vitest (31 test files, 311 unit tests):
 npm test
 ```
 
-### Running End-to-End (E2E) Tests
+### Running End-to-End (E2E) & API Tests
 
-ShareLot includes a comprehensive Playwright E2E suite covering **210 automated tests** across 5 browser target environments (Chromium, Firefox, WebKit, Mobile Safari, Mobile Chrome):
+ShareLot includes a unified Cucumber BDD test suite covering **51 automated scenarios** (41 UI and 10 REST API) with Serenity/JS HTML living documentation and PactumJS:
 
 ```bash
-# Run all E2E tests in headless mode across all 5 browser targets
+# Run all E2E and API scenarios via single Cucumber runner (51 scenarios)
 npm run test:e2e
 
-# Launch the interactive Playwright UI runner
+# Run only UI browser scenarios
 npm run test:e2e:ui
 
-# Debug E2E tests step-by-step with browser inspector
-npm run test:e2e:debug
+# Run only REST API scenarios via PactumJS
+npm run test:e2e:api
 
-# View HTML test execution report
+# Run critical path smoke tests
+npm run test:e2e:smoke
+
+# View interactive Serenity/JS HTML living documentation report locally
 npm run test:e2e:report
+
+# Generate GitHub Actions Job Summary markdown
+npm run test:e2e:summary
 
 # Clear test results and report output folders
 npm run clean:e2e
 ```
+
+### Viewing Serenity Living Documentation on CI/CD
+
+The GitHub Actions CI/CD workflow (`.github/workflows/e2e.yml`) automatically publishes test reports on every build:
+
+1. **GitHub Pages (Live Interactive Report)**:
+   - On every push to `master` / `main`, the Serenity HTML living documentation is automatically deployed to GitHub Pages at:
+     `https://vipatpolk.github.io/ShareLot/`
+   - Browse interactive execution timelines, scenario steps, and failure screenshots with zero local installation.
+2. **GitHub Actions Job Summary**:
+   - Every workflow run (pushes and pull requests) generates an instant **Execution Scorecard** directly inside the GitHub Actions run summary tab with total pass rates, scenario counts, duration, and top slowest scenarios.
+3. **Downloadable Artifacts**:
+   - The full `reports/serenity-js/` archive is stored as a GitHub Actions build artifact (`serenity-living-documentation`) for 14 days. Download and run `npm run test:e2e:report` to view offline.
 
 ### Production Build
 

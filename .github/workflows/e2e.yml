@@ -1,4 +1,4 @@
-name: E2E Regression Testing
+name: E2E & API Regression Testing
 
 on:
   push:
@@ -6,17 +6,16 @@ on:
   pull_request:
     branches: [ main, master ]
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
-  e2e-testing:
-    name: Playwright E2E Tests
+  cucumber-regression:
+    name: Cucumber & Serenity E2E + API
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
-    strategy:
-      fail-fast: false
-      matrix:
-        shardIndex: [1, 2, 3, 4]
-        shardTotal: [4]
 
     steps:
       - name: Checkout Repository
@@ -33,15 +32,27 @@ jobs:
         run: npm ci
 
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium
 
-      - name: Run Playwright E2E Tests (Sharded)
-        run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+      - name: Run Unified Cucumber Suite (UI & API)
+        run: npm run test:e2e
 
-      - name: Upload Test Artifacts (Traces & Screenshots)
-        if: failure()
+      - name: Generate GitHub Actions Step Summary
+        if: always()
+        run: npm run test:e2e:summary
+
+      - name: Upload Serenity Living Documentation Artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-artifacts-shard-${{ matrix.shardIndex }}
-          path: playwright-report/
-          retention-days: 7
+          name: serenity-living-documentation
+          path: reports/serenity-js/
+          retention-days: 14
+
+      - name: Deploy Serenity Report to GitHub Pages
+        if: always() && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main') && github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./reports/serenity-js
+          keep_files: false
