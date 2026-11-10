@@ -184,24 +184,21 @@
   min-width: 0;
   overflow: hidden;
   box-shadow: 0 1px 3px var(--color-shadow-sm);
-  transition: transform 0.15s ease, border-color 0.15s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .div-summary-card:hover {
   border-color: var(--color-border-hover);
-  transform: translateY(-1px);
 }
 
 .div-summary-card-highlight {
-  border-color: var(--color-accent);
-  background: linear-gradient(135deg, var(--color-surface-raised) 0%, var(--color-accent-soft) 100%);
+  border-color: var(--color-border-hover);
+  background: var(--color-surface-overlay);
 }
 
 .div-summary-label {
   font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-weight: 500;
   color: var(--color-text-muted);
 }
 
@@ -448,8 +445,8 @@
 }
 
 .div-asset-card.active {
-  border-color: var(--color-accent);
-  background: linear-gradient(135deg, var(--color-surface-raised) 0%, var(--color-accent-soft) 100%);
+  border-color: var(--color-border-hover);
+  background: var(--color-surface-overlay);
 }
 
 .asset-card-top {
@@ -617,10 +614,8 @@
 
 .autocomplete-header {
   padding: 0.375rem 0.625rem;
-  font-size: 0.625rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 700;
+  font-size: 0.6875rem;
+  font-weight: 600;
   color: var(--color-text-muted);
   background: var(--color-surface-overlay);
   border-bottom: 1px solid var(--color-border);
@@ -691,11 +686,9 @@
 }
 
 .autocomplete-dps-label {
-  font-size: 0.5625rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-size: 0.625rem;
   color: var(--color-text-muted);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .autocomplete-dps-val {
@@ -725,9 +718,7 @@
   background: var(--color-surface-overlay);
   color: var(--color-text-secondary);
   font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.625rem;
-  letter-spacing: 0.05em;
+  font-size: 0.75rem;
   padding: 0.625rem 0.75rem;
   border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
@@ -1015,10 +1006,8 @@
 }
 
 .modal-stat-label {
-  font-size: 0.625rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 600;
+  font-size: 0.6875rem;
+  font-weight: 500;
   color: var(--color-text-muted);
   white-space: nowrap;
 }
@@ -1112,11 +1101,9 @@
 }
 
 .modal-record-item-label {
-  font-size: 0.5625rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-size: 0.625rem;
   color: var(--color-text-muted);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .modal-footer {
@@ -1420,10 +1407,8 @@
 
 .mobile-grid-label {
   font-size: 0.625rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   color: var(--color-text-muted);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* ==========================================================================

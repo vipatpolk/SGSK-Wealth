@@ -76,9 +76,9 @@
 }
 
 .analytics-tab-btn.active {
-  background: var(--color-accent, #1661d8);
+  background: var(--color-accent);
   color: #ffffff !important;
-  box-shadow: 0 2px 8px rgba(22, 97, 216, 0.35);
+  box-shadow: none;
 }
 
 /* Tab Pane Wrapper */
@@ -119,21 +119,21 @@
 }
 
 .kpi-card-highlight {
-  border-color: rgba(22, 97, 216, 0.35);
-  background: linear-gradient(135deg, var(--bg-card) 0%, rgba(22, 97, 216, 0.06) 100%);
+  border-color: var(--color-accent);
+  background: var(--bg-card);
 }
 
 .kpi-label {
   font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
   color: var(--color-text-muted);
 }
 
 .kpi-value {
-  font-size: 1.35rem;
-  font-weight: 700;
+  font-size: 1.25rem;
+  font-weight: 600;
   color: var(--color-text-primary);
   line-height: 1.2;
 }
@@ -259,10 +259,10 @@
 }
 
 .donut-center-label {
-  font-size: 0.65rem;
+  font-size: 0.6875rem;
   color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  text-transform: none;
+  letter-spacing: 0;
   margin-top: 0.15rem;
 }
 
@@ -359,11 +359,11 @@
 }
 
 .overview-section-title {
-  font-size: 0.775rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 500;
   color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  text-transform: none;
+  letter-spacing: 0;
   margin-bottom: 0.5rem;
 }
 
@@ -491,10 +491,10 @@
 
 .movers-sub-heading {
   font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 0.65rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-bottom: 0.5rem;
 }
 
 .mover-preview-row {
@@ -516,9 +516,9 @@
 }
 
 .mover-empty-text {
-  font-size: 0.775rem;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
-  font-style: italic;
+  font-style: normal;
   padding: 0.5rem 0;
 }
 

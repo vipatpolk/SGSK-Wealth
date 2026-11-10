@@ -40,9 +40,7 @@
 .calc-label {
   display: block;
   font-size: 0.8125rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-weight: 500;
   color: var(--color-text-secondary);
   margin-bottom: 0.5rem;
 }
@@ -183,9 +181,7 @@
 
 .dropdown-section-title {
   font-size: 0.6875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-weight: 600;
   color: var(--color-text-muted);
   padding: 0.5rem 0.5rem 0.25rem;
 }
@@ -379,8 +375,7 @@
 
 .input-field label {
   font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
+  font-weight: 500;
   color: var(--color-text-secondary);
 }
 
@@ -414,9 +409,7 @@
 
 .snapshot-label {
   font-size: 0.6875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--color-text-secondary);
   white-space: nowrap;
 }
@@ -476,9 +469,9 @@
   display: flex;
   align-items: center;
   gap: 0.875rem;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(56, 189, 248, 0.06) 100%);
-  border: 1px solid rgba(99, 102, 241, 0.25);
-  border-radius: 0.875rem;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
   padding: 0.875rem 1.25rem;
 }
 
@@ -715,8 +708,7 @@
 
 .chips-label {
   font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
+  font-weight: 500;
   color: var(--color-text-muted);
   margin-right: 0.125rem;
 }
@@ -773,24 +765,21 @@
   padding: 0.875rem 1.25rem;
   border-radius: 0.75rem;
   border: none;
-  background: linear-gradient(135deg, var(--color-accent) 0%, #4f46e5 100%);
+  background: var(--color-accent);
   color: #ffffff;
-  font-size: 0.9375rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: opacity 0.15s ease, background-color 0.15s ease;
 }
 
 .btn-calculate:hover:not(:disabled) {
-  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(99, 102, 241, 0.4);
+  opacity: 0.92;
 }
 
 .btn-calculate:active:not(:disabled) {
-  transform: translateY(0);
+  opacity: 0.85;
 }
 
 .btn-calculate:disabled {
@@ -915,8 +904,6 @@
 .queued-steps-title {
   font-size: 0.75rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   color: var(--color-text-secondary);
 }
 
@@ -1002,15 +989,13 @@
 }
 
 .sim-kpi-card.highlight-card {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(99, 102, 241, 0.02) 100%);
-  border-color: rgba(99, 102, 241, 0.3);
+  background: var(--color-surface-raised);
+  border-color: var(--color-border-hover);
 }
 
 .kpi-label {
   font-size: 0.6875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--color-text-secondary);
 }
 
@@ -1077,7 +1062,7 @@
 
 .shift-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #38bdf8 0%, var(--color-accent) 100%);
+  background: var(--color-accent);
   border-radius: 4px;
   transition: width 0.3s ease;
 }
@@ -1135,8 +1120,6 @@
   border-bottom: 1px solid var(--color-border);
   text-align: left;
   font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   white-space: nowrap;
 }
 
@@ -1195,12 +1178,12 @@
 }
 
 .cmp-card.highlight-card {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.06) 0%, var(--color-surface) 100%);
-  border-color: rgba(99, 102, 241, 0.3);
+  background: var(--color-surface-raised);
+  border-color: var(--color-border-hover);
 }
 
 .cmp-card.pl-summary-card {
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.04) 0%, var(--color-surface) 100%);
+  background: var(--color-surface);
 }
 
 .cmp-card-header {
@@ -1277,9 +1260,7 @@
 
 .cmp-flow-label {
   font-size: 0.625rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--color-text-muted);
 }
 
@@ -1366,9 +1347,9 @@
 }
 
 .solver-hero-card {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(99, 102, 241, 0.03) 100%);
-  border: 1px solid rgba(99, 102, 241, 0.35);
-  border-radius: 0.875rem;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
@@ -1379,9 +1360,7 @@
 
 .solver-hero-label {
   font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-weight: 600;
   color: var(--color-accent);
 }
 
@@ -1420,9 +1399,8 @@
 
 .bd-label {
   font-size: 0.6875rem;
-  text-transform: uppercase;
   color: var(--color-text-secondary);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .bd-val {

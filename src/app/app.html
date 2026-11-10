@@ -22,7 +22,6 @@
     <div class="screen-loader-content">
       <div class="screen-loader-brand">
         <div class="screen-loader-logo-wrap">
-          <div class="screen-loader-glow"></div>
           <div class="screen-loader-spinner">
             <div class="spinner-ring"></div>
             <div class="spinner-ring spinner-ring-inner"></div>
@@ -32,28 +31,14 @@
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
               fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
               class="logo-icon-lg"
             >
-              <defs>
-                <linearGradient id="loader-crest-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#1661D8" />
-                  <stop offset="100%" stop-color="#00B4D8" />
-                </linearGradient>
-              </defs>
-              <path
-                d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"
-                fill="url(#loader-crest-grad)"
-                fill-opacity="0.25"
-                stroke="url(#loader-crest-grad)"
-                stroke-width="1.8"
-              />
-              <path
-                d="M8 12.5l2.8 2.8 5.2-5.3"
-                stroke="#FFFFFF"
-                stroke-width="2.2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
+              <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" />
+              <path d="M8 12.5l2.8 2.8 5.2-5.3" />
             </svg>
           </div>
         </div>
@@ -234,8 +219,7 @@
       <div class="portfolio-hero-card" id="portfolio-hero">
         <div class="hero-header">
           <div class="hero-badge">
-            <span class="live-dot"></span>
-            <span>PORTFOLIO OVERVIEW</span>
+            <span>Portfolio Overview</span>
           </div>
           @if (hasRate()) {
             <div class="hero-rate-pill">
@@ -280,7 +264,6 @@
               [class.pl-positive]="totalPL() >= 0"
               [class.pl-negative]="totalPL() < 0"
             >
-              <span class="trend-icon">{{ totalPL() >= 0 ? '▲' : '▼' }}</span>
               <span class="hero-return-pct font-mono"
                 >{{ totalPL() >= 0 ? '+' : '' }}{{ totalPLPercent() | number: '1.2-2' }}%</span
               >

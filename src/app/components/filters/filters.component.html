@@ -5,7 +5,7 @@
     @if (isClosedTab()) {
       <div class="mobile-control-field">
         <div class="mobile-control-icon-wrap">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mobile-control-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mobile-control-icon">
             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
           </svg>
         </div>
@@ -20,7 +20,7 @@
           } @else {
             <span>Filter: All</span>
           }
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chevron-arrow-sm" [class.chevron-open]="isMobileFilterDropdownOpen()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="chevron-arrow-sm" [class.chevron-open]="isMobileFilterDropdownOpen()">
             <polyline points="6 9 12 15 18 9"></polyline>
           </svg>
         </button>
@@ -47,7 +47,7 @@
     <!-- Sort Control -->
     <div class="mobile-control-field" [class.dropdown-is-open]="isMobileSortDropdownOpen()">
       <div class="mobile-control-icon-wrap">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mobile-control-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mobile-control-icon">
           <path d="m3 16 4 4 4-4"></path>
           <path d="M7 20V4"></path>
           <path d="m21 8-4-4-4 4"></path>
@@ -65,7 +65,7 @@
         } @else {
           <span>Sort</span>
         }
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chevron-arrow-sm" [class.chevron-open]="isMobileSortDropdownOpen()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="chevron-arrow-sm" [class.chevron-open]="isMobileSortDropdownOpen()">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
       </button>
@@ -93,7 +93,7 @@
         [title]="sortDirection() === 'asc' ? 'Sort Ascending' : 'Sort Descending'"
         type="button"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="sort-arrow" [class.sort-arrow-up]="sortDirection() === 'asc'">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="sort-arrow" [class.sort-arrow-up]="sortDirection() === 'asc'">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
         <span class="mobile-sort-dir-text">{{ sortDirection() === 'asc' ? 'ASC' : 'DESC' }}</span>
@@ -135,7 +135,7 @@
     >
       {{ opt.label }}
       @if (sortField() === opt.field) {
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="sort-arrow" [class.sort-arrow-up]="sortDirection() === 'asc'">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="sort-arrow" [class.sort-arrow-up]="sortDirection() === 'asc'">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
       }

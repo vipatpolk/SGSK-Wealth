@@ -376,9 +376,7 @@
 
 .kpi-label {
   font-size: 0.6875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-weight: 500;
   color: var(--color-text-secondary);
 }
 
@@ -665,10 +663,8 @@
 
 .rebalance-table thead th {
   padding: 0.75rem 1rem;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+  font-weight: 600;
   color: var(--color-text-secondary);
   background-color: var(--color-surface-overlay);
   border-bottom: 1px solid var(--color-border);
@@ -765,9 +761,7 @@
 
 .m-metric-label {
   font-size: 0.6875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-weight: 500;
   color: var(--color-text-secondary);
 }
 

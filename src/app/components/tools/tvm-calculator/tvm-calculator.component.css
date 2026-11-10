@@ -41,9 +41,7 @@
 
 .mode-bar-label {
   font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-weight: 600;
   color: var(--color-text-secondary);
   white-space: nowrap;
 }
@@ -267,11 +265,9 @@
 
 .card-tag {
   font-size: 0.6875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-weight: 500;
   padding: 0.125rem 0.5rem;
-  border-radius: 9999px;
+  border-radius: 0.25rem;
   background-color: var(--color-surface-raised);
   color: var(--color-text-muted);
   border: 1px solid var(--color-border);
@@ -395,9 +391,7 @@
 
 .asset-chips-title {
   font-size: 0.6875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-weight: 600;
   color: var(--color-text-secondary);
 }
 
@@ -625,9 +619,9 @@
 
 /* ================= RESULTS / KPIS PANEL ================= */
 .tvm-hero-display {
-  background: linear-gradient(135deg, var(--color-surface-raised) 0%, var(--color-surface-overlay) 100%);
+  background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
-  border-radius: 0.875rem;
+  border-radius: 0.75rem;
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
@@ -643,9 +637,7 @@
 
 .hero-label {
   font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-weight: 500;
   color: var(--color-text-secondary);
 }
 
@@ -902,10 +894,8 @@
   z-index: 10;
   background-color: var(--color-surface);
   color: var(--color-text-secondary);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+  font-weight: 600;
   padding: 0.625rem 1rem;
   text-align: right;
   border-bottom: 1px solid var(--color-border);
