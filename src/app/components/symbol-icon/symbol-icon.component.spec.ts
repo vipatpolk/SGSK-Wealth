@@ -23,7 +23,7 @@ describe('SymbolIconComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('renders mutual fund placeholder SVG for mutual funds', () => {
+  it('renders mutual fund placeholder SVG before load and on error for mutual funds', () => {
     fixture.componentRef.setInput('symbol', 'SCBBLN.FUND');
     fixture.detectChanges();
 
@@ -32,7 +32,15 @@ describe('SymbolIconComponent', () => {
     const img = compiled.querySelector('img');
 
     expect(fundPlaceholder).toBeTruthy();
-    expect(img).toBeNull();
+    expect(img).toBeTruthy();
+    expect(img?.getAttribute('src')).toContain('/api/backend/icon/SCBBLN.FUND');
+
+    component.onImageError();
+    fixture.detectChanges();
+
+    const placeholderAfterError = compiled.querySelector('.fund-placeholder');
+    expect(placeholderAfterError).toBeTruthy();
+    expect(compiled.querySelector('img')).toBeNull();
   });
 
   it('renders image element for stocks', () => {
@@ -43,7 +51,7 @@ describe('SymbolIconComponent', () => {
     const img = compiled.querySelector('img');
 
     expect(img).toBeTruthy();
-    expect(img?.getAttribute('src')).toContain('parqet.com');
+    expect(img?.getAttribute('src')).toContain('/api/backend/icon/AAPL');
   });
 
   it('renders image element for crypto', () => {
@@ -54,15 +62,13 @@ describe('SymbolIconComponent', () => {
     const img = compiled.querySelector('img');
 
     expect(img).toBeTruthy();
-    expect(img?.getAttribute('src')).toContain('coincap.io');
+    expect(img?.getAttribute('src')).toContain('/api/backend/icon/BTC.CRYPTO');
   });
 
   it('falls back to monogram on image error', () => {
     fixture.componentRef.setInput('symbol', 'AAPL');
     fixture.detectChanges();
 
-    component.onImageError();
-    // Second error for secondary fallback
     component.onImageError();
     fixture.detectChanges();
 
@@ -74,8 +80,7 @@ describe('SymbolIconComponent', () => {
   });
 
   it('skips image if URL was already marked as failed', () => {
-    markLogoUrlFailed('https://assets.parqet.com/logos/symbol/AAPL?format=png');
-    markLogoUrlFailed('https://financialmodelingprep.com/image-stock/AAPL.png');
+    markLogoUrlFailed('/api/backend/icon/AAPL?asset_type=us-stock');
 
     fixture.componentRef.setInput('symbol', 'AAPL');
     fixture.detectChanges();

@@ -70,34 +70,16 @@ export class SymbolIconComponent {
       this.isLoaded.set(false);
       this.hasError.set(false);
 
-      if (cfg.isMutualFund) {
+      const url = cfg.primaryUrl;
+      if (url && !isLogoUrlFailed(url)) {
+        this.currentSrc.set(url);
+        if (isLogoUrlLoaded(url)) {
+          this.isLoaded.set(true);
+        }
+      } else {
         this.currentSrc.set(null);
-        return;
+        this.hasError.set(true);
       }
-
-      // Check primary URL
-      const primary = cfg.primaryUrl;
-      if (primary && !isLogoUrlFailed(primary)) {
-        this.currentSrc.set(primary);
-        if (isLogoUrlLoaded(primary)) {
-          this.isLoaded.set(true);
-        }
-        return;
-      }
-
-      // Check secondary URL
-      const secondary = cfg.secondaryUrl;
-      if (secondary && !isLogoUrlFailed(secondary)) {
-        this.currentSrc.set(secondary);
-        if (isLogoUrlLoaded(secondary)) {
-          this.isLoaded.set(true);
-        }
-        return;
-      }
-
-      // Both failed or unavailable -> monogram fallback
-      this.currentSrc.set(null);
-      this.hasError.set(true);
     });
   }
 
@@ -114,18 +96,7 @@ export class SymbolIconComponent {
     if (failed) {
       markLogoUrlFailed(failed);
     }
-
-    const cfg = this.config();
-    // If primary failed, attempt secondary
-    if (failed === cfg.primaryUrl && cfg.secondaryUrl && !isLogoUrlFailed(cfg.secondaryUrl)) {
-      this.currentSrc.set(cfg.secondaryUrl);
-      if (isLogoUrlLoaded(cfg.secondaryUrl)) {
-        this.isLoaded.set(true);
-      }
-    } else {
-      // Both failed
-      this.currentSrc.set(null);
-      this.hasError.set(true);
-    }
+    this.currentSrc.set(null);
+    this.hasError.set(true);
   }
 }

@@ -123,12 +123,14 @@ export class DividendComponent {
     const q = this.searchQuery().toLowerCase().trim();
     const recs = this.filteredRecords();
 
-    // Map of symbol -> timeframe net dividends and gross dividends
+    // Map of symbol -> timeframe net dividends, gross dividends, and withholding tax
     const symbolNetMap = new Map<string, number>();
     const symbolGrossMap = new Map<string, number>();
+    const symbolWhtMap = new Map<string, number>();
     for (const r of recs) {
       symbolNetMap.set(r.symbol, (symbolNetMap.get(r.symbol) || 0) + r.convertedNetAmount);
       symbolGrossMap.set(r.symbol, (symbolGrossMap.get(r.symbol) || 0) + r.convertedGrossAmount);
+      symbolWhtMap.set(r.symbol, (symbolWhtMap.get(r.symbol) || 0) + r.convertedWithholdingTax);
     }
 
     let list: SymbolDividendSummary[] = [];
@@ -172,7 +174,7 @@ export class DividendComponent {
           currentYieldPercent: symYield,
           convertedNetDividends: timeframeNet,
           convertedGrossDividends: symbolGrossMap.get(s.symbol) || 0,
-          convertedWithholdingTax: convWht,
+          convertedWithholdingTax: symbolWhtMap.get(s.symbol) || 0,
         });
       } else {
         list.push({

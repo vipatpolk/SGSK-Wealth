@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   cleanTickerForUrl,
+  getBackendSymbolIconUrl,
   getSymbolLogoConfig,
   getSymbolMonogram,
   isLogoUrlFailed,
@@ -33,43 +34,63 @@ describe('symbol-icon.utils', () => {
     });
   });
 
+  describe('getBackendSymbolIconUrl', () => {
+    it('constructs backend icon endpoint URL with resolved asset type', () => {
+      expect(getBackendSymbolIconUrl('AAPL', 'us-stock')).toBe(
+        '/api/backend/icon/AAPL?asset_type=us-stock'
+      );
+      expect(getBackendSymbolIconUrl('PTT.BK', 'thai-stock')).toBe(
+        '/api/backend/icon/PTT.BK?asset_type=thai-stock'
+      );
+      expect(getBackendSymbolIconUrl('SCBBLN.FUND')).toBe(
+        '/api/backend/icon/SCBBLN.FUND?asset_type=mutual-fund'
+      );
+    });
+
+    it('returns null for empty or null symbol', () => {
+      expect(getBackendSymbolIconUrl('')).toBeNull();
+      expect(getBackendSymbolIconUrl(null)).toBeNull();
+      expect(getBackendSymbolIconUrl(undefined)).toBeNull();
+    });
+  });
+
   describe('getSymbolLogoConfig', () => {
-    it('resolves crypto logo URLs', () => {
+    it('resolves crypto logo URL to backend endpoint', () => {
       const config = getSymbolLogoConfig('BTC.CRYPTO');
       expect(config.isMutualFund).toBe(false);
-      expect(config.primaryUrl).toBe('https://assets.coincap.io/assets/icons/btc@2x.png');
-      expect(config.secondaryUrl).toContain('spothq/cryptocurrency-icons');
+      expect(config.primaryUrl).toBe('/api/backend/icon/BTC.CRYPTO?asset_type=crypto');
+      expect(config.secondaryUrl).toBeNull();
       expect(config.monogram).toBe('BTC');
     });
 
-    it('resolves Thai stock logo URLs', () => {
+    it('resolves Thai stock logo URL to backend endpoint', () => {
       const config = getSymbolLogoConfig('PTT.BK');
       expect(config.isMutualFund).toBe(false);
-      expect(config.primaryUrl).toBe('https://www.set.or.th/dat/vender/quote/company_logo/PTT.png');
-      expect(config.secondaryUrl).toBe('https://assets.parqet.com/logos/symbol/PTT.BK?format=png');
+      expect(config.primaryUrl).toBe('/api/backend/icon/PTT.BK?asset_type=thai-stock');
+      expect(config.secondaryUrl).toBeNull();
       expect(config.monogram).toBe('PTT');
     });
 
-    it('resolves US stock logo URLs', () => {
+    it('resolves US stock logo URL to backend endpoint', () => {
       const config = getSymbolLogoConfig('AAPL');
       expect(config.isMutualFund).toBe(false);
-      expect(config.primaryUrl).toBe('https://assets.parqet.com/logos/symbol/AAPL?format=png');
-      expect(config.secondaryUrl).toBe('https://financialmodelingprep.com/image-stock/AAPL.png');
+      expect(config.primaryUrl).toBe('/api/backend/icon/AAPL?asset_type=us-stock');
+      expect(config.secondaryUrl).toBeNull();
       expect(config.monogram).toBe('AA');
     });
 
-    it('returns isMutualFund: true and no CDN URLs for Thai mutual funds', () => {
+    it('returns isMutualFund: true and backend icon URL for Thai mutual funds', () => {
       const config = getSymbolLogoConfig('SCBBLN.FUND');
       expect(config.isMutualFund).toBe(true);
-      expect(config.primaryUrl).toBeNull();
+      expect(config.primaryUrl).toBe('/api/backend/icon/SCBBLN.FUND?asset_type=mutual-fund');
       expect(config.secondaryUrl).toBeNull();
       expect(config.monogram).toBe('SC');
     });
 
-    it('returns isMutualFund: true and no CDN URLs for Provident Funds', () => {
+    it('returns isMutualFund: true and backend icon URL for Provident Funds', () => {
       const config = getSymbolLogoConfig('PVDSP500', 'provident-fund');
       expect(config.isMutualFund).toBe(true);
-      expect(config.primaryUrl).toBeNull();
+      expect(config.primaryUrl).toBe('/api/backend/icon/PVDSP500?asset_type=provident-fund');
       expect(config.secondaryUrl).toBeNull();
       expect(config.monogram).toBe('PV');
     });
@@ -77,6 +98,7 @@ describe('symbol-icon.utils', () => {
     it('handles empty symbol safely', () => {
       const config = getSymbolLogoConfig('');
       expect(config.primaryUrl).toBeNull();
+      expect(config.secondaryUrl).toBeNull();
       expect(config.monogram).toBe('?');
     });
   });
@@ -97,21 +119,21 @@ describe('symbol-icon.utils', () => {
 
   describe('URL Caches', () => {
     it('marks and checks failed URLs', () => {
-      const testUrl = 'https://example.com/broken.png';
+      const testUrl = '/api/backend/icon/FAIL?asset_type=us-stock';
       expect(isLogoUrlFailed(testUrl)).toBe(false);
       markLogoUrlFailed(testUrl);
       expect(isLogoUrlFailed(testUrl)).toBe(true);
     });
 
     it('marks and checks loaded URLs', () => {
-      const testUrl = 'https://example.com/success.png';
+      const testUrl = '/api/backend/icon/AAPL?asset_type=us-stock';
       expect(isLogoUrlLoaded(testUrl)).toBe(false);
       markLogoUrlLoaded(testUrl);
       expect(isLogoUrlLoaded(testUrl)).toBe(true);
     });
 
     it('clears caches cleanly', () => {
-      const testUrl = 'https://example.com/test.png';
+      const testUrl = '/api/backend/icon/TEST?asset_type=us-stock';
       markLogoUrlFailed(testUrl);
       markLogoUrlLoaded(testUrl);
       clearLogoCache();

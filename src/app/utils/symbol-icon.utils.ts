@@ -13,7 +13,7 @@ export interface SymbolLogoConfig {
 }
 
 /**
- * Normalizes symbol to a clean ticker string suitable for CDN lookup.
+ * Normalizes symbol to a clean ticker string suitable for lookup.
  */
 export function cleanTickerForUrl(symbol: string): string {
   const clean = displaySymbol(symbol || '').trim();
@@ -22,7 +22,22 @@ export function cleanTickerForUrl(symbol: string): string {
 }
 
 /**
- * Resolves logo URLs and fallback configuration for a given symbol and asset type.
+ * Generates backend icon endpoint URL for a given symbol and optional asset type.
+ */
+export function getBackendSymbolIconUrl(
+  symbol: string | null | undefined,
+  assetType?: string | null
+): string | null {
+  if (!symbol) return null;
+  const clean = symbol.trim();
+  if (!clean) return null;
+
+  const resolvedType = getAssetType(assetType || undefined, clean);
+  return `/api/backend/icon/${encodeURIComponent(clean)}?asset_type=${encodeURIComponent(resolvedType)}`;
+}
+
+/**
+ * Resolves backend logo URL and fallback configuration for a given symbol and asset type.
  */
 export function getSymbolLogoConfig(symbol: string, assetType?: string): SymbolLogoConfig {
   if (!symbol) {
@@ -36,49 +51,15 @@ export function getSymbolLogoConfig(symbol: string, assetType?: string): SymbolL
   }
 
   const type = getAssetType(assetType, symbol);
-  const cleanTicker = cleanTickerForUrl(symbol);
   const brandColor = getSymbolColor(symbol);
   const monogram = getSymbolMonogram(symbol);
+  const isMutualFund = type === 'mutual-fund' || type === 'provident-fund';
+  const backendUrl = getBackendSymbolIconUrl(symbol, type);
 
-  // Thai mutual funds and Provident funds: skip external logo lookup and use dedicated placeholder
-  if (type === 'mutual-fund' || type === 'provident-fund') {
-    return {
-      primaryUrl: null,
-      secondaryUrl: null,
-      isMutualFund: true,
-      monogram,
-      brandColor,
-    };
-  }
-
-  // Cryptocurrency
-  if (type === 'crypto') {
-    const symLower = cleanTicker.toLowerCase();
-    return {
-      primaryUrl: `https://assets.coincap.io/assets/icons/${symLower}@2x.png`,
-      secondaryUrl: `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/${symLower}.svg`,
-      isMutualFund: false,
-      monogram,
-      brandColor,
-    };
-  }
-
-  // Thai Equities (SET / MAI)
-  if (type === 'thai-stock') {
-    return {
-      primaryUrl: `https://www.set.or.th/dat/vender/quote/company_logo/${cleanTicker.toUpperCase()}.png`,
-      secondaryUrl: `https://assets.parqet.com/logos/symbol/${cleanTicker.toUpperCase()}.BK?format=png`,
-      isMutualFund: false,
-      monogram,
-      brandColor,
-    };
-  }
-
-  // U.S. Equities & Global ETFs (default)
   return {
-    primaryUrl: `https://assets.parqet.com/logos/symbol/${cleanTicker.toUpperCase()}?format=png`,
-    secondaryUrl: `https://financialmodelingprep.com/image-stock/${cleanTicker.toUpperCase()}.png`,
-    isMutualFund: false,
+    primaryUrl: backendUrl,
+    secondaryUrl: null,
+    isMutualFund,
     monogram,
     brandColor,
   };

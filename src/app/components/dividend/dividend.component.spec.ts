@@ -313,6 +313,8 @@ describe('DividendComponent', () => {
     expect(symbols.length).toBe(1);
     expect(symbols[0].symbol).toBe('PTT.BK');
     expect(symbols[0].convertedNetDividends).toBe(1080); // 2026 payout only (not 6300 all-time)
+    expect(symbols[0].convertedGrossDividends).toBe(1200);
+    expect(symbols[0].convertedWithholdingTax).toBe(120);
 
     const assetSummaries = component.activeAssetTypeSummaries();
     const thaiStock = assetSummaries.find(a => a.assetType === 'thai-stock');

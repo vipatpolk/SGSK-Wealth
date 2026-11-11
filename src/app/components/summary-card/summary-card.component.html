@@ -93,7 +93,15 @@
               </div>
             } @else if (pricesLoading()) {
               <div class="card-metric">
+                <span class="card-metric-label">{{ summary().assetType === 'mutual-fund' || summary().assetType === 'provident-fund' ? 'NAV' : 'Mkt Price' }}</span>
+                <span class="card-metric-value card-metric-shimmer">Loading…</span>
+              </div>
+              <div class="card-metric">
                 <span class="card-metric-label">Holding Value</span>
+                <span class="card-metric-value card-metric-shimmer">Loading…</span>
+              </div>
+              <div class="card-metric">
+                <span class="card-metric-label">P/L</span>
                 <span class="card-metric-value card-metric-shimmer">Loading…</span>
               </div>
             } @else {
@@ -103,6 +111,10 @@
               </div>
               <div class="card-metric">
                 <span class="card-metric-label">Holding Value</span>
+                <span class="card-metric-value">-</span>
+              </div>
+              <div class="card-metric">
+                <span class="card-metric-label">P/L</span>
                 <span class="card-metric-value">-</span>
               </div>
             }
@@ -282,7 +294,7 @@
         <!-- Standard Lots Table for other asset classes -->
         <div class="lots-container">
           <div class="lots-table-wrapper">
-            <table class="lots-table">
+            <table class="lots-table lots-table-open">
               <thead>
                 <tr>
                   <th class="lot-col-num">#</th>
@@ -299,28 +311,28 @@
               <tbody>
                 @for (lot of summary().lots; track (lot.purchaseDate + '-' + lot.quantity + '-' + lot.costBasis); let i = $index) {
                   <tr class="lot-row">
-                    <td class="lot-col-num">
+                    <td class="lot-col-num" data-label="#">
                       <span class="lot-number">{{ i + 1 }}</span>
                     </td>
-                    <td class="lot-col-date">
+                    <td class="lot-col-date" data-label="Date">
                       @if (lot.note) {
                         <span class="lot-note-badge" [class.lot-note-employee]="lot.note.includes('Employee')" [class.lot-note-employer]="lot.note.includes('Employer')">
                           {{ lot.note }}
                         </span>
                       } @else {
-                        {{ lot.purchaseDate | date:'MMM d, y' }}
+                        <span class="lot-cell-val">{{ lot.purchaseDate | date:'MMM d, y' }}</span>
                       }
                     </td>
-                    <td class="lot-col-qty">{{ lot.quantity | number:getQuantityFormat()(summary().symbol) }}</td>
-                    <td class="lot-col-cost">{{ cx()(lot.costBasis, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</td>
-                    <td class="lot-col-total">{{ cx()(lot.totalCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</td>
+                    <td class="lot-col-qty" data-label="Quantity"><span class="lot-cell-val">{{ lot.quantity | number:getQuantityFormat()(summary().symbol) }}</span></td>
+                    <td class="lot-col-cost" data-label="Cost Basis"><span class="lot-cell-val">{{ cx()(lot.costBasis, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</span></td>
+                    <td class="lot-col-total" data-label="Total Cost"><span class="lot-cell-val">{{ cx()(lot.totalCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span></td>
                     @if (hasPriceData()) {
-                      <td class="lot-col-total">{{ cx()(getLotHoldingValue()(lot, summary()), summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</td>
-                      <td class="lot-col-pl"
+                      <td class="lot-col-total" data-label="Holding Value"><span class="lot-cell-val">{{ cx()(getLotHoldingValue()(lot, summary()), summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span></td>
+                      <td class="lot-col-pl" data-label="P/L"
                         [class.pl-positive]="getLotUnrealizedPL()(lot, summary()) >= 0"
                         [class.pl-negative]="getLotUnrealizedPL()(lot, summary()) < 0"
                       >
-                        {{ getLotUnrealizedPL()(lot, summary()) >= 0 ? '+' : '' }}{{ cx()(getLotUnrealizedPL()(lot, summary()), summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}
+                        <span class="lot-amount">{{ getLotUnrealizedPL()(lot, summary()) >= 0 ? '+' : '' }}{{ cx()(getLotUnrealizedPL()(lot, summary()), summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
                       </td>
                     }
                   </tr>
@@ -329,16 +341,16 @@
               <tfoot>
                 <tr class="lot-summary-row">
                   <td colspan="2" class="lot-summary-label">Total</td>
-                  <td class="lot-col-qty lot-summary-value">{{ summary().totalShares | number:getQuantityFormat()(summary().symbol) }}</td>
-                  <td class="lot-col-cost lot-summary-value">{{ cx()(summary().averageCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }} avg</td>
-                  <td class="lot-col-total lot-summary-value">{{ cx()(summary().totalCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</td>
+                  <td class="lot-col-qty lot-summary-value" data-label="Total Quantity"><span class="lot-cell-val">{{ summary().totalShares | number:getQuantityFormat()(summary().symbol) }}</span></td>
+                  <td class="lot-col-cost lot-summary-value" data-label="Avg Cost Basis"><span class="lot-cell-val">{{ cx()(summary().averageCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }} avg</span></td>
+                  <td class="lot-col-total lot-summary-value" data-label="Total Cost"><span class="lot-cell-val">{{ cx()(summary().totalCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span></td>
                   @if (hasPriceData()) {
-                    <td class="lot-col-total lot-summary-value">{{ cx()(getHoldingValue()(summary()), summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</td>
-                    <td class="lot-col-pl lot-summary-value"
+                    <td class="lot-col-total lot-summary-value" data-label="Total Value"><span class="lot-cell-val">{{ cx()(getHoldingValue()(summary()), summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span></td>
+                    <td class="lot-col-pl lot-summary-value" data-label="Total P/L"
                       [class.pl-positive]="getUnrealizedPL()(summary()) >= 0"
                       [class.pl-negative]="getUnrealizedPL()(summary()) < 0"
                     >
-                      {{ getUnrealizedPL()(summary()) >= 0 ? '+' : '' }}{{ cx()(getUnrealizedPL()(summary()), summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}
+                      <span class="lot-amount">{{ getUnrealizedPL()(summary()) >= 0 ? '+' : '' }}{{ cx()(getUnrealizedPL()(summary()), summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
                     </td>
                   }
                 </tr>
@@ -436,7 +448,7 @@
     @if (isExpanded()) {
       <div class="lots-container">
         <div class="lots-table-wrapper">
-          <table class="lots-table">
+          <table class="lots-table lots-table-closed">
             <thead>
               <tr>
                 <th class="lot-col-num">#</th>
@@ -453,17 +465,17 @@
             <tbody>
               @for (lot of summary().lots; track (lot.purchaseDate + '-' + (lot.closeDate || '') + '-' + lot.quantity); let i = $index) {
                 <tr class="lot-row">
-                  <td class="lot-col-num">
+                  <td class="lot-col-num" data-label="#">
                     <span class="lot-number">{{ i + 1 }}</span>
                   </td>
-                  <td class="lot-col-date">{{ lot.purchaseDate | date:'MMM d, y' }}</td>
-                  <td class="lot-col-date">{{ lot.closeDate | date:'MMM d, y' }}</td>
-                  <td class="lot-col-qty">{{ lot.quantity | number:getQuantityFormat()(summary().symbol) }}</td>
-                  <td class="lot-col-cost">{{ cx()(lot.costBasis, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</td>
-                  <td class="lot-col-cost">{{ cx()(lot.sellPrice, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</td>
-                  <td class="lot-col-total">{{ cx()(lot.totalCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</td>
-                  <td class="lot-col-total">{{ cx()(lot.totalProceeds, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</td>
-                  <td class="lot-col-pl"
+                  <td class="lot-col-date" data-label="Buy Date"><span class="lot-cell-val">{{ lot.purchaseDate | date:'MMM d, y' }}</span></td>
+                  <td class="lot-col-date" data-label="Sell Date"><span class="lot-cell-val">{{ lot.closeDate | date:'MMM d, y' }}</span></td>
+                  <td class="lot-col-qty" data-label="Quantity"><span class="lot-cell-val">{{ lot.quantity | number:getQuantityFormat()(summary().symbol) }}</span></td>
+                  <td class="lot-col-cost" data-label="Buy Price"><span class="lot-cell-val">{{ cx()(lot.costBasis, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</span></td>
+                  <td class="lot-col-cost" data-label="Sell Price"><span class="lot-cell-val">{{ cx()(lot.sellPrice, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</span></td>
+                  <td class="lot-col-total" data-label="Total Cost"><span class="lot-cell-val">{{ cx()(lot.totalCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span></td>
+                  <td class="lot-col-total" data-label="Proceeds"><span class="lot-cell-val">{{ cx()(lot.totalProceeds, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span></td>
+                  <td class="lot-col-pl" data-label="Realized P/L"
                     [class.pl-positive]="lot.realizedPL >= 0"
                     [class.pl-negative]="lot.realizedPL < 0"
                   >
@@ -476,16 +488,17 @@
             <tfoot>
               <tr class="lot-summary-row">
                 <td colspan="3" class="lot-summary-label">Total</td>
-                <td class="lot-col-qty lot-summary-value">{{ summary().totalShares | number:getQuantityFormat()(summary().symbol) }}</td>
-                <td class="lot-col-cost lot-summary-value">{{ cx()(summary().averageBuyPrice, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }} avg</td>
-                <td class="lot-col-cost lot-summary-value">{{ cx()(summary().averageSellPrice, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }} avg</td>
-                <td class="lot-col-total lot-summary-value">{{ cx()(summary().totalCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</td>
-                <td class="lot-col-total lot-summary-value">{{ cx()(summary().totalProceeds, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</td>
-                <td class="lot-col-pl lot-summary-value"
+                <td class="lot-col-qty lot-summary-value" data-label="Total Quantity"><span class="lot-cell-val">{{ summary().totalShares | number:getQuantityFormat()(summary().symbol) }}</span></td>
+                <td class="lot-col-cost lot-summary-value" data-label="Avg Buy Price"><span class="lot-cell-val">{{ cx()(summary().averageBuyPrice, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }} avg</span></td>
+                <td class="lot-col-cost lot-summary-value" data-label="Avg Sell Price"><span class="lot-cell-val">{{ cx()(summary().averageSellPrice, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }} avg</span></td>
+                <td class="lot-col-total lot-summary-value" data-label="Total Cost"><span class="lot-cell-val">{{ cx()(summary().totalCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span></td>
+                <td class="lot-col-total lot-summary-value" data-label="Total Proceeds"><span class="lot-cell-val">{{ cx()(summary().totalProceeds, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span></td>
+                <td class="lot-col-pl lot-summary-value" data-label="Realized P/L"
                   [class.pl-positive]="summary().realizedPL >= 0"
                   [class.pl-negative]="summary().realizedPL < 0"
                 >
-                  {{ summary().realizedPL >= 0 ? '+' : '' }}{{ cx()(summary().realizedPL, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}
+                  <span class="lot-amount">{{ summary().realizedPL >= 0 ? '+' : '' }}{{ cx()(summary().realizedPL, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
+                  <span class="pl-percent">({{ summary().realizedPLPercent >= 0 ? '+' : '' }}{{ summary().realizedPLPercent | number:'1.2-2' }}%)</span>
                 </td>
               </tr>
             </tfoot>

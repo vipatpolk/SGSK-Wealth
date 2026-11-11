@@ -53,7 +53,7 @@
 
 - **100% API-Driven Dividend Engine**: Fetches complete dividend distributions automatically from Yahoo Finance (US & Thai stocks, Bonds) and the SEC Thailand Fund API (Mutual Funds).
 - **Exact Ex-Date Share Accounting**: Evaluates historical trade logs to calculate exact shares held on each dividend ex-date ($T$):
-  $$\text{Shares Held}(T) = \sum_{\text{Tx Date } \le T} \text{Buy Quantity} - \sum_{\text{Tx Date } \le T} \text{Sell Quantity}$$
+  $$\text{Shares Held}(T) = \sum_{\text{Tx Date } < T} \text{Buy Quantity} - \sum_{\text{Tx Date } < T} \text{Sell Quantity}$$
 - **Per-Asset-Type Yield on Cost (YOC) & Current Yield**: Detailed breakdown of cost basis, market value, forward annual dividends, and Yield on Cost % calculated individually across `Thai Stocks`, `U.S. Stocks`, `Mutual Funds`, and `Bonds` with zero currency distortion.
 - **Forward Income & Yield on Cost (YOC)**: Displays trailing 12-month DPS, current market yield %, Yield on Cost %, and forward projected annual income.
 - **Interactive Monthly Cashflow Timeline with Bonds**: Visual stacked bar chart tracking monthly dividend income split across Thai Stocks (`#22c55e`), US Stocks (`#3b82f6`), Mutual Funds (`#a855f7`), and Bonds (`#06b6d4`).
