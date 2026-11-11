@@ -1,0 +1,15 @@
+{
+  "/api/backend": {
+    "target": "http://127.0.0.1:8000",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api/backend": ""
+    },
+    "headers": {
+      "X-API-Key": "dev_secret_key_change_in_prod",
+      "X-App-Source": "ShareLot",
+      "X-Requested-With": "ShareLot-Client"
+    }
+  }
+}

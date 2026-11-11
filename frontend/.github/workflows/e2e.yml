@@ -1,0 +1,58 @@
+name: E2E & API Regression Testing
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  cucumber-regression:
+    name: Cucumber & Serenity E2E + API
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 24 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Unified Cucumber Suite (UI & API)
+        run: npm run test:e2e
+
+      - name: Generate GitHub Actions Step Summary
+        if: always()
+        run: npm run test:e2e:summary
+
+      - name: Upload Serenity Living Documentation Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: serenity-living-documentation
+          path: reports/serenity-js/
+          retention-days: 14
+
+      - name: Deploy Serenity Report to GitHub Pages
+        if: always() && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main') && github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./reports/serenity-js
+          keep_files: false

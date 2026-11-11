@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/backend/:path*",
+      "destination": "https://sgsk-backend.vercel.app/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
