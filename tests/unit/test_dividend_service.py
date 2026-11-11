@@ -778,3 +778,145 @@ def test_dividend_shares_held_strictly_before_ex_date():
     assert rec.netAmount == 8.50
 
 
+def test_dividend_excludes_pvd_and_crypto():
+    """Verify that crypto and provident-fund positions are excluded from dividend calculations and yields."""
+    service = DividendService()
+
+    stock_pos = PortfolioPosition(
+        symbol="PTT.BK",
+        displaySymbol="PTT",
+        name="PTT Public Company",
+        assetType="thai-stock",
+        assetTypeLabel="Thai Stock",
+        totalShares=1000.0,
+        totalCost=35000.0,
+        averageCost=35.0,
+        currentPrice=38.0,
+        holdingValue=38000.0,
+        unrealizedPL=3000.0,
+        unrealizedPLPercent=8.57,
+        currency="THB",
+        originalCurrency="THB",
+        hasPrice=True,
+        lots=[],
+    )
+    crypto_pos = PortfolioPosition(
+        symbol="BTC",
+        displaySymbol="BTC",
+        name="Bitcoin",
+        assetType="crypto",
+        assetTypeLabel="Cryptocurrency",
+        totalShares=0.5,
+        totalCost=1000000.0,
+        averageCost=2000000.0,
+        currentPrice=2100000.0,
+        holdingValue=1050000.0,
+        unrealizedPL=50000.0,
+        unrealizedPLPercent=5.0,
+        currency="THB",
+        originalCurrency="THB",
+        hasPrice=True,
+        lots=[],
+    )
+    pvd_pos = PortfolioPosition(
+        symbol="PVDSP500",
+        displaySymbol="PVDSP500",
+        name="PVD US Equity",
+        assetType="provident-fund",
+        assetTypeLabel="Provident Fund",
+        totalShares=500.0,
+        totalCost=50000.0,
+        averageCost=100.0,
+        currentPrice=110.0,
+        holdingValue=55000.0,
+        unrealizedPL=5000.0,
+        unrealizedPLPercent=10.0,
+        currency="THB",
+        originalCurrency="THB",
+        hasPrice=True,
+        lots=[],
+    )
+
+    stock_div_data = {
+        "PTT.BK": {
+            "trailing_12m_dps": 2.0,
+            "dividends": [],
+        }
+    }
+
+    res = service.calculate_dividend_analytics(
+        open_positions=[stock_pos, crypto_pos, pvd_pos],
+        closed_positions=[],
+        raw_transactions=[],
+        stock_div_data=stock_div_data,
+        fund_div_data={},
+        exchange_rate=1.0,
+        target_currency="THB",
+    )
+
+    # Only PTT should be in symbol summaries
+    symbols = [s.symbol for s in res.symbolSummaries]
+    assert "PTT.BK" in symbols
+    assert "BTC" not in symbols
+    assert "PVDSP500" not in symbols
+
+    # Portfolio YOC and Yield should be derived strictly from PTT (2000 / 35000 = 5.71%, 2000 / 38000 = 5.26%)
+    # and NOT diluted by crypto (1,000,000 THB) or PVD (50,000 THB)
+    assert res.projectedAnnualDividends == 2000.0
+    assert res.portfolioYieldOnCost == pytest.approx((2000.0 / 35000.0) * 100.0)
+    assert res.portfolioDividendYield == pytest.approx((2000.0 / 38000.0) * 100.0)
+
+
+def test_dividend_yoc_and_yield_currency_invariance_and_fallback():
+    """Verify YOC and Current Yield calculate accurately with currency conversions and fallback avg_cost."""
+    service = DividendService()
+
+    # US stock held, but cost_basis = 0, averageCost = $150.00 (which converted to THB at 35 is 5250 THB)
+    pos = PortfolioPosition(
+        symbol="AAPL",
+        displaySymbol="AAPL",
+        name="Apple Inc.",
+        assetType="us-stock",
+        assetTypeLabel="U.S. Stock",
+        totalShares=10.0,
+        totalCost=0.0,  # Zero total cost to test averageCost fallback
+        averageCost=5250.0,  # Converted to THB (150 USD * 35)
+        currentPrice=7000.0,  # Converted to THB (200 USD * 35)
+        holdingValue=70000.0,
+        unrealizedPL=70000.0,
+        unrealizedPLPercent=0.0,
+        currency="THB",
+        originalCurrency="USD",
+        hasPrice=True,
+        lots=[],
+    )
+
+    stock_div_data = {
+        "AAPL": {
+            "trailing_12m_dps": 1.5,  # 1.5 USD
+            "dividends": [],
+        }
+    }
+
+    res = service.calculate_dividend_analytics(
+        open_positions=[pos],
+        closed_positions=[],
+        raw_transactions=[],
+        stock_div_data=stock_div_data,
+        fund_div_data={},
+        exchange_rate=35.0,
+        target_currency="THB",
+    )
+
+    aapl = next(s for s in res.symbolSummaries if s.symbol == "AAPL")
+    # Trailing DPS in USD: 1.5, Converted to THB: 52.5 THB
+    # Projected income: 10 * 1.5 * 35 = 525.0 THB
+    # Current Yield: 525 / 70000 = 0.75% (or 52.5 / 7000 = 0.75%)
+    # YOC via fallback: 52.5 THB / 5250 THB = 1.00% (or 1.5 USD / 150 USD = 1.00%)
+    # Without fix, it would do 1.5 / 5250 = 0.028% (a 35x error!)
+    assert aapl.projectedAnnualIncome == 525.0
+    assert aapl.currentYieldPercent == pytest.approx(0.75)
+    assert aapl.yieldOnCostPercent == pytest.approx(1.00)
+
+
+

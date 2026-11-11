@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, cast
 
 import httpx
@@ -159,9 +159,9 @@ class DividendService:
                     error=holdings_res.error,
                 )
 
-            # 2. Gather non-crypto positions (open + closed) for 100% API-driven dividend fetching
-            open_positions = [pos for pos in holdings_res.openPositions if pos.assetType != "crypto"]
-            closed_positions = [pos for pos in (holdings_res.closedPositions or []) if pos.assetType != "crypto"]
+            # 2. Gather dividend-eligible positions (open + closed) for 100% API-driven dividend fetching
+            open_positions = [pos for pos in holdings_res.openPositions if pos.assetType in DIVIDEND_ASSET_TYPES]
+            closed_positions = [pos for pos in (holdings_res.closedPositions or []) if pos.assetType in DIVIDEND_ASSET_TYPES]
             all_positions = open_positions + closed_positions
 
             stock_symbols = list(set([pos.symbol for pos in all_positions if pos.assetType in YAHOO_DIVIDEND_ASSET_TYPES]))
@@ -173,6 +173,9 @@ class DividendService:
 
             stock_div_data, fund_div_data = await asyncio.gather(stock_div_task, fund_div_task)
 
+            div_open_invested = sum(pos.totalCost for pos in open_positions)
+            div_portfolio_value = sum(pos.holdingValue for pos in open_positions)
+
             res = self.calculate_dividend_analytics(
                 open_positions=open_positions,
                 closed_positions=closed_positions,
@@ -181,8 +184,8 @@ class DividendService:
                 fund_div_data=fund_div_data,
                 exchange_rate=exchange_rate,
                 target_currency=target_currency,
-                total_portfolio_value=holdings_res.summary.totalValue,
-                total_open_invested=holdings_res.summary.openInvested,
+                total_portfolio_value=div_portfolio_value,
+                total_open_invested=div_open_invested,
             )
             if not res.error:
                 ttl_cache.set(cache_key, res, ttl=120.0)
@@ -209,7 +212,7 @@ class DividendService:
         # Build map of transactions by symbol for exact historical share calculation on ex-dates
         txs_by_sym: dict[str, list[Transaction]] = {}
         for tx in raw_transactions:
-            if tx.assetType == "crypto":
+            if tx.assetType not in DIVIDEND_ASSET_TYPES:
                 continue
             txs_by_sym.setdefault(tx.symbol, []).append(tx)
         for s in txs_by_sym:
@@ -245,7 +248,7 @@ class DividendService:
         for pos in unique_positions:
             sym = pos.symbol
             asset_type = pos.assetType
-            if asset_type == "crypto":
+            if asset_type not in DIVIDEND_ASSET_TYPES:
                 continue
 
             curr = pos.originalCurrency
@@ -411,7 +414,7 @@ class DividendService:
         for pos in open_positions:
             sym = pos.symbol
             asset_type = pos.assetType
-            if asset_type == "crypto":
+            if asset_type not in DIVIDEND_ASSET_TYPES:
                 continue
 
             curr = pos.originalCurrency
@@ -427,7 +430,7 @@ class DividendService:
             if asset_type == "mutual-fund":
                 raw_dists = fund_div_data.get(sym, [])
                 now_dt = datetime.now(timezone.utc)
-                one_year_ago_str = (now_dt.replace(year=now_dt.year - 1)).strftime("%Y-%m-%d")
+                one_year_ago_str = (now_dt - timedelta(days=365)).strftime("%Y-%m-%d")
 
                 seen_dist_keys = set()
                 parsed_dists: list[dict[str, Any]] = []
@@ -454,7 +457,7 @@ class DividendService:
                     newest_date = max(dates)
                     try:
                         newest_dt = datetime.strptime(newest_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
-                        newest_one_yr = (newest_dt.replace(year=newest_dt.year - 1)).strftime("%Y-%m-%d")
+                        newest_one_yr = (newest_dt - timedelta(days=365)).strftime("%Y-%m-%d")
                     except Exception:
                         newest_one_yr = one_year_ago_str
                     cutoff_str = min(one_year_ago_str, newest_one_yr) if newest_date < one_year_ago_str else one_year_ago_str
@@ -490,11 +493,15 @@ class DividendService:
             current_price = pos.currentPrice
             avg_cost = pos.averageCost
             conv_trailing_dps = convert_currency(trailing_dps, curr, target_currency, exchange_rate)
-            curr_yield_pct = (conv_trailing_dps / current_price * 100.0) if current_price > 0 else 0.0
+            curr_yield_pct = (
+                (conv_proj_income / val * 100.0)
+                if val > 0
+                else ((conv_trailing_dps / current_price * 100.0) if current_price > 0 else 0.0)
+            )
             yoc_pct = (
                 (conv_proj_income / cost_basis * 100.0)
                 if cost_basis > 0
-                else ((trailing_dps / avg_cost * 100.0) if avg_cost > 0 else 0.0)
+                else ((conv_trailing_dps / avg_cost * 100.0) if avg_cost > 0 else 0.0)
             )
 
             if sym not in symbol_summary_map:
@@ -600,9 +607,14 @@ class DividendService:
         annual_summaries.sort(key=lambda x: x.year, reverse=True)
 
         # Portfolio aggregates
+        calc_cost_basis = sum(at_data["costBasis"] for at_data in asset_type_map.values())
+        calc_current_val = sum(at_data["currentValue"] for at_data in asset_type_map.values())
+        eff_open_invested = total_open_invested if total_open_invested > 0 else calc_cost_basis
+        eff_portfolio_val = total_portfolio_value if total_portfolio_value > 0 else calc_current_val
+
         effective_tax_rate = (total_wht / total_gross_dividends * 100.0) if total_gross_dividends > 0 else 0.0
-        portfolio_yoc = (projected_annual_total / total_open_invested * 100.0) if total_open_invested > 0 else 0.0
-        portfolio_yield = (projected_annual_total / total_portfolio_value * 100.0) if total_portfolio_value > 0 else 0.0
+        portfolio_yoc = (projected_annual_total / eff_open_invested * 100.0) if eff_open_invested > 0 else 0.0
+        portfolio_yield = (projected_annual_total / eff_portfolio_val * 100.0) if eff_portfolio_val > 0 else 0.0
 
         # Sort symbol summaries descending by convertedNetDividends then projectedAnnualIncome
         sorted_symbols = list(symbol_summary_map.values())
