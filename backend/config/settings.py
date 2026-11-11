@@ -1,8 +1,12 @@
 import hashlib
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent
+ROOT_ENV_FILE = ROOT_DIR / ".env"
 
 BLOCKED_KEY_HASHES: set[str] = {
     # SHA-256 hashes of retired / compromised keys
@@ -29,7 +33,7 @@ class Settings(BaseSettings):
     sec_pvd_base_url: str = "https://api.sec.or.th/v1/pvd"
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(str(ROOT_ENV_FILE), ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
         case_sensitive=False,

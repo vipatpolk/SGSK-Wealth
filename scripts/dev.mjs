@@ -131,9 +131,14 @@ if (lintBackend) {
 
   if (!onlyFrontend) {
     console.log(`\x1b[36m[BACKEND]\x1b[0m FastAPI starting on http://127.0.0.1:8000 (Python: ${pythonCmd})`);
+    const rootEnvPath = path.join(rootDir, '.env');
+    const uvicornArgs = ['-m', 'uvicorn', 'main:app', '--reload', '--host', '127.0.0.1', '--port', '8000'];
+    if (fs.existsSync(rootEnvPath)) {
+      uvicornArgs.push('--env-file', rootEnvPath);
+    }
     const backendProc = spawn(
       pythonCmd,
-      ['-m', 'uvicorn', 'main:app', '--reload', '--host', '127.0.0.1', '--port', '8000'],
+      uvicornArgs,
       {
         cwd: backendDir,
         env: { ...process.env, PYTHONUNBUFFERED: '1' },
