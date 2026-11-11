@@ -7,7 +7,7 @@
       "^/api/backend": ""
     },
     "headers": {
-      "X-API-Key": "dev_secret_key_change_in_prod",
+      "X-API-Key": "ee44731089f43c7f1a9ba7171eb57ccd34177932483ec29fa59ddcffae64133c",
       "X-App-Source": "SGSK-Wealth",
       "X-Requested-With": "SGSK-Wealth-Client"
     }
