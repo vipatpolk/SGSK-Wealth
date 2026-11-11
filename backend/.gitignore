@@ -5,6 +5,11 @@ __pycache__/
 .env
 .env.*
 !.env.example
+*service_account*.json
+*credentials*.json
+*.pem
+*.key
+*.p12
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/

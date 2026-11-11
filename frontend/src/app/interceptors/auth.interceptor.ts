@@ -9,13 +9,16 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     req.url.startsWith('/nav');
 
   if (isBackendRequest) {
-    const authReq = req.clone({
-      setHeaders: {
-        'X-API-Key': environment.apiKey,
-        'X-App-Source': 'SGSK-Wealth',
-        'X-Requested-With': 'SGSK-Wealth-Client',
-      },
-    });
+    const headers: Record<string, string> = {
+      'X-App-Source': 'SGSK-Wealth',
+      'X-Requested-With': 'SGSK-Wealth-Client',
+    };
+
+    if (environment.apiKey) {
+      headers['X-API-Key'] = environment.apiKey;
+    }
+
+    const authReq = req.clone({ setHeaders: headers });
     return next(authReq);
   }
   return next(req);

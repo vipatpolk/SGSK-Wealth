@@ -14,7 +14,7 @@
   <img src="https://img.shields.io/badge/TypeScript-6.0-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript 6.0" />
   <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.10+" />
   <img src="https://img.shields.io/badge/FastAPI-0.115+-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI" />
-  <img src="https://img.shields.io/badge/Java-21+-ED8B00?style=flat-square&logo=openjdk&logoColor=white" alt="Java 21+" />
+  <img src="https://img.shields.io/badge/Java-25+-ED8B00?style=flat-square&logo=openjdk&logoColor=white" alt="Java 25+" />
   <img src="https://img.shields.io/badge/Playwright-1.50-45BA4B?style=flat-square&logo=playwright&logoColor=white" alt="Playwright" />
   <img src="https://img.shields.io/badge/Rest_Assured-5.5-2E8B57?style=flat-square" alt="Rest Assured" />
   <img src="https://img.shields.io/badge/Cucumber_JVM-7.21-23D96C?style=flat-square&logo=cucumber&logoColor=white" alt="Cucumber JVM" />
@@ -145,7 +145,7 @@ flowchart LR
 
 | Technology | Version / Spec | Purpose & Architectural Role |
 |:---|:---|:---|
-| **[Java](https://openjdk.org/)** | `JDK 21+` | Enterprise runtime powering the standalone end-to-end regression and verification suite. |
+| **[Java](https://openjdk.org/)** | `JDK 25+` | Enterprise runtime powering the standalone end-to-end regression and verification suite. |
 | **[Playwright for Java](https://playwright.dev/java/)** | `1.64+` | Modern web automation engine driving Chromium headless browsers with native network route interception. |
 | **[Rest Assured](https://rest-assured.io/)** | `6.3+` | Fluent REST API automation testing contract compliance, response codes, latencies, and payload schemas. |
 | **[Cucumber-JVM](https://cucumber.io/)** | `8.0+` | Behavior-Driven Development (BDD) engine executing business-readable Gherkin feature specifications (`.feature`). |
@@ -165,7 +165,7 @@ flowchart LR
 A unified GitHub Actions workflow configured for `push`, `pull_request`, and `workflow_dispatch`:
 1. **`backend-qa`**: Python 3.11 environment running Ruff linter, Mypy type checker, and Pytest with code coverage artifact upload.
 2. **`frontend-qa`**: Node.js 26 LTS environment running Vitest unit tests (313 tests) and production Angular build.
-3. **`e2e-automation`**: Runs after both QA jobs (`needs: [backend-qa, frontend-qa]`), sets up JDK 21 and Node.js 26, downloads Playwright Chromium, executes all 59 E2E scenarios, generates the Allure HTML report, and stores `allure-e2e-report` build artifacts.
+3. **`e2e-automation`**: Runs after both QA jobs (`needs: [backend-qa, frontend-qa]`), sets up JDK 25 and Node.js 26, downloads Playwright Chromium, executes all 59 E2E scenarios, generates the Allure HTML report, and stores `allure-e2e-report` build artifacts.
 
 ---
 
@@ -240,7 +240,7 @@ Ensure the following tools are installed on your workstation:
 - **Node.js**: `v24+` or `v26 LTS` (Recommended: `v26.13+`)
 - **npm**: `v10+` or `v11+`
 - **Python**: `3.10+`, `3.11+` or `3.14`
-- **Java**: `JDK 21+`
+- **Java**: `JDK 25+`
 - **Apache Maven**: `3.9+`
 
 ### 1. Installation

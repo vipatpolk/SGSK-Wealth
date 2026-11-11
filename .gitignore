@@ -15,10 +15,15 @@ __pycache__/
 coverage.xml
 htmlcov/
 
-# Environment Variables
+# Environment Variables & Secrets
 .env
 .env.*
 !.env.example
+*service_account*.json
+*credentials*.json
+*.pem
+*.key
+*.p12
 
 # Frontend & Angular Build Outputs
 dist/

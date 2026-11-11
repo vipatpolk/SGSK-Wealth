@@ -114,3 +114,40 @@ def test_app_source_signature_access_to_vercel_backend_allowed(api_client, mocke
         },
     )
     assert res_wealth.status_code == 200
+
+
+@pytest.mark.unit
+def test_production_settings_validation():
+    from config.settings import Settings
+
+    # Insecure default key in production must fail fast
+    with pytest.raises(ValueError, match="CRITICAL: BACKEND_API_KEY must be securely configured"):
+        Settings(
+            environment="production",
+            backend_api_key="dev_secret_key_change_in_prod",
+            google_spreadsheet_id="valid_sheet_id",
+        )
+
+    # Short key in production must fail fast
+    with pytest.raises(ValueError, match="at least 32 characters"):
+        Settings(
+            environment="production",
+            backend_api_key="short_custom_key_less_than_32",
+            google_spreadsheet_id="valid_sheet_id",
+        )
+
+    # Missing real spreadsheet ID in production must fail fast
+    with pytest.raises(ValueError, match="CRITICAL: GOOGLE_SPREADSHEET_ID"):
+        Settings(
+            environment="production",
+            backend_api_key="a" * 32,
+            google_spreadsheet_id="sample_spreadsheet_id",
+        )
+
+    # Valid production settings must pass
+    prod_settings = Settings(
+        environment="production",
+        backend_api_key="a" * 32,
+        google_spreadsheet_id="custom_production_sheet_id_xyz",
+    )
+    assert prod_settings.environment == "production"
