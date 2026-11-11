@@ -3,6 +3,7 @@
 This repository is a monorepo consisting of:
 - **`backend/`**: Python FastAPI backend service
 - **`frontend/`**: Angular 22 Single Page Application
+- **`e2e/`**: Standalone Java E2E test suite (Playwright, Rest Assured, Cucumber-JVM, JUnit 5 & Allure)
 - **`.agents/`**: Shared agent skills and financial domain guidelines
 
 ---

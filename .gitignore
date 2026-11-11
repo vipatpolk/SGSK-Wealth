@@ -35,6 +35,11 @@ playwright-report/
 test-results/
 reports/
 target/
+e2e/target/
+allure-results/
+allure-report/
+.allure/
+e2e/.allure/
 __screenshots__/
 
 # IDEs & System Files

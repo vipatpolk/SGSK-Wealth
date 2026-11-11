@@ -12,12 +12,12 @@
   <img src="https://img.shields.io/badge/Angular-22.1-DD0031?style=flat-square&logo=angular&logoColor=white" alt="Angular 22" />
   <img src="https://img.shields.io/badge/TailwindCSS-v4.3-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS v4.3" />
   <img src="https://img.shields.io/badge/TypeScript-6.0-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript 6.0" />
+  <img src="https://img.shields.io/badge/Java-21+-ED8B00?style=flat-square&logo=openjdk&logoColor=white" alt="Java 21+" />
   <img src="https://img.shields.io/badge/Cucumber-BDD-23D96C?style=flat-square&logo=cucumber&logoColor=white" alt="Cucumber BDD" />
-  <img src="https://img.shields.io/badge/Serenity%2FJS-Living_Doc-5B9BD5?style=flat-square" alt="Serenity/JS Reporting" />
-  <img src="https://img.shields.io/badge/PactumJS-API_Testing-FF6C37?style=flat-square" alt="PactumJS" />
-  <img src="https://img.shields.io/badge/Playwright-1.50-45BA4B?style=flat-square&logo=playwright&logoColor=white" alt="Playwright E2E" />
+  <img src="https://img.shields.io/badge/Playwright-1.50-45BA4B?style=flat-square&logo=playwright&logoColor=white" alt="Playwright" />
+  <img src="https://img.shields.io/badge/Rest_Assured-5.5-2E8B57?style=flat-square" alt="Rest Assured" />
+  <img src="https://img.shields.io/badge/Allure-Report-6C7A89?style=flat-square" alt="Allure Reporting" />
   <img src="https://img.shields.io/badge/Vitest-4.1-FCC72B?style=flat-square&logo=vitest&logoColor=black" alt="Vitest Unit Testing" />
-  <a href="https://vipatpolk.github.io/SGSK-Wealth/"><img src="https://img.shields.io/badge/Living_Docs-GitHub_Pages-2ea44f?style=flat-square&logo=githubpages&logoColor=white" alt="Living Documentation" /></a>
   <img src="https://img.shields.io/badge/Node.js-24.19_LTS-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js 24 LTS" />
   <img src="https://img.shields.io/badge/Deploy-Vercel-000000?style=flat-square&logo=vercel&logoColor=white" alt="Vercel" />
 </p>
@@ -145,8 +145,8 @@
 | **Runtime**             | [Node.js 24 LTS](https://nodejs.org/) (v24.19.0)                                                               |
 | **Backend Integration** | [FastAPI Backend (SGSKBackend)](https://github.com/vipatpolk/SGSKBackend) for data processing and API proxying |
 | **Data Source**         | Google Sheets CSV Export (via Backend)                                                                         |
-| **Unit Testing**        | [Vitest](https://vitest.dev/) & jsdom (**31 test files, 311 unit tests**)                                      |
-| **E2E & API Testing**   | [Cucumber BDD](https://cucumber.io/), [Serenity/JS](https://serenity-js.org/) & [PactumJS](https://pactumjs.github.io/) (**51 scenarios: 41 UI, 10 API**) |
+| **Unit Testing**        | [Vitest](https://vitest.dev/) & jsdom (**31 test files, 313 unit tests**)                                      |
+| **E2E & API Testing**   | Java, Playwright, Rest Assured, Cucumber-JVM, JUnit 5 & Allure (**59 scenarios: 41 UI, 18 API**)                |
 | **Deployment**          | [Vercel](https://vercel.com/) (with API proxy rewrites)                                                        |
 
 ---
@@ -154,20 +154,20 @@
 ## Project Structure
 
 ```
-frontend/
-├── e2e/                        # Unified Cucumber BDD, Serenity/JS & PactumJS Test Suite
-│   ├── features/               # Gherkin .feature specifications (UI and API)
-│   │   ├── api/                # REST API contract and service features
-│   │   └── ui/                 # End-to-end user journey features
-│   ├── step_definitions/       # Step definition implementations
-│   │   ├── api/                # PactumJS REST API step definitions
-│   │   └── ui/                 # Playwright UI step definitions
-│   ├── support/                # Serenity actors, lifecycle hooks & Pactum config
-│   ├── pages/                  # Page Object Model (POM) classes
-│   ├── fixtures/               # Deterministic mock JSON payloads (sheets, prices, rates)
-│   └── utils/                  # Network interception utilities (page.route)
-├── public/                     # Static assets & favicons
-├── src/
+SGSK-Wealth/
+├── backend/                    # FastAPI backend service
+├── frontend/                   # Angular 22 Single Page Application
+│   ├── src/                    # Components, models, services & unit tests
+│   ├── public/                 # Static assets & favicons
+│   ├── angular.json            # Angular CLI configuration
+│   ├── vitest.config.ts        # Vitest unit test configuration
+│   └── package.json            # Frontend dependencies & scripts
+├── e2e/                        # Unified Java E2E Automation Suite
+│   ├── src/test/java/          # Playwright & Rest Assured Cucumber step definitions
+│   ├── src/test/resources/     # Gherkin .feature specifications & JSON fixtures
+│   └── pom.xml                 # Maven configuration & Allure plugin
+└── .github/workflows/ci.yml    # Unified monorepo CI/CD pipeline
+```
 │   ├── app/
 │   │   ├── components/         # Reusable UI feature components & co-located unit tests
 │   │   │   ├── analytics/            # Unified Portfolio Analytics (Overview, Allocation, Performance)
@@ -261,43 +261,24 @@ npm test
 
 ### Running End-to-End (E2E) & API Tests
 
-SGSK Wealth includes a unified Cucumber BDD test suite covering **51 automated scenarios** (41 UI and 10 REST API) with Serenity/JS HTML living documentation and PactumJS:
+SGSK Wealth includes a unified Cucumber BDD test suite covering **59 automated scenarios** (41 UI and 18 REST API) with Playwright for Java, Rest Assured, and Allure reporting, managed from the repository root:
 
 ```bash
-# Run all E2E and API scenarios via single Cucumber runner (51 scenarios)
+# Run all E2E and API scenarios via single Maven command (59 scenarios)
 npm run test:e2e
 
-# Run only UI browser scenarios
+# Run only UI browser scenarios via Playwright
 npm run test:e2e:ui
 
-# Run only REST API scenarios via PactumJS
+# Run only REST API scenarios via Rest Assured
 npm run test:e2e:api
 
 # Run critical path smoke tests
 npm run test:e2e:smoke
 
-# View interactive Serenity/JS HTML living documentation report locally
+# View interactive Allure HTML report locally
 npm run test:e2e:report
-
-# Generate GitHub Actions Job Summary markdown
-npm run test:e2e:summary
-
-# Clear test results and report output folders
-npm run clean:e2e
 ```
-
-### Viewing Serenity Living Documentation on CI/CD
-
-The GitHub Actions CI/CD workflow (`.github/workflows/e2e.yml`) automatically publishes test reports on every build:
-
-1. **GitHub Pages (Live Interactive Report)**:
-   - On every push to `master` / `main`, the Serenity HTML living documentation is automatically deployed to GitHub Pages at:
-     `https://vipatpolk.github.io/SGSK-Wealth/`
-   - Browse interactive execution timelines, scenario steps, and failure screenshots with zero local installation.
-2. **GitHub Actions Job Summary**:
-   - Every workflow run (pushes and pull requests) generates an instant **Execution Scorecard** directly inside the GitHub Actions run summary tab with total pass rates, scenario counts, duration, and top slowest scenarios.
-3. **Downloadable Artifacts**:
-   - The full `reports/serenity-js/` archive is stored as a GitHub Actions build artifact (`serenity-living-documentation`) for 14 days. Download and run `npm run test:e2e:report` to view offline.
 
 ### Production Build
 
