@@ -8,23 +8,28 @@ Feature: Investment Performance & Analytics Engine
     Given I open the SGSK Wealth application
     And I switch to the Performance sub-tab
 
+  @smoke @TC-PRF-01
   Scenario: TC-PRF-01: Performance view renders summary KPI cards
     Then the performance analytics container should be visible
     And the performance summary grid should render 5 KPI cards
 
+  @smoke @TC-PRF-02
   Scenario: TC-PRF-02: Date range preset buttons trigger timeframe updates
     When I select the performance date preset "YTD"
     Then the date range picker trigger should display "YTD"
     When I select the performance date preset "Last 30 Days"
     Then the date range picker trigger should display "Last 30 Days"
 
+  @TC-PRF-03
   Scenario: TC-PRF-03: Asset Type Return and Top Movers sections render correctly
     Then the performance sections should contain "Asset Type Return" and "Top Movers"
 
+  @TC-PRF-04
   Scenario: TC-PRF-04: Symbol search autocomplete dropdown provides instant suggestions
     When I search performance symbols for "AAP"
     Then the performance autocomplete dropdown should suggest "Apple"
 
+  @TC-PRF-05
   Scenario: TC-PRF-05: Status and Asset Type filters are accessible and selectable
     When I filter performance by status "open"
     Then the status select should have value "open"

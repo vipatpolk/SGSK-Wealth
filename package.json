@@ -23,7 +23,10 @@
     "test:e2e:report": "mvn -f e2e/pom.xml allure:serve",
     "test:backend": "node scripts/dev.mjs --test-backend",
     "lint:backend": "node scripts/dev.mjs --lint-backend",
-    "check": "npm run lint:backend && npm run test:backend && npm run test:frontend && npm run build"
+    "lint:gherkin": "py .agent/skills/cucumber-bdd-best-practices/scripts/validate_gherkin.py --strict e2e/src/test/resources/features",
+    "setup:agents": "node scripts/setup-agents.mjs",
+    "prepare": "node scripts/setup-agents.mjs",
+    "check": "npm run lint:gherkin && npm run lint:backend && npm run test:backend && npm run test:frontend && npm run build"
   },
   "packageManager": "npm@11.10.1"
 }

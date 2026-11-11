@@ -4,6 +4,7 @@ Feature: API Failure & Error Resilience
   I want clear error feedback when the backend service experiences outages
   So that I know data could not be fetched and can retry
 
+  @smoke @TC-ERR-01
   Scenario: TC-ERR-01: Displays error state card when backend API fails
     Given the backend API returns error status 500
     When I open the SGSK Wealth application without mocking

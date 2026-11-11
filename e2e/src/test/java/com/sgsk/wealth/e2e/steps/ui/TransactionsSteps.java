@@ -23,14 +23,18 @@ public class TransactionsSteps {
         return context.getPage();
     }
 
+    private TransactionsPage transactionsPage() {
+        return new TransactionsPage(page());
+    }
+
     @Then("the transaction history ledger should contain {string}")
     public void verifyTransactionLedgerContains(String text) {
-        assertThat(page().locator("app-transaction-history")).containsText(text);
+        assertThat(transactionsPage().container).containsText(text);
     }
 
     @When("I trigger CSV export of all transactions")
     public void triggerCsvExport() {
-        TransactionsPage txPage = new TransactionsPage(page());
+        TransactionsPage txPage = transactionsPage();
         assertThat(txPage.exportCsvTriggerBtn).isVisible();
         Download download = txPage.exportAllTransactions();
         context.setDownloadedFileName(download.suggestedFilename());

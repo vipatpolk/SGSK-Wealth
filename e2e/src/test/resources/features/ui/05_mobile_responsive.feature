@@ -7,11 +7,13 @@ Feature: Mobile Responsiveness & Touch Layouts
   Background:
     Given I open the SGSK Wealth application on a mobile viewport
 
+  @smoke @TC-MOB-01
   Scenario: TC-MOB-01: Mobile view renders responsive cards and native bottom navigation bar
     Then the native bottom navigation bar should be visible
     When I tap Analytics on the bottom navigation bar
     Then the analytics container should be visible
 
+  @TC-MOB-02
   Scenario: TC-MOB-02: Mobile view renders responsive Rebalance Planner cards and touch mode toggle
     When I tap Tools on the bottom navigation bar
     Then the tools container should be visible
@@ -20,6 +22,7 @@ Feature: Mobile Responsiveness & Touch Layouts
     And the mobile rebalance mode toggle should be visible
     And the mobile symbol cards should be visible
 
+  @TC-MOB-03
   Scenario: TC-MOB-03: Native bottom navigation bar highlights active tab and switches views smoothly
     Then the bottom nav dashboard tab should be active
     When I tap Holdings on the bottom navigation bar

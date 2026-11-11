@@ -4,7 +4,8 @@ Feature: Financial Simulators & Portfolio Tools API
   I want to calculate TVM wealth compounding, forward cost basis, and portfolio rebalances
   So that I can plan future financial decisions accurately
 
-  Scenario: TVM Calculator calculates future value (FV)
+  @smoke @TC-API-TOOL-01
+  Scenario: TC-API-TOOL-01: TVM Calculator calculates future value (FV)
     When I send a POST request to "/portfolio/tools/tvm" with payload:
       """
       {
@@ -26,7 +27,8 @@ Feature: Financial Simulators & Portfolio Tools API
       }
       """
 
-  Scenario: Average Cost Calculator forward buy simulation
+  @smoke @TC-API-TOOL-02
+  Scenario: TC-API-TOOL-02: Average Cost Calculator forward buy simulation
     When I send a POST request to "/portfolio/tools/simulate" with payload:
       """
       {

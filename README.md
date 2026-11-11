@@ -154,11 +154,14 @@ flowchart LR
 | **[Apache Maven](https://maven.apache.org/)** | `3.9+` | Robust build lifecycle management, dependency resolution, and test plugin execution (`pom.xml`). |
 | **Mock Backend Server** | Built-in | Zero-dependency embedded `HttpServer` serving deterministic responses for standalone API testing. |
 
-### 4. AI Agent Skills & Domain Knowledge (`.agents/`)
+### 4. Multi-Agent Skills & Domain Knowledge (`.agent/skills/`)
+
+`.agent/skills/` serves as the single source of truth shared across **Antigravity**, **OpenAI Codex** (`AGENTS.md`), and **Claude Code** (`CLAUDE.md` + `.claude/skills` adapter):
 
 | Asset | Purpose |
 |:---|:---|
 | **`dividend-payments`** | Financial domain skill with codified rules for U.S. (SEC T+1) and Thai (SET T+2) equity settlement cutoffs, withholding tax rules (U.S. 15% DTA / 30%, Thai 10% / BOI 0%), stock dividends, and corporate disclosures. |
+| **`cucumber-bdd-best-practices`** | Enterprise BDD & Gherkin authoring standards, Page Object Model architecture, multi-dimensional tagging taxonomy, and automated strict Gherkin linting (`validate_gherkin.py`). |
 
 ### 5. Unified CI/CD Pipeline (`.github/workflows/ci.yml`)
 
@@ -221,13 +224,16 @@ SGSK-Wealth/
 │           ├── junit-platform.properties
 │           └── allure.properties
 │
-├── .agents/                    # AI Agent skills & domain guidance (dividend-payments)
+├── .agent/skills/              # Single source of truth for AI agent skills (dividend-payments, cucumber-bdd-best-practices)
+├── .claude/                    # Claude Code adapter (skills symlink -> ../.agent/skills)
 ├── .github/workflows/          # CI/CD Workflows
 │   └── ci.yml                  # Unified monorepo pipeline (Backend QA, Frontend QA, Java E2E)
 ├── scripts/
-│   └── dev.mjs                 # Concurrent cross-platform runner for backend & frontend
+│   ├── dev.mjs                 # Concurrent cross-platform runner for backend & frontend
+│   └── setup-agents.mjs        # Cross-platform .claude/skills -> .agent/skills linker
 ├── package.json                # Root monorepo workspace configuration & unified scripts
-└── GEMINI.md                   # Monorepo Quality Assurance standards & developer rules
+├── AGENTS.md                   # Unified QA & engineering standards (Antigravity & Codex)
+└── CLAUDE.md                   # Claude Code entrypoint (@AGENTS.md + Claude-specific rules)
 ```
 
 ---

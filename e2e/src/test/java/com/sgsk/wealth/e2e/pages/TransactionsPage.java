@@ -6,6 +6,7 @@ import com.microsoft.playwright.Page;
 
 public class TransactionsPage {
     private final Page page;
+    public final Locator container;
     public final Locator transactionRows;
     public final Locator exportCsvTriggerBtn;
     public final Locator exportAllBtn;
@@ -13,6 +14,7 @@ public class TransactionsPage {
 
     public TransactionsPage(Page page) {
         this.page = page;
+        this.container = page.locator("app-transaction-history");
         this.transactionRows = page.locator("app-transaction-history tbody tr, app-transaction-history .tx-row");
         this.exportCsvTriggerBtn = page.locator("#btn-export-csv-trigger");
         this.exportAllBtn = page.locator("#btn-export-all");

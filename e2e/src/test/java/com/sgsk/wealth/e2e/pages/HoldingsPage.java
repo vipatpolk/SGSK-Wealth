@@ -27,6 +27,12 @@ public class HoldingsPage {
         this.retryBtn = page.locator("#retry-btn");
     }
 
+    public Locator getSymbolCard(String symbol) {
+        return symbol.contains(".")
+                ? page.locator("[id=\"card-" + symbol + "\"]")
+                : page.locator("#card-" + symbol);
+    }
+
     public void navigateToHoldings() {
         Locator holdingsBtn = page.locator("#view-toggle-holdings");
         String classAttr = holdingsBtn.getAttribute("class");

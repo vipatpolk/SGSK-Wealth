@@ -7,6 +7,7 @@ Feature: Global Navigation & Header Controls
   Background:
     Given I open the SGSK Wealth application
 
+  @smoke @TC-NAV-01
   Scenario: TC-NAV-01: View Mode Switcher navigates between primary views
     Then the Dashboard view should be visible
     When I switch to the Holdings view
@@ -22,12 +23,14 @@ Feature: Global Navigation & Header Controls
     When I switch back to the Dashboard view
     Then the Dashboard view should be visible
 
+  @smoke @TC-NAV-02
   Scenario: TC-NAV-02: Currency Toggle switches display currency between USD and THB
     When I switch currency to USD
     Then the USD currency button should be active
     When I switch currency to THB
     Then the THB currency button should be active
 
+  @TC-NAV-03
   Scenario: TC-NAV-03: Theme Switcher toggles dark and light theme state
     When I toggle the theme
     Then the document theme attribute should be "light"

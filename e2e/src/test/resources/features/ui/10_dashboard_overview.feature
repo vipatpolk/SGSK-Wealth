@@ -7,28 +7,33 @@ Feature: Dashboard Landing Page & Executive Overview
   Background:
     Given I open the SGSK Wealth application
 
+  @smoke @TC-DASH-01
   Scenario: TC-DASH-01: Application lands on Dashboard by default with Executive Net Worth banner
     Then the Dashboard view should be visible
     And the Dashboard header navigation button should be active
     And the Executive Net Worth banner should be displayed
     And the 4 executive KPI cards should be visible
 
+  @TC-DASH-02
   Scenario: TC-DASH-02: Asset Allocation donut chart is displayed with direct navigation
     Then the Dashboard allocation card and donut svg should be visible
     When I click the Dashboard go to allocation button
     Then the asset allocation container should be visible
 
+  @TC-DASH-03
   Scenario: TC-DASH-03: Performance top movers card renders and navigates to performance view
     Then the Dashboard performance card should be visible
     When I click the Dashboard go to performance button
     Then the performance analytics container should be visible
 
+  @smoke @TC-DASH-04
   Scenario: TC-DASH-04: Financial Tools launchpad opens simulator directly in Tools view
     Then the Dashboard tools launchpad card should be visible
     When I click the Dashboard launch Rebalance Planner card
     Then the tools container should be visible
     And the rebalance calculator should be visible
 
+  @smoke @TC-DASH-05
   Scenario: TC-DASH-05: Currency switch converts Net Worth and KPI amounts
     Then the Executive Net Worth banner should be displayed
     When I switch currency to USD
@@ -36,6 +41,7 @@ Feature: Dashboard Landing Page & Executive Overview
     When I switch currency to THB
     Then the THB currency button should be active
 
+  @TC-DASH-06
   Scenario: TC-DASH-06: Privacy toggle hides monetary values on Dashboard
     Then the Executive Net Worth banner should be displayed
     When I toggle privacy mode

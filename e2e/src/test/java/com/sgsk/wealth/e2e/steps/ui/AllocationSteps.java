@@ -20,13 +20,16 @@ public class AllocationSteps {
         return context.getPage();
     }
 
-    @Then("the allocation donut chart should be visible")
-    public void verifyDonutChartVisible() {
-        AllocationPage allocation = new AllocationPage(page());
-        assertThat(allocation.donutChart).isVisible();
+    private AllocationPage allocationPage() {
+        return new AllocationPage(page());
     }
 
-    @When("I filter allocation to {string} if present")
+    @Then("the allocation donut chart should be visible")
+    public void verifyDonutChartVisible() {
+        assertThat(allocationPage().donutChart).isVisible();
+    }
+
+    @When("I filter allocation to {string}")
     public void filterAllocation(String className) {
         Locator row = page().locator("app-asset-allocation tr:has-text(\"" + className + "\")");
         if (row.isVisible()) {
@@ -34,11 +37,11 @@ public class AllocationSteps {
         }
     }
 
-    @Then("I reset the allocation filter if the reset button is visible")
+    @When("I reset the asset allocation filter")
     public void resetAllocationFilter() {
-        Locator resetButton = page().locator("button:has-text(\"All Asset Classes\")");
-        if (resetButton.isVisible()) {
-            resetButton.click();
+        AllocationPage alloc = allocationPage();
+        if (alloc.resetFilterBtn.isVisible()) {
+            alloc.resetClassFilter();
         }
     }
 

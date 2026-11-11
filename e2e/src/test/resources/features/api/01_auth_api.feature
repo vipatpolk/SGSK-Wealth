@@ -4,7 +4,8 @@ Feature: Backend API Authentication & Security
   I want my API requests to be authenticated via X-API-Key
   So that unauthorized access to portfolio and financial data is prevented
 
-  Scenario: Request without X-API-Key is rejected with 401 Unauthorized
+  @smoke @TC-API-AUTH-01
+  Scenario: TC-API-AUTH-01: Request without X-API-Key is rejected with 401 Unauthorized
     When I send an unauthorized GET request to "/share-lot/sheets"
     Then the response status should be 401
     And the response JSON should contain:
@@ -14,16 +15,18 @@ Feature: Backend API Authentication & Security
       }
       """
 
-  Scenario: Portfolio dividend request without X-API-Key is rejected with 401 Unauthorized
+  @TC-API-AUTH-02
+  Scenario: TC-API-AUTH-02: Portfolio dividend request without X-API-Key is rejected with 401 Unauthorized
     When I send an unauthorized GET request to "/portfolio/dividend"
     Then the response status should be 401
 
-
-  Scenario: Request with invalid X-API-Key is rejected with 401 Unauthorized
+  @TC-API-AUTH-03
+  Scenario: TC-API-AUTH-03: Request with invalid X-API-Key is rejected with 401 Unauthorized
     When I send a request to "/price/exchange-rate" with custom header "X-API-Key" value "invalid-key-xyz"
     Then the response status should be 401
 
-  Scenario: Authorized request with valid X-API-Key succeeds
+  @smoke @TC-API-AUTH-04
+  Scenario: TC-API-AUTH-04: Authorized request with valid X-API-Key succeeds
     When I send a GET request to "/price/exchange-rate" with params:
       | from_currency | USD |
       | to_currency   | THB |

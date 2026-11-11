@@ -7,6 +7,7 @@ Feature: Portfolio Holdings & FIFO Share Lot Accounting
   Background:
     Given I open the SGSK Wealth application
 
+  @smoke @TC-HLD-01
   Scenario: TC-HLD-01: Asset Tab Filtering displays symbols matching tab category
     When I select the "U.S. Stock" asset tab
     Then the card for "AAPL" should be visible
@@ -19,6 +20,7 @@ Feature: Portfolio Holdings & FIFO Share Lot Accounting
     When I select the "Closed Position" asset tab
     Then the card for "NVDA" should be visible
 
+  @smoke @TC-HLD-02
   Scenario: TC-HLD-02: Expanding Symbol Row reveals FIFO share lot details
     When I select the "U.S. Stock" asset tab
     And I expand the symbol row for "AAPL"
@@ -26,6 +28,7 @@ Feature: Portfolio Holdings & FIFO Share Lot Accounting
     And the lots drawer should contain "Jan 15, 2024"
     And the lots drawer should contain "Mar 10, 2024"
 
+  @TC-HLD-03
   Scenario: TC-HLD-03: Search Bar filters portfolio holdings by symbol or name
     When I search holdings for "Bitcoin"
     Then the card for "BTC" should be visible

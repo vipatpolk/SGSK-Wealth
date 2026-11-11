@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sgsk.wealth.e2e.context.TestContext;
 import com.sgsk.wealth.e2e.support.MockBackendServer;
 import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.response.Response;
@@ -22,6 +23,24 @@ public class ApiSteps {
 
     public ApiSteps(TestContext context) {
         this.context = context;
+    }
+
+    @Given("the backend service root is available")
+    public void verifyBackendRootAvailable() {
+        Response response = given()
+                .header("X-API-Key", MockBackendServer.VALID_API_KEY)
+                .get("/");
+        response.then().statusCode(200);
+        context.setLastApiResponse(response);
+    }
+
+    @Given("the share lot sheet for {string} is available")
+    public void verifyShareLotSheetAvailable(String tabId) {
+        Response response = given()
+                .header("X-API-Key", MockBackendServer.VALID_API_KEY)
+                .get("/share-lot/sheet/" + tabId);
+        response.then().statusCode(200);
+        context.setLastApiResponse(response);
     }
 
     @When("I send an unauthorized GET request to {string}")

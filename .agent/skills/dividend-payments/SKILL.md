@@ -49,8 +49,8 @@ When asked to determine when a stock trades ex-dividend or if an order qualifies
 
 *Executable Tool:* Run the included Python calendar utility:
 ```bash
-py .agents/skills/dividend-payments/scripts/dividend_calendar_tool.py --market US --record-date 2026-05-11
-py .agents/skills/dividend-payments/scripts/dividend_calendar_tool.py --market SET --record-date 2026-04-06
+py .agent/skills/dividend-payments/scripts/dividend_calendar_tool.py --market US --record-date 2026-05-11
+py .agent/skills/dividend-payments/scripts/dividend_calendar_tool.py --market SET --record-date 2026-04-06
 ```
 
 ---
