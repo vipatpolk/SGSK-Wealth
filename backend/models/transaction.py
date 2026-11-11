@@ -11,6 +11,7 @@ class Transaction(BaseModel):
     exchangeFrom: str | None = None
     exchangeTo: str | None = None
     txType: str | None = None
+    fee: float | None = None
     note: str | None = None
     employeeContribution: float | None = None
     employeeEarnings: float | None = None

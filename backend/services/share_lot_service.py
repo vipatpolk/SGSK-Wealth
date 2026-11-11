@@ -205,6 +205,7 @@ class ShareLotService:
         qty_idx = max(2, find_idx("quantity", "qty"))
         price_idx = max(3, find_idx("price"))
         curr_idx = max(4, find_idx("currency", "curr"))
+        fee_idx = find_idx("fee", "commission", "comm", "brokerage", "stamp duty", "stamp_duty")
         type_idx = find_idx("assettype", "asset type", "asset")
         tx_type_idx = find_idx("transaction type", "tx_type", "txtype", "action", "trade type", "trade_type", "type")
         ex_from_idx = find_idx(
@@ -270,6 +271,15 @@ class ShareLotService:
 
             currency = row[curr_idx].strip() if len(row) > curr_idx and row[curr_idx].strip() else "USD"
 
+            fee: float | None = None
+            if fee_idx != -1 and len(row) > fee_idx:
+                fee_str = row[fee_idx].strip().replace(",", "")
+                if fee_str:
+                    try:
+                        fee = float(fee_str)
+                    except ValueError:
+                        fee = None
+
             raw_type = row[type_idx].strip() if type_idx != -1 and len(row) > type_idx else ""
             parsed_type = normalize_asset_type(raw_type) if raw_type else None
             asset_type = parsed_type or get_asset_type(tab_asset_type, symbol)
@@ -317,6 +327,7 @@ class ShareLotService:
                     exchangeFrom=ex_from,
                     exchangeTo=ex_to,
                     txType=parsed_tx_type,
+                    fee=fee,
                 )
             )
 
@@ -462,7 +473,7 @@ class ShareLotService:
         EPSILON = 1e-7
 
         for symbol, txs in symbol_map.items():
-            txs.sort(key=lambda x: x.date)
+            txs.sort(key=lambda x: (self._parse_sort_date(x.date), 0 if self._is_inflow_tx(x) else 1))
             currency = txs[0].currency
             asset_type = txs[0].assetType
 
@@ -486,7 +497,6 @@ class ShareLotService:
                 is_buy = tx.quantity > 0
                 qty = abs(tx.quantity)
                 price = tx.price
-                total_amount = qty * price
                 tx_id = f"{symbol}-{tx.date}-{i + 1}"
 
                 tx_type, is_exchange = self._classify_transaction_type(tx, is_buy)
@@ -494,6 +504,7 @@ class ShareLotService:
                     exchange_count += 1
 
                 if tx_type == "DIVIDEND":
+                    total_amount = qty * price
                     running_avg = running_total_cost / running_shares if running_shares > 0 else 0
                     processed_tx_list.append(
                         SymbolTransaction(
@@ -516,9 +527,13 @@ class ShareLotService:
                     )
                     continue
 
-                if tx_type in ("BUY", "EXCHANGE_IN") or (is_buy and tx_type != "EXCHANGE_OUT"):
+                fee = tx.fee or 0.0
+
+                if tx_type in ("BUY", "EXCHANGE_IN"):
                     if not is_exchange:
                         buy_count += 1
+                    total_amount = (qty * price) + fee
+                    lot_cost_basis = total_amount / qty if qty > 0 else price
                     total_buy_shares += qty
                     total_buy_amount += total_amount
                     running_shares += qty
@@ -530,7 +545,7 @@ class ShareLotService:
                             symbol=tx.symbol,
                             purchaseDate=tx.date,
                             quantity=qty,
-                            costBasis=price,
+                            costBasis=lot_cost_basis,
                             totalCost=total_amount,
                             assetType=tx.assetType,
                             note=tx.note,
@@ -559,11 +574,17 @@ class ShareLotService:
                 else:
                     if not is_exchange:
                         sell_count += 1
+                    gross_proceeds = qty * price
+                    net_proceeds = max(0.0, gross_proceeds - fee)
+                    effective_sell_price = net_proceeds / qty if qty > 0 else price
+                    total_amount = net_proceeds
                     total_sell_shares += qty
                     total_sell_amount += total_amount
 
                     remaining_to_sell = qty
                     matched_cost = 0.0
+                    matched_proceeds = 0.0
+                    matched_qty_total = 0.0
 
                     for lot in list(open_lots):
                         if remaining_to_sell <= EPSILON:
@@ -573,7 +594,7 @@ class ShareLotService:
 
                         matched_qty = min(lot.quantity, remaining_to_sell)
                         buy_cost = matched_qty * lot.costBasis
-                        sell_proceeds = matched_qty * price
+                        sell_proceeds = matched_qty * effective_sell_price
                         lot_realized_pl = sell_proceeds - buy_cost
                         lot_realized_pl_pct = (lot_realized_pl / buy_cost) * 100.0 if buy_cost > 0 else 0.0
 
@@ -584,7 +605,7 @@ class ShareLotService:
                                 closeDate=tx.date,
                                 quantity=matched_qty,
                                 costBasis=lot.costBasis,
-                                sellPrice=price,
+                                sellPrice=effective_sell_price,
                                 totalCost=buy_cost,
                                 totalProceeds=sell_proceeds,
                                 realizedPL=lot_realized_pl,
@@ -598,13 +619,15 @@ class ShareLotService:
                         lot.totalCost = lot.quantity * lot.costBasis
                         remaining_to_sell -= matched_qty
                         matched_cost += buy_cost
+                        matched_proceeds += sell_proceeds
+                        matched_qty_total += matched_qty
 
                     tx_realized_pl: float | None = None
                     tx_realized_pl_pct: float | None = None
 
-                    if matched_cost > 0:
-                        tx_realized_pl = total_amount - matched_cost
-                        tx_realized_pl_pct = (tx_realized_pl / matched_cost) * 100.0
+                    if matched_qty_total > EPSILON:
+                        tx_realized_pl = matched_proceeds - matched_cost
+                        tx_realized_pl_pct = (tx_realized_pl / matched_cost) * 100.0 if matched_cost > 0 else 0.0
                         total_realized_pl += tx_realized_pl
                         total_realized_cost_basis += matched_cost
 
@@ -671,7 +694,7 @@ class ShareLotService:
                         employerEarnings=empr_earnings,
                     )
                 )
-            elif closed_lots:
+            if closed_lots:
                 closed_shares = sum(lot.quantity for lot in closed_lots)
                 total_cost = sum(lot.totalCost for lot in closed_lots)
                 total_proceeds = sum(lot.totalProceeds for lot in closed_lots)
@@ -781,7 +804,28 @@ class ShareLotService:
             tx_type = "EXCHANGE_OUT"
         elif is_exchange_in or (is_generic_exchange and is_buy):
             tx_type = "EXCHANGE_IN"
+        elif tx.txType and "SELL" in tx.txType.upper():
+            tx_type = "SELL"
+        elif tx.txType and "BUY" in tx.txType.upper():
+            tx_type = "BUY"
         else:
             tx_type = "BUY" if is_buy else "SELL"
 
         return tx_type, is_exchange
+
+    @staticmethod
+    def _parse_sort_date(date_str: str) -> str:
+        s = (date_str or "").strip()
+        if not s:
+            return ""
+        for fmt in ("%Y-%m-%d", "%Y/%m/%d", "%d/%m/%Y", "%d.%m.%Y", "%m/%d/%Y"):
+            try:
+                return datetime.strptime(s, fmt).strftime("%Y-%m-%d")
+            except ValueError:
+                continue
+        return s
+
+    @classmethod
+    def _is_inflow_tx(cls, tx: Transaction) -> bool:
+        tx_type, _ = cls._classify_transaction_type(tx, tx.quantity > 0)
+        return tx_type in ("BUY", "EXCHANGE_IN")

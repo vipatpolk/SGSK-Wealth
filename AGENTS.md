@@ -16,6 +16,7 @@ All agents (Antigravity, OpenAI Codex, and Claude Code via `.claude/skills/`) sh
 | :--- | :--- | :--- |
 | **`dividend-payments`** | [`.agent/skills/dividend-payments/SKILL.md`](.agent/skills/dividend-payments/SKILL.md) | U.S. (SEC T+1) and Thai (SET T+2) equity dividends, ex-dividend/XD dates, withholding taxes (15% W-8BEN / 30% NRA, 10% Thai / 0% BOI), stock dividends, and `dividend_service.py`. |
 | **`cucumber-bdd-best-practices`** | [`.agent/skills/cucumber-bdd-best-practices/SKILL.md`](.agent/skills/cucumber-bdd-best-practices/SKILL.md) | Authoring, reviewing, or refactoring `.feature` Gherkin specifications, Cucumber step definitions, Playwright Page Objects, REST Assured steps, and tagging taxonomy in `e2e/`. |
+| **`fifo-cost-basis`** | [`.agent/skills/fifo-cost-basis/SKILL.md`](.agent/skills/fifo-cost-basis/SKILL.md) | First In, First Out (FIFO) inventory valuation (COGS, ending inventory, GAAP/IFRS vs. LIFO) and portfolio cost-basis accounting (lot matching, acquisition fees, FIFO vs. Average Cost, `share_lot_service.py`). |
 
 ---
 
