@@ -11,13 +11,13 @@ def _int32(val: int) -> int:
     return val
 
 
-def _hsl_to_hex(h: float, s: float, l: float) -> str:
-    """Converts HSL components (h in [0, 360), s and l in [0, 1]) to standard 6-digit hex string (#rrggbb)."""
-    a = s * min(l, 1.0 - l)
+def _hsl_to_hex(h: float, s: float, lightness: float) -> str:
+    """Converts HSL components (h in [0, 360), s and lightness in [0, 1]) to standard 6-digit hex string (#rrggbb)."""
+    a = s * min(lightness, 1.0 - lightness)
 
     def f(n: int) -> str:
         k = (n + h / 30.0) % 12
-        color = l - a * max(min(k - 3, 9 - k, 1), -1)
+        color = lightness - a * max(min(k - 3, 9 - k, 1), -1)
         val = round(255 * color)
         return f"{val:02x}"
 

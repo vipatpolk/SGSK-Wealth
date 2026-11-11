@@ -1,3 +1,5 @@
+from typing import Any, cast
+
 import httpx
 
 from utils.cache import AsyncSingleflight, TTLCache
@@ -6,9 +8,7 @@ from utils.http_client import get_http_client
 from utils.symbol_icon_utils import (
     clean_ticker_for_url,
     generate_symbol_svg,
-    get_symbol_color,
     get_symbol_logo_config,
-    get_symbol_monogram,
 )
 
 
@@ -42,8 +42,8 @@ class IconService:
         cache_key = f"icon:{sym_clean.upper()}:{resolved_type}"
 
         cached = self._cache.get(cache_key)
-        if cached is not None:
-            return cached
+        if cached is not None and isinstance(cached, tuple) and len(cached) == 2:
+            return (cast(bytes, cached[0]), cast(str, cached[1]))
 
         async def _fetch() -> tuple[bytes, str]:
             if not sym_clean:
@@ -98,7 +98,7 @@ class IconService:
 
         return await self._singleflight.execute(cache_key, _fetch)
 
-    def get_symbol_metadata(self, symbol: str, asset_type: str = "") -> dict:
+    def get_symbol_metadata(self, symbol: str, asset_type: str = "") -> dict[str, Any]:
         """Returns JSON metadata describing the resolved icon details for a symbol."""
         sym_clean = (symbol or "").strip()
         resolved_type = get_asset_type(asset_type, sym_clean)
