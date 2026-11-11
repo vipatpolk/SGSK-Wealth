@@ -11,7 +11,7 @@ let devServerProcess: any = null;
 
 setDefaultTimeout(45000);
 
-async function isServerReady(url = 'http://localhost:4200'): Promise<boolean> {
+async function isServerReady(url = 'http://127.0.0.1:4200'): Promise<boolean> {
   return new Promise((resolve) => {
     const req = http.get(url, (res) => {
       resolve(res.statusCode === 200 || res.statusCode === 304);
@@ -28,7 +28,7 @@ async function ensureWebServer(): Promise<void> {
   const ready = await isServerReady();
   if (ready) return;
 
-  devServerProcess = spawn('npx', ['ng', 'serve', '--port', '4200'], {
+  devServerProcess = spawn('npx', ['ng', 'serve', '--host', '127.0.0.1', '--port', '4200'], {
     cwd: path.resolve(__dirname, '../..'),
     shell: true,
     stdio: 'ignore',
@@ -65,7 +65,7 @@ BeforeAll(async () => {
 
   configure({
     actors: new WebActors(browser, {
-      baseURL: process.env.E2E_BASE_URL || 'http://localhost:4200',
+      baseURL: process.env.E2E_BASE_URL || 'http://127.0.0.1:4200',
     }),
     crew: [
       ['@serenity-js/console-reporter', { theme: 'auto' }],
