@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/backend/:path*",
-      "destination": "https://sgsk-backend.vercel.app/:path*"
+      "destination": "https://api-sgsk-wealth.vercel.app/:path*"
     },
     {
       "source": "/(.*)",

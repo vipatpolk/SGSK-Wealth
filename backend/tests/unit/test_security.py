@@ -54,6 +54,14 @@ def test_direct_access_to_vercel_backend_blocked(api_client, mocked_external_api
     assert res.status_code == 403
     assert "Direct access to backend origin is prohibited" in res.json()["detail"]
 
+    # Direct access with new host api-sgsk-wealth.vercel.app and no proxy/app headers is also blocked
+    res_wealth = api_client.get(
+        "/share-lot/sheets",
+        headers={"Host": "api-sgsk-wealth.vercel.app"},
+    )
+    assert res_wealth.status_code == 403
+    assert "Direct access to backend origin is prohibited" in res_wealth.json()["detail"]
+
 
 @pytest.mark.unit
 def test_direct_access_root_to_vercel_backend_blocked(api_client):
@@ -65,6 +73,13 @@ def test_direct_access_root_to_vercel_backend_blocked(api_client):
     assert res.status_code == 403
     assert "Direct access to backend origin is prohibited" in res.json()["detail"]
 
+    res_wealth = api_client.get(
+        "/",
+        headers={"Host": "api-sgsk-wealth.vercel.app"},
+    )
+    assert res_wealth.status_code == 403
+    assert "Direct access to backend origin is prohibited" in res_wealth.json()["detail"]
+
 
 @pytest.mark.unit
 def test_forwarded_proxy_access_to_vercel_backend_allowed(api_client, mocked_external_apis):
@@ -72,8 +87,8 @@ def test_forwarded_proxy_access_to_vercel_backend_allowed(api_client, mocked_ext
     res = api_client.get(
         "/share-lot/sheets",
         headers={
-            "Host": "sgsk-backend.vercel.app",
-            "X-Forwarded-Host": "sharelot.vercel.app",
+            "Host": "api-sgsk-wealth.vercel.app",
+            "X-Forwarded-Host": "sgsk-wealth.vercel.app",
         },
     )
     assert res.status_code == 200
@@ -85,7 +100,7 @@ def test_app_source_signature_access_to_vercel_backend_allowed(api_client, mocke
     res = api_client.get(
         "/share-lot/sheets",
         headers={
-            "Host": "sgsk-backend.vercel.app",
+            "Host": "api-sgsk-wealth.vercel.app",
             "X-App-Source": "ShareLot",
         },
     )
@@ -94,7 +109,7 @@ def test_app_source_signature_access_to_vercel_backend_allowed(api_client, mocke
     res_wealth = api_client.get(
         "/share-lot/sheets",
         headers={
-            "Host": "sgsk-backend.vercel.app",
+            "Host": "api-sgsk-wealth.vercel.app",
             "X-App-Source": "SGSK-Wealth",
         },
     )

@@ -45,8 +45,12 @@ class DirectAccessBlockMiddleware(BaseHTTPMiddleware):
                 media_type="application/json",
             )
 
-        # 2. Block direct access targeting sgsk-backend.vercel.app without proxy/app signature
-        if host == "sgsk-backend.vercel.app" or (host.endswith(".vercel.app") and "backend" in host):
+        # 2. Block direct access targeting api-sgsk-wealth.vercel.app or sgsk-backend.vercel.app without proxy/app signature
+        is_target_backend_host = (
+            host in ("api-sgsk-wealth.vercel.app", "sgsk-backend.vercel.app")
+            or (host.endswith(".vercel.app") and ("backend" in host or "api-sgsk-wealth" in host))
+        )
+        if is_target_backend_host:
             is_forwarded_from_frontend = bool(forwarded_host and forwarded_host != host)
             has_valid_app_signature = app_source in (
                 "ShareLot",
