@@ -5,7 +5,7 @@ Feature: Dashboard Landing Page & Executive Overview
   So that I have an immediate high-level summary of my investment portfolio
 
   Background:
-    Given I open the ShareLot application
+    Given I open the SGSK Wealth application
 
   Scenario: TC-DASH-01: Application lands on Dashboard by default with Executive Net Worth banner
     Then the Dashboard view should be visible

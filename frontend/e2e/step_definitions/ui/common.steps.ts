@@ -9,7 +9,7 @@ function getActor() {
   return actorCalled('Investor');
 }
 
-Given('I open the ShareLot application', async () => {
+Given('I open the SGSK Wealth application', async () => {
   const page = await getPlaywrightPage(getActor());
   await page.goto('/');
 });
@@ -19,7 +19,7 @@ Given('the backend API returns error status {int}', async (statusCode: number) =
   await mockPortfolioAPIError(page, statusCode);
 });
 
-When('I open the ShareLot application without mocking', async () => {
+When('I open the SGSK Wealth application without mocking', async () => {
   const page = await getPlaywrightPage(getActor());
   await page.goto('/');
 });

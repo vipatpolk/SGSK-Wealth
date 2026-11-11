@@ -32,8 +32,8 @@ describe('HTTP Interceptors', () => {
     const req = httpMock.expectOne('/api/backend/share-lot/sheets');
     expect(req.request.headers.has('X-API-Key')).toBe(true);
     expect(req.request.headers.get('X-API-Key')).toBe(environment.apiKey);
-    expect(req.request.headers.get('X-App-Source')).toBe('ShareLot');
-    expect(req.request.headers.get('X-Requested-With')).toBe('ShareLot-Client');
+    expect(req.request.headers.get('X-App-Source')).toBe('SGSK-Wealth');
+    expect(req.request.headers.get('X-Requested-With')).toBe('SGSK-Wealth-Client');
 
     req.flush({});
     await promise;

@@ -66,12 +66,15 @@ export class RebalanceCalculatorComponent implements OnInit {
   readonly isCopiedOrders = signal<boolean>(false);
   readonly isOrdersExpanded = signal<boolean>(true);
 
-  private readonly STORAGE_KEY = 'sharelot_tools_rebalance_targets';
+  private readonly STORAGE_KEY = 'sgsk_wealth_tools_rebalance_targets';
+  private readonly LEGACY_STORAGE_KEY = 'sharelot_tools_rebalance_targets';
 
   ngOnInit(): void {
     if (typeof localStorage !== 'undefined') {
       try {
-        const saved = localStorage.getItem(this.STORAGE_KEY);
+        const saved =
+          localStorage.getItem(this.STORAGE_KEY) ||
+          localStorage.getItem(this.LEGACY_STORAGE_KEY);
         if (saved) {
           const parsed = JSON.parse(saved);
           if (parsed && typeof parsed === 'object') {
@@ -125,6 +128,7 @@ export class RebalanceCalculatorComponent implements OnInit {
       if (typeof localStorage !== 'undefined') {
         try {
           localStorage.setItem(this.STORAGE_KEY, JSON.stringify(targets));
+          localStorage.setItem(this.LEGACY_STORAGE_KEY, JSON.stringify(targets));
         } catch {
           // Ignore
         }

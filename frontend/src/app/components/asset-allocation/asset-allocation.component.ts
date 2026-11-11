@@ -82,12 +82,15 @@ export class AssetAllocationComponent implements OnInit {
           }
         },
       });
+      localStorage.setItem('sgsk_wealth_target_allocation', JSON.stringify(targets));
       localStorage.setItem('sharelot_target_allocation', JSON.stringify(targets));
     });
   }
 
   ngOnInit() {
-    const saved = localStorage.getItem('sharelot_target_allocation');
+    const saved =
+      localStorage.getItem('sgsk_wealth_target_allocation') ||
+      localStorage.getItem('sharelot_target_allocation');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);

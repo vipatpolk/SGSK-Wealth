@@ -5,7 +5,7 @@ Feature: Tools Hub & Investor Simulators
   So that I can model forward investment strategies
 
   Background:
-    Given I open the ShareLot application
+    Given I open the SGSK Wealth application
     And I navigate to the Tools view
 
   Scenario: TC-TOOLS-01: Navigation to Tools tab and renders Avg Cost Calculator

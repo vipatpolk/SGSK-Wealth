@@ -81,7 +81,7 @@ def test_forwarded_proxy_access_to_vercel_backend_allowed(api_client, mocked_ext
 
 @pytest.mark.unit
 def test_app_source_signature_access_to_vercel_backend_allowed(api_client, mocked_external_apis):
-    # Access with verified app signature header is allowed
+    # Access with verified app signature header is allowed for both ShareLot and SGSK-Wealth
     res = api_client.get(
         "/share-lot/sheets",
         headers={
@@ -90,3 +90,12 @@ def test_app_source_signature_access_to_vercel_backend_allowed(api_client, mocke
         },
     )
     assert res.status_code == 200
+
+    res_wealth = api_client.get(
+        "/share-lot/sheets",
+        headers={
+            "Host": "sgsk-backend.vercel.app",
+            "X-App-Source": "SGSK-Wealth",
+        },
+    )
+    assert res_wealth.status_code == 200

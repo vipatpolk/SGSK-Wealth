@@ -7,7 +7,7 @@ function getActor() {
   return actorCalled('Investor');
 }
 
-Given('I open the ShareLot application on a mobile viewport', async () => {
+Given('I open the SGSK Wealth application on a mobile viewport', async () => {
   const page = await getPlaywrightPage(getActor());
   // iPhone 14 viewport
   await page.setViewportSize({ width: 390, height: 844 });

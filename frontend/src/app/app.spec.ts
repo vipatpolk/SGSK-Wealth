@@ -26,7 +26,7 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('ShareLot');
+    expect(compiled.querySelector('h1')?.textContent).toContain('SGSK Wealth');
   });
 
   it('should have closed position tab in tabs list', () => {

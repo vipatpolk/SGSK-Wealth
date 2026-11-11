@@ -5,7 +5,7 @@ Feature: Investment Performance & Analytics Engine
   So that I can evaluate portfolio profitability across custom holding periods
 
   Background:
-    Given I open the ShareLot application
+    Given I open the SGSK Wealth application
     And I switch to the Performance sub-tab
 
   Scenario: TC-PRF-01: Performance view renders summary KPI cards

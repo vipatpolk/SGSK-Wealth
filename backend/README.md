@@ -1,6 +1,6 @@
 # SGSK Backend
 
-This is the Python **FastAPI** backend for the [ShareLot](https://github.com/vipatpolk/ShareLot) investment portfolio tracker. It serves as the data aggregation, calculation, and proxy layer between the Angular frontend and external data sources.
+This is the Python **FastAPI** backend for the [SGSK-Wealth](https://github.com/vipatpolk/SGSK-Wealth) investment portfolio tracker. It serves as the data aggregation, calculation, and proxy layer between the Angular frontend and external data sources.
 
 ## Features
 

@@ -29,7 +29,7 @@ try {
         : 0;
   const statusIcon = failed === 0 ? '🟢 PASSED' : '🔴 FAILED';
 
-  const repoName = process.env.GITHUB_REPOSITORY || 'vipatpolk/ShareLot';
+  const repoName = process.env.GITHUB_REPOSITORY || 'vipatpolk/SGSK-Wealth';
   const owner = repoName.split('/')[0];
   const repo = repoName.split('/')[1] || '';
   const ghPagesUrl = `https://${owner}.github.io/${repo}/`;

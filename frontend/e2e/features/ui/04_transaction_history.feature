@@ -5,7 +5,7 @@ Feature: Transaction History Ledger & CSV Exporter
   So that I can audit trade history and tax filings
 
   Background:
-    Given I open the ShareLot application
+    Given I open the SGSK Wealth application
     And I switch to the Transactions view
 
   Scenario: TC-TXN-01: Displays initial unfiltered transaction feed
@@ -16,4 +16,4 @@ Feature: Transaction History Ledger & CSV Exporter
 
   Scenario: TC-TXN-05: CSV Export triggers file download
     When I trigger CSV export of all transactions
-    Then the downloaded file name should match the pattern "sharelot_.*\.csv"
+    Then the downloaded file name should match the pattern "(?:sgsk_wealth|sharelot)_.*\.csv"

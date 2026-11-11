@@ -1,4 +1,4 @@
-# ShareLot Frontend Rules & Quality Assurance Standards
+# SGSK Wealth Frontend Rules & Quality Assurance Standards
 
 ## Mandatory Quality Verification Before Commit/Push
 Always run and pass all of the following checks before committing or pushing changes:

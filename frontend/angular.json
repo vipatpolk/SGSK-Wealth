@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "ShareLot": {
+    "sgsk-wealth": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -66,10 +66,10 @@
           },
           "configurations": {
             "production": {
-              "buildTarget": "ShareLot:build:production"
+              "buildTarget": "sgsk-wealth:build:production"
             },
             "development": {
-              "buildTarget": "ShareLot:build:development"
+              "buildTarget": "sgsk-wealth:build:development"
             }
           },
           "defaultConfiguration": "development"

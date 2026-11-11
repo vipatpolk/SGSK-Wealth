@@ -1,11 +1,11 @@
 @ui @navigation @smoke
 Feature: Global Navigation & Header Controls
-  As a ShareLot investor
+  As a SGSK Wealth investor
   I want to switch views, currencies, and themes
   So that I can monitor my portfolio across different layouts and currencies
 
   Background:
-    Given I open the ShareLot application
+    Given I open the SGSK Wealth application
 
   Scenario: TC-NAV-01: View Mode Switcher navigates between primary views
     Then the Dashboard view should be visible

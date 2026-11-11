@@ -589,35 +589,35 @@ describe('TransactionHistoryComponent', () => {
     // 1. TC-UI-01: Export All Transactions
     component.exportCsv('all', 'all');
     expect(createdElement).not.toBeNull();
-    expect(createdElement!.getAttribute('download')).toContain('ShareLot_Transactions_All_');
+    expect(createdElement!.getAttribute('download')).toContain('SGSK_Wealth_Transactions_All_');
 
     // 2. TC-UI-06: Export Only Open Positions
     component.exportCsv('all', 'open');
-    expect(createdElement!.getAttribute('download')).toContain('ShareLot_Transactions_All_OPEN_');
+    expect(createdElement!.getAttribute('download')).toContain('SGSK_Wealth_Transactions_All_OPEN_');
 
     // 3. TC-UI-07: Export Only Closed Positions
     component.exportCsv('all', 'closed');
-    expect(createdElement!.getAttribute('download')).toContain('ShareLot_Transactions_All_CLOSED_');
+    expect(createdElement!.getAttribute('download')).toContain('SGSK_Wealth_Transactions_All_CLOSED_');
 
     // 4. TC-UI-02: Export US Stock
     component.exportCsv('us-stock');
-    expect(createdElement!.getAttribute('download')).toContain('ShareLot_Transactions_US-STOCK_');
+    expect(createdElement!.getAttribute('download')).toContain('SGSK_Wealth_Transactions_US-STOCK_');
 
     // 5. TC-UI-03: Export Thai Stock
     component.exportCsv('thai-stock');
-    expect(createdElement!.getAttribute('download')).toContain('ShareLot_Transactions_THAI-STOCK_');
+    expect(createdElement!.getAttribute('download')).toContain('SGSK_Wealth_Transactions_THAI-STOCK_');
 
     // 6. TC-UI-04: Export Crypto
     component.exportCsv('crypto');
-    expect(createdElement!.getAttribute('download')).toContain('ShareLot_Transactions_CRYPTO_');
+    expect(createdElement!.getAttribute('download')).toContain('SGSK_Wealth_Transactions_CRYPTO_');
 
     // 7. TC-UI-05: Export Mutual Fund
     component.exportCsv('mutual-fund');
-    expect(createdElement!.getAttribute('download')).toContain('ShareLot_Transactions_MUTUAL-FUND_');
+    expect(createdElement!.getAttribute('download')).toContain('SGSK_Wealth_Transactions_MUTUAL-FUND_');
 
     // 8. TC-UI-08: Combined Asset Type and Status Scope
     component.exportCsv('us-stock', 'open');
-    expect(createdElement!.getAttribute('download')).toContain('ShareLot_Transactions_US-STOCK_OPEN_');
+    expect(createdElement!.getAttribute('download')).toContain('SGSK_Wealth_Transactions_US-STOCK_OPEN_');
 
     createElementSpy.mockRestore();
     createObjectURLSpy.mockRestore();

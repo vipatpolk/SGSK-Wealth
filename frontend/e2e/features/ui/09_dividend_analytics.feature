@@ -5,7 +5,7 @@ Feature: Dividend Analytics & Yield on Cost (YOC)
   So that I can evaluate passive cashflow generation
 
   Background:
-    Given I open the ShareLot application
+    Given I open the SGSK Wealth application
     And I navigate to the Dividends view
 
   Scenario: TC-DIV-01: Displays summary KPI cards including Yield on Cost (YOC)

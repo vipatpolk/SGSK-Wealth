@@ -138,7 +138,7 @@ export function generateExportFilename(
       ? `_${options.assetTypeFilter.toUpperCase()}`
       : '';
 
-  return `ShareLot_Transactions_${symName}${assetSuffix}${scopeSuffix}_${dateStr}.csv`;
+  return `SGSK_Wealth_Transactions_${symName}${assetSuffix}${scopeSuffix}_${dateStr}.csv`;
 }
 
 /**

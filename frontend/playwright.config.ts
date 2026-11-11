@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Playwright E2E Configuration for ShareLot
+ * Playwright E2E Configuration for SGSK Wealth
  * https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({

@@ -465,7 +465,8 @@ export class App {
   private initTheme(): void {
     if (typeof window !== 'undefined') {
       try {
-        const savedTheme = localStorage.getItem('sharelot_theme') as 'dark' | 'light' | null;
+        const savedTheme = (localStorage.getItem('sgsk_wealth_theme') ||
+          localStorage.getItem('sharelot_theme')) as 'dark' | 'light' | null;
         if (savedTheme === 'light' || savedTheme === 'dark') {
           this.setTheme(savedTheme);
         } else {
@@ -489,6 +490,7 @@ export class App {
     }
     if (typeof localStorage !== 'undefined') {
       try {
+        localStorage.setItem('sgsk_wealth_theme', theme);
         localStorage.setItem('sharelot_theme', theme);
       } catch {
         // Ignore localStorage errors
@@ -499,7 +501,9 @@ export class App {
   private initPrivacyMode(): void {
     if (typeof window !== 'undefined') {
       try {
-        const savedPrivacy = localStorage.getItem('sharelot_privacy_mode');
+        const savedPrivacy =
+          localStorage.getItem('sgsk_wealth_privacy_mode') ||
+          localStorage.getItem('sharelot_privacy_mode');
         if (savedPrivacy === 'true') {
           this.setPrivacyMode(true);
         } else {
@@ -522,6 +526,7 @@ export class App {
     }
     if (typeof localStorage !== 'undefined') {
       try {
+        localStorage.setItem('sgsk_wealth_privacy_mode', privacy ? 'true' : 'false');
         localStorage.setItem('sharelot_privacy_mode', privacy ? 'true' : 'false');
       } catch {
         // Ignore localStorage errors

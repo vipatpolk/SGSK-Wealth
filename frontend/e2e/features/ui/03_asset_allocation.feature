@@ -5,7 +5,7 @@ Feature: Target Asset Allocation & Rebalancing Engine
   So that I can evaluate category weightings against target distributions
 
   Background:
-    Given I open the ShareLot application
+    Given I open the SGSK Wealth application
     And I navigate to the Allocation analytics view
 
   Scenario: TC-ALC-01: Asset Allocation view defaults to All tab aggregated portfolio view

@@ -5,7 +5,7 @@ Feature: Portfolio Holdings & FIFO Share Lot Accounting
   So that I can analyze lot acquisition dates and individual cost bases
 
   Background:
-    Given I open the ShareLot application
+    Given I open the SGSK Wealth application
 
   Scenario: TC-HLD-01: Asset Tab Filtering displays symbols matching tab category
     When I select the "U.S. Stock" asset tab

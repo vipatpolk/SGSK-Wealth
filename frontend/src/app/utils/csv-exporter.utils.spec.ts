@@ -151,16 +151,16 @@ describe('CSV Exporter Utilities', () => {
     const testDate = new Date('2026-08-12T00:00:00Z');
 
     const f1 = generateExportFilename({}, testDate);
-    expect(f1).toBe('ShareLot_Transactions_All_2026-08-12.csv');
+    expect(f1).toBe('SGSK_Wealth_Transactions_All_2026-08-12.csv');
 
     const f2 = generateExportFilename({ assetTypeFilter: 'us-stock', statusScope: 'open' }, testDate);
-    expect(f2).toBe('ShareLot_Transactions_US-STOCK_OPEN_2026-08-12.csv');
+    expect(f2).toBe('SGSK_Wealth_Transactions_US-STOCK_OPEN_2026-08-12.csv');
 
     const f3 = generateExportFilename(
       { activeSymbol: 'AAPL', statusScope: 'closed', getDisplaySymbolFn: () => 'AAPL' },
       testDate
     );
-    expect(f3).toBe('ShareLot_Transactions_AAPL_CLOSED_2026-08-12.csv');
+    expect(f3).toBe('SGSK_Wealth_Transactions_AAPL_CLOSED_2026-08-12.csv');
   });
 
   it('should trigger browser file download without error', () => {

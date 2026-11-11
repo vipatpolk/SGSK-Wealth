@@ -1,7 +1,7 @@
-# ShareLot — FIFO Share Lot & Portfolio Tracker
+# SGSK Wealth — Investment Portfolio & Wealth Analytics
 
 <p align="center">
-  <img src="public/favicon.svg" alt="ShareLot Logo" width="96" height="96" />
+  <img src="public/favicon.svg" alt="SGSK Wealth Logo" width="96" height="96" />
 </p>
 
 <p align="center">
@@ -17,7 +17,7 @@
   <img src="https://img.shields.io/badge/PactumJS-API_Testing-FF6C37?style=flat-square" alt="PactumJS" />
   <img src="https://img.shields.io/badge/Playwright-1.50-45BA4B?style=flat-square&logo=playwright&logoColor=white" alt="Playwright E2E" />
   <img src="https://img.shields.io/badge/Vitest-4.1-FCC72B?style=flat-square&logo=vitest&logoColor=black" alt="Vitest Unit Testing" />
-  <a href="https://vipatpolk.github.io/ShareLot/"><img src="https://img.shields.io/badge/Living_Docs-GitHub_Pages-2ea44f?style=flat-square&logo=githubpages&logoColor=white" alt="Living Documentation" /></a>
+  <a href="https://vipatpolk.github.io/SGSK-Wealth/"><img src="https://img.shields.io/badge/Living_Docs-GitHub_Pages-2ea44f?style=flat-square&logo=githubpages&logoColor=white" alt="Living Documentation" /></a>
   <img src="https://img.shields.io/badge/Node.js-24.19_LTS-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js 24 LTS" />
   <img src="https://img.shields.io/badge/Deploy-Vercel-000000?style=flat-square&logo=vercel&logoColor=white" alt="Vercel" />
 </p>
@@ -26,7 +26,7 @@
 
 ## Overview
 
-**ShareLot** is an investment portfolio analytics web application designed to automate **First-In, First-Out (FIFO)** share lot accounting across multiple asset classes. It connects to **SGSKBackend** to ingest transaction logs from Google Sheets and streams real-time market data to compute cost basis, open lots, realized gains, holding values, total profit/loss (P/L), asset rebalancing, dividend income ledgers, privacy masking, and comprehensive investment performance analytics.
+**SGSK Wealth** is an investment portfolio analytics web application designed to automate **First-In, First-Out (FIFO)** share lot accounting across multiple asset classes. It connects to **SGSKBackend** to ingest transaction logs from Google Sheets and streams real-time market data to compute cost basis, open lots, realized gains, holding values, total profit/loss (P/L), asset rebalancing, dividend income ledgers, privacy masking, and comprehensive investment performance analytics.
 
 ---
 
@@ -154,7 +154,7 @@
 ## Project Structure
 
 ```
-ShareLot/
+frontend/
 ├── e2e/                        # Unified Cucumber BDD, Serenity/JS & PactumJS Test Suite
 │   ├── features/               # Gherkin .feature specifications (UI and API)
 │   │   ├── api/                # REST API contract and service features
@@ -232,8 +232,8 @@ ShareLot/
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/vipatpolk/ShareLot.git
-cd ShareLot
+git clone https://github.com/vipatpolk/SGSK-Wealth.git
+cd SGSK-Wealth
 npm install
 npx playwright install --with-deps
 ```
@@ -261,7 +261,7 @@ npm test
 
 ### Running End-to-End (E2E) & API Tests
 
-ShareLot includes a unified Cucumber BDD test suite covering **51 automated scenarios** (41 UI and 10 REST API) with Serenity/JS HTML living documentation and PactumJS:
+SGSK Wealth includes a unified Cucumber BDD test suite covering **51 automated scenarios** (41 UI and 10 REST API) with Serenity/JS HTML living documentation and PactumJS:
 
 ```bash
 # Run all E2E and API scenarios via single Cucumber runner (51 scenarios)
@@ -292,7 +292,7 @@ The GitHub Actions CI/CD workflow (`.github/workflows/e2e.yml`) automatically pu
 
 1. **GitHub Pages (Live Interactive Report)**:
    - On every push to `master` / `main`, the Serenity HTML living documentation is automatically deployed to GitHub Pages at:
-     `https://vipatpolk.github.io/ShareLot/`
+     `https://vipatpolk.github.io/SGSK-Wealth/`
    - Browse interactive execution timelines, scenario steps, and failure screenshots with zero local installation.
 2. **GitHub Actions Job Summary**:
    - Every workflow run (pushes and pull requests) generates an instant **Execution Scorecard** directly inside the GitHub Actions run summary tab with total pass rates, scenario counts, duration, and top slowest scenarios.
@@ -336,4 +336,4 @@ All Google Spreadsheet IDs, tab GID mappings, and data processing are configured
 
 ## License
 
-© 2026 SGSK ShareLot — Investment Portfolio Tracker & FIFO Engine. Private and proprietary.
+© 2026 SGSK Wealth — Investment Portfolio & Wealth Management System. Private and proprietary.

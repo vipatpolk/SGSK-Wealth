@@ -12,8 +12,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     const authReq = req.clone({
       setHeaders: {
         'X-API-Key': environment.apiKey,
-        'X-App-Source': 'ShareLot',
-        'X-Requested-With': 'ShareLot-Client',
+        'X-App-Source': 'SGSK-Wealth',
+        'X-Requested-With': 'SGSK-Wealth-Client',
       },
     });
     return next(authReq);

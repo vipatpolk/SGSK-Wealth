@@ -41,14 +41,19 @@ class DirectAccessBlockMiddleware(BaseHTTPMiddleware):
         if is_browser_direct_navigation and not app_source:
             return Response(
                 status_code=403,
-                content='{"detail": "Direct browser access to backend is prohibited. Please access via the ShareLot web application."}',
+                content='{"detail": "Direct browser access to backend is prohibited. Please access via the SGSK Wealth web application."}',
                 media_type="application/json",
             )
 
         # 2. Block direct access targeting sgsk-backend.vercel.app without proxy/app signature
         if host == "sgsk-backend.vercel.app" or (host.endswith(".vercel.app") and "backend" in host):
             is_forwarded_from_frontend = bool(forwarded_host and forwarded_host != host)
-            has_valid_app_signature = app_source in ("ShareLot", "ShareLot-Client")
+            has_valid_app_signature = app_source in (
+                "ShareLot",
+                "ShareLot-Client",
+                "SGSK-Wealth",
+                "SGSK-Wealth-Client",
+            )
 
             if not is_forwarded_from_frontend and not has_valid_app_signature:
                 return Response(

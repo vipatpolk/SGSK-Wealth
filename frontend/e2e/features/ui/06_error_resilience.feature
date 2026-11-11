@@ -6,6 +6,6 @@ Feature: API Failure & Error Resilience
 
   Scenario: TC-ERR-01: Displays error state card when backend API fails
     Given the backend API returns error status 500
-    When I open the ShareLot application without mocking
+    When I open the SGSK Wealth application without mocking
     Then the error state card should be visible with "Unable to load data"
     And the retry button should be visible

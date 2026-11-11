@@ -5,7 +5,7 @@ Feature: Mobile Responsiveness & Touch Layouts
   So that I have an optimized touch experience
 
   Background:
-    Given I open the ShareLot application on a mobile viewport
+    Given I open the SGSK Wealth application on a mobile viewport
 
   Scenario: TC-MOB-01: Mobile view renders responsive cards and native bottom navigation bar
     Then the native bottom navigation bar should be visible
