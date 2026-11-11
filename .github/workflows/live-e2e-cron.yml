@@ -5,6 +5,10 @@ on:
     - cron: '0 0 * * *' # Daily at midnight UTC
   workflow_dispatch:
 
+defaults:
+  run:
+    working-directory: backend
+
 jobs:
   live-smoke-test:
     name: External APIs & Google Sheets Integration
@@ -18,7 +22,7 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-          cache-dependency-path: 'requirements-dev.txt'
+          cache-dependency-path: 'backend/requirements-dev.txt'
 
       - name: Install Dependencies
         run: |

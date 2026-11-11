@@ -1,0 +1,52 @@
+# Dependencies & Virtual Environments
+node_modules/
+.venv/
+venv/
+env/
+
+# Python Cache & Artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Frontend & Angular Build Outputs
+dist/
+tmp/
+out-tsc/
+bazel-out/
+.angular/cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing & E2E Reports
+playwright-report/
+test-results/
+reports/
+target/
+__screenshots__/
+
+# IDEs & System Files
+.idea/
+.project
+.classpath
+.settings/
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
