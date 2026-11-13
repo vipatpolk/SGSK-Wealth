@@ -3,7 +3,7 @@
 This repository is a monorepo consisting of:
 - **`backend/`**: Python FastAPI backend service
 - **`frontend/`**: Angular 22 Single Page Application
-- **`e2e/`**: Standalone Java E2E test suite (Playwright, Rest Assured, Cucumber-JVM, JUnit 5 & Allure)
+- **`e2e/`**: Standalone Spring Boot E2E test suite (Spring Boot, Playwright, Rest Assured, Cucumber-JVM, JUnit 5 & Allure)
 - **`.agent/skills/`**: Single source of truth for shared agent skills and domain guidelines
 
 ---
@@ -17,6 +17,7 @@ All agents (Antigravity, OpenAI Codex, and Claude Code via `.claude/skills/`) sh
 | **`dividend-payments`** | [`.agent/skills/dividend-payments/SKILL.md`](.agent/skills/dividend-payments/SKILL.md) | U.S. (SEC T+1) and Thai (SET T+2) equity dividends, ex-dividend/XD dates, withholding taxes (15% W-8BEN / 30% NRA, 10% Thai / 0% BOI), stock dividends, and `dividend_service.py`. |
 | **`cucumber-bdd-best-practices`** | [`.agent/skills/cucumber-bdd-best-practices/SKILL.md`](.agent/skills/cucumber-bdd-best-practices/SKILL.md) | Authoring, reviewing, or refactoring `.feature` Gherkin specifications, Cucumber step definitions, Playwright Page Objects, REST Assured steps, and tagging taxonomy in `e2e/`. |
 | **`fifo-cost-basis`** | [`.agent/skills/fifo-cost-basis/SKILL.md`](.agent/skills/fifo-cost-basis/SKILL.md) | First In, First Out (FIFO) inventory valuation (COGS, ending inventory, GAAP/IFRS vs. LIFO) and portfolio cost-basis accounting (lot matching, acquisition fees, FIFO vs. Average Cost, `share_lot_service.py`). |
+| **`sec-open-apis`** | [`.agent/skills/sec-open-apis/SKILL.md`](.agent/skills/sec-open-apis/SKILL.md) | Thailand SEC Open Data APIs for Mutual Funds (`/v2/fund/*`, 21 endpoints) and Provident Funds (`/v1/pvd/factsheet/*`, 15 endpoints), cursor pagination, `Ocp-Apim-Subscription-Key` auth, `204` handling, and `nav_service.py`. |
 
 ---
 

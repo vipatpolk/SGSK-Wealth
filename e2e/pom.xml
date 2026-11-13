@@ -10,11 +10,12 @@
     <packaging>jar</packaging>
 
     <name>SGSK Wealth E2E Automated Tests</name>
-    <description>Unified E2E and API Test Suite using Playwright, Rest Assured, Cucumber-JVM, JUnit 5 and Allure</description>
+    <description>Unified Spring Boot E2E and API Test Suite using Playwright, Rest Assured, Cucumber-JVM, JUnit 5 and Allure</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>25</maven.compiler.release>
+        <spring-boot.version>4.1.0</spring-boot.version>
         <playwright.version>1.64.0</playwright.version>
         <rest-assured.version>6.3.0</rest-assured.version>
         <cucumber.version>8.0.4</cucumber.version>
@@ -47,6 +48,13 @@
                 <groupId>io.cucumber</groupId>
                 <artifactId>cucumber-bom</artifactId>
                 <version>${cucumber.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -89,7 +97,19 @@
         </dependency>
         <dependency>
             <groupId>io.cucumber</groupId>
-            <artifactId>cucumber-picocontainer</artifactId>
+            <artifactId>cucumber-spring</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Spring Boot Test & Context Support -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context-support</artifactId>
             <scope>test</scope>
         </dependency>
 

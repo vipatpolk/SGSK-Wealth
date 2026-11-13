@@ -369,6 +369,7 @@ class ShareLotService:
         )
         val_idx = find_idx("total value", "value", "amount")
         curr_idx = find_idx("currency", "curr")
+        fund_idx = find_idx("fund", "fund name", "pvd fund")
 
         has_units = emp_unit_idx != -1 and empr_unit_idx != -1
         has_values = val_idx != -1 or (emp_contrib_idx != -1 and empr_matching_idx != -1)
@@ -414,6 +415,11 @@ class ShareLotService:
                 if curr_idx != -1 and len(row) > curr_idx and row[curr_idx].strip()
                 else "THB"
             )
+            pvd_fund_name = (
+                row[fund_idx].strip()
+                if fund_idx != -1 and len(row) > fund_idx and row[fund_idx].strip()
+                else None
+            )
 
             # Cost basis per unit
             emp_cost_basis = (
@@ -440,6 +446,7 @@ class ShareLotService:
                         note="Employee Contribution",
                         employeeContribution=emp_contrib if emp_contrib > 0 else None,
                         employeeEarnings=emp_earnings if emp_earnings != 0 else None,
+                        pvdFundName=pvd_fund_name,
                     )
                 )
             if empr_units > 0:
@@ -455,6 +462,7 @@ class ShareLotService:
                         note="Employer Matching",
                         employerMatching=empr_matching if empr_matching > 0 else None,
                         employerEarnings=empr_earnings if empr_earnings != 0 else None,
+                        pvdFundName=pvd_fund_name,
                     )
                 )
 
@@ -676,6 +684,7 @@ class ShareLotService:
                 empr_matching = sum(empr_matching_vals) if empr_matching_vals else None
                 empr_earnings_vals = [tx.employerEarnings for tx in txs if tx.employerEarnings is not None]
                 empr_earnings = sum(empr_earnings_vals) if empr_earnings_vals else None
+                pvd_fund_name = next((tx.pvdFundName for tx in txs if tx.pvdFundName), None)
 
                 summaries.append(
                     SymbolSummary(
@@ -692,6 +701,7 @@ class ShareLotService:
                         employeeEarnings=emp_earnings,
                         employerMatching=empr_matching,
                         employerEarnings=empr_earnings,
+                        pvdFundName=pvd_fund_name,
                     )
                 )
             if closed_lots:

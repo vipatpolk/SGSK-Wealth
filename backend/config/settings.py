@@ -29,7 +29,6 @@ class Settings(BaseSettings):
     google_spreadsheet_id: str = "sample_spreadsheet_id"
     google_pvd_spreadsheet_id: str = "sample_pvd_spreadsheet_id"
     google_service_account_json: str = ""
-    sec_pvd_proj_id: str = "V0001_2553"
     sec_pvd_base_url: str = "https://api.sec.or.th/v1/pvd"
 
     model_config = SettingsConfigDict(

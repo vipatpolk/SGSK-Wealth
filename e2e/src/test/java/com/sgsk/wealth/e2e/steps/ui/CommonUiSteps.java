@@ -14,9 +14,13 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
 
 public class CommonUiSteps {
     private final TestContext context;
+    private final HeaderPage headerPage;
+    private final ApiRouteMocker apiRouteMocker;
 
-    public CommonUiSteps(TestContext context) {
+    public CommonUiSteps(TestContext context, HeaderPage headerPage, ApiRouteMocker apiRouteMocker) {
         this.context = context;
+        this.headerPage = headerPage;
+        this.apiRouteMocker = apiRouteMocker;
     }
 
     private Page page() {
@@ -30,7 +34,7 @@ public class CommonUiSteps {
 
     @Given("the backend API returns error status {int}")
     public void setBackendApiError(int statusCode) {
-        ApiRouteMocker.mockPortfolioAPIError(page(), statusCode);
+        apiRouteMocker.mockPortfolioAPIError(page(), statusCode);
     }
 
     @When("I open the SGSK Wealth application without mocking")
@@ -40,33 +44,33 @@ public class CommonUiSteps {
 
     @When("I switch to the Holdings view")
     public void switchToHoldingsView() {
-        new HeaderPage(page()).selectHoldingsView();
+        headerPage.selectHoldingsView();
     }
 
     @When("I switch to the Analytics view")
     public void switchToAnalyticsView() {
-        new HeaderPage(page()).selectAnalyticsView();
+        headerPage.selectAnalyticsView();
     }
 
     @When("I switch to the Allocation sub-tab")
     @When("I navigate to the Allocation analytics view")
     public void switchToAllocationView() {
-        new HeaderPage(page()).selectAllocationView();
+        headerPage.selectAllocationView();
     }
 
     @When("I switch to the Performance sub-tab")
     public void switchToPerformanceView() {
-        new HeaderPage(page()).selectPerformanceView();
+        headerPage.selectPerformanceView();
     }
 
     @When("I switch to the Transactions view")
     public void switchToTransactionsView() {
-        new HeaderPage(page()).selectTransactionsView();
+        headerPage.selectTransactionsView();
     }
 
     @When("I navigate to the Tools view")
     public void navigateToToolsView() {
-        new HeaderPage(page()).selectToolsView();
+        headerPage.selectToolsView();
     }
 
     @When("I navigate to the Dividends view")
@@ -77,7 +81,7 @@ public class CommonUiSteps {
 
     @When("I switch back to the Dashboard view")
     public void switchBackToDashboardView() {
-        new HeaderPage(page()).selectDashboardView();
+        headerPage.selectDashboardView();
     }
 
     @Then("the Dashboard view should be visible")
@@ -122,29 +126,27 @@ public class CommonUiSteps {
 
     @When("I switch currency to USD")
     public void switchCurrencyToUSD() {
-        new HeaderPage(page()).switchToUSD();
+        headerPage.switchToUSD();
     }
 
     @When("I switch currency to THB")
     public void switchCurrencyToTHB() {
-        new HeaderPage(page()).switchToTHB();
+        headerPage.switchToTHB();
     }
 
     @Then("the USD currency button should be active")
     public void verifyUsdActive() {
-        HeaderPage header = new HeaderPage(page());
-        assertThat(header.currencyUsdBtn).hasClass(Pattern.compile(".*currency-btn-active.*"));
+        assertThat(headerPage.currencyUsdBtn).hasClass(Pattern.compile(".*currency-btn-active.*"));
     }
 
     @Then("the THB currency button should be active")
     public void verifyThbActive() {
-        HeaderPage header = new HeaderPage(page());
-        assertThat(header.currencyThbBtn).hasClass(Pattern.compile(".*currency-btn-active.*"));
+        assertThat(headerPage.currencyThbBtn).hasClass(Pattern.compile(".*currency-btn-active.*"));
     }
 
     @When("I toggle the theme")
     public void toggleTheme() {
-        new HeaderPage(page()).toggleTheme();
+        headerPage.toggleTheme();
     }
 
     @Then("the document theme attribute should be {string}")
@@ -154,7 +156,7 @@ public class CommonUiSteps {
 
     @When("I toggle privacy mode")
     public void togglePrivacyMode() {
-        new HeaderPage(page()).privacyToggleBtn.click();
+        headerPage.privacyToggleBtn.click();
     }
 
     @Then("the document privacy attribute should be {string}")

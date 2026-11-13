@@ -6,14 +6,20 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Route;
+import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+@Component
 public class ApiRouteMocker {
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper;
 
-    public static void mockPortfolioAPIs(Page page) {
+    public ApiRouteMocker(ObjectMapper mapper) {
+        this.mapper = mapper;
+    }
+
+    public void mockPortfolioAPIs(Page page) {
         String sheetsAll = loadResource("/fixtures/sheets-all.json");
         String priceFetch = loadResource("/fixtures/price-fetch.json");
         String exchangeRate = loadResource("/fixtures/exchange-rate.json");
@@ -373,20 +379,20 @@ public class ApiRouteMocker {
         });
     }
 
-    public static void mockPortfolioAPIError(Page page, int statusCode) {
+    public void mockPortfolioAPIError(Page page, int statusCode) {
         page.route("**/api/backend/**", route -> {
             fulfillJson(route, statusCode, "{\"error\":\"Internal Server Error\"}");
         });
     }
 
-    private static void fulfillJson(Route route, int status, String body) {
+    private void fulfillJson(Route route, int status, String body) {
         route.fulfill(new Route.FulfillOptions()
                 .setStatus(status)
                 .setContentType("application/json")
                 .setBody(body != null ? body : "{}"));
     }
 
-    private static String loadResource(String path) {
+    private String loadResource(String path) {
         try (InputStream in = ApiRouteMocker.class.getResourceAsStream(path)) {
             if (in == null) return null;
             return new String(in.readAllBytes(), StandardCharsets.UTF_8);

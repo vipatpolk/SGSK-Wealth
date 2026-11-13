@@ -317,3 +317,73 @@ def test_value_provident_fund_positions_with_earnings():
     # NAV price = 205,135.89 / 14,299.97 = 14.3452...
     assert abs(pos.currentPrice - (205135.89 / 14299.97)) < 1e-4
 
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_get_portfolio_holdings_pvd_uses_sheet_fund_name(monkeypatch):
+    """Verify get_portfolio_holdings forwards SymbolSummary.pvdFundName to NavService.fetch_pvd_policies."""
+    from utils.cache import ttl_cache
+
+    ttl_cache.clear()
+    service = ValuationService()
+    captured_fund_names: list[str | None] = []
+
+    pvd_lot = ShareLot(
+        symbol="PVDSP500",
+        purchaseDate="2026-09-01",
+        quantity=100.0,
+        costBasis=10.0,
+        totalCost=1000.0,
+        assetType="provident-fund",
+        note="Employee Contribution",
+    )
+    pvd_summary = SymbolSummary(
+        symbol="PVDSP500",
+        totalShares=100.0,
+        totalCost=1000.0,
+        averageCost=10.0,
+        currency="THB",
+        lots=[pvd_lot],
+        assetType="provident-fund",
+        pvdFundName="ไทยพาณิชย์ มาสเตอร์ฟันด์",
+    )
+    sheet_result = SheetResult(
+        summaries=[pvd_summary],
+        closedSummaries=[],
+        transactionSummaries=[],
+        rawTransactions=[],
+        totalCostByCurrency={"THB": 1000.0},
+        totalProceedsByCurrency={},
+        totalRealizedPLByCurrency={},
+        totalSymbols=1,
+        totalLots=1,
+    )
+
+    async def mock_fetch_sheet(tab_id: str):
+        return sheet_result
+
+    async def mock_fetch_prices_and_rate(candidates):
+        return {"prices": {}, "rate": 35.0}
+
+    async def mock_fetch_pvd_policies(proj_id: str | None = None, fund_name: str | None = None):
+        captured_fund_names.append(fund_name)
+        return {
+            "PVDSP500": {
+                "subPolicyId": "PVDSP500",
+                "name": "นโยบายตราสารทุนจาก SEC",
+                "policyName": "ตราสารทุน",
+                "aimcType": "EQUS",
+                "riskLevel": "RS6",
+                "objective": "",
+            }
+        }
+
+    monkeypatch.setattr(service.share_lot_service, "fetch_sheet", mock_fetch_sheet)
+    monkeypatch.setattr(service.price_service, "fetch_prices_and_rate", mock_fetch_prices_and_rate)
+    monkeypatch.setattr(service.nav_service, "fetch_pvd_policies", mock_fetch_pvd_policies)
+
+    res = await service.get_portfolio_holdings("provident-fund", "THB")
+    assert captured_fund_names == ["ไทยพาณิชย์ มาสเตอร์ฟันด์"]
+    assert len(res.openPositions) == 1
+    assert res.openPositions[0].name == "นโยบายตราสารทุนจาก SEC"
+

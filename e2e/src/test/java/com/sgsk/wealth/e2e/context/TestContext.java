@@ -2,8 +2,12 @@ package com.sgsk.wealth.e2e.context;
 
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Page;
+import io.cucumber.spring.ScenarioScope;
 import io.restassured.response.Response;
+import org.springframework.stereotype.Component;
 
+@Component
+@ScenarioScope
 public class TestContext {
     private BrowserContext browserContext;
     private Page page;

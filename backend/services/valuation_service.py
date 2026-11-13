@@ -110,7 +110,24 @@ class ValuationService:
                 )
                 if has_pvd:
                     try:
-                        pvd_policies = await self.nav_service.fetch_pvd_policies()
+                        pvd_fund_names: list[str] = []
+                        seen_funds: set[str] = set()
+                        for o_item in s_res.summaries or []:
+                            fn = (o_item.pvdFundName or "").strip()
+                            if fn and fn not in seen_funds:
+                                seen_funds.add(fn)
+                                pvd_fund_names.append(fn)
+                        if not pvd_fund_names:
+                            for raw_tx in s_res.rawTransactions or []:
+                                fn = (raw_tx.pvdFundName or "").strip()
+                                if fn and fn not in seen_funds:
+                                    seen_funds.add(fn)
+                                    pvd_fund_names.append(fn)
+
+                        pvd_policies: dict[str, dict[str, Any]] = {}
+                        for fn in pvd_fund_names:
+                            pvd_policies.update(await self.nav_service.fetch_pvd_policies(fund_name=fn))
+
                         for sym_key, policy_info in pvd_policies.items():
                             sec_name = policy_info.get("name") or DEFAULT_PVD_NAMES.get(sym_key, "")
                             if sym_key not in p_map:

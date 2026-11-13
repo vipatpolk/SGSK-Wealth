@@ -89,3 +89,86 @@ async def test_fetch_pvd_policies_success(service, monkeypatch):
     assert res["PVDSP500"]["aimcType"] == "EQUS"
     assert res["PVDSP500"]["riskLevel"] == "RS6"
 
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_fetch_pvd_proj_id_and_policies_by_fund_name(service, monkeypatch):
+    from utils.cache import ttl_cache
+
+    ttl_cache.clear()
+    captured_posts: list[dict] = []
+
+    class MockPostResponse:
+        status_code = 200
+
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return [
+                {"proj_id": "V9999_2540", "proj_name_th": "อื่น", "fund_status": "CA"},
+                {"proj_id": "V0001_2553", "proj_name_th": "ไทยพาณิชย์ มาสเตอร์ฟันด์", "fund_status": "RG"},
+            ]
+
+    class MockGetResponse:
+        status_code = 200
+
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return [
+                {
+                    "sub_policy_id": "PVDSP500",
+                    "sub_policy_name": "นโยบายกองทุนรวมต่างประเทศ หุ้นยูเอส",
+                    "policy_name": "ตราสารทุน",
+                    "aimc_type": "EQUS",
+                    "risk_level": "RS6",
+                    "objective": "ลงทุนในกองทุนเปิดไทยพาณิชย์หุ้นยูเอส",
+                }
+            ]
+
+    async def mock_post(url, *args, **kwargs):
+        captured_posts.append({"url": url, "json": kwargs.get("json")})
+        return MockPostResponse()
+
+    async def mock_get(url, *args, **kwargs):
+        assert "/factsheet/V0001_2553/policy" in url
+        return MockGetResponse()
+
+    monkeypatch.setattr(service.client, "post", mock_post)
+    monkeypatch.setattr(service.client, "get", mock_get)
+
+    resolved = await service.fetch_pvd_proj_id("ไทยพาณิชย์ มาสเตอร์ฟันด์")
+    assert resolved == "V0001_2553"
+    assert len(captured_posts) == 1
+    assert captured_posts[0]["url"].endswith("/factsheet/fund")
+    assert captured_posts[0]["json"] == {"FundName": "ไทยพาณิชย์ มาสเตอร์ฟันด์"}
+
+    policies = await service.fetch_pvd_policies(fund_name="ไทยพาณิชย์ มาสเตอร์ฟันด์")
+    assert "PVDSP500" in policies
+    assert policies["PVDSP500"]["name"] == "นโยบายกองทุนรวมต่างประเทศ หุ้นยูเอส"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_fetch_pvd_policies_without_proj_or_fund_returns_empty(service):
+    assert await service.fetch_pvd_policies() == {}
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_fetch_pvd_proj_id_204_returns_none(service, monkeypatch):
+    from utils.cache import ttl_cache
+
+    ttl_cache.clear()
+
+    class Mock204Response:
+        status_code = 204
+
+    async def mock_post(url, *args, **kwargs):
+        return Mock204Response()
+
+    monkeypatch.setattr(service.client, "post", mock_post)
+    assert await service.fetch_pvd_proj_id("ไม่พบกองทุน") is None
+

@@ -15,6 +15,7 @@
   <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.10+" />
   <img src="https://img.shields.io/badge/FastAPI-0.115+-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI" />
   <img src="https://img.shields.io/badge/Java-25+-ED8B00?style=flat-square&logo=openjdk&logoColor=white" alt="Java 25+" />
+  <img src="https://img.shields.io/badge/Spring_Boot-4.1-6DB33F?style=flat-square&logo=springboot&logoColor=white" alt="Spring Boot 4.1" />
   <img src="https://img.shields.io/badge/Playwright-1.50-45BA4B?style=flat-square&logo=playwright&logoColor=white" alt="Playwright" />
   <img src="https://img.shields.io/badge/Rest_Assured-5.5-2E8B57?style=flat-square" alt="Rest Assured" />
   <img src="https://img.shields.io/badge/Cucumber_JVM-7.21-23D96C?style=flat-square&logo=cucumber&logoColor=white" alt="Cucumber JVM" />
@@ -146,6 +147,7 @@ flowchart LR
 | Technology | Version / Spec | Purpose & Architectural Role |
 |:---|:---|:---|
 | **[Java](https://openjdk.org/)** | `JDK 25+` | Enterprise runtime powering the standalone end-to-end regression and verification suite. |
+| **[Spring Boot](https://spring.io/projects/spring-boot)** | `4.1+` | IoC container (`@SpringBootTest`), externalized YAML configuration (`@ConfigurationProperties`), and `@ScenarioScope` dependency injection via `cucumber-spring`. |
 | **[Playwright for Java](https://playwright.dev/java/)** | `1.64+` | Modern web automation engine driving Chromium headless browsers with native network route interception. |
 | **[Rest Assured](https://rest-assured.io/)** | `6.3+` | Fluent REST API automation testing contract compliance, response codes, latencies, and payload schemas. |
 | **[Cucumber-JVM](https://cucumber.io/)** | `8.0+` | Behavior-Driven Development (BDD) engine executing business-readable Gherkin feature specifications (`.feature`). |
@@ -162,6 +164,7 @@ flowchart LR
 |:---|:---|
 | **`dividend-payments`** | Financial domain skill with codified rules for U.S. (SEC T+1) and Thai (SET T+2) equity settlement cutoffs, withholding tax rules (U.S. 15% DTA / 30%, Thai 10% / BOI 0%), stock dividends, and corporate disclosures. |
 | **`cucumber-bdd-best-practices`** | Enterprise BDD & Gherkin authoring standards, Page Object Model architecture, multi-dimensional tagging taxonomy, and automated strict Gherkin linting (`validate_gherkin.py`). |
+| **`sec-open-apis`** | Thailand SEC Open Data API reference covering Mutual Funds (`/v2/fund/*`, 21 endpoints), Provident Funds (`/v1/pvd/factsheet/*`, 15 endpoints), cursor pagination, `204` handling, and `NavService` integration. |
 
 ### 5. Unified CI/CD Pipeline (`.github/workflows/ci.yml`)
 
@@ -207,20 +210,22 @@ SGSK-Wealth/
 │   ├── package.json            # Frontend dependencies & build scripts
 │   └── vercel.json             # Vercel SPA routing and proxy rewrite rules
 │
-├── e2e/                        # Standalone Java E2E Test Suite
-│   ├── pom.xml                 # Maven build file (Playwright, Rest Assured, Cucumber, Allure)
+├── e2e/                        # Standalone Spring Boot E2E Test Suite
+│   ├── pom.xml                 # Maven build file (Spring Boot, Playwright, Rest Assured, Cucumber, Allure)
 │   └── src/test/
 │       ├── java/com/sgsk/wealth/e2e/
+│       │   ├── config/         # Spring Boot @SpringBootTest, @CucumberContextConfiguration & E2eProperties
 │       │   ├── runner/         # JUnit 5 @Suite Cucumber test runner
-│       │   ├── context/        # Scenario-scoped PicoContainer dependency injection context
+│       │   ├── context/        # @ScenarioScope Spring dependency injection context
 │       │   ├── hooks/          # Lifecycle hooks (Playwright setup, screenshot capture)
-│       │   ├── support/        # ServerManager, MockBackendServer & ApiRouteMocker
-│       │   ├── pages/          # Playwright Page Object Model (POM) classes
+│       │   ├── support/        # Spring singleton beans (PlaywrightManager, ServerManager, MockBackendServer, ApiRouteMocker)
+│       │   ├── pages/          # @ScenarioScope Playwright Page Object Model (POM) beans
 │       │   └── steps/          # Rest Assured API and Playwright UI step definitions
 │       └── resources/
 │           ├── features/api/   # REST API Gherkin specifications (01..05 .feature files)
 │           ├── features/ui/    # End-to-end UI Gherkin specifications (01..10 .feature files)
 │           ├── fixtures/       # Deterministic JSON mock payloads
+│           ├── application.yml # Spring Boot externalized E2E test configuration
 │           ├── junit-platform.properties
 │           └── allure.properties
 │

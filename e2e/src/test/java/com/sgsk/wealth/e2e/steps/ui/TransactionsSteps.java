@@ -1,7 +1,6 @@
 package com.sgsk.wealth.e2e.steps.ui;
 
 import com.microsoft.playwright.Download;
-import com.microsoft.playwright.Page;
 import com.sgsk.wealth.e2e.context.TestContext;
 import com.sgsk.wealth.e2e.pages.TransactionsPage;
 import io.cucumber.java.en.Then;
@@ -14,29 +13,22 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
 
 public class TransactionsSteps {
     private final TestContext context;
+    private final TransactionsPage transactionsPage;
 
-    public TransactionsSteps(TestContext context) {
+    public TransactionsSteps(TestContext context, TransactionsPage transactionsPage) {
         this.context = context;
-    }
-
-    private Page page() {
-        return context.getPage();
-    }
-
-    private TransactionsPage transactionsPage() {
-        return new TransactionsPage(page());
+        this.transactionsPage = transactionsPage;
     }
 
     @Then("the transaction history ledger should contain {string}")
     public void verifyTransactionLedgerContains(String text) {
-        assertThat(transactionsPage().container).containsText(text);
+        assertThat(transactionsPage.container).containsText(text);
     }
 
     @When("I trigger CSV export of all transactions")
     public void triggerCsvExport() {
-        TransactionsPage txPage = transactionsPage();
-        assertThat(txPage.exportCsvTriggerBtn).isVisible();
-        Download download = txPage.exportAllTransactions();
+        assertThat(transactionsPage.exportCsvTriggerBtn).isVisible();
+        Download download = transactionsPage.exportAllTransactions();
         context.setDownloadedFileName(download.suggestedFilename());
     }
 

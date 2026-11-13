@@ -45,9 +45,82 @@ class NavService:
 
         return price_map
 
-    async def fetch_pvd_policies(self, proj_id: str | None = None) -> dict[str, dict[str, Any]]:
+    async def fetch_pvd_proj_id(self, fund_name: str) -> str | None:
+        """Resolve SEC PVD proj_id dynamically from fund name via POST /factsheet/fund."""
+        clean_name = (fund_name or "").strip()
+        if not clean_name:
+            return None
+
         settings = get_settings()
-        target_proj_id = proj_id or settings.sec_pvd_proj_id
+        cache_key = f"sec_pvd_proj_id_{clean_name}"
+        cached = ttl_cache.get(cache_key)
+        if cached is not None:
+            return cast(str, cached)
+
+        async def _do_fetch() -> str | None:
+            c = ttl_cache.get(cache_key)
+            if c is not None:
+                return cast(str, c)
+
+            url = f"{settings.sec_pvd_base_url}/factsheet/fund"
+            try:
+                async with get_sec_semaphore():
+                    res = await self.client.post(
+                        url,
+                        headers=self.headers,
+                        json={"FundName": clean_name},
+                    )
+                if res.status_code == 204:
+                    return None
+                res.raise_for_status()
+                raw_list = res.json()
+                if not isinstance(raw_list, list) or not raw_list:
+                    return None
+
+                active_statuses = {"RG", "SE"}
+                candidates = [r for r in raw_list if isinstance(r, dict) and r.get("proj_id")]
+                if not candidates:
+                    return None
+
+                exact_active = next(
+                    (
+                        r
+                        for r in candidates
+                        if r.get("fund_status") in active_statuses
+                        and str(r.get("proj_name_th") or "").strip() == clean_name
+                    ),
+                    None,
+                )
+                first_active = next(
+                    (r for r in candidates if r.get("fund_status") in active_statuses),
+                    None,
+                )
+                exact_any = next(
+                    (r for r in candidates if str(r.get("proj_name_th") or "").strip() == clean_name),
+                    None,
+                )
+                matched = exact_active or first_active or exact_any or candidates[0]
+                resolved_proj_id = str(matched["proj_id"]).strip()
+                if not resolved_proj_id:
+                    return None
+
+                ttl_cache.set(cache_key, resolved_proj_id, ttl=86400.0)
+                return resolved_proj_id
+            except Exception:
+                return None
+
+        return await singleflight.execute(f"fetch_pvd_proj_id_{clean_name}", _do_fetch)
+
+    async def fetch_pvd_policies(
+        self, proj_id: str | None = None, fund_name: str | None = None
+    ) -> dict[str, dict[str, Any]]:
+        settings = get_settings()
+        target_proj_id = (proj_id or "").strip() or None
+        if not target_proj_id and fund_name:
+            target_proj_id = await self.fetch_pvd_proj_id(fund_name)
+        if not target_proj_id:
+            return {}
+
         cache_key = f"sec_pvd_policies_{target_proj_id}"
         cached = ttl_cache.get(cache_key)
         if cached is not None:
@@ -62,6 +135,8 @@ class NavService:
             try:
                 async with get_sec_semaphore():
                     res = await self.client.get(url, headers=self.headers)
+                if res.status_code == 204:
+                    return {}
                 res.raise_for_status()
                 raw_list = res.json()
                 if not isinstance(raw_list, list):

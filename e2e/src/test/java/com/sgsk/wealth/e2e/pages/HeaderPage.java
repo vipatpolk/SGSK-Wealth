@@ -2,7 +2,14 @@ package com.sgsk.wealth.e2e.pages;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.sgsk.wealth.e2e.context.TestContext;
+import io.cucumber.spring.ScenarioScope;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.stereotype.Component;
 
+@Component
+@ScenarioScope(proxyMode = ScopedProxyMode.NO)
 public class HeaderPage {
     private final Page page;
     public final Locator logoText;
@@ -18,6 +25,11 @@ public class HeaderPage {
     public final Locator currencyThbBtn;
     public final Locator themeToggleBtn;
     public final Locator privacyToggleBtn;
+
+    @Autowired
+    public HeaderPage(TestContext testContext) {
+        this(testContext.getPage());
+    }
 
     public HeaderPage(Page page) {
         this.page = page;

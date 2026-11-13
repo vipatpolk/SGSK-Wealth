@@ -168,9 +168,9 @@ PVDWEQ,"18,919.08","13,853.91","410,227.49",THB
 
 @pytest.mark.unit
 def test_parse_provident_fund_csv_new_structure(service):
-    """Verify parsing Provident Fund CSV with Employee Contribution, Employee Earnings, Employer Matching, Employer Earnings."""
-    pvd_csv = """Ticker,Employee's Unit,Employer's Unit,Employee's Contribution,Employee's Earnings,Employer's Matching,Employer's Earnings,Currency
-PVDSP500,"8,294.68","6,005.29","100,858.26","18,130.55","73,962.72","12,184.36",THB
+    """Verify parsing Provident Fund CSV with Employee Contribution, Employee Earnings, Employer Matching, Employer Earnings, and Fund."""
+    pvd_csv = """Ticker,Employee's Unit,Employer's Unit,Employee's Contribution,Employee's Earnings,Employer's Matching,Employer's Earnings,Currency,Fund
+PVDSP500,"8,294.68","6,005.29","100,858.26","18,130.55","73,962.72","12,184.36",THB,ไทยพาณิชย์ มาสเตอร์ฟันด์
 """
     transactions = service.parse_csv(pvd_csv, "provident-fund")
     assert len(transactions) == 2
@@ -180,6 +180,8 @@ PVDSP500,"8,294.68","6,005.29","100,858.26","18,130.55","73,962.72","12,184.36",
 
     assert emp_tx.quantity == 8294.68
     assert empr_tx.quantity == 6005.29
+    assert emp_tx.pvdFundName == "ไทยพาณิชย์ มาสเตอร์ฟันด์"
+    assert empr_tx.pvdFundName == "ไทยพาณิชย์ มาสเตอร์ฟันด์"
     assert emp_tx.employeeContribution == 100858.26
     assert emp_tx.employeeEarnings == 18130.55
     assert empr_tx.employerMatching == 73962.72
@@ -193,6 +195,7 @@ PVDSP500,"8,294.68","6,005.29","100,858.26","18,130.55","73,962.72","12,184.36",
     assert len(summaries) == 1
     s = summaries[0]
     assert s.symbol == "PVDSP500"
+    assert s.pvdFundName == "ไทยพาณิชย์ มาสเตอร์ฟันด์"
     assert s.employeeShares == 8294.68
     assert s.employerShares == 6005.29
     assert s.employeeContribution == 100858.26

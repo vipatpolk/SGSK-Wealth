@@ -13,90 +13,84 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
 
 public class MobileSteps {
     private final TestContext context;
+    private final MobilePage mobilePage;
 
-    public MobileSteps(TestContext context) {
+    public MobileSteps(TestContext context, MobilePage mobilePage) {
         this.context = context;
+        this.mobilePage = mobilePage;
     }
 
     private Page page() {
         return context.getPage();
     }
 
-    private MobilePage mobilePage() {
-        return new MobilePage(page());
-    }
-
     @Given("I open the SGSK Wealth application on a mobile viewport")
     public void openMobileViewport() {
-        mobilePage().setMobileViewport();
+        mobilePage.setMobileViewport();
         page().navigate("/");
     }
 
     @Then("the native bottom navigation bar should be visible")
     public void verifyBottomNavBarVisible() {
-        assertThat(mobilePage().bottomNav).isVisible();
+        assertThat(mobilePage.bottomNav).isVisible();
     }
 
     @When("I tap Analytics on the bottom navigation bar")
     public void tapAnalyticsOnBottomNav() {
-        mobilePage().tapAnalytics();
+        mobilePage.tapAnalytics();
     }
 
     @When("I tap Tools on the bottom navigation bar")
     public void tapToolsOnBottomNav() {
-        mobilePage().tapTools();
+        mobilePage.tapTools();
     }
 
     @When("I select Rebalance Planner from the mobile tools dropdown")
     public void selectRebalancePlannerMobile() {
-        MobilePage mob = mobilePage();
-        assertThat(mob.mobileToolsDropdownTrigger).isVisible();
-        mob.selectRebalancePlannerFromDropdown();
+        assertThat(mobilePage.mobileToolsDropdownTrigger).isVisible();
+        mobilePage.selectRebalancePlannerFromDropdown();
     }
 
     @Then("the mobile rebalance mode toggle should be visible")
     public void verifyMobileRebalanceModeToggle() {
-        MobilePage mob = mobilePage();
-        assertThat(mob.rebalanceModeToggle).isVisible();
-        assertThat(mob.mobileModeText.first()).isVisible();
+        assertThat(mobilePage.rebalanceModeToggle).isVisible();
+        assertThat(mobilePage.mobileModeText.first()).isVisible();
     }
 
     @Then("the mobile symbol cards should be visible")
     public void verifyMobileSymbolCards() {
-        assertThat(mobilePage().mobileSymbolCardsList.first()).isVisible();
+        assertThat(mobilePage.mobileSymbolCardsList.first()).isVisible();
     }
 
     @Then("the bottom nav dashboard tab should be active")
     public void verifyBottomNavDashboardActive() {
-        assertThat(mobilePage().bottomNavDashboard).hasClass(Pattern.compile(".*view-toggle-btn-active.*"));
+        assertThat(mobilePage.bottomNavDashboard).hasClass(Pattern.compile(".*view-toggle-btn-active.*"));
     }
 
     @When("I tap Holdings on the bottom navigation bar")
     public void tapHoldingsOnBottomNav() {
-        mobilePage().tapHoldings();
+        mobilePage.tapHoldings();
     }
 
     @Then("the bottom nav holdings tab should be active")
     public void verifyBottomNavHoldingsActive() {
-        MobilePage mob = mobilePage();
-        assertThat(mob.bottomNavHoldings).hasClass(Pattern.compile(".*view-toggle-btn-active.*"));
-        assertThat(mob.bottomNavDashboard).not().hasClass(Pattern.compile(".*view-toggle-btn-active.*"));
+        assertThat(mobilePage.bottomNavHoldings).hasClass(Pattern.compile(".*view-toggle-btn-active.*"));
+        assertThat(mobilePage.bottomNavDashboard).not().hasClass(Pattern.compile(".*view-toggle-btn-active.*"));
     }
 
     @Then("the bottom nav analytics tab should be active")
     public void verifyBottomNavAnalyticsActive() {
-        assertThat(mobilePage().bottomNavAnalytics).hasClass(Pattern.compile(".*view-toggle-btn-active.*"));
+        assertThat(mobilePage.bottomNavAnalytics).hasClass(Pattern.compile(".*view-toggle-btn-active.*"));
     }
 
     @When("I tap Dividends on the bottom navigation bar")
     public void tapDividendsOnBottomNav() {
-        mobilePage().tapDividends();
+        mobilePage.tapDividends();
     }
 
     @Then("the bottom nav dividends tab should be active")
     public void verifyBottomNavDividendsActive() {
-        MobilePage mob = mobilePage();
-        assertThat(mob.bottomNavDividends).hasClass(Pattern.compile(".*view-toggle-btn-active.*"));
-        assertThat(mob.bottomNavAnalytics).not().hasClass(Pattern.compile(".*view-toggle-btn-active.*"));
+        assertThat(mobilePage.bottomNavDividends).hasClass(Pattern.compile(".*view-toggle-btn-active.*"));
+        assertThat(mobilePage.bottomNavAnalytics).not().hasClass(Pattern.compile(".*view-toggle-btn-active.*"));
     }
 }

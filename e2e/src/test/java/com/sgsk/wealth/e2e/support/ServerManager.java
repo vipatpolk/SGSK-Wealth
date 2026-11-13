@@ -1,45 +1,52 @@
 package com.sgsk.wealth.e2e.support;
 
+import com.sgsk.wealth.e2e.config.E2eProperties;
+import jakarta.annotation.PreDestroy;
+import org.springframework.stereotype.Component;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 
+@Component
 public class ServerManager {
-    private static MockBackendServer mockBackendServer;
-    private static Process frontendProcess;
-    private static String backendBaseUrl;
-    private static String frontendBaseUrl = "http://127.0.0.1:4200";
+    private final E2eProperties properties;
+    private MockBackendServer mockBackendServer;
+    private Process frontendProcess;
+    private String backendBaseUrl;
+    private String frontendBaseUrl;
 
-    static {
-        Runtime.getRuntime().addShutdownHook(new Thread(ServerManager::stopServers));
+    public ServerManager(E2eProperties properties) {
+        this.properties = properties;
+        this.frontendBaseUrl = properties.frontend().baseUrl();
+        Runtime.getRuntime().addShutdownHook(new Thread(this::stopServers));
     }
 
-    public static synchronized String ensureBackendServer() {
+    public synchronized String ensureBackendServer() {
         if (backendBaseUrl != null && isHttpEndpointAvailable(backendBaseUrl)) {
             return backendBaseUrl;
         }
 
-        String envBackend = System.getenv("E2E_BACKEND_URL");
-        if (envBackend != null && !envBackend.isBlank()) {
-            backendBaseUrl = envBackend;
+        String configuredBackend = properties.backend().baseUrl();
+        if (configuredBackend != null && !configuredBackend.isBlank()) {
+            backendBaseUrl = configuredBackend;
             return backendBaseUrl;
         }
 
-        // Check if real FastAPI is alive on port 8000
-        if (isHttpEndpointAvailable("http://127.0.0.1:8000/")) {
-            backendBaseUrl = "http://127.0.0.1:8000";
+        String defaultBackendUrl = properties.backend().defaultUrl();
+        if (isHttpEndpointAvailable(defaultBackendUrl + "/")) {
+            backendBaseUrl = defaultBackendUrl;
             return backendBaseUrl;
         }
 
-        // Start mock backend server
         try {
             if (mockBackendServer != null) {
                 mockBackendServer.stop();
             }
             mockBackendServer = new MockBackendServer();
-            mockBackendServer.start(8000);
+            mockBackendServer.start(properties.backend().port());
             backendBaseUrl = "http://127.0.0.1:" + mockBackendServer.getPort() + "/api/backend";
             return backendBaseUrl;
         } catch (IOException e) {
@@ -47,18 +54,13 @@ public class ServerManager {
         }
     }
 
-    public static synchronized String ensureFrontendServer() {
-        String envFrontend = System.getenv("E2E_BASE_URL");
-        if (envFrontend != null && !envFrontend.isBlank()) {
-            frontendBaseUrl = envFrontend;
+    public synchronized String ensureFrontendServer() {
+        frontendBaseUrl = properties.frontend().baseUrl();
+
+        if (isHttpEndpointAvailable(frontendBaseUrl) || isHttpEndpointAvailable("http://localhost:4200")) {
             return frontendBaseUrl;
         }
 
-        if (isHttpEndpointAvailable("http://127.0.0.1:4200") || isHttpEndpointAvailable("http://localhost:4200")) {
-            return frontendBaseUrl;
-        }
-
-        // Attempt to start frontend Angular dev server
         File frontendDir = new File("../frontend");
         if (!frontendDir.exists()) {
             frontendDir = new File("frontend");
@@ -78,10 +80,9 @@ public class ServerManager {
                 pb.redirectError(ProcessBuilder.Redirect.DISCARD);
                 frontendProcess = pb.start();
 
-                // Poll until ready up to 60 seconds
                 for (int i = 0; i < 60; i++) {
                     Thread.sleep(1000);
-                    if (isHttpEndpointAvailable("http://127.0.0.1:4200") || isHttpEndpointAvailable("http://localhost:4200")) {
+                    if (isHttpEndpointAvailable(frontendBaseUrl) || isHttpEndpointAvailable("http://localhost:4200")) {
                         break;
                     }
                 }
@@ -92,7 +93,7 @@ public class ServerManager {
         return frontendBaseUrl;
     }
 
-    public static boolean isHttpEndpointAvailable(String urlString) {
+    public boolean isHttpEndpointAvailable(String urlString) {
         try {
             URL url = URI.create(urlString).toURL();
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -106,7 +107,8 @@ public class ServerManager {
         }
     }
 
-    public static synchronized void stopServers() {
+    @PreDestroy
+    public synchronized void stopServers() {
         if (mockBackendServer != null) {
             mockBackendServer.stop();
             mockBackendServer = null;

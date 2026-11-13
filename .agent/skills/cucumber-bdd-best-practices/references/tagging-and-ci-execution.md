@@ -100,8 +100,8 @@ cucumber.filter.tags=not @wip and not @quarantine
 
 Cucumber tests can execute concurrently across multiple worker threads to accelerate test suites. To avoid race conditions:
 
-1. **State Isolation via Dependency Injection (PicoContainer):**
-   - Step definition classes must inject a scoped `TestContext`.
+1. **State Isolation via Spring Boot Dependency Injection (`@ScenarioScope`):**
+   - Step definition classes must inject a `@ScenarioScope` `TestContext` and `@ScenarioScope(proxyMode = ScopedProxyMode.NO)` Page Objects.
    - Never use static variables to store state (e.g. `public static String authToken;` is a concurrency hazard).
 2. **Independent Browser Contexts:**
    - In Playwright, create a fresh `BrowserContext` and `Page` per scenario in `@Before` hooks.

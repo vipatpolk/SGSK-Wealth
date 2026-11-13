@@ -2,8 +2,8 @@ package com.sgsk.wealth.e2e.steps.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sgsk.wealth.e2e.config.E2eProperties;
 import com.sgsk.wealth.e2e.context.TestContext;
-import com.sgsk.wealth.e2e.support.MockBackendServer;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -19,16 +19,23 @@ import static io.restassured.RestAssured.given;
 
 public class ApiSteps {
     private final TestContext context;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper;
+    private final E2eProperties properties;
 
-    public ApiSteps(TestContext context) {
+    public ApiSteps(TestContext context, ObjectMapper mapper, E2eProperties properties) {
         this.context = context;
+        this.mapper = mapper;
+        this.properties = properties;
+    }
+
+    private String apiKey() {
+        return properties.backend().apiKey();
     }
 
     @Given("the backend service root is available")
     public void verifyBackendRootAvailable() {
         Response response = given()
-                .header("X-API-Key", MockBackendServer.VALID_API_KEY)
+                .header("X-API-Key", apiKey())
                 .get("/");
         response.then().statusCode(200);
         context.setLastApiResponse(response);
@@ -37,7 +44,7 @@ public class ApiSteps {
     @Given("the share lot sheet for {string} is available")
     public void verifyShareLotSheetAvailable(String tabId) {
         Response response = given()
-                .header("X-API-Key", MockBackendServer.VALID_API_KEY)
+                .header("X-API-Key", apiKey())
                 .get("/share-lot/sheet/" + tabId);
         response.then().statusCode(200);
         context.setLastApiResponse(response);
@@ -62,7 +69,7 @@ public class ApiSteps {
     @When("I send a GET request to {string}")
     public void sendAuthorizedGet(String endpoint) {
         Response response = given()
-                .header("X-API-Key", MockBackendServer.VALID_API_KEY)
+                .header("X-API-Key", apiKey())
                 .get(endpoint);
         context.setLastApiResponse(response);
     }
@@ -71,7 +78,7 @@ public class ApiSteps {
     public void sendAuthorizedGetWithParams(String endpoint, DataTable dataTable) {
         Map<String, String> params = dataTable.asMap(String.class, String.class);
         Response response = given()
-                .header("X-API-Key", MockBackendServer.VALID_API_KEY)
+                .header("X-API-Key", apiKey())
                 .queryParams(params)
                 .get(endpoint);
         context.setLastApiResponse(response);
@@ -80,7 +87,7 @@ public class ApiSteps {
     @When("I send a POST request to {string} with payload:")
     public void sendAuthorizedPostWithPayload(String endpoint, String docString) {
         Response response = given()
-                .header("X-API-Key", MockBackendServer.VALID_API_KEY)
+                .header("X-API-Key", apiKey())
                 .contentType("application/json")
                 .body(docString)
                 .post(endpoint);

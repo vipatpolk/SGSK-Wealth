@@ -11,9 +11,11 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
 
 public class PerformanceSteps {
     private final TestContext context;
+    private final PerformancePage performancePage;
 
-    public PerformanceSteps(TestContext context) {
+    public PerformanceSteps(TestContext context, PerformancePage performancePage) {
         this.context = context;
+        this.performancePage = performancePage;
     }
 
     private Page page() {
@@ -22,22 +24,19 @@ public class PerformanceSteps {
 
     @Then("the performance summary grid should render 5 KPI cards")
     public void verifyPerformanceSummaryGrid() {
-        PerformancePage perf = new PerformancePage(page());
-        assertThat(perf.summaryGrid).isVisible();
-        assertThat(perf.summaryCards).hasCount(5);
+        assertThat(performancePage.summaryGrid).isVisible();
+        assertThat(performancePage.summaryCards).hasCount(5);
     }
 
     @When("I select the performance date preset {string}")
     public void selectDatePreset(String preset) {
-        PerformancePage perf = new PerformancePage(page());
-        assertThat(perf.datePickerTrigger).isVisible();
-        perf.selectDatePreset(preset);
+        assertThat(performancePage.datePickerTrigger).isVisible();
+        performancePage.selectDatePreset(preset);
     }
 
     @Then("the date range picker trigger should display {string}")
     public void verifyDatePickerTriggerText(String text) {
-        PerformancePage perf = new PerformancePage(page());
-        assertThat(perf.datePickerTrigger).containsText(text);
+        assertThat(performancePage.datePickerTrigger).containsText(text);
     }
 
     @Then("the performance sections should contain {string} and {string}")
@@ -48,8 +47,7 @@ public class PerformanceSteps {
 
     @When("I search performance symbols for {string}")
     public void searchPerformanceSymbols(String query) {
-        PerformancePage perf = new PerformancePage(page());
-        perf.searchSymbol(query);
+        performancePage.searchSymbol(query);
     }
 
     @Then("the performance autocomplete dropdown should suggest {string}")
@@ -62,14 +60,12 @@ public class PerformanceSteps {
 
     @When("I filter performance by status {string}")
     public void filterPerformanceByStatus(String status) {
-        PerformancePage perf = new PerformancePage(page());
-        assertThat(perf.statusSelect).isVisible();
-        perf.filterByStatus(status);
+        assertThat(performancePage.statusSelect).isVisible();
+        performancePage.filterByStatus(status);
     }
 
     @Then("the status select should have value {string}")
     public void verifyStatusSelectValue(String status) {
-        PerformancePage perf = new PerformancePage(page());
-        assertThat(perf.statusSelect).hasValue(status);
+        assertThat(performancePage.statusSelect).hasValue(status);
     }
 }

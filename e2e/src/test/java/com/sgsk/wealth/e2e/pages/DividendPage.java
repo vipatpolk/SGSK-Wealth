@@ -2,15 +2,27 @@ package com.sgsk.wealth.e2e.pages;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.sgsk.wealth.e2e.context.TestContext;
+import io.cucumber.spring.ScenarioScope;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.stereotype.Component;
 
 import java.util.regex.Pattern;
 
+@Component
+@ScenarioScope(proxyMode = ScopedProxyMode.NO)
 public class DividendPage {
     private final Page page;
     public final Locator summaryCards;
     public final Locator assetCards;
     public final Locator chartCard;
     public final Locator chartLegend;
+
+    @Autowired
+    public DividendPage(TestContext testContext) {
+        this(testContext.getPage());
+    }
 
     public DividendPage(Page page) {
         this.page = page;

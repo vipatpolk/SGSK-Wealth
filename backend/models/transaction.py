@@ -17,6 +17,7 @@ class Transaction(BaseModel):
     employeeEarnings: float | None = None
     employerMatching: float | None = None
     employerEarnings: float | None = None
+    pvdFundName: str | None = None
 
 
 class ShareLot(BaseModel):
@@ -58,6 +59,7 @@ class SymbolSummary(BaseModel):
     employeeEarnings: float | None = None
     employerMatching: float | None = None
     employerEarnings: float | None = None
+    pvdFundName: str | None = None
 
 
 class ClosedSymbolSummary(BaseModel):

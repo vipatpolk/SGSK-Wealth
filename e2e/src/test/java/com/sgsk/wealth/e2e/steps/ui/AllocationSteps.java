@@ -11,22 +11,20 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
 
 public class AllocationSteps {
     private final TestContext context;
+    private final AllocationPage allocationPage;
 
-    public AllocationSteps(TestContext context) {
+    public AllocationSteps(TestContext context, AllocationPage allocationPage) {
         this.context = context;
+        this.allocationPage = allocationPage;
     }
 
     private Page page() {
         return context.getPage();
     }
 
-    private AllocationPage allocationPage() {
-        return new AllocationPage(page());
-    }
-
     @Then("the allocation donut chart should be visible")
     public void verifyDonutChartVisible() {
-        assertThat(allocationPage().donutChart).isVisible();
+        assertThat(allocationPage.donutChart).isVisible();
     }
 
     @When("I filter allocation to {string}")
@@ -39,9 +37,8 @@ public class AllocationSteps {
 
     @When("I reset the asset allocation filter")
     public void resetAllocationFilter() {
-        AllocationPage alloc = allocationPage();
-        if (alloc.resetFilterBtn.isVisible()) {
-            alloc.resetClassFilter();
+        if (allocationPage.resetFilterBtn.isVisible()) {
+            allocationPage.resetClassFilter();
         }
     }
 

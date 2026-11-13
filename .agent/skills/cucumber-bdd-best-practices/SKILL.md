@@ -175,9 +175,9 @@ To keep Cucumber suites clean, maintainable, and free of flaky failures, enforce
                                │ shares state via
 ┌──────────────────────────────▼──────────────────────────────┐
 │ Layer 4: Test Context & Fixture Lifecycle                   │
-│ • TestContext (PicoContainer dependency injection)          │
+│ • TestContext (Spring Boot @ScenarioScope DI)               │
 │ • TestHooks (@Before, @After, screenshot on failure)        │
-│ • Mock servers, auth tokens, route interceptors             │
+│ • Spring singletons (PlaywrightManager, ServerManager, etc.)│
 └─────────────────────────────────────────────────────────────┘
 ```
 

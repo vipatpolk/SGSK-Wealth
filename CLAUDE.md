@@ -12,6 +12,7 @@ Workspace skills are exposed in `.claude/skills/`, which is symlinked (or juncti
 - Invoke or load skills when working in their respective domains:
   - `/dividend-payments`: U.S. (SEC T+1) and Thai (SET T+2) equity dividends, XD/ex-date calculations, withholding taxes, and `backend/services/dividend_service.py`.
   - `/cucumber-bdd-best-practices`: Authoring or refactoring `.feature` files, Cucumber-JVM step definitions, Playwright Page Objects, and REST Assured steps in `e2e/`.
+  - `/sec-open-apis`: Thailand SEC Open Data APIs (`/v2/fund/*` & `/v1/pvd/factsheet/*`), `Ocp-Apim-Subscription-Key` auth, cursor pagination, and `backend/services/nav_service.py`.
 - If `.claude/skills` is missing on a fresh clone, run `npm run setup:agents` (also triggered automatically by `npm install` via `"prepare"`).
 
 ### 2. Tool & Shell Execution

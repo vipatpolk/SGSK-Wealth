@@ -1,0 +1,15 @@
+spring:
+  main:
+    web-application-type: none
+    banner-mode: off
+
+e2e:
+  frontend:
+    base-url: ${E2E_BASE_URL:http://127.0.0.1:4200}
+  backend:
+    base-url: ${E2E_BACKEND_URL:}
+    default-url: http://127.0.0.1:8000
+    port: 8000
+    api-key: ${E2E_API_KEY:dev_secret_key_change_in_prod}
+  playwright:
+    headless: ${HEADLESS:true}

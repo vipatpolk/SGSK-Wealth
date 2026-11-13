@@ -1,6 +1,6 @@
 # Cucumber Framework Integration Patterns (Java / Playwright / REST Assured)
 
-This reference outlines the architectural patterns and code templates for integrating Cucumber-JVM with modern test automation libraries (Playwright for UI, REST Assured for API, PicoContainer for state, and Allure for reporting).
+This reference outlines the architectural patterns and code templates for integrating Cucumber-JVM with Spring Boot (`cucumber-spring`) and modern test automation libraries (Playwright for UI, REST Assured for API, `@ScenarioScope` DI for state, and Allure for reporting).
 
 ---
 
@@ -26,8 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class DividendSteps {
     private final DividendPage dividendPage;
 
-    public DividendSteps(TestContext context) {
-        this.dividendPage = new DividendPage(context.getPage());
+    public DividendSteps(DividendPage dividendPage) {
+        this.dividendPage = dividendPage;
     }
 
     @When("I filter dividends to asset type {string}")
@@ -77,22 +77,36 @@ public class DividendPage {
 
 ---
 
-## 2. Shared State Management via PicoContainer (`TestContext.java`)
+## 2. Shared State Management via Spring Boot (`TestContext.java` & `CucumberSpringConfiguration.java`)
 
-To ensure thread safety in parallel test runs, use PicoContainer for dependency injection:
+To ensure thread safety in parallel test runs, use Spring Boot (`cucumber-spring`) with `@ScenarioScope` for scenario-isolated state and Page Objects:
+
+```java
+package com.sgsk.wealth.e2e.config;
+
+import io.cucumber.spring.CucumberContextConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@CucumberContextConfiguration
+@SpringBootTest(classes = E2eTestApplication.class)
+public class CucumberSpringConfiguration {
+}
+```
 
 ```java
 package com.sgsk.wealth.e2e.context;
 
-import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Page;
+import io.cucumber.spring.ScenarioScope;
 import io.restassured.response.Response;
+import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 
+@Component
+@ScenarioScope
 public class TestContext {
-    private Browser browser;
     private BrowserContext browserContext;
     private Page page;
     private Response lastApiResponse;
