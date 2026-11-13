@@ -104,6 +104,10 @@ class NavService:
                 if not resolved_proj_id:
                     return None
 
+                resolved_fund_name = str(matched.get("proj_name_th") or "").strip()
+                if resolved_fund_name:
+                    ttl_cache.set(f"sec_pvd_fund_name_{resolved_proj_id}", resolved_fund_name, ttl=86400.0)
+
                 ttl_cache.set(cache_key, resolved_proj_id, ttl=86400.0)
                 return resolved_proj_id
             except Exception:
@@ -121,15 +125,31 @@ class NavService:
         if not target_proj_id:
             return {}
 
+        resolved_fund_name = str(
+            ttl_cache.get(f"sec_pvd_fund_name_{target_proj_id}") or fund_name or ""
+        ).strip()
+
         cache_key = f"sec_pvd_policies_{target_proj_id}"
         cached = ttl_cache.get(cache_key)
         if cached is not None:
-            return cast(dict[str, dict[str, Any]], cached)
+            cached_map = cast(dict[str, dict[str, Any]], cached)
+            if resolved_fund_name:
+                return {
+                    k: ({**v, "fundName": resolved_fund_name} if not v.get("fundName") else v)
+                    for k, v in cached_map.items()
+                }
+            return cached_map
 
         async def _do_fetch() -> dict[str, dict[str, Any]]:
             c = ttl_cache.get(cache_key)
             if c is not None:
-                return cast(dict[str, dict[str, Any]], c)
+                c_map = cast(dict[str, dict[str, Any]], c)
+                if resolved_fund_name:
+                    return {
+                        k: ({**v, "fundName": resolved_fund_name} if not v.get("fundName") else v)
+                        for k, v in c_map.items()
+                    }
+                return c_map
 
             url = f"{settings.sec_pvd_base_url}/factsheet/{target_proj_id}/policy"
             try:
@@ -150,6 +170,7 @@ class NavService:
                         policy_map[key] = {
                             "subPolicyId": sub_id,
                             "name": item.get("sub_policy_name") or "",
+                            "fundName": resolved_fund_name,
                             "policyName": item.get("policy_name") or "",
                             "aimcType": item.get("aimc_type") or "",
                             "riskLevel": item.get("risk_level") or "",

@@ -9,6 +9,7 @@ export interface Transaction {
   exchangeTo?: string;
   txType?: string;
   note?: string;
+  pvdFundName?: string;
 }
 
 export interface ShareLot {
@@ -48,6 +49,7 @@ export interface SymbolSummary {
   assetType: string;
   employeeShares?: number;
   employerShares?: number;
+  pvdFundName?: string;
 }
 
 export interface ClosedSymbolSummary {

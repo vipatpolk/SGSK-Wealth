@@ -261,6 +261,19 @@ export class DashboardComponent {
     return this.pvdPositions().length > 0;
   });
 
+  readonly pvdFundNames = computed<string[]>(() => {
+    const seen = new Set<string>();
+    const names: string[] = [];
+    for (const pos of this.pvdPositions()) {
+      const fn = (pos.pvdFundName || '').trim();
+      if (fn && !seen.has(fn)) {
+        seen.add(fn);
+        names.push(fn);
+      }
+    }
+    return names;
+  });
+
   readonly pvdTotalValue = computed<number>(() => {
     return this.pvdPositions().reduce(
       (acc, pos) => acc + this.cx(pos.holdingValue || pos.totalCost, pos.currency),

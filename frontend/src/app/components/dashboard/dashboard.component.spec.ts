@@ -306,6 +306,77 @@ describe('DashboardComponent', () => {
     expect(component.pvdEmployerMatching()).toBe(5000);
   });
 
+  it('should display single PVD fund name as subheading and multiple PVD fund names per row', () => {
+    const singleFundPositions: PortfolioPosition[] = [
+      {
+        symbol: 'PVDSP500',
+        displaySymbol: 'PVDSP500',
+        name: 'นโยบายหุ้นยูเอส',
+        pvdFundName: 'ไทยพาณิชย์ มาสเตอร์ฟันด์',
+        assetType: 'provident-fund',
+        assetTypeLabel: 'Provident Fund',
+        totalShares: 100,
+        totalCost: 10000,
+        averageCost: 100,
+        currentPrice: 110,
+        holdingValue: 11000,
+        unrealizedPL: 1000,
+        unrealizedPLPercent: 10,
+        currency: 'THB',
+        originalCurrency: 'THB',
+        hasPrice: true,
+        lots: [],
+      },
+    ];
+
+    fixture.componentRef.setInput('portfolioData', {
+      currency: 'THB',
+      exchangeRate: 35.0,
+      tabId: 'all',
+      summary: { totalInvested: 10000, totalValue: 11000 } as any,
+      openPositions: singleFundPositions,
+      closedPositions: [],
+    });
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const pvdCard = compiled.querySelector('#dashboard-retirement-card');
+    expect(pvdCard?.querySelector('.card-subheading')?.textContent?.trim()).toBe(
+      'ไทยพาณิชย์ มาสเตอร์ฟันด์',
+    );
+    expect(pvdCard?.querySelector('.pvd-mini-fund')).toBeNull();
+
+    const multiFundPositions: PortfolioPosition[] = [
+      ...singleFundPositions,
+      {
+        ...singleFundPositions[0],
+        symbol: 'PVDMPAEM',
+        displaySymbol: 'PVDMPAEM',
+        name: 'นโยบายเอเชีย',
+        pvdFundName: 'กองทุนสำรองเลี้ยงชีพ เค มาสเตอร์ พูล ฟันด์',
+      },
+    ];
+
+    fixture.componentRef.setInput('portfolioData', {
+      currency: 'THB',
+      exchangeRate: 35.0,
+      tabId: 'all',
+      summary: { totalInvested: 20000, totalValue: 22000 } as any,
+      openPositions: multiFundPositions,
+      closedPositions: [],
+    });
+    fixture.detectChanges();
+
+    expect(pvdCard?.querySelector('.card-subheading')?.textContent).toContain('2 Master Funds');
+    const rowFundLabels = Array.from(pvdCard?.querySelectorAll('.pvd-mini-fund') || []).map((el) =>
+      el.textContent?.trim(),
+    );
+    expect(rowFundLabels).toEqual([
+      'ไทยพาณิชย์ มาสเตอร์ฟันด์',
+      'กองทุนสำรองเลี้ยงชีพ เค มาสเตอร์ พูล ฟันด์',
+    ]);
+  });
+
   it('should exclude provident-fund records from recentTransactions and only show real trades', () => {
     fixture.componentRef.setInput('portfolioData', {
       currency: 'USD',

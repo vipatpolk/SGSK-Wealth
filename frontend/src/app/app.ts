@@ -38,6 +38,7 @@ import { TabBarComponent } from './components/tab-bar/tab-bar.component';
 import { SearchBarComponent } from './components/search-bar/search-bar.component';
 import { FiltersComponent } from './components/filters/filters.component';
 import { SummaryCardComponent } from './components/summary-card/summary-card.component';
+import { LoadingScreenComponent } from './components/loading-screen/loading-screen.component';
 import {
   getQuantityFormat,
   displaySymbol,
@@ -89,6 +90,7 @@ export interface SymbolAutocompleteItem {
     ToolsComponent,
     DashboardComponent,
     AnalyticsComponent,
+    LoadingScreenComponent,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
@@ -195,6 +197,36 @@ export class App {
   readonly isClosedTab = computed<boolean>(() => this.activeTab().id === 'closed-position');
   readonly isAllTab = computed<boolean>(() => this.activeTab().id === 'all');
 
+  readonly loaderState = computed(() => {
+    const tabLabel = this.activeTab().label;
+    if (this.pricesLoading()) {
+      return {
+        tag: 'Market Sync',
+        title: `Loading ${tabLabel}`,
+        subtitle: 'Fetching real-time market prices and currency rates…',
+      };
+    }
+    if (this.isAllTab()) {
+      return {
+        tag: 'FIFO Engine',
+        title: `Loading ${tabLabel}`,
+        subtitle: 'Consolidating asset types and computing FIFO share lots…',
+      };
+    }
+    if (this.isClosedTab()) {
+      return {
+        tag: 'Realized Ledger',
+        title: `Loading ${tabLabel}`,
+        subtitle: 'Calculating realized profits & losses across closed positions…',
+      };
+    }
+    return {
+      tag: 'Portfolio Snapshot',
+      title: `Loading ${tabLabel}`,
+      subtitle: 'Fetching transaction history and calculating FIFO lots…',
+    };
+  });
+
   readonly tabCounts = computed<Record<string, number>>(() => {
     const data = this.portfolioData();
     if (!data) return {};
@@ -279,6 +311,9 @@ export class App {
       averageCost: p.averageCost,
       currency: p.currency,
       assetType: p.assetType,
+      employeeShares: p.employeeShares,
+      employerShares: p.employerShares,
+      pvdFundName: p.pvdFundName,
       lots: p.lots.map((l) => ({
         symbol: p.symbol,
         purchaseDate: l.purchaseDate,

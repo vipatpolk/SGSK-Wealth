@@ -61,14 +61,15 @@ class ValuationService:
         sheet_result: SheetResult
         price_data_map: dict[str, Any]
         exchange_rate: float
+        pvd_policy_map: dict[str, dict[str, Any]]
 
         if base_cached is not None:
-            sheet_result, price_data_map, exchange_rate = base_cached
+            sheet_result, price_data_map, exchange_rate, pvd_policy_map = base_cached
         else:
-            async def _resolve_base() -> tuple[SheetResult, dict[str, Any], float]:
+            async def _resolve_base() -> tuple[SheetResult, dict[str, Any], float, dict[str, dict[str, Any]]]:
                 c = ttl_cache.get(base_cache_key)
                 if c is not None:
-                    return cast(tuple[SheetResult, dict[str, Any], float], c)
+                    return cast(tuple[SheetResult, dict[str, Any], float, dict[str, dict[str, Any]]], c)
 
                 is_all = tab_id == "all"
                 if is_all:
@@ -77,7 +78,7 @@ class ValuationService:
                     s_res = await self.share_lot_service.fetch_sheet(tab_id)
 
                 if s_res.error:
-                    return s_res, {}, 1.0
+                    return s_res, {}, 1.0, {}
 
                 # Extract symbols for price resolution
                 candidates: list[dict[str, str]] = []
@@ -108,6 +109,7 @@ class ValuationService:
                     c.get("assetType") == "provident-fund" or c.get("symbol", "").upper().startswith("PVD")
                     for c in candidates
                 )
+                pvd_policies: dict[str, dict[str, Any]] = {}
                 if has_pvd:
                     try:
                         pvd_fund_names: list[str] = []
@@ -124,7 +126,6 @@ class ValuationService:
                                     seen_funds.add(fn)
                                     pvd_fund_names.append(fn)
 
-                        pvd_policies: dict[str, dict[str, Any]] = {}
                         for fn in pvd_fund_names:
                             pvd_policies.update(await self.nav_service.fetch_pvd_policies(fund_name=fn))
 
@@ -137,11 +138,11 @@ class ValuationService:
                     except Exception:
                         pass
 
-                base_val = (s_res, p_map, ex_rate)
+                base_val = (s_res, p_map, ex_rate, pvd_policies)
                 ttl_cache.set(base_cache_key, base_val, ttl=60.0)
                 return base_val
 
-            sheet_result, price_data_map, exchange_rate = await singleflight.execute(
+            sheet_result, price_data_map, exchange_rate, pvd_policy_map = await singleflight.execute(
                 f"resolve_base_{tab_id}", _resolve_base
             )
 
@@ -154,6 +155,7 @@ class ValuationService:
             exchange_rate=exchange_rate,
             target_currency=target_currency,
             tab_id=tab_id,
+            pvd_policy_map=pvd_policy_map,
         )
         if not res.error:
             ttl_cache.set(cache_key, res, ttl=60.0)
@@ -166,6 +168,7 @@ class ValuationService:
         exchange_rate: float,
         target_currency: str = "THB",
         tab_id: str = "all",
+        pvd_policy_map: dict[str, dict[str, Any]] | None = None,
     ) -> PortfolioHoldingsResponse:
         open_positions: list[PortfolioPosition] = []
         closed_positions: list[ClosedPortfolioPosition] = []
@@ -259,6 +262,15 @@ class ValuationService:
             if not name and is_pvd:
                 name = DEFAULT_PVD_NAMES.get(sym.upper(), "")
 
+            pvd_fund_name: str | None = None
+            if is_pvd:
+                policy_info = (pvd_policy_map or {}).get(sym.upper(), {})
+                pvd_fund_name = (
+                    (open_summary.pvdFundName or "").strip()
+                    or str(policy_info.get("fundName") or "").strip()
+                    or None
+                )
+
             emp_contrib_c = (
                 convert_currency(open_summary.employeeContribution, orig_curr, target_currency, exchange_rate)
                 if open_summary.employeeContribution is not None
@@ -304,6 +316,7 @@ class ValuationService:
                     employeeEarnings=emp_earnings_c,
                     employerMatching=empr_matching_c,
                     employerEarnings=empr_earnings_c,
+                    pvdFundName=pvd_fund_name,
                 )
             )
 

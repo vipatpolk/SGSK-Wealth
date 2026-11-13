@@ -785,14 +785,31 @@
 .pvd-mini-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
   font-size: 0.75rem;
   padding: 0.35rem 0.5rem;
   background: var(--color-surface-overlay);
   border-radius: 0.5rem;
 }
 
+.pvd-mini-title-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.1rem;
+}
+
 .pvd-mini-name {
   color: var(--color-text-secondary);
+}
+
+.pvd-mini-fund {
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .pvd-mini-val {
   font-weight: 600;

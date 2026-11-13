@@ -386,4 +386,62 @@ async def test_get_portfolio_holdings_pvd_uses_sheet_fund_name(monkeypatch):
     assert captured_fund_names == ["ไทยพาณิชย์ มาสเตอร์ฟันด์"]
     assert len(res.openPositions) == 1
     assert res.openPositions[0].name == "นโยบายตราสารทุนจาก SEC"
+    assert res.openPositions[0].pvdFundName == "ไทยพาณิชย์ มาสเตอร์ฟันด์"
+
+
+@pytest.mark.unit
+def test_value_sheet_result_propagates_pvd_fund_name_and_sec_fallback():
+    """Verify value_sheet_result preserves SymbolSummary.pvdFundName and falls back to SEC policy fundName."""
+    service = ValuationService()
+
+    summary_from_sheet = SymbolSummary(
+        symbol="PVDSP500",
+        totalShares=100.0,
+        totalCost=1000.0,
+        averageCost=10.0,
+        currency="THB",
+        lots=[],
+        assetType="provident-fund",
+        pvdFundName="กองทุนสำรองเลี้ยงชีพ เอสซีบี",
+    )
+    summary_from_sec = SymbolSummary(
+        symbol="PVDWEQ",
+        totalShares=200.0,
+        totalCost=2000.0,
+        averageCost=10.0,
+        currency="THB",
+        lots=[],
+        assetType="provident-fund",
+        pvdFundName=None,
+    )
+    sheet_result = SheetResult(
+        summaries=[summary_from_sheet, summary_from_sec],
+        closedSummaries=[],
+        transactionSummaries=[],
+        rawTransactions=[],
+        totalCostByCurrency={"THB": 3000.0},
+        totalProceedsByCurrency={},
+        totalRealizedPLByCurrency={},
+        totalSymbols=2,
+        totalLots=0,
+    )
+    pvd_policy_map = {
+        "PVDSP500": {"name": "นโยบายหุ้นยูเอส", "fundName": "ไทยพาณิชย์ มาสเตอร์ฟันด์"},
+        "PVDWEQ": {"name": "นโยบายหุ้นโลก", "fundName": "ไทยพาณิชย์ มาสเตอร์ฟันด์"},
+    }
+
+    res = service.value_sheet_result(
+        sheet_result=sheet_result,
+        price_data_map={},
+        exchange_rate=35.0,
+        target_currency="THB",
+        tab_id="provident-fund",
+        pvd_policy_map=pvd_policy_map,
+    )
+
+    assert len(res.openPositions) == 2
+    by_sym = {p.symbol: p for p in res.openPositions}
+    assert by_sym["PVDSP500"].pvdFundName == "กองทุนสำรองเลี้ยงชีพ เอสซีบี"
+    assert by_sym["PVDWEQ"].pvdFundName == "ไทยพาณิชย์ มาสเตอร์ฟันด์"
+
 

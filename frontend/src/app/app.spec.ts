@@ -712,4 +712,33 @@ describe('App', () => {
     expect(fetchHoldingsSpy.mock.calls.length).toBe(initialFetchCount + 1);
     expect(dividendSpy.mock.calls.length).toBe(initialDividendCount + 1);
   });
+
+  it('should render branded LoadingScreenComponent while loading and compute tab-specific loaderState', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    app.loading.set(true);
+    app.activeTab.set(ASSET_TABS[0]); // All Positions
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const loadingEl = compiled.querySelector('#loading-state');
+    expect(loadingEl).toBeTruthy();
+    expect(loadingEl?.textContent).toContain('SGSK');
+    expect(loadingEl?.textContent).toContain('Wealth');
+    expect(loadingEl?.textContent).toContain('Loading All');
+    expect(app.loaderState().tag).toBe('FIFO Engine');
+
+    const closedTab = ASSET_TABS.find((t) => t.id === 'closed-position')!;
+    app.activeTab.set(closedTab);
+    fixture.detectChanges();
+    expect(compiled.querySelector('#loading-state')?.textContent).toContain(
+      'Loading Closed Position',
+    );
+    expect(app.loaderState().tag).toBe('Realized Ledger');
+
+    app.loading.set(false);
+    fixture.detectChanges();
+    expect(compiled.querySelector('#loading-state')).toBeNull();
+  });
 });

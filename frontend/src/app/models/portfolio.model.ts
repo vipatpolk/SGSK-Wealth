@@ -39,6 +39,7 @@ export interface PortfolioPosition {
   employeeEarnings?: number;
   employerMatching?: number;
   employerEarnings?: number;
+  pvdFundName?: string;
   policyName?: string;
   aimcType?: string;
   riskLevel?: string;

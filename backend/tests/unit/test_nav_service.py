@@ -148,6 +148,7 @@ async def test_fetch_pvd_proj_id_and_policies_by_fund_name(service, monkeypatch)
     policies = await service.fetch_pvd_policies(fund_name="ไทยพาณิชย์ มาสเตอร์ฟันด์")
     assert "PVDSP500" in policies
     assert policies["PVDSP500"]["name"] == "นโยบายกองทุนรวมต่างประเทศ หุ้นยูเอส"
+    assert policies["PVDSP500"]["fundName"] == "ไทยพาณิชย์ มาสเตอร์ฟันด์"
 
 
 @pytest.mark.unit

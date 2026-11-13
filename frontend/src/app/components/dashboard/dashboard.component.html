@@ -594,7 +594,16 @@
             </div>
             <div>
               <h2 class="card-heading">Provident Fund (PVD)</h2>
-              <p class="card-subheading">Thai Employer & Employee Contributions</p>
+              @if (pvdFundNames().length === 1) {
+                <p class="card-subheading" [title]="pvdFundNames()[0]">{{ pvdFundNames()[0] }}</p>
+              } @else if (pvdFundNames().length > 1) {
+                <p class="card-subheading">
+                  {{ pvdFundNames().length }} Master Funds &bull; Thai Employer &amp; Employee
+                  Contributions
+                </p>
+              } @else {
+                <p class="card-subheading">Thai Employer & Employee Contributions</p>
+              }
             </div>
           </div>
           <button
@@ -672,7 +681,12 @@
           <div class="pvd-positions-mini-list">
             @for (pos of pvdPositions(); track pos.symbol) {
               <div class="pvd-mini-row">
-                <span class="pvd-mini-name">{{ pos.policyName || pos.name || pos.symbol }}</span>
+                <div class="pvd-mini-title-group">
+                  <span class="pvd-mini-name">{{ pos.policyName || pos.name || pos.symbol }}</span>
+                  @if (pvdFundNames().length > 1 && pos.pvdFundName) {
+                    <span class="pvd-mini-fund" [title]="pos.pvdFundName">{{ pos.pvdFundName }}</span>
+                  }
+                </div>
                 <span class="pvd-mini-val font-mono privacy-mask">{{
                   pos.holdingValue || pos.totalCost
                     | currency: pos.currency : 'symbol-narrow' : '1.2-2'

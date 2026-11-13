@@ -308,5 +308,41 @@ describe('SummaryCardComponent', () => {
     expect(footerBanner?.textContent).toContain('Total Earnings');
     expect(footerBanner?.textContent).toContain('30,314.91');
     expect(footerBanner?.textContent).toContain('205,135.89');
+    expect(compiled.querySelector('.pvd-fund-badge')).toBeNull();
+    expect(compiled.querySelector('.pvd-footer-fund-name')).toBeNull();
+  });
+
+  it('should render pvdFundName in header badge and expanded footer when present', () => {
+    const mockPvdWithFundName = {
+      symbol: 'PVDSP500',
+      displaySymbol: 'PVDSP500',
+      name: 'นโยบายกองทุนรวมต่างประเทศ หุ้นยูเอส',
+      pvdFundName: 'ไทยพาณิชย์ มาสเตอร์ฟันด์',
+      assetType: 'provident-fund',
+      totalShares: 1000,
+      totalCost: 15000,
+      averageCost: 15,
+      currency: 'THB',
+      employeeShares: 500,
+      employerShares: 500,
+      lots: [],
+    };
+
+    componentRef.setInput('type', 'open');
+    componentRef.setInput('summary', mockPvdWithFundName);
+    componentRef.setInput('getHoldingValue', (s: any) => s.totalCost || 15000);
+    componentRef.setInput('isExpanded', true);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const headerBadge = compiled.querySelector('.pvd-fund-badge');
+    expect(headerBadge?.textContent?.trim()).toBe('ไทยพาณิชย์ มาสเตอร์ฟันด์');
+
+    const footerBanner = compiled.querySelector('.pvd-footer-banner');
+    expect(footerBanner?.textContent).toContain('PVD Fund');
+    expect(footerBanner?.querySelector('.pvd-footer-fund-name')?.textContent?.trim()).toBe(
+      'ไทยพาณิชย์ มาสเตอร์ฟันด์',
+    );
+    expect(footerBanner?.textContent).toContain('Fund Policy');
   });
 });

@@ -1,0 +1,95 @@
+<div
+  class="loader-stage"
+  [class.loader-stage-fullscreen]="variant() === 'fullscreen'"
+  [class.loader-stage-inline]="variant() === 'inline'"
+  [attr.id]="variant() === 'fullscreen' ? 'loading-state' : null"
+  role="status"
+  aria-live="polite"
+>
+  @if (variant() === 'fullscreen') {
+    <div class="loader-ambient-mesh" aria-hidden="true"></div>
+    <div class="loader-grid-overlay" aria-hidden="true"></div>
+  }
+
+  <div class="loader-card" [class.loader-card-inline]="variant() === 'inline'">
+    <!-- Animated Brand Emblem -->
+    <div
+      class="loader-emblem"
+      [class.loader-emblem-sm]="variant() === 'inline'"
+      aria-hidden="true"
+    >
+      <div class="loader-halo"></div>
+      <div class="loader-orbit">
+        <div class="loader-orbit-ring loader-orbit-outer"></div>
+        <div class="loader-orbit-ring loader-orbit-inner"></div>
+      </div>
+      <div class="loader-squircle">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          class="loader-shield-svg"
+        >
+          <path
+            d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"
+            fill="rgba(255, 255, 255, 0.16)"
+            stroke="rgba(255, 255, 255, 0.58)"
+            stroke-width="1.5"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M8 12.5l2.8 2.8 5.2-5.3"
+            stroke="#ffffff"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Brand Identity Lockup -->
+    <div class="loader-brand-lockup">
+      <div class="loader-wordmark">
+        <span class="loader-wordmark-primary">SGSK</span>
+        <span class="loader-wordmark-accent">Wealth</span>
+      </div>
+      @if (variant() === 'fullscreen') {
+        <p class="loader-tagline">Investment Portfolio &amp; Wealth Analytics</p>
+      }
+    </div>
+
+    <!-- Contextual Status & Progress -->
+    <div class="loader-status-section">
+      @if (statusTag()) {
+        <div class="loader-status-pill">
+          <span class="loader-status-dot" aria-hidden="true"></span>
+          <span>{{ statusTag() }}</span>
+        </div>
+      }
+
+      <div class="loader-copy">
+        @if (title()) {
+          <h2 class="loader-title">{{ title() }}</h2>
+        }
+        @if (subtitle()) {
+          <p class="loader-subtext">{{ subtitle() }}</p>
+        }
+      </div>
+
+      <div class="loader-progress-track" aria-hidden="true">
+        <div class="loader-progress-bar"></div>
+      </div>
+
+      @if (variant() === 'fullscreen') {
+        <div class="loader-pipeline" aria-hidden="true">
+          <span class="loader-pipe-step loader-pipe-1">Sheet Sync</span>
+          <span class="loader-pipe-sep">&bull;</span>
+          <span class="loader-pipe-step loader-pipe-2">FIFO Lots</span>
+          <span class="loader-pipe-sep">&bull;</span>
+          <span class="loader-pipe-step loader-pipe-3">Live Valuation</span>
+        </div>
+      }
+    </div>
+  </div>
+</div>

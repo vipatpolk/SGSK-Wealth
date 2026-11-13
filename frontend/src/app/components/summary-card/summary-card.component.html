@@ -12,6 +12,9 @@
             @if (getSymbolName()(summary().symbol, summary().name)) {
               <span class="symbol-name" [title]="getSymbolName()(summary().symbol, summary().name)">{{ getSymbolName()(summary().symbol, summary().name) }}</span>
             }
+            @if (summary().assetType === 'provident-fund' && summary().pvdFundName) {
+              <span class="pvd-fund-badge" [title]="summary().pvdFundName">{{ summary().pvdFundName }}</span>
+            }
           </div>
         </div>
 
@@ -262,6 +265,10 @@
           <!-- Total Fund Footer Banner -->
           <div class="pvd-footer-banner">
             <div class="pvd-footer-left">
+              @if (summary().pvdFundName) {
+                <span class="pvd-footer-label">PVD Fund</span>
+                <span class="pvd-footer-fund-name" [title]="summary().pvdFundName">{{ summary().pvdFundName }}</span>
+              }
               <span class="pvd-footer-label">Fund Policy</span>
               <span class="pvd-footer-name">{{ getSymbolName()(summary().symbol, summary().name) || summary().symbol }}</span>
             </div>
@@ -374,6 +381,9 @@
             </span>
             @if (getSymbolName()(summary().symbol, summary().name)) {
               <span class="symbol-name" [title]="getSymbolName()(summary().symbol, summary().name)">{{ getSymbolName()(summary().symbol, summary().name) }}</span>
+            }
+            @if (summary().assetType === 'provident-fund' && summary().pvdFundName) {
+              <span class="pvd-fund-badge" [title]="summary().pvdFundName">{{ summary().pvdFundName }}</span>
             }
           </div>
         </div>

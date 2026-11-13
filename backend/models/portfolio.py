@@ -42,6 +42,7 @@ class PortfolioPosition(BaseModel):
     employeeEarnings: float | None = None
     employerMatching: float | None = None
     employerEarnings: float | None = None
+    pvdFundName: str | None = None
     policyName: str | None = None
     aimcType: str | None = None
     riskLevel: str | None = None
