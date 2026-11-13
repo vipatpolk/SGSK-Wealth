@@ -41,16 +41,27 @@ export default async function handler(req, res) {
 
     const upstreamResponse = await fetch(targetUrl, fetchOptions);
     const contentType = upstreamResponse.headers.get('content-type') || '';
+    const cacheControl = upstreamResponse.headers.get('cache-control');
 
     res.status(upstreamResponse.status);
+    if (cacheControl) {
+      res.setHeader('Cache-Control', cacheControl);
+    }
+
+    if (upstreamResponse.status === 204 || upstreamResponse.status === 304) {
+      return res.end();
+    }
+
     if (contentType.includes('application/json')) {
       const data = await upstreamResponse.json();
       return res.json(data);
-    } else {
-      const text = await upstreamResponse.text();
-      res.setHeader('content-type', contentType);
-      return res.send(text);
     }
+
+    if (contentType) {
+      res.setHeader('Content-Type', contentType);
+    }
+    const buffer = Buffer.from(await upstreamResponse.arrayBuffer());
+    return res.send(buffer);
   } catch (error) {
     return res.status(502).json({
       detail: 'Bad Gateway: Proxy failed to reach backend origin',
