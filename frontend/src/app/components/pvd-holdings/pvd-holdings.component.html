@@ -1,7 +1,18 @@
 <div class="pvd-container" id="pvd-holdings-screen">
   @if (policies().length === 0) {
     <div class="pvd-empty-card" id="pvd-empty-state">
-      <div class="pvd-empty-icon">🏦</div>
+      <div class="pvd-empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 21h18" />
+          <path d="M3 10h18" />
+          <path d="M5 6l7-3 7 3" />
+          <path d="M4 10v11" />
+          <path d="M20 10v11" />
+          <path d="M8 14v3" />
+          <path d="M12 14v3" />
+          <path d="M16 14v3" />
+        </svg>
+      </div>
       <h3>No Provident Fund Positions</h3>
       <p>
         Import your Provident Fund (PVD) transactions or switch to a portfolio containing PVD policies
@@ -22,9 +33,9 @@
             }
           </div>
           <div class="pvd-balance-row">
-            <span class="pvd-total-balance pvd-privacy-val">{{ formatMoney(m.totalBalance) }}</span>
+            <span class="pvd-total-balance font-mono pvd-privacy-val">{{ formatMoney(m.totalBalance) }}</span>
             <span
-              class="pvd-return-badge"
+              class="pvd-return-badge font-mono"
               [class.positive]="m.totalEarnings >= 0"
               [class.negative]="m.totalEarnings < 0"
             >
@@ -46,7 +57,7 @@
           [disabled]="pricesLoading()"
           title="Refresh PVD NAV &amp; SEC Policy Metadata"
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.spin]="pricesLoading()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" [class.spin]="pricesLoading()">
             <path d="M23 4v6h-6" />
             <path d="M1 20v-6h6" />
             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
@@ -59,14 +70,14 @@
       <div class="pvd-kpi-grid">
         <div class="pvd-kpi-tile">
           <span class="pvd-kpi-label">Total Principal · เงินต้นรวม</span>
-          <span class="pvd-kpi-val pvd-privacy-val">{{ formatMoney(m.totalPrincipal) }}</span>
+          <span class="pvd-kpi-val font-mono pvd-privacy-val">{{ formatMoney(m.totalPrincipal) }}</span>
           <span class="pvd-kpi-hint">เงินสะสม + เงินสมทบ</span>
         </div>
 
         <div class="pvd-kpi-tile">
           <span class="pvd-kpi-label">Total Earnings · ผลประโยชน์รวม</span>
           <span
-            class="pvd-kpi-val pvd-privacy-val"
+            class="pvd-kpi-val font-mono pvd-privacy-val"
             [class.pos-text]="m.totalEarnings >= 0"
             [class.neg-text]="m.totalEarnings < 0"
           >
@@ -79,7 +90,7 @@
 
         <div class="pvd-kpi-tile emp-accent">
           <span class="pvd-kpi-label">Employee Pool · ส่วนของสมาชิก ({{ m.employeeSharePct | number: '1.1-1' }}%)</span>
-          <span class="pvd-kpi-val pvd-privacy-val">{{ formatMoney(m.totalEmployeeValue) }}</span>
+          <span class="pvd-kpi-val font-mono pvd-privacy-val">{{ formatMoney(m.totalEmployeeValue) }}</span>
           <span class="pvd-kpi-hint pvd-privacy-val">
             ต้น {{ formatMoney(m.totalEmployeePrincipal) }} · ผลประโยชน์ {{ formatMoney(m.totalEmployeeEarnings, true) }}
           </span>
@@ -87,7 +98,7 @@
 
         <div class="pvd-kpi-tile empr-accent">
           <span class="pvd-kpi-label">Employer Pool · ส่วนของนายจ้าง ({{ m.employerSharePct | number: '1.1-1' }}%)</span>
-          <span class="pvd-kpi-val pvd-privacy-val">{{ formatMoney(m.totalEmployerValue) }}</span>
+          <span class="pvd-kpi-val font-mono pvd-privacy-val">{{ formatMoney(m.totalEmployerValue) }}</span>
           <span class="pvd-kpi-hint pvd-privacy-val">
             ต้น {{ formatMoney(m.totalEmployerPrincipal) }} · ผลประโยชน์ {{ formatMoney(m.totalEmployerEarnings, true) }}
           </span>
@@ -98,7 +109,7 @@
       <div class="pvd-split-bar-card" id="pvd-overall-split-bar">
         <div class="pvd-split-bar-header">
           <span>Contribution &amp; Benefit Composition (โครงสร้างเงินกองทุน 4 ส่วน)</span>
-          <span class="pvd-split-ratio">
+          <span class="pvd-split-ratio font-mono">
             สมาชิก {{ m.employeeSharePct | number: '1.1-1' }}% vs. นายจ้าง {{ m.employerSharePct | number: '1.1-1' }}%
           </span>
         </div>
@@ -138,26 +149,26 @@
           <div class="pvd-legend-item">
             <span class="pvd-dot dot-emp-principal"></span>
             <span class="pvd-leg-title">เงินสะสม</span>
-            <span class="pvd-leg-pct">{{ m.splitBarPct.empPrincipal | number: '1.1-1' }}%</span>
-            <span class="pvd-leg-val pvd-privacy-val">{{ formatMoney(m.totalEmployeePrincipal) }}</span>
+            <span class="pvd-leg-pct font-mono">{{ m.splitBarPct.empPrincipal | number: '1.1-1' }}%</span>
+            <span class="pvd-leg-val font-mono pvd-privacy-val">{{ formatMoney(m.totalEmployeePrincipal) }}</span>
           </div>
           <div class="pvd-legend-item">
             <span class="pvd-dot dot-emp-earnings"></span>
             <span class="pvd-leg-title">ผลประโยชน์สะสม</span>
-            <span class="pvd-leg-pct">{{ m.splitBarPct.empEarnings | number: '1.1-1' }}%</span>
-            <span class="pvd-leg-val pvd-privacy-val">{{ formatMoney(m.totalEmployeeEarnings, true) }}</span>
+            <span class="pvd-leg-pct font-mono">{{ m.splitBarPct.empEarnings | number: '1.1-1' }}%</span>
+            <span class="pvd-leg-val font-mono pvd-privacy-val">{{ formatMoney(m.totalEmployeeEarnings, true) }}</span>
           </div>
           <div class="pvd-legend-item">
             <span class="pvd-dot dot-empr-principal"></span>
             <span class="pvd-leg-title">เงินสมทบ</span>
-            <span class="pvd-leg-pct">{{ m.splitBarPct.emprPrincipal | number: '1.1-1' }}%</span>
-            <span class="pvd-leg-val pvd-privacy-val">{{ formatMoney(m.totalEmployerPrincipal) }}</span>
+            <span class="pvd-leg-pct font-mono">{{ m.splitBarPct.emprPrincipal | number: '1.1-1' }}%</span>
+            <span class="pvd-leg-val font-mono pvd-privacy-val">{{ formatMoney(m.totalEmployerPrincipal) }}</span>
           </div>
           <div class="pvd-legend-item">
             <span class="pvd-dot dot-empr-earnings"></span>
             <span class="pvd-leg-title">ผลประโยชน์สมทบ</span>
-            <span class="pvd-leg-pct">{{ m.splitBarPct.emprEarnings | number: '1.1-1' }}%</span>
-            <span class="pvd-leg-val pvd-privacy-val">{{ formatMoney(m.totalEmployerEarnings, true) }}</span>
+            <span class="pvd-leg-pct font-mono">{{ m.splitBarPct.emprEarnings | number: '1.1-1' }}%</span>
+            <span class="pvd-leg-val font-mono pvd-privacy-val">{{ formatMoney(m.totalEmployerEarnings, true) }}</span>
           </div>
         </div>
       </div>
@@ -172,7 +183,7 @@
             <h3>Policy Weight Allocation</h3>
             <p>สัดส่วนการลงทุนรายนโยบายย่อย (Sub-Policy Weights)</p>
           </div>
-          <span class="pvd-count-badge">{{ m.policyCount }} Policies</span>
+          <span class="pvd-count-badge font-mono">{{ m.policyCount }} Policies</span>
         </div>
 
         <div class="pvd-donut-layout">
@@ -210,12 +221,12 @@
             <div class="pvd-donut-center">
               @if (activeHoveredSlice(); as active) {
                 <span class="pvd-center-code">{{ active.displaySymbol }}</span>
-                <span class="pvd-center-pct">{{ active.weightPct | number: '1.1-1' }}%</span>
-                <span class="pvd-center-val pvd-privacy-val">{{ formatMoney(active.holdingValue) }}</span>
+                <span class="pvd-center-pct font-mono">{{ active.weightPct | number: '1.1-1' }}%</span>
+                <span class="pvd-center-val font-mono pvd-privacy-val">{{ formatMoney(active.holdingValue) }}</span>
               } @else {
-                <span class="pvd-center-code">TOTAL PVD</span>
-                <span class="pvd-center-pct">{{ m.policyCount }} Funds</span>
-                <span class="pvd-center-val pvd-privacy-val">{{ formatMoney(m.totalBalance) }}</span>
+                <span class="pvd-center-code">Total PVD</span>
+                <span class="pvd-center-pct font-mono">{{ m.policyCount }} Funds</span>
+                <span class="pvd-center-val font-mono pvd-privacy-val">{{ formatMoney(m.totalBalance) }}</span>
               }
             </div>
           </div>
@@ -236,8 +247,8 @@
                   </div>
                 </div>
                 <div class="pvd-alloc-right">
-                  <span class="pvd-alloc-pct">{{ slice.weightPct | number: '1.1-1' }}%</span>
-                  <span class="pvd-alloc-val pvd-privacy-val">{{ formatMoney(slice.holdingValue) }}</span>
+                  <span class="pvd-alloc-pct font-mono">{{ slice.weightPct | number: '1.1-1' }}%</span>
+                  <span class="pvd-alloc-val font-mono pvd-privacy-val">{{ formatMoney(slice.holdingValue) }}</span>
                 </div>
               </div>
             }
@@ -253,7 +264,7 @@
             <p>ระดับความเสี่ยงและกลุ่มกองทุนตามมาตรฐาน ก.ล.ต. (RS1 – RS8)</p>
           </div>
           @if (m.weightedRiskScore !== null) {
-            <span class="pvd-risk-badge" [attr.data-tier]="m.weightedRiskInfo.tier">
+            <span class="pvd-risk-badge font-mono" [attr.data-tier]="m.weightedRiskInfo.tier">
               {{ m.weightedRiskScore | number: '1.1-1' }} / 8 · {{ m.weightedRiskInfo.code }}
             </span>
           }
@@ -282,7 +293,7 @@
                 [class.covered]="isRiskLevelCovered(lvl)"
                 [class.active-weighted]="isWeightedRiskLevel(lvl)"
               >
-                <span class="pvd-rs-num">{{ lvl }}</span>
+                <span class="pvd-rs-num font-mono">{{ lvl }}</span>
               </div>
             }
           </div>
@@ -297,9 +308,9 @@
           @for (bucket of m.riskBuckets; track bucket.score) {
             <div class="pvd-bucket-row">
               <div class="pvd-bucket-head">
-                <span class="pvd-risk-pill" [attr.data-tier]="bucket.tier">{{ bucket.code }}</span>
+                <span class="pvd-risk-pill font-mono" [attr.data-tier]="bucket.tier">{{ bucket.code }}</span>
                 <span class="pvd-bucket-meta">{{ bucket.policyCount }} {{ bucket.policyCount === 1 ? 'policy' : 'policies' }}</span>
-                <span class="pvd-bucket-pct">{{ bucket.weightPct | number: '1.1-1' }}%</span>
+                <span class="pvd-bucket-pct font-mono">{{ bucket.weightPct | number: '1.1-1' }}%</span>
               </div>
               <div class="pvd-bucket-track">
                 <div
@@ -321,12 +332,12 @@
       <div class="pvd-section-toolbar">
         <div class="pvd-section-title">
           <h3>Sub-Policy Holdings &amp; SEC Metadata</h3>
-          <span class="pvd-count-pill">{{ filteredPolicies().length }} / {{ m.policyCount }}</span>
+          <span class="pvd-count-pill font-mono">{{ filteredPolicies().length }} / {{ m.policyCount }}</span>
         </div>
 
         <div class="pvd-toolbar-controls">
           <div class="pvd-search-wrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
@@ -338,7 +349,12 @@
               (input)="onSearchInput($event)"
             />
             @if (searchQuery()) {
-              <button type="button" class="pvd-search-clear" (click)="clearSearch()" title="Clear search">✕</button>
+              <button type="button" class="pvd-search-clear" (click)="clearSearch()" title="Clear search" aria-label="Clear search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
             }
           </div>
 
@@ -347,41 +363,71 @@
               type="button"
               class="pvd-sort-btn"
               [class.active]="sortBy() === 'value'"
+              [attr.data-sort-dir]="sortBy() === 'value' ? sortDir() : null"
               (click)="setSort('value')"
             >
-              Value @if (sortBy() === 'value') { <span>{{ sortDir() === 'desc' ? '↓' : '↑' }}</span> }
+              Value
+              @if (sortBy() === 'value') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="pvd-sort-arrow" [class.sort-arrow-up]="sortDir() === 'asc'">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              }
             </button>
             <button
               type="button"
               class="pvd-sort-btn"
               [class.active]="sortBy() === 'return'"
+              [attr.data-sort-dir]="sortBy() === 'return' ? sortDir() : null"
               (click)="setSort('return')"
             >
-              Return @if (sortBy() === 'return') { <span>{{ sortDir() === 'desc' ? '↓' : '↑' }}</span> }
+              Return
+              @if (sortBy() === 'return') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="pvd-sort-arrow" [class.sort-arrow-up]="sortDir() === 'asc'">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              }
             </button>
             <button
               type="button"
               class="pvd-sort-btn"
               [class.active]="sortBy() === 'principal'"
+              [attr.data-sort-dir]="sortBy() === 'principal' ? sortDir() : null"
               (click)="setSort('principal')"
             >
-              Principal @if (sortBy() === 'principal') { <span>{{ sortDir() === 'desc' ? '↓' : '↑' }}</span> }
+              Principal
+              @if (sortBy() === 'principal') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="pvd-sort-arrow" [class.sort-arrow-up]="sortDir() === 'asc'">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              }
             </button>
             <button
               type="button"
               class="pvd-sort-btn"
               [class.active]="sortBy() === 'units'"
+              [attr.data-sort-dir]="sortBy() === 'units' ? sortDir() : null"
               (click)="setSort('units')"
             >
-              Units @if (sortBy() === 'units') { <span>{{ sortDir() === 'desc' ? '↓' : '↑' }}</span> }
+              Units
+              @if (sortBy() === 'units') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="pvd-sort-arrow" [class.sort-arrow-up]="sortDir() === 'asc'">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              }
             </button>
             <button
               type="button"
               class="pvd-sort-btn"
               [class.active]="sortBy() === 'risk'"
+              [attr.data-sort-dir]="sortBy() === 'risk' ? sortDir() : null"
               (click)="setSort('risk')"
             >
-              Risk @if (sortBy() === 'risk') { <span>{{ sortDir() === 'desc' ? '↓' : '↑' }}</span> }
+              Risk
+              @if (sortBy() === 'risk') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="pvd-sort-arrow" [class.sort-arrow-up]="sortDir() === 'asc'">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              }
             </button>
           </div>
         </div>
@@ -401,8 +447,8 @@
                   <app-symbol-icon [symbol]="policy.symbol" [assetType]="policy.assetType" size="md"></app-symbol-icon>
                   <div class="pvd-policy-titles">
                     <div class="pvd-symbol-line">
-                      <span class="pvd-symbol-code">{{ policy.displaySymbol }}</span>
-                      <span class="pvd-weight-badge">{{ policy.weightPct | number: '1.1-1' }}% Weight</span>
+                      <span class="pvd-symbol-code font-mono">{{ policy.displaySymbol }}</span>
+                      <span class="pvd-weight-badge font-mono">{{ policy.weightPct | number: '1.1-1' }}% Weight</span>
                     </div>
                     <h4 class="pvd-policy-name">{{ policy.name }}</h4>
                     @if (policy.pvdFundName) {
@@ -412,9 +458,9 @@
                 </div>
 
                 <div class="pvd-policy-val-block">
-                  <span class="pvd-policy-val pvd-privacy-val">{{ formatMoney(policy.holdingValue) }}</span>
+                  <span class="pvd-policy-val font-mono pvd-privacy-val">{{ formatMoney(policy.holdingValue) }}</span>
                   <span
-                    class="pvd-policy-return"
+                    class="pvd-policy-return font-mono"
                     [class.pos-text]="policy.earnings >= 0"
                     [class.neg-text]="policy.earnings < 0"
                   >
@@ -427,7 +473,7 @@
               <!-- SEC Metadata Badges -->
               <div class="pvd-sec-badges">
                 @if (policy.risk.score > 0) {
-                  <span class="pvd-risk-pill" [attr.data-tier]="policy.risk.tier">
+                  <span class="pvd-risk-pill font-mono" [attr.data-tier]="policy.risk.tier">
                     {{ policy.risk.code }} · {{ policy.risk.label }}
                   </span>
                 }
@@ -446,19 +492,19 @@
               <div class="pvd-metrics-strip">
                 <div class="pvd-metric-cell">
                   <span class="pvd-m-label">Total Units</span>
-                  <span class="pvd-m-val pvd-privacy-val">{{ policy.totalShares | number: getUnitFormat() }}</span>
+                  <span class="pvd-m-val font-mono pvd-privacy-val">{{ policy.totalShares | number: getUnitFormat() }}</span>
                 </div>
                 <div class="pvd-metric-cell">
                   <span class="pvd-m-label">Current NAV</span>
-                  <span class="pvd-m-val">{{ currencySymbol() }}{{ policy.currentPrice | number: getNavFormat() }}</span>
+                  <span class="pvd-m-val font-mono">{{ currencySymbol() }}{{ policy.currentPrice | number: getNavFormat() }}</span>
                 </div>
                 <div class="pvd-metric-cell">
                   <span class="pvd-m-label">Principal Cost</span>
-                  <span class="pvd-m-val pvd-privacy-val">{{ formatMoney(policy.principal) }}</span>
+                  <span class="pvd-m-val font-mono pvd-privacy-val">{{ formatMoney(policy.principal) }}</span>
                 </div>
                 <div class="pvd-metric-cell">
                   <span class="pvd-m-label">Avg Unit Cost</span>
-                  <span class="pvd-m-val">{{ currencySymbol() }}{{ policy.averageCost | number: getNavFormat() }}</span>
+                  <span class="pvd-m-val font-mono">{{ currencySymbol() }}{{ policy.averageCost | number: getNavFormat() }}</span>
                 </div>
               </div>
 
@@ -467,17 +513,17 @@
                 <div class="pvd-pool-box emp">
                   <div class="pvd-pool-head">
                     <span class="pvd-pool-title">เงินสะสม · Employee</span>
-                    <span class="pvd-pool-total pvd-privacy-val">{{ formatMoney(policy.employeeTotal) }}</span>
+                    <span class="pvd-pool-total font-mono pvd-privacy-val">{{ formatMoney(policy.employeeTotal) }}</span>
                   </div>
                   <div class="pvd-pool-rows">
                     <div>
                       <span>เงินต้นสะสม</span>
-                      <strong class="pvd-privacy-val">{{ formatMoney(policy.employeePrincipal) }}</strong>
+                      <strong class="font-mono pvd-privacy-val">{{ formatMoney(policy.employeePrincipal) }}</strong>
                     </div>
                     <div>
                       <span>ผลประโยชน์สะสม</span>
                       <strong
-                        class="pvd-privacy-val"
+                        class="font-mono pvd-privacy-val"
                         [class.pos-text]="policy.employeeEarnings >= 0"
                         [class.neg-text]="policy.employeeEarnings < 0"
                       >
@@ -486,7 +532,7 @@
                     </div>
                     <div>
                       <span>จำนวนหน่วย</span>
-                      <span class="pvd-privacy-val">{{ policy.employeeShares | number: getUnitFormat() }}</span>
+                      <span class="font-mono pvd-privacy-val">{{ policy.employeeShares | number: getUnitFormat() }}</span>
                     </div>
                   </div>
                 </div>
@@ -494,17 +540,17 @@
                 <div class="pvd-pool-box empr">
                   <div class="pvd-pool-head">
                     <span class="pvd-pool-title">เงินสมทบ · Employer</span>
-                    <span class="pvd-pool-total pvd-privacy-val">{{ formatMoney(policy.employerTotal) }}</span>
+                    <span class="pvd-pool-total font-mono pvd-privacy-val">{{ formatMoney(policy.employerTotal) }}</span>
                   </div>
                   <div class="pvd-pool-rows">
                     <div>
                       <span>เงินต้นสมทบ</span>
-                      <strong class="pvd-privacy-val">{{ formatMoney(policy.employerPrincipal) }}</strong>
+                      <strong class="font-mono pvd-privacy-val">{{ formatMoney(policy.employerPrincipal) }}</strong>
                     </div>
                     <div>
                       <span>ผลประโยชน์สมทบ</span>
                       <strong
-                        class="pvd-privacy-val"
+                        class="font-mono pvd-privacy-val"
                         [class.pos-text]="policy.employerEarnings >= 0"
                         [class.neg-text]="policy.employerEarnings < 0"
                       >
@@ -513,7 +559,7 @@
                     </div>
                     <div>
                       <span>จำนวนหน่วย</span>
-                      <span class="pvd-privacy-val">{{ policy.employerShares | number: getUnitFormat() }}</span>
+                      <span class="font-mono pvd-privacy-val">{{ policy.employerShares | number: getUnitFormat() }}</span>
                     </div>
                   </div>
                 </div>

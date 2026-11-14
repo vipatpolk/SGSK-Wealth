@@ -117,12 +117,14 @@ public class PvdHoldingsPage {
     public void sortDescending(String label) {
         Locator btn = sortButton(label);
         String cls = btn.getAttribute("class");
+        String dir = btn.getAttribute("data-sort-dir");
         String text = btn.innerText();
-        if (cls != null && cls.contains("active") && text.contains("↓")) {
+        if (cls != null && cls.contains("active") && ("desc".equals(dir) || text.contains("↓"))) {
             return;
         }
         btn.click();
-        if (!btn.innerText().contains("↓")) {
+        String newDir = btn.getAttribute("data-sort-dir");
+        if (!"desc".equals(newDir) && !btn.innerText().contains("↓")) {
             btn.click();
         }
     }
