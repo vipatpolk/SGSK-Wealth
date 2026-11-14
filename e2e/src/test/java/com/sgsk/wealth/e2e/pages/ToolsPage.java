@@ -20,6 +20,16 @@ public class ToolsPage {
     public final Locator toolsContainer;
     public final Locator heroTitle;
     public final Locator avgCostCalculator;
+    public final Locator modeForwardBtn;
+    public final Locator modeReverseBtn;
+    public final Locator targetAvgCostInput;
+    public final Locator targetBuyPriceInput;
+    public final Locator calculateSolverBtn;
+    public final Locator solverResultContainer;
+    public final Locator solverHeroVal;
+    public final Locator applySolverBtn;
+    public final Locator solverErrorState;
+    public final Locator solverErrorTitle;
     public final Locator symbolSearchBox;
     public final Locator symbolDropdownMenu;
     public final Locator customOption;
@@ -32,6 +42,7 @@ public class ToolsPage {
     // TVM
     public final Locator tvmCalculator;
     public final Locator tvmHeroDisplay;
+    public final Locator tvmHeroTitle;
     public final Locator heroMainValue;
     public final Locator modeSolvePmtBtn;
     public final Locator targetFvInput;
@@ -67,6 +78,16 @@ public class ToolsPage {
         this.toolsContainer = page.locator("app-tools");
         this.heroTitle = page.locator(".tools-hero-title");
         this.avgCostCalculator = page.locator("app-avg-cost-calculator");
+        this.modeForwardBtn = page.locator("#mode-forward-btn");
+        this.modeReverseBtn = page.locator("#mode-reverse-btn");
+        this.targetAvgCostInput = page.locator("#target-avg-cost");
+        this.targetBuyPriceInput = page.locator("#target-buy-price");
+        this.calculateSolverBtn = page.locator("#btn-calculate-solver");
+        this.solverResultContainer = page.locator(".solver-result-container");
+        this.solverHeroVal = page.locator(".solver-hero-val");
+        this.applySolverBtn = page.locator("button.btn-apply-solver");
+        this.solverErrorState = page.locator(".solver-error-state");
+        this.solverErrorTitle = page.locator(".solver-error-state .solver-error-title");
         this.symbolSearchBox = page.locator(".symbol-search-box");
         this.symbolDropdownMenu = page.locator(".symbol-dropdown-menu");
         this.customOption = page.locator(".dropdown-option-item.custom-option");
@@ -79,6 +100,7 @@ public class ToolsPage {
         // TVM
         this.tvmCalculator = page.locator("app-tvm-calculator");
         this.tvmHeroDisplay = page.locator(".tvm-hero-display");
+        this.tvmHeroTitle = page.locator(".tvm-results-card .card-title");
         this.heroMainValue = page.locator(".hero-main-value");
         this.modeSolvePmtBtn = page.locator("#mode-solve-pmt");
         this.targetFvInput = page.locator("#input-target-fv");
@@ -199,5 +221,36 @@ public class ToolsPage {
                 equalWeightBtn.click();
             }
         }
+    }
+
+    public void switchToReverseSolver() {
+        modeReverseBtn.click();
+        assertThat(modeReverseBtn).hasClass(Pattern.compile(".*active.*"));
+    }
+
+    public void solveReverseTargetCost(String targetAvgCost, String purchasePrice) {
+        targetAvgCostInput.fill(targetAvgCost);
+        targetBuyPriceInput.fill(purchasePrice);
+        calculateSolverBtn.click();
+    }
+
+    public void applyReverseGoalToSimulation() {
+        assertThat(applySolverBtn).isVisible();
+        applySolverBtn.click();
+        assertThat(modeForwardBtn).hasClass(Pattern.compile(".*active.*"));
+    }
+
+    public void switchTvmSolveMode(String mode) {
+        String btnId = switch (mode.trim().toUpperCase()) {
+            case "FV" -> "#mode-solve-fv";
+            case "PMT" -> "#mode-solve-pmt";
+            case "PV" -> "#mode-solve-pv";
+            case "N" -> "#mode-solve-n";
+            case "RATE" -> "#mode-solve-rate";
+            default -> throw new IllegalArgumentException("Unsupported TVM solve mode: " + mode);
+        };
+        Locator modeBtn = page.locator(btnId);
+        modeBtn.click();
+        assertThat(modeBtn).hasClass(Pattern.compile(".*active.*"));
     }
 }

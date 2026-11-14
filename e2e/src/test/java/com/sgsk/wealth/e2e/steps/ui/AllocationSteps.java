@@ -47,4 +47,14 @@ public class AllocationSteps {
         assertThat(page().locator(".allocation-card-title:has-text(\"Asset Class Breakdown\")")).isVisible();
         assertThat(page().locator(".rebalance-list")).isVisible();
     }
+
+    @When("I switch to the Analytics Overview sub-tab")
+    public void switchToOverviewSubTab() {
+        allocationPage.selectOverviewSubTab();
+    }
+
+    @Then("the analytics overview grid should display {int} KPI cards")
+    public void verifyOverviewKpiCards(int count) {
+        assertThat(allocationPage.overviewKpiCards).hasCount(count);
+    }
 }

@@ -42,4 +42,20 @@ public class HoldingsSteps {
     public void searchHoldings(String term) {
         holdingsPage.searchSymbol(term);
     }
+
+    @Then("the card for {string} should be hidden")
+    public void verifyCardHidden(String symbol) {
+        assertThat(holdingsPage.getSymbolCard(symbol)).isHidden();
+    }
+
+    @When("I sort market holdings by {string}")
+    public void sortMarketHoldingsBy(String sortMetric) {
+        holdingsPage.selectSortOption(sortMetric);
+    }
+
+    @Then("the first market holding card should be {string}")
+    public void verifyFirstMarketHoldingCard(String expectedSymbol) {
+        String expectedId = "card-" + expectedSymbol;
+        assertThat(holdingsPage.symbolCards.first()).hasAttribute("id", expectedId);
+    }
 }

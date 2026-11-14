@@ -64,4 +64,21 @@ public class DashboardSteps {
         assertThat(dashboardPage.launchRebalancePlannerCard).isVisible();
         dashboardPage.launchRebalancePlanner();
     }
+
+    @When("I launch {string} from the Dashboard launchpad")
+    public void launchToolFromDashboard(String toolName) {
+        assertThat(dashboardPage.toolsLaunchpadCard).isVisible();
+        dashboardPage.launchTool(toolName);
+    }
+
+    @Then("the Dashboard retirement card should display {string}")
+    public void verifyDashboardRetirementCardContains(String expectedText) {
+        assertThat(dashboardPage.retirementCard).isVisible();
+        assertThat(dashboardPage.retirementCard).containsText(expectedText);
+    }
+
+    @When("I navigate from the Dashboard retirement card to PVD Holdings")
+    public void navigateFromDashboardToPvdHoldings() {
+        dashboardPage.navigateToPvdHoldings();
+    }
 }

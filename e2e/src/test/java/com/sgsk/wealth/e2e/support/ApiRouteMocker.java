@@ -49,6 +49,7 @@ public class ApiRouteMocker {
             try {
                 String url = route.request().url();
                 String curr = url.contains("currency=USD") ? "USD" : "THB";
+                String tabId = extractQueryParam(url, "tab_id", "all");
                 double rate = 35.5;
 
                 JsonNode sheetsNode = mapper.readTree(sheetsAll);
@@ -57,7 +58,7 @@ public class ApiRouteMocker {
                 ObjectNode responseNode = mapper.createObjectNode();
                 responseNode.put("currency", curr);
                 responseNode.put("exchangeRate", rate);
-                responseNode.put("tabId", "all");
+                responseNode.put("tabId", tabId);
 
                 ArrayNode openPositions = mapper.createArrayNode();
                 JsonNode summaries = sheetsNode.path("summaries");
@@ -104,6 +105,31 @@ public class ApiRouteMocker {
                         pos.put("originalCurrency", originalCurrency);
                         pos.put("hasPrice", true);
 
+                        double convFactor = originalCurrency.equals(curr)
+                                ? 1.0
+                                : ("THB".equals(curr) ? rate : 1.0 / rate);
+                        for (String numField : new String[]{"employeeShares", "employerShares"}) {
+                            if (s.has(numField)) {
+                                pos.put(numField, s.path(numField).asDouble());
+                            }
+                        }
+                        for (String moneyField : new String[]{
+                                "employeeContribution", "employeeEarnings",
+                                "employerMatching", "employerEarnings"
+                        }) {
+                            if (s.has(moneyField)) {
+                                pos.put(moneyField, Math.round(s.path(moneyField).asDouble() * convFactor * 100.0) / 100.0);
+                            }
+                        }
+                        for (String strField : new String[]{
+                                "pvdFundName", "policyName", "aimcType",
+                                "aimcDescription", "riskLevel", "objective"
+                        }) {
+                            if (s.has(strField)) {
+                                pos.put(strField, s.path(strField).asText());
+                            }
+                        }
+
                         ArrayNode lots = mapper.createArrayNode();
                         for (JsonNode l : s.path("lots")) {
                             ObjectNode lotNode = l.deepCopy();
@@ -111,7 +137,11 @@ public class ApiRouteMocker {
                             lots.add(lotNode);
                         }
                         pos.set("lots", lots);
-                        openPositions.add(pos);
+                        if ("all".equals(tabId)
+                                || (!"closed-position".equals(tabId)
+                                && pos.path("assetType").asText().equals(tabId))) {
+                            openPositions.add(pos);
+                        }
                     }
                 }
 
@@ -119,7 +149,11 @@ public class ApiRouteMocker {
                 JsonNode closed = sheetsNode.path("closedSummaries");
                 if (closed.isArray()) {
                     for (JsonNode c : closed) {
-                        closedPositions.add(c.deepCopy());
+                        ObjectNode closedNode = (ObjectNode) c.deepCopy();
+                        if (!closedNode.hasNonNull("assetTypeLabel")) {
+                            closedNode.put("assetTypeLabel", closedNode.path("assetType").asText());
+                        }
+                        closedPositions.add(closedNode);
                     }
                 }
 
@@ -375,7 +409,16 @@ public class ApiRouteMocker {
 
         // Mock /api/backend/portfolio/tools/**
         page.route("**/api/backend/portfolio/tools/**", route -> {
-            fulfillJson(route, 200, "{\"success\":true,\"data\":{}}");
+            String url = route.request().url();
+            if (url.contains("solve-target")) {
+                fulfillJson(route, 200, "{\"is_feasible\":true,\"required_shares\":25.0,\"required_amount\":4500.0,\"resulting_avg_cost\":195.0}");
+            } else if (url.contains("rebalance")) {
+                fulfillJson(route, 200, "{\"total_value\":100000.0,\"allocations\":[],\"actions\":[]}");
+            } else if (url.contains("tvm")) {
+                fulfillJson(route, 200, "{\"mode\":\"FV\",\"future_value\":150000.0,\"total_contributions\":100000.0,\"total_interest\":50000.0,\"schedule\":[]}");
+            } else {
+                fulfillJson(route, 200, "{\"success\":true,\"data\":{\"simulated_avg_cost\":192.5}}");
+            }
         });
     }
 
@@ -383,6 +426,24 @@ public class ApiRouteMocker {
         page.route("**/api/backend/**", route -> {
             fulfillJson(route, statusCode, "{\"error\":\"Internal Server Error\"}");
         });
+    }
+
+    public void recoverPortfolioAPIs(Page page) {
+        page.unroute("**/api/backend/**");
+        mockPortfolioAPIs(page);
+    }
+
+    private String extractQueryParam(String url, String key, String defaultVal) {
+        int qIdx = url.indexOf('?');
+        if (qIdx < 0) return defaultVal;
+        String query = url.substring(qIdx + 1);
+        for (String pair : query.split("&")) {
+            String[] kv = pair.split("=", 2);
+            if (kv.length == 2 && key.equals(kv[0])) {
+                return kv[1];
+            }
+        }
+        return defaultVal;
     }
 
     private void fulfillJson(Route route, int status, String body) {

@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 @Component
 @ScenarioScope(proxyMode = ScopedProxyMode.NO)
 public class DashboardPage {
-    private final Page page;
     public final Locator dashboardView;
     public final Locator dashboardHeaderToggleBtn;
     public final Locator netWorthBanner;
@@ -24,8 +23,12 @@ public class DashboardPage {
     public final Locator gotoAllocationBtn;
     public final Locator performanceCard;
     public final Locator gotoPerformanceBtn;
+    public final Locator retirementCard;
+    public final Locator gotoPvdBtn;
     public final Locator toolsLaunchpadCard;
     public final Locator launchRebalancePlannerCard;
+    public final Locator launchTvmCalculatorCard;
+    public final Locator launchAvgCostCalculatorCard;
 
     @Autowired
     public DashboardPage(TestContext testContext) {
@@ -33,7 +36,6 @@ public class DashboardPage {
     }
 
     public DashboardPage(Page page) {
-        this.page = page;
         this.dashboardView = page.locator("#dashboard-view");
         this.dashboardHeaderToggleBtn = page.locator("#view-toggle-dashboard");
         this.netWorthBanner = page.locator("#dashboard-net-worth");
@@ -46,8 +48,12 @@ public class DashboardPage {
         this.gotoAllocationBtn = page.locator("#btn-goto-allocation");
         this.performanceCard = page.locator("#dashboard-performance-card");
         this.gotoPerformanceBtn = page.locator("#btn-goto-performance");
+        this.retirementCard = page.locator("#dashboard-retirement-card");
+        this.gotoPvdBtn = page.locator("#btn-goto-pvd-holdings");
         this.toolsLaunchpadCard = page.locator("#dashboard-tools-card");
         this.launchRebalancePlannerCard = page.locator("#launch-rebalance-planner");
+        this.launchTvmCalculatorCard = page.locator("#launch-tvm-calculator");
+        this.launchAvgCostCalculatorCard = page.locator("#launch-avg-cost-calculator");
     }
 
     public void navigateToAllocation() {
@@ -58,7 +64,20 @@ public class DashboardPage {
         gotoPerformanceBtn.click();
     }
 
+    public void navigateToPvdHoldings() {
+        gotoPvdBtn.click();
+    }
+
     public void launchRebalancePlanner() {
         launchRebalancePlannerCard.click();
+    }
+
+    public void launchTool(String toolName) {
+        switch (toolName.trim()) {
+            case "Rebalance Planner" -> launchRebalancePlanner();
+            case "TVM Calculator" -> launchTvmCalculatorCard.click();
+            case "Avg Cost Calculator" -> launchAvgCostCalculatorCard.click();
+            default -> throw new IllegalArgumentException("Unsupported Dashboard launchpad tool: " + toolName);
+        }
     }
 }

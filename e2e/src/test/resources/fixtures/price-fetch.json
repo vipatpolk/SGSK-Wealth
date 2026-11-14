@@ -23,6 +23,18 @@
       "name": "Kasikorn US Equity Fund",
       "price": 18.2,
       "currency": "THB"
+    },
+    "PVDSP500": {
+      "symbol": "PVDSP500",
+      "name": "SCB S&P 500 Index Policy",
+      "price": 14.0,
+      "currency": "THB"
+    },
+    "PVDMPINC": {
+      "symbol": "PVDMPINC",
+      "name": "SCB Fixed Income Plus Policy",
+      "price": 5.0,
+      "currency": "THB"
     }
   },
   "rate": 35.5

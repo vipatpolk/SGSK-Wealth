@@ -173,6 +173,7 @@ class NavService:
                             "fundName": resolved_fund_name,
                             "policyName": item.get("policy_name") or "",
                             "aimcType": item.get("aimc_type") or "",
+                            "aimcDescription": item.get("aimc_description") or "",
                             "riskLevel": item.get("risk_level") or "",
                             "objective": item.get("objective") or "",
                         }

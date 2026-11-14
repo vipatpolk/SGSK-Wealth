@@ -61,6 +61,7 @@ export class DashboardComponent {
   loading = input<boolean>(false);
 
   navigateView = output<AppView>();
+  openPvdHoldings = output<void>();
   symbolSelected = output<string>();
   toolSelected = output<ToolId>();
 
@@ -394,5 +395,9 @@ export class DashboardComponent {
 
   onNavigate(view: AppView): void {
     this.navigateView.emit(view);
+  }
+
+  onOpenPvdHoldings(): void {
+    this.openPvdHoldings.emit();
   }
 }

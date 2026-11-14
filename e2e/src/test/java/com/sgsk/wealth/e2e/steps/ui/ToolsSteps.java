@@ -234,4 +234,50 @@ public class ToolsSteps {
     public void verifyRebalanceKpiReflectsClass() {
         assertThat(page().locator(".kpi-card .kpi-label").first()).isVisible();
     }
+
+    @Then("the {string} tool calculator should be visible")
+    public void verifyNamedToolCalculatorVisible(String toolName) {
+        switch (toolName.trim()) {
+            case "Rebalance Planner" -> assertThat(toolsPage.rebalanceCalculator).isVisible();
+            case "TVM Calculator" -> assertThat(toolsPage.tvmCalculator).isVisible();
+            case "Avg Cost Calculator" -> assertThat(toolsPage.avgCostCalculator).isVisible();
+            default -> throw new IllegalArgumentException("Unsupported tool calculator: " + toolName);
+        }
+    }
+
+    @When("I switch the Avg Cost Calculator to reverse goal solver mode")
+    public void switchToReverseGoalSolver() {
+        toolsPage.switchToReverseSolver();
+    }
+
+    @When("I solve for a target average cost of {string} at purchase price {string}")
+    public void solveReverseTargetCost(String targetAvgCost, String purchasePrice) {
+        toolsPage.solveReverseTargetCost(targetAvgCost, purchasePrice);
+    }
+
+    @Then("the reverse solver outcome should display {string}")
+    public void verifyReverseSolverOutcome(String expectedOutcome) {
+        if ("Target Goal Infeasible".equals(expectedOutcome)) {
+            assertThat(toolsPage.solverErrorState).isVisible();
+            assertThat(toolsPage.solverErrorTitle).containsText(expectedOutcome);
+        } else {
+            assertThat(toolsPage.solverResultContainer).isVisible();
+            assertThat(toolsPage.solverHeroVal).containsText(expectedOutcome);
+        }
+    }
+
+    @When("I apply the solved reverse goal to forward simulation")
+    public void applyReverseGoalToSimulation() {
+        toolsPage.applyReverseGoalToSimulation();
+    }
+
+    @When("I select the TVM solve goal {string}")
+    public void selectTvmSolveGoal(String mode) {
+        toolsPage.switchTvmSolveMode(mode);
+    }
+
+    @Then("the TVM hero title should display {string}")
+    public void verifyTvmHeroTitle(String expectedTitle) {
+        assertThat(toolsPage.tvmHeroTitle).containsText(expectedTitle);
+    }
 }

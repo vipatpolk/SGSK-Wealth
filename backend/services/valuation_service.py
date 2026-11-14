@@ -29,6 +29,44 @@ DEFAULT_PVD_NAMES: dict[str, str] = {
     "PVDMGLDH": "นโยบายกองทุนรวมโกลด์ THB เฮดจ์",
 }
 
+DEFAULT_PVD_METADATA: dict[str, dict[str, str]] = {
+    "PVDSP500": {
+        "policyName": "ตราสารทุนต่างประเทศ",
+        "aimcType": "US Equity",
+        "aimcDescription": "กองทุนรวมตราสารทุนสหรัฐอเมริกา",
+        "riskLevel": "RS6",
+        "objective": "ลงทุนในกองทุนหลักต่างประเทศที่เน้นลงทุนในตราสารทุนสหรัฐอเมริกา (S&P 500)",
+    },
+    "PVDWEQ": {
+        "policyName": "ตราสารทุนต่างประเทศ",
+        "aimcType": "Global Equity",
+        "aimcDescription": "กองทุนรวมตราสารทุนโลก",
+        "riskLevel": "RS6",
+        "objective": "ลงทุนในกองทุนรวมตราสารทุนต่างประเทศทั่วโลก (World Equity)",
+    },
+    "PVDMPAEM": {
+        "policyName": "ตราสารทุนต่างประเทศ",
+        "aimcType": "Asia Pacific Ex Japan",
+        "aimcDescription": "กองทุนรวมตราสารทุนภูมิภาคเอเชียและตลาดเกิดใหม่",
+        "riskLevel": "RS6",
+        "objective": "ลงทุนในกองทุนรวมตราสารทุนภูมิภาคเอเชียและตลาดเกิดใหม่ (Asian Emerging Markets)",
+    },
+    "PVDMPINC": {
+        "policyName": "ตราสารหนี้ต่างประเทศ",
+        "aimcType": "Foreign Fixed Income",
+        "aimcDescription": "กองทุนรวมตราสารหนี้ต่างประเทศ",
+        "riskLevel": "RS4",
+        "objective": "ลงทุนในกองทุนรวมตราสารหนี้ต่างประเทศเพื่อสร้างผลตอบแทนและกระแสรายได้สม่ำเสมอ",
+    },
+    "PVDMGLDH": {
+        "policyName": "สินทรัพย์ทางเลือก",
+        "aimcType": "Commodities Precious Metals",
+        "aimcDescription": "กองทุนรวมทองคำ (ป้องกันความเสี่ยงอัตราแลกเปลี่ยน)",
+        "riskLevel": "RS8",
+        "objective": "ลงทุนในกองทุนรวมทองคำแท่งในต่างประเทศพร้อมป้องกันความเสี่ยงอัตราแลกเปลี่ยน (THB Hedged)",
+    },
+}
+
 
 class ValuationService:
     def __init__(
@@ -263,11 +301,42 @@ class ValuationService:
                 name = DEFAULT_PVD_NAMES.get(sym.upper(), "")
 
             pvd_fund_name: str | None = None
+            policy_name: str | None = None
+            aimc_type: str | None = None
+            aimc_desc: str | None = None
+            risk_level: str | None = None
+            objective: str | None = None
             if is_pvd:
                 policy_info = (pvd_policy_map or {}).get(sym.upper(), {})
+                default_meta = DEFAULT_PVD_METADATA.get(sym.upper(), {})
                 pvd_fund_name = (
                     (open_summary.pvdFundName or "").strip()
                     or str(policy_info.get("fundName") or "").strip()
+                    or None
+                )
+                policy_name = (
+                    str(policy_info.get("policyName") or "").strip()
+                    or default_meta.get("policyName")
+                    or None
+                )
+                aimc_type = (
+                    str(policy_info.get("aimcType") or "").strip()
+                    or default_meta.get("aimcType")
+                    or None
+                )
+                aimc_desc = (
+                    str(policy_info.get("aimcDescription") or "").strip()
+                    or default_meta.get("aimcDescription")
+                    or None
+                )
+                risk_level = (
+                    str(policy_info.get("riskLevel") or "").strip()
+                    or default_meta.get("riskLevel")
+                    or None
+                )
+                objective = (
+                    str(policy_info.get("objective") or "").strip()
+                    or default_meta.get("objective")
                     or None
                 )
 
@@ -317,6 +386,11 @@ class ValuationService:
                     employerMatching=empr_matching_c,
                     employerEarnings=empr_earnings_c,
                     pvdFundName=pvd_fund_name,
+                    policyName=policy_name,
+                    aimcType=aimc_type,
+                    aimcDescription=aimc_desc,
+                    riskLevel=risk_level,
+                    objective=objective,
                 )
             )
 

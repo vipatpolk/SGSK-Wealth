@@ -75,8 +75,13 @@ public class CommonUiSteps {
 
     @When("I navigate to the Dividends view")
     public void navigateToDividendsView() {
-        page().locator("#view-toggle-dividends").click();
+        headerPage.selectDividendsView();
         assertThat(page().locator("app-dividend")).isVisible();
+    }
+
+    @When("I navigate to the {string} workspace view")
+    public void navigateToWorkspaceView(String viewName) {
+        headerPage.selectView(viewName);
     }
 
     @When("I switch back to the Dashboard view")
@@ -122,6 +127,21 @@ public class CommonUiSteps {
     @Then("the dividend container should be visible")
     public void verifyDividendVisible() {
         assertThat(page().locator("app-dividend")).isVisible();
+    }
+
+    @Then("the {string} workspace view should be visible")
+    public void verifyWorkspaceViewVisible(String viewName) {
+        switch (viewName.trim().toLowerCase(java.util.Locale.ROOT)) {
+            case "dashboard" -> verifyDashboardViewVisible();
+            case "holdings" -> verifyTabBarVisible();
+            case "analytics" -> verifyAnalyticsVisible();
+            case "allocation" -> verifyAssetAllocationVisible();
+            case "performance" -> verifyPerformanceVisible();
+            case "dividends" -> verifyDividendVisible();
+            case "transactions" -> verifyTransactionHistoryVisible();
+            case "tools" -> verifyToolsVisible();
+            default -> throw new IllegalArgumentException("Unsupported workspace view assertion: " + viewName);
+        }
     }
 
     @When("I switch currency to USD")
@@ -173,5 +193,15 @@ public class CommonUiSteps {
     @Then("the retry button should be visible")
     public void verifyRetryBtn() {
         assertThat(page().locator("#retry-btn")).isVisible();
+    }
+
+    @When("the backend API recovers")
+    public void recoverBackendApi() {
+        apiRouteMocker.recoverPortfolioAPIs(page());
+    }
+
+    @When("I retry loading the portfolio")
+    public void retryLoadingPortfolio() {
+        page().locator("#retry-btn").click();
     }
 }

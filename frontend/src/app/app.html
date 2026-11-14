@@ -80,6 +80,7 @@
           [hasRate]="hasRate()"
           [privacyMode]="privacyMode()"
           (navigateView)="setView($event)"
+          (openPvdHoldings)="openPvdHoldingsView()"
           (symbolSelected)="openTransactionHistory($event)"
           (toolSelected)="navigateToTool($event)"
         ></app-dashboard>
@@ -182,6 +183,72 @@
         ></app-loading-screen>
       }
     } @else {
+      <!-- Holdings Screen Header & Sub-View Toggle -->
+      <div class="holdings-screen-header" id="holdings-screen-header">
+        <div class="holdings-title-group">
+          <h2 class="holdings-title">
+            {{ isPvdTab() ? 'Provident Fund (PVD)' : 'Holdings &amp; Positions' }}
+          </h2>
+          <p class="holdings-subtitle">
+            {{
+              isPvdTab()
+                ? 'กองทุนสำรองเลี้ยงชีพ · สัดส่วนเงินสะสม/เงินสมทบ นโยบายการลงทุน และข้อมูล ก.ล.ต.'
+                : 'Open market lots, FIFO cost basis, and closed realized ledger'
+            }}
+          </p>
+        </div>
+
+        <div class="holdings-subnav" id="holdings-screen-toggle" role="tablist" aria-label="Holdings mode">
+          <button
+            type="button"
+            class="holdings-subtab-btn"
+            id="holdings-subtab-market"
+            role="tab"
+            [attr.aria-selected]="!isPvdTab()"
+            [class.active]="!isPvdTab()"
+            (click)="selectHoldingsSubTab('market')"
+          >
+            <span>Market Holdings</span>
+          </button>
+          <button
+            type="button"
+            class="holdings-subtab-btn"
+            id="holdings-subtab-pvd"
+            role="tab"
+            [attr.aria-selected]="isPvdTab()"
+            [class.active]="isPvdTab()"
+            (click)="selectHoldingsSubTab('pvd')"
+          >
+            <span>Provident Fund (PVD)</span>
+            @if (tabCounts()['provident-fund']; as pvdCount) {
+              <span class="holdings-subtab-badge">{{ pvdCount }}</span>
+            }
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab Bar (Asset Filter Tabs with Counts - kept mounted for Market/PVD sync & E2E) -->
+      <app-tab-bar
+        [currentView]="currentView()"
+        [tabs]="tabs"
+        [activeTab]="activeTab()"
+        [tabCounts]="tabCounts()"
+        [isTabDropdownOpen]="isTabDropdownOpen()"
+        (tabSelect)="selectTab($event)"
+        (toggleDropdown)="toggleTabDropdown()"
+      ></app-tab-bar>
+
+      @if (isPvdTab()) {
+        <app-pvd-holdings
+          [positions]="pvdPositions()"
+          [displayCurrency]="displayCurrency()"
+          [exchangeRate]="exchangeRate()"
+          [hasRate]="hasRate()"
+          [privacyMode]="privacyMode()"
+          [pricesLoading]="pricesLoading()"
+          (refresh)="refresh()"
+        ></app-pvd-holdings>
+      } @else {
       <!-- Executive Portfolio Hero Dashboard Card -->
       <div class="portfolio-hero-card" id="portfolio-hero">
         <div class="hero-header">
@@ -279,17 +346,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Tab Bar (Asset Filter Tabs with Counts) -->
-      <app-tab-bar
-        [currentView]="currentView()"
-        [tabs]="tabs"
-        [activeTab]="activeTab()"
-        [tabCounts]="tabCounts()"
-        [isTabDropdownOpen]="isTabDropdownOpen()"
-        (tabSelect)="selectTab($event)"
-        (toggleDropdown)="toggleTabDropdown()"
-      ></app-tab-bar>
 
       <!-- Toolbar -->
       <app-search-bar
@@ -476,6 +532,7 @@
             <p class="empty-text">No symbols match your search.</p>
           </div>
         }
+      }
       }
     }
 

@@ -83,3 +83,37 @@ Feature: Tools Hub & Investor Simulators
     When I switch to the Rebalance Planner tool
     When I filter rebalance orders by asset class
     Then the rebalance KPI summary should reflect the filtered class
+
+  @TC-TOOLS-11
+  Scenario Outline: TC-TOOLS-11: Target Cost Solver evaluates feasible and infeasible average cost goals
+    When I select the custom simulation option from the symbol dropdown
+    And I switch the Avg Cost Calculator to reverse goal solver mode
+    And I solve for a target average cost of "<TargetAvgCost>" at purchase price "<PurchasePrice>"
+    Then the reverse solver outcome should display "<ExpectedOutcome>"
+
+    Examples:
+      | TargetAvgCost | PurchasePrice | ExpectedOutcome        |
+      | 145           | 130           | 33.33                  |
+      | 120           | 130           | Target Goal Infeasible |
+
+  @TC-TOOLS-12
+  Scenario: TC-TOOLS-12: Solved reverse target goal applies required shares to forward simulation
+    When I select the custom simulation option from the symbol dropdown
+    And I switch the Avg Cost Calculator to reverse goal solver mode
+    And I solve for a target average cost of "145" at purchase price "130"
+    And I apply the solved reverse goal to forward simulation
+    Then the simulation results panel and KPI grid should be visible
+
+  @TC-TOOLS-13
+  Scenario Outline: TC-TOOLS-13: TVM Calculator switches solve goals cleanly across all modes
+    When I switch to the TVM Calculator tool
+    And I select the TVM solve goal "<SolveMode>"
+    Then the TVM hero title should display "<ExpectedTitle>"
+
+    Examples:
+      | SolveMode | ExpectedTitle             |
+      | FV        | Projected Future Value    |
+      | PMT       | Required Periodic Payment |
+      | PV        | Required Starting Capital |
+      | N         | Required Horizon          |
+      | RATE      | Required Annual Rate      |

@@ -15,6 +15,8 @@ public class AllocationPage {
     public final Locator donutChart;
     public final Locator resetFilterBtn;
     public final Locator classRows;
+    public final Locator overviewTabBtn;
+    public final Locator overviewKpiCards;
 
     @Autowired
     public AllocationPage(TestContext testContext) {
@@ -26,6 +28,8 @@ public class AllocationPage {
         this.donutChart = page.locator("app-asset-allocation .donut-svg");
         this.resetFilterBtn = page.locator("button:has-text('All Asset Classes')");
         this.classRows = page.locator("app-asset-allocation tr");
+        this.overviewTabBtn = page.locator("#analytics-tab-overview");
+        this.overviewKpiCards = page.locator(".overview-kpi-grid .overview-kpi-card");
     }
 
     public void clickClassRow(String className) {
@@ -34,5 +38,9 @@ public class AllocationPage {
 
     public void resetClassFilter() {
         resetFilterBtn.click();
+    }
+
+    public void selectOverviewSubTab() {
+        overviewTabBtn.click();
     }
 }

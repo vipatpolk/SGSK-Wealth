@@ -14,19 +14,35 @@ Feature: Dividend Analytics & Yield on Cost (YOC)
     And the Yield on Cost card should display "7.50%" and label "Yield on Cost (YOC)"
 
   @TC-DIV-02
-  Scenario: TC-DIV-02: Displays asset type breakdown cards with accurate YOC indicators
-    Then the dividend asset breakdown card for "Thai Stock" should display YOC "7.43%"
-    And the dividend asset breakdown card for "U.S. Stock" should display YOC "0.54%"
+  Scenario Outline: TC-DIV-02: Displays asset type breakdown cards with accurate YOC indicators
+    Then the dividend asset breakdown card for "<AssetCard>" should display YOC "<ExpectedYoc>"
+
+    Examples:
+      | AssetCard  | ExpectedYoc |
+      | Thai Stock | 7.43%       |
+      | U.S. Stock | 0.54%       |
 
   @smoke @TC-DIV-03
-  Scenario: TC-DIV-03: Switching asset type filters YOC KPI card accurately without currency distortion
-    Then the Yield on Cost KPI card should show "7.50%"
-    When I filter dividends to asset type "Thai Stocks"
-    Then the Yield on Cost KPI card should show "7.43%"
-    When I filter dividends to asset type "U.S. Stocks"
-    Then the Yield on Cost KPI card should show "0.54%"
-    When I filter dividends to asset type "All Assets"
-    Then the Yield on Cost KPI card should show "7.50%"
+  Scenario Outline: TC-DIV-03: Switching asset type filters YOC KPI card accurately without currency distortion
+    When I filter dividends to asset type "<AssetFilter>"
+    Then the Yield on Cost KPI card should show "<ExpectedYoc>"
+
+    Examples:
+      | AssetFilter | ExpectedYoc |
+      | All Assets  | 7.50%       |
+      | Thai Stocks | 7.43%       |
+      | U.S. Stocks | 0.54%       |
+
+  @TC-DIV-04
+  Scenario Outline: TC-DIV-04: Historical year filter pills update active state and Net Dividends KPI card
+    When I select the dividend year filter "<YearFilter>"
+    Then the "<YearFilter>" dividend year pill should be active
+    And the Net Dividends KPI card should contain "<ExpectedAmount>"
+
+    Examples:
+      | YearFilter | ExpectedAmount |
+      | 2026       | 1,080.00       |
+      | All Time   | 1,080.00       |
 
   @TC-DIV-05
   Scenario: TC-DIV-05: Monthly Cashflow Timeline includes Bonds in legend and timeline segments

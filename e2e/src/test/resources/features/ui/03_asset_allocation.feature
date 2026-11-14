@@ -27,3 +27,8 @@ Feature: Target Asset Allocation & Rebalancing Engine
   @TC-ALC-04
   Scenario: TC-ALC-04: Asset Class Breakdown table display
     Then the asset class breakdown table and rebalance list should be visible
+
+  @TC-ALC-05
+  Scenario: TC-ALC-05: Analytics Overview sub-tab displays executive KPI cards
+    When I switch to the Analytics Overview sub-tab
+    Then the analytics overview grid should display 5 KPI cards

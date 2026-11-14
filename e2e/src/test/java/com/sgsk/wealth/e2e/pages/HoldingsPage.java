@@ -76,4 +76,39 @@ public class HoldingsPage {
         navigateToHoldings();
         page.locator("#toggle-" + symbol).click();
     }
+
+    public void selectSortOption(String sortMetric) {
+        navigateToHoldings();
+        String field = switch (sortMetric.trim()) {
+            case "Symbol" -> "symbol";
+            case "Total Cost" -> "totalCost";
+            case "Avg Cost" -> "avgCost";
+            case "Holding Value" -> "holdingValue";
+            case "P/L %" -> "pl";
+            default -> throw new IllegalArgumentException("Unsupported market sort metric: " + sortMetric);
+        };
+        Locator pill = page.locator("#sort-" + field);
+        pill.waitFor();
+        String classes = pill.getAttribute("class");
+        if (classes == null || !classes.contains("sort-pill-active")) {
+            pill.click();
+            com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat(pill)
+                    .hasClass(java.util.regex.Pattern.compile(".*sort-pill-active.*"));
+        }
+        boolean wantAsc = "symbol".equals(field);
+        boolean isAsc = pill.locator(".sort-arrow-up").count() > 0;
+        if (isAsc != wantAsc) {
+            pill.click();
+        }
+        if (wantAsc) {
+            com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat(pill.locator(".sort-arrow-up")).isVisible();
+        } else {
+            com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat(pill.locator(".sort-arrow-up")).hasCount(0);
+        }
+    }
+
+    public String firstSymbolCardId() {
+        symbolCards.first().waitFor();
+        return symbolCards.first().getAttribute("id");
+    }
 }

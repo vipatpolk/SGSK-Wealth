@@ -92,6 +92,68 @@
           "assetType": "mutual-fund"
         }
       ]
+    },
+    {
+      "symbol": "PVDSP500",
+      "assetType": "provident-fund",
+      "currency": "THB",
+      "totalShares": 10000.0,
+      "averageCost": 12.0,
+      "totalCost": 120000.0,
+      "employeeShares": 5000.0,
+      "employerShares": 5000.0,
+      "employeeContribution": 60000.0,
+      "employeeEarnings": 10000.0,
+      "employerMatching": 60000.0,
+      "employerEarnings": 10000.0,
+      "pvdFundName": "ไทยพาณิชย์ มาสเตอร์ฟันด์",
+      "policyName": "SCB S&P 500 Index Policy",
+      "aimcType": "EQ-F",
+      "aimcDescription": "US Equity Index Fund",
+      "riskLevel": "RS6",
+      "objective": "Track S&P 500 long-term growth",
+      "lots": [
+        {
+          "symbol": "PVDSP500",
+          "purchaseDate": "2024-01-15",
+          "quantity": 10000.0,
+          "costBasis": 12.0,
+          "totalCost": 120000.0,
+          "currency": "THB",
+          "assetType": "provident-fund"
+        }
+      ]
+    },
+    {
+      "symbol": "PVDMPINC",
+      "assetType": "provident-fund",
+      "currency": "THB",
+      "totalShares": 12000.0,
+      "averageCost": 4.0,
+      "totalCost": 48000.0,
+      "employeeShares": 6000.0,
+      "employerShares": 6000.0,
+      "employeeContribution": 24000.0,
+      "employeeEarnings": 6000.0,
+      "employerMatching": 24000.0,
+      "employerEarnings": 6000.0,
+      "pvdFundName": "ไทยพาณิชย์ มาสเตอร์ฟันด์",
+      "policyName": "SCB Fixed Income Plus Policy",
+      "aimcType": "FI-M",
+      "aimcDescription": "Mid Term Fixed Income Fund",
+      "riskLevel": "RS4",
+      "objective": "Preserve capital with steady fixed income yield",
+      "lots": [
+        {
+          "symbol": "PVDMPINC",
+          "purchaseDate": "2024-02-15",
+          "quantity": 12000.0,
+          "costBasis": 4.0,
+          "totalCost": 48000.0,
+          "currency": "THB",
+          "assetType": "provident-fund"
+        }
+      ]
     }
   ],
   "closedSummaries": [
@@ -218,6 +280,44 @@
           "runningAverageCost": 64000.0
         }
       ]
+    },
+    {
+      "symbol": "K-USA",
+      "assetType": "mutual-fund",
+      "currency": "THB",
+      "totalTransactions": 1,
+      "buyCount": 1,
+      "sellCount": 0,
+      "totalBuyShares": 500.0,
+      "totalSellShares": 0.0,
+      "totalBuyAmount": 7500.0,
+      "totalSellAmount": 0.0,
+      "averageBuyPrice": 15.0,
+      "averageSellPrice": 0.0,
+      "netShares": 500.0,
+      "netInvested": 7500.0,
+      "currentStatus": "OPEN",
+      "realizedPL": 0.0,
+      "realizedPLPercent": 0.0,
+      "firstTradeDate": "2024-05-05",
+      "lastTradeDate": "2024-05-05",
+      "transactions": [
+        {
+          "id": "kusa-1",
+          "symbol": "K-USA",
+          "date": "2024-05-05",
+          "type": "BUY",
+          "quantity": 500.0,
+          "rawQuantity": 500.0,
+          "price": 15.0,
+          "totalAmount": 7500.0,
+          "currency": "THB",
+          "assetType": "mutual-fund",
+          "runningShares": 500.0,
+          "runningTotalCost": 7500.0,
+          "runningAverageCost": 15.0
+        }
+      ]
     }
   ],
   "rawTransactions": [
@@ -301,7 +401,7 @@
   ],
   "totalCostByCurrency": {
     "USD": 41000.0,
-    "THB": 40500.0
+    "THB": 208500.0
   },
   "totalProceedsByCurrency": {
     "USD": 7500.0,
@@ -311,8 +411,8 @@
     "USD": 2500.0,
     "THB": 0.0
   },
-  "totalSymbols": 4,
-  "totalLots": 5,
+  "totalSymbols": 6,
+  "totalLots": 7,
   "error": null,
   "isClosed": false
 }

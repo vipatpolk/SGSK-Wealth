@@ -36,3 +36,17 @@ Feature: Global Navigation & Header Controls
     Then the document theme attribute should be "light"
     When I toggle the theme
     Then the document theme attribute should be "dark"
+
+  @TC-NAV-04
+  Scenario Outline: TC-NAV-04: Primary navigation routes to each workspace module
+    When I navigate to the "<ViewName>" workspace view
+    Then the "<ViewName>" workspace view should be visible
+
+    Examples:
+      | ViewName     |
+      | Holdings     |
+      | Analytics    |
+      | Dividends    |
+      | Transactions |
+      | Tools        |
+      | Dashboard    |

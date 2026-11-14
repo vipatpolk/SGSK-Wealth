@@ -27,9 +27,57 @@ public class TransactionsSteps {
 
     @When("I trigger CSV export of all transactions")
     public void triggerCsvExport() {
+        triggerCsvExportByScope("all");
+    }
+
+    @When("I trigger CSV export for {string} transactions")
+    public void triggerCsvExportByScope(String scope) {
         assertThat(transactionsPage.exportCsvTriggerBtn).isVisible();
-        Download download = transactionsPage.exportAllTransactions();
+        Download download = "open".equalsIgnoreCase(scope.trim())
+                ? transactionsPage.exportOpenPositionsTransactions()
+                : transactionsPage.exportAllTransactions();
         context.setDownloadedFileName(download.suggestedFilename());
+    }
+
+    @When("I filter transactions to symbol {string}")
+    public void filterTransactionsToSymbol(String symbol) {
+        transactionsPage.selectSymbolFilter(symbol);
+    }
+
+    @When("I reset transactions to all symbols")
+    public void resetTransactionsToAllSymbols() {
+        transactionsPage.clearSymbolSelection();
+    }
+
+    @When("I browse the transaction symbol selector")
+    public void browseTransactionSymbolSelector() {
+        transactionsPage.openSymbolDropdown();
+    }
+
+    @Then("the symbol hero card should be visible")
+    public void verifySymbolHeroCardVisible() {
+        assertThat(transactionsPage.symbolHeroCard).isVisible();
+    }
+
+    @Then("the symbol hero card should be hidden")
+    public void verifySymbolHeroCardHidden() {
+        assertThat(transactionsPage.symbolHeroCard).isHidden();
+    }
+
+    @Then("the symbol hero card should display {string}")
+    public void verifySymbolHeroCardDisplays(String text) {
+        assertThat(transactionsPage.symbolHeroCard).isVisible();
+        assertThat(transactionsPage.symbolHeroCard).containsText(text);
+    }
+
+    @Then("the symbol selector should list {string}")
+    public void verifySymbolSelectorLists(String symbol) {
+        assertThat(transactionsPage.symbolDropdownMenu).containsText(symbol);
+    }
+
+    @Then("the symbol selector should exclude {string}")
+    public void verifySymbolSelectorExcludes(String symbol) {
+        assertThat(transactionsPage.symbolDropdownMenu).not().containsText(symbol);
     }
 
     @Then("the downloaded file name should match the pattern {string}")

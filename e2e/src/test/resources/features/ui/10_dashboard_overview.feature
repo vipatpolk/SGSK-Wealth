@@ -27,11 +27,17 @@ Feature: Dashboard Landing Page & Executive Overview
     Then the performance analytics container should be visible
 
   @smoke @TC-DASH-04
-  Scenario: TC-DASH-04: Financial Tools launchpad opens simulator directly in Tools view
+  Scenario Outline: TC-DASH-04: Financial Tools launchpad opens simulator directly in Tools view
     Then the Dashboard tools launchpad card should be visible
-    When I click the Dashboard launch Rebalance Planner card
+    When I launch "<ToolName>" from the Dashboard launchpad
     Then the tools container should be visible
-    And the rebalance calculator should be visible
+    And the "<ToolName>" tool calculator should be visible
+
+    Examples:
+      | ToolName            |
+      | Rebalance Planner   |
+      | TVM Calculator      |
+      | Avg Cost Calculator |
 
   @smoke @TC-DASH-05
   Scenario: TC-DASH-05: Currency switch converts Net Worth and KPI amounts
@@ -48,3 +54,10 @@ Feature: Dashboard Landing Page & Executive Overview
     Then the document privacy attribute should be "true"
     When I toggle privacy mode
     Then the document privacy attribute should be "false"
+
+  @smoke @TC-DASH-07
+  Scenario: TC-DASH-07: Provident Fund summary card renders master fund and navigates to PVD Holdings
+    Then the Dashboard retirement card should display "Provident Fund (PVD)"
+    And the Dashboard retirement card should display "ไทยพาณิชย์ มาสเตอร์ฟันด์"
+    When I navigate from the Dashboard retirement card to PVD Holdings
+    Then the PVD holdings screen should be visible

@@ -741,4 +741,45 @@ describe('App', () => {
     fixture.detectChanges();
     expect(compiled.querySelector('#loading-state')).toBeNull();
   });
+
+  it('should synchronize Market Holdings and Provident Fund (PVD) sub-tabs across toggles, tabs, and Dashboard navigation', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    const pvdTab = ASSET_TABS.find((t) => t.id === 'provident-fund')!;
+    const usTab = ASSET_TABS.find((t) => t.id === 'us-stock')!;
+    expect(app.holdingsSubTab()).toBe('market');
+    expect(app.isPvdTab()).toBe(false);
+
+    // Clicking top-level PVD sub-tab switches activeTab to provident-fund
+    app.selectHoldingsSubTab('pvd');
+    expect(app.holdingsSubTab()).toBe('pvd');
+    expect(app.activeTab().id).toBe('provident-fund');
+    expect(app.isPvdTab()).toBe(true);
+
+    // Switching back to Market sub-tab restores All Positions tab
+    app.selectHoldingsSubTab('market');
+    expect(app.holdingsSubTab()).toBe('market');
+    expect(app.activeTab().id).toBe('all');
+    expect(app.isPvdTab()).toBe(false);
+
+    // Clicking Provident Fund in app-tab-bar syncs top-level holdingsSubTab to pvd
+    app.selectTab(pvdTab);
+    expect(app.holdingsSubTab()).toBe('pvd');
+    expect(app.isPvdTab()).toBe(true);
+
+    // Clicking US Stocks tab restores Market sub-tab
+    app.selectTab(usTab);
+    expect(app.holdingsSubTab()).toBe('market');
+    expect(app.isPvdTab()).toBe(false);
+
+    // Navigating from Dashboard PVD card enters Holdings on the PVD screen directly
+    app.setView('dashboard');
+    expect(app.currentView()).toBe('dashboard');
+    app.openPvdHoldingsView();
+    expect(app.currentView()).toBe('holdings');
+    expect(app.holdingsSubTab()).toBe('pvd');
+    expect(app.activeTab().id).toBe('provident-fund');
+    expect(app.isPvdTab()).toBe(true);
+  });
 });

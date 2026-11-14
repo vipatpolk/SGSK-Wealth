@@ -1,4 +1,11 @@
 {
     "java.configuration.updateBuildConfiguration": "interactive",
-    "python.terminal.useEnvFile": true
+    "python.terminal.useEnvFile": true,
+    "cucumber.features": [
+        "e2e/src/test/resources/features/**/*.feature"
+    ],
+    "cucumber.glue": [
+        "e2e/src/test/java/**/*.java"
+    ],
+    "maven.view": "flat"
 }

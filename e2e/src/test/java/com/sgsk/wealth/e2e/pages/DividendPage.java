@@ -48,4 +48,16 @@ public class DividendPage {
     public void filterByAssetType(String assetType) {
         page.locator(".global-pill-btn", new Page.LocatorOptions().setHasText(assetType)).click();
     }
+
+    public Locator getNetDividendsCard() {
+        return summaryCards.nth(0);
+    }
+
+    public Locator getYearPill(String yearLabel) {
+        return page.locator(".year-pills .year-pill-btn", new Page.LocatorOptions().setHasText(yearLabel));
+    }
+
+    public void selectYearFilter(String yearLabel) {
+        getYearPill(yearLabel).click();
+    }
 }

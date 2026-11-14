@@ -49,7 +49,16 @@ export interface SymbolSummary {
   assetType: string;
   employeeShares?: number;
   employerShares?: number;
+  employeeContribution?: number;
+  employeeEarnings?: number;
+  employerMatching?: number;
+  employerEarnings?: number;
   pvdFundName?: string;
+  policyName?: string;
+  aimcType?: string;
+  aimcDescription?: string;
+  riskLevel?: string;
+  objective?: string;
 }
 
 export interface ClosedSymbolSummary {

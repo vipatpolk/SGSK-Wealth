@@ -45,7 +45,9 @@ class PortfolioPosition(BaseModel):
     pvdFundName: str | None = None
     policyName: str | None = None
     aimcType: str | None = None
+    aimcDescription: str | None = None
     riskLevel: str | None = None
+    objective: str | None = None
 
 
 class ClosedPortfolioPosition(BaseModel):

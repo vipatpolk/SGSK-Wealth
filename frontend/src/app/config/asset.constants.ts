@@ -20,6 +20,8 @@ export type AppView =
 
 export type AnalyticsSubTab = 'overview' | 'allocation' | 'performance';
 
+export type HoldingsSubTab = 'market' | 'pvd';
+
 export const KNOWN_ASSET_TYPES: readonly AssetType[] = [
   'us-stock',
   'thai-stock',

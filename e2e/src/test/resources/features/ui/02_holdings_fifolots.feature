@@ -8,17 +8,17 @@ Feature: Portfolio Holdings & FIFO Share Lot Accounting
     Given I open the SGSK Wealth application
 
   @smoke @TC-HLD-01
-  Scenario: TC-HLD-01: Asset Tab Filtering displays symbols matching tab category
-    When I select the "U.S. Stock" asset tab
-    Then the card for "AAPL" should be visible
-    When I select the "Thai Stock" asset tab
-    Then the card for "PTT.BK" should be visible
-    When I select the "Cryptocurrency" asset tab
-    Then the card for "BTC" should be visible
-    When I select the "Mutual Fund" asset tab
-    Then the card for "K-USA" should be visible
-    When I select the "Closed Position" asset tab
-    Then the card for "NVDA" should be visible
+  Scenario Outline: TC-HLD-01: Asset Tab Filtering displays symbols matching tab category
+    When I select the "<AssetTab>" asset tab
+    Then the card for "<ExpectedSymbol>" should be visible
+
+    Examples:
+      | AssetTab        | ExpectedSymbol |
+      | U.S. Stock      | AAPL           |
+      | Thai Stock      | PTT.BK         |
+      | Cryptocurrency  | BTC            |
+      | Mutual Fund     | K-USA          |
+      | Closed Position | NVDA           |
 
   @smoke @TC-HLD-02
   Scenario: TC-HLD-02: Expanding Symbol Row reveals FIFO share lot details
@@ -29,6 +29,28 @@ Feature: Portfolio Holdings & FIFO Share Lot Accounting
     And the lots drawer should contain "Mar 10, 2024"
 
   @TC-HLD-03
-  Scenario: TC-HLD-03: Search Bar filters portfolio holdings by symbol or name
-    When I search holdings for "Bitcoin"
-    Then the card for "BTC" should be visible
+  Scenario Outline: TC-HLD-03: Search Bar filters portfolio holdings by symbol or name
+    When I select the "All" asset tab
+    And I search holdings for "<Query>"
+    Then the card for "<VisibleSymbol>" should be visible
+    And the card for "<HiddenSymbol>" should be hidden
+
+    Examples:
+      | Query   | VisibleSymbol | HiddenSymbol |
+      | Bitcoin | BTC           | AAPL         |
+      | Apple   | AAPL          | BTC          |
+      | PTT     | PTT.BK        | AAPL         |
+
+  @TC-HLD-04
+  Scenario Outline: TC-HLD-04: Sorting market holdings reorders symbol cards by selected metric
+    When I select the "All" asset tab
+    And I sort market holdings by "<SortMetric>"
+    Then the first market holding card should be "<FirstSymbol>"
+
+    Examples:
+      | SortMetric    | FirstSymbol |
+      | Holding Value | BTC         |
+      | P/L %         | BTC         |
+      | Total Cost    | BTC         |
+      | Avg Cost      | BTC         |
+      | Symbol        | AAPL        |

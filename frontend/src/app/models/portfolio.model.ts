@@ -42,7 +42,9 @@ export interface PortfolioPosition {
   pvdFundName?: string;
   policyName?: string;
   aimcType?: string;
+  aimcDescription?: string;
   riskLevel?: string;
+  objective?: string;
 }
 
 export interface ClosedPortfolioPosition {

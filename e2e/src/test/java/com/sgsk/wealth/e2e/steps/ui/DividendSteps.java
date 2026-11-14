@@ -5,6 +5,8 @@ import com.sgsk.wealth.e2e.pages.DividendPage;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
+import java.util.regex.Pattern;
+
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 public class DividendSteps {
@@ -59,5 +61,20 @@ public class DividendSteps {
         assertThat(legend).containsText(leg2);
         assertThat(legend).containsText(leg3);
         assertThat(legend).containsText(leg4);
+    }
+
+    @When("I select the dividend year filter {string}")
+    public void selectDividendYearFilter(String yearLabel) {
+        dividendPage.selectYearFilter(yearLabel);
+    }
+
+    @Then("the {string} dividend year pill should be active")
+    public void verifyDividendYearPillActive(String yearLabel) {
+        assertThat(dividendPage.getYearPill(yearLabel)).hasClass(Pattern.compile(".*active.*"));
+    }
+
+    @Then("the Net Dividends KPI card should contain {string}")
+    public void verifyNetDividendsCardContains(String expectedText) {
+        assertThat(dividendPage.getNetDividendsCard()).containsText(expectedText);
     }
 }

@@ -228,6 +228,11 @@ def test_value_provident_fund_positions():
     assert pos.unrealizedPL == 0.0
     assert pos.employeeShares == 8294.68
     assert pos.employerShares == 6005.29
+    assert pos.policyName == "ตราสารทุนต่างประเทศ"
+    assert pos.aimcType == "US Equity"
+    assert pos.aimcDescription == "กองทุนรวมตราสารทุนสหรัฐอเมริกา"
+    assert pos.riskLevel == "RS6"
+    assert "S&P 500" in (pos.objective or "")
     assert len(pos.lots) == 2
     assert pos.lots[0].note == "Employee Contribution"
     assert pos.lots[1].note == "Employer Matching"
@@ -373,6 +378,7 @@ async def test_get_portfolio_holdings_pvd_uses_sheet_fund_name(monkeypatch):
                 "name": "นโยบายตราสารทุนจาก SEC",
                 "policyName": "ตราสารทุน",
                 "aimcType": "EQUS",
+                "aimcDescription": "US Equity (SEC)",
                 "riskLevel": "RS6",
                 "objective": "",
             }
@@ -387,6 +393,11 @@ async def test_get_portfolio_holdings_pvd_uses_sheet_fund_name(monkeypatch):
     assert len(res.openPositions) == 1
     assert res.openPositions[0].name == "นโยบายตราสารทุนจาก SEC"
     assert res.openPositions[0].pvdFundName == "ไทยพาณิชย์ มาสเตอร์ฟันด์"
+    assert res.openPositions[0].policyName == "ตราสารทุน"
+    assert res.openPositions[0].aimcType == "EQUS"
+    assert res.openPositions[0].aimcDescription == "US Equity (SEC)"
+    assert res.openPositions[0].riskLevel == "RS6"
+    assert "S&P 500" in (res.openPositions[0].objective or "")
 
 
 @pytest.mark.unit

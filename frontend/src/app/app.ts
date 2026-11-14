@@ -2,6 +2,7 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { DividendComponent } from './components/dividend/dividend.component';
 import { ToolsComponent } from './components/tools/tools.component';
 import { AnalyticsComponent } from './components/analytics/analytics.component';
+import { PvdHoldingsComponent } from './components/pvd-holdings/pvd-holdings.component';
 import { ToolId } from './models/tools.model';
 import {
   Component,
@@ -31,7 +32,7 @@ import {
   ShareLot,
   ClosedShareLot,
 } from './models/transaction.model';
-import { AssetTab, ASSET_TABS, AppView, AnalyticsSubTab } from './config/asset.constants';
+import { AssetTab, ASSET_TABS, AppView, AnalyticsSubTab, HoldingsSubTab } from './config/asset.constants';
 import { TransactionHistoryComponent } from './components/transaction-history/transaction-history.component';
 import { HeaderComponent } from './components/header/header.component';
 import { TabBarComponent } from './components/tab-bar/tab-bar.component';
@@ -90,6 +91,7 @@ export interface SymbolAutocompleteItem {
     ToolsComponent,
     DashboardComponent,
     AnalyticsComponent,
+    PvdHoldingsComponent,
     LoadingScreenComponent,
   ],
   templateUrl: './app.html',
@@ -137,6 +139,8 @@ export class App {
   /** View Mode: Dashboard vs Holdings / Positions vs Transactions History vs Allocation vs Dividends vs Tools */
   readonly currentView = signal<AppView>('dashboard');
   readonly analyticsSubTab = signal<AnalyticsSubTab>('overview');
+  readonly holdingsSubTab = signal<HoldingsSubTab>('market');
+  readonly cachedPvdPositions = signal<PortfolioPosition[]>([]);
   readonly selectedToolId = signal<ToolId>('avg-cost-calculator');
   readonly selectedHistorySymbol = signal<string>('');
 
@@ -196,6 +200,26 @@ export class App {
 
   readonly isClosedTab = computed<boolean>(() => this.activeTab().id === 'closed-position');
   readonly isAllTab = computed<boolean>(() => this.activeTab().id === 'all');
+  readonly isPvdTab = computed<boolean>(
+    () => this.holdingsSubTab() === 'pvd' || this.activeTab().id === 'provident-fund'
+  );
+  readonly pvdPositions = computed<PortfolioPosition[]>(() => {
+    const live = this.portfolioData()?.openPositions ?? [];
+    const livePvd = live.filter((p) => p.assetType === 'provident-fund');
+    if (livePvd.length > 0) {
+      return livePvd;
+    }
+    return this.cachedPvdPositions();
+  });
+
+  private readonly syncPvdCache = effect(() => {
+    const data = this.portfolioData();
+    if (!data) return;
+    const pvdOnly = data.openPositions.filter((p) => p.assetType === 'provident-fund');
+    if (pvdOnly.length > 0 || data.tabId === 'provident-fund' || data.tabId === 'all') {
+      this.cachedPvdPositions.set(pvdOnly);
+    }
+  });
 
   readonly loaderState = computed(() => {
     const tabLabel = this.activeTab().label;
@@ -260,6 +284,25 @@ export class App {
 
   openHoldingsView(): void {
     this.setView('holdings');
+  }
+
+  openPvdHoldingsView(): void {
+    this.currentView.set('holdings');
+    this.selectHoldingsSubTab('pvd');
+  }
+
+  selectHoldingsSubTab(subTab: HoldingsSubTab): void {
+    this.holdingsSubTab.set(subTab);
+    if (subTab === 'pvd') {
+      const pvdTab = ASSET_TABS.find((t) => t.id === 'provident-fund');
+      if (pvdTab) {
+        this.selectTab(pvdTab);
+      }
+      return;
+    }
+    if (this.activeTab().id === 'provident-fund') {
+      this.selectTab(ASSET_TABS[0]);
+    }
   }
 
   navigateToTool(toolId: ToolId): void {
@@ -721,7 +764,7 @@ export class App {
         const displaySym = s.displaySymbol || this.getDisplaySymbol(s.symbol);
         const name = s.name || this.getSymbolName(s.symbol);
         const type = s.assetType;
-        const typeLabel = s.assetTypeLabel;
+        const typeLabel = s.assetTypeLabel || this.getAssetTypeLabel(type, s.symbol) || '';
 
         const matches =
           !query ||
@@ -759,7 +802,7 @@ export class App {
         const displaySym = s.displaySymbol || this.getDisplaySymbol(s.symbol);
         const name = s.name || this.getSymbolName(s.symbol);
         const type = s.assetType;
-        const typeLabel = s.assetTypeLabel;
+        const typeLabel = s.assetTypeLabel || this.getAssetTypeLabel(type, s.symbol) || '';
 
         const matches =
           !query ||
@@ -937,6 +980,7 @@ export class App {
 
   selectTab(tab: AssetTab): void {
     this.isTabDropdownOpen.set(false);
+    this.holdingsSubTab.set(tab.id === 'provident-fund' ? 'pvd' : 'market');
     if (tab.id === this.activeTab().id) return;
     this.activeTab.set(tab);
     this.searchQuery.set('');

@@ -14,11 +14,15 @@ Feature: Investment Performance & Analytics Engine
     And the performance summary grid should render 5 KPI cards
 
   @smoke @TC-PRF-02
-  Scenario: TC-PRF-02: Date range preset buttons trigger timeframe updates
-    When I select the performance date preset "YTD"
-    Then the date range picker trigger should display "YTD"
-    When I select the performance date preset "Last 30 Days"
-    Then the date range picker trigger should display "Last 30 Days"
+  Scenario Outline: TC-PRF-02: Date range preset buttons trigger timeframe updates
+    When I select the performance date preset "<Preset>"
+    Then the date range picker trigger should display "<TriggerText>"
+
+    Examples:
+      | Preset       | TriggerText  |
+      | YTD          | YTD          |
+      | Last 30 Days | Last 30 Days |
+      | All Time     | All Dates    |
 
   @TC-PRF-03
   Scenario: TC-PRF-03: Asset Type Return and Top Movers sections render correctly
@@ -30,10 +34,12 @@ Feature: Investment Performance & Analytics Engine
     Then the performance autocomplete dropdown should suggest "Apple"
 
   @TC-PRF-05
-  Scenario: TC-PRF-05: Status and Asset Type filters are accessible and selectable
-    When I filter performance by status "open"
-    Then the status select should have value "open"
-    When I filter performance by status "closed"
-    Then the status select should have value "closed"
-    When I filter performance by status "all"
-    Then the status select should have value "all"
+  Scenario Outline: TC-PRF-05: Status and Asset Type filters are accessible and selectable
+    When I filter performance by status "<Status>"
+    Then the status select should have value "<Status>"
+
+    Examples:
+      | Status |
+      | open   |
+      | closed |
+      | all    |

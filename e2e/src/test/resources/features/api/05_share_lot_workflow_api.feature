@@ -1,8 +1,8 @@
 @api @sharelot @workflow
 Feature: Share Lot Accounting & User Portfolio Workflow
-  As an API client
-  I want to fetch share lot sheets and execute portfolio pricing workflows
-  So that end-to-end investment data is verified
+  As a portfolio owner
+  I want to fetch share lot sheets across asset classes and execute pricing workflows
+  So that my holdings and cost basis are tracked across all accounts
 
   @smoke @TC-API-SL-01
   Scenario: TC-API-SL-01: Root service health check
@@ -16,15 +16,22 @@ Feature: Share Lot Accounting & User Portfolio Workflow
       """
 
   @TC-API-SL-02
-  Scenario: TC-API-SL-02: Fetch share lot sheet for US Stock tab
-    When I send a GET request to "/share-lot/sheet/us-stock"
+  Scenario Outline: TC-API-SL-02: Fetch share lot sheet across asset class tabs
+    When I send a GET request to "/share-lot/sheet/<tab_id>"
     Then the response status should be 200
-    And the response JSON should contain:
-      """
-      {
-        "isClosed": false
-      }
-      """
+    And the response property "isClosed" should equal "<is_closed>"
+    And the response should contain property "summaries"
+    And the response should contain property "totalCostByCurrency"
+    And the response should contain property "totalSymbols"
+
+    Examples:
+      | tab_id          | is_closed |
+      | us-stock        | false     |
+      | thai-stock      | false     |
+      | crypto          | false     |
+      | mutual-fund     | false     |
+      | provident-fund  | false     |
+      | closed-position | true      |
 
   @TC-API-SL-03
   Scenario: TC-API-SL-03: Fetch share lot sheet with invalid tab ID returns error
@@ -51,7 +58,8 @@ Feature: Share Lot Accounting & User Portfolio Workflow
       """
       {
         "summaries": [
-          { "symbol": "AAPL", "assetType": "us-stock" }
+          { "symbol": "AAPL", "assetClass": "U.S. Stock", "currency": "USD" },
+          { "symbol": "PVDSP500", "assetClass": "Provident Fund", "currency": "THB" }
         ]
       }
       """

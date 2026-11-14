@@ -52,7 +52,7 @@ flowchart LR
 - **Asset Allocation Snapshot**: Interactive SVG Donut Chart with asset category legends and direct drill-down into detailed allocation analytics.
 - **Top Movers Leaderboard**: Highlights top gainers and lagging positions with brand iconography and return indicators.
 - **Forward Dividend Cashflow & Yield**: Trailing/forward annual dividend income, Yield on Cost (YOC %), and Market Yield %.
-- **Provident Fund (PVD) / Portfolio Vitality**: Cumulative balance and employee vs. employer contribution split ratios.
+- **Provident Fund (PVD) / Portfolio Vitality**: Cumulative balance, employee vs. employer contribution split ratios, and one-click shortcut to the dedicated PVD screen on Holdings.
 - **Recent Trade Activity**: Latest trade logs with badges (`BUY`, `SELL`, `EX-IN`, `EX-OUT`) and context-aware units.
 - **Financial Tools Launchpad**: One-click shortcuts into the *Rebalance Planner*, *TVM Calculator*, and *Average Cost Simulator*.
 
@@ -75,10 +75,11 @@ flowchart LR
 - **Target Asset Allocation**: Interactive Donut Chart, detailed category weighting table, click-to-filter class isolation with `← All Asset Classes` reset button, and USD/THB currency exposure analysis.
 - **Investment Performance**: 5 summary KPI cards, timeframe presets (`YTD`, `1M`, `3M`, `6M`, `1Y`, `ALL`, custom date bounds), horizontal return bars by asset class, top 5 gainers/losers rankings, and keyboard-accessible symbol search autocomplete.
 
-### 💼 Provident Fund (PVD) Management
-- **Dedicated Asset Tab**: Displays company provident fund plans with `#6366f1` brand indigo styling.
-- **Contribution Split Visualization**: Progress bar displaying Employee vs. Employer matching contributions.
-- **Detailed Plan Breakdown**: Dedicated cards for Employee Total Contribution, Company Match, Cumulative Earnings, and official policy snapshot details.
+### 💼 Provident Fund (PVD) Management & Dedicated Holdings Screen
+- **Holdings Mode Switcher**: Top-level segmented toggle on the Holdings view (`Market Holdings` $\leftrightarrow$ `Provident Fund (PVD)`) synchronized with the asset tab bar and direct Dashboard shortcut.
+- **Executive PVD Hero**: Headline PVD balance, total return on cost, 4 KPI tiles (*Total Principal*, *Total Earnings*, *Employee Pool*, *Employer Pool*), and a 4-segment composition bar (*Employee Principal* `เงินสะสม`, *Employee Earnings* `ผลประโยชน์สะสม`, *Employer Matching* `เงินสมทบ`, and *Employer Earnings* `ผลประโยชน์สมทบ`).
+- **Policy Weight Allocation & SEC Risk Spectrum**: Interactive SVG Donut Chart across sub-policies (`PVDSP500`, `PVDWEQ`, `PVDMPAEM`, `PVDMPINC`, `PVDMGLDH`, etc.) and an 8-level SEC Risk Spectrum (`RS1`–`RS8`) with value-weighted risk scoring and distribution buckets.
+- **Sub-Policy Breakdown & SEC Factsheet Metadata**: Searchable and sortable sub-policy cards (`Value`, `Return`, `Principal`, `Units`, `Risk`) enriched via `/v1/pvd/factsheet/{proj_id}/policy` (`riskLevel`, `policyName`, `aimcType`, `aimcDescription`, `objective`, `pvdFundName`), unit counts, current NAV, and Employee vs. Employer pool tables.
 - **Trading Feed Exemption**: Excluded from manual buy/sell feeds and transaction CSV exports since PVD represents balance snapshots rather than exchange trades.
 
 ### 📑 FIFO Share Lot Engine
@@ -125,7 +126,7 @@ flowchart LR
 | **[Angular](https://angular.dev/)** | `22.2+` | Modern web framework utilizing standalone components, reactive Signals, and Computed Signals for performant, zoneless-ready reactivity. |
 | **[Tailwind CSS](https://tailwindcss.com/)** | `v4.3+` | Next-generation CSS framework utilizing `@theme` tokens, modern design system, and custom utilities. |
 | **[TypeScript](https://www.typescriptlang.org/)** | `~6.0.0` | Strict static typing, interfaces, and domain models across all components, services, and utilities. |
-| **[Vitest](https://vitest.dev/)** | `4.1+` | Ultra-fast unit testing runner paired with `jsdom` executing **313 unit tests across 31 test suites** in under 6 seconds. |
+| **[Vitest](https://vitest.dev/)** | `4.1+` | Ultra-fast unit testing runner paired with `jsdom` executing **327 unit tests across 33 test suites** in under 7 seconds. |
 | **[Node.js](https://nodejs.org/)** | `26 LTS` | Runtime environment and build toolchain. |
 | **Design System** | Custom Tokens | High-contrast financial UI, SVG data visualizations, dark/light theme switching, and privacy blur filters. |
 
@@ -164,14 +165,15 @@ flowchart LR
 |:---|:---|
 | **`dividend-payments`** | Financial domain skill with codified rules for U.S. (SEC T+1) and Thai (SET T+2) equity settlement cutoffs, withholding tax rules (U.S. 15% DTA / 30%, Thai 10% / BOI 0%), stock dividends, and corporate disclosures. |
 | **`cucumber-bdd-best-practices`** | Enterprise BDD & Gherkin authoring standards, Page Object Model architecture, multi-dimensional tagging taxonomy, and automated strict Gherkin linting (`validate_gherkin.py`). |
+| **`fifo-cost-basis`** | First In, First Out (FIFO) inventory valuation and portfolio cost-basis accounting rules (lot matching, acquisition fees, FIFO vs. Average Cost, `share_lot_service.py`). |
 | **`sec-open-apis`** | Thailand SEC Open Data API reference covering Mutual Funds (`/v2/fund/*`, 21 endpoints), Provident Funds (`/v1/pvd/factsheet/*`, 15 endpoints), cursor pagination, `204` handling, and `NavService` integration. |
 
 ### 5. Unified CI/CD Pipeline (`.github/workflows/ci.yml`)
 
 A unified GitHub Actions workflow configured for `push`, `pull_request`, and `workflow_dispatch`:
 1. **`backend-qa`**: Python 3.11 environment running Ruff linter, Mypy type checker, and Pytest with code coverage artifact upload.
-2. **`frontend-qa`**: Node.js 26 LTS environment running Vitest unit tests (313 tests) and production Angular build.
-3. **`e2e-automation`**: Runs after both QA jobs (`needs: [backend-qa, frontend-qa]`), sets up JDK 25 and Node.js 26, downloads Playwright Chromium, executes all 59 E2E scenarios, generates the Allure HTML report, and stores `allure-e2e-report` build artifacts.
+2. **`frontend-qa`**: Node.js 26 LTS environment running Vitest unit tests (327 tests) and production Angular build.
+3. **`e2e-automation`**: Runs after both QA jobs (`needs: [backend-qa, frontend-qa]`), sets up JDK 25 and Node.js 26, downloads Playwright Chromium, executes all 161 E2E scenarios (61 `@api` + 100 `@ui` across 16 feature files), generates the Allure HTML report, and stores `allure-e2e-report` build artifacts.
 
 ---
 
@@ -185,7 +187,7 @@ SGSK-Wealth/
 │   ├── models/                 # Pydantic domain models (Transaction, Portfolio, Tools, Allocation)
 │   ├── routers/                # API routers (share-lot, price, nav, portfolio, tools, icon)
 │   ├── services/               # Core business logic (FIFO engine, valuation, dividend, tools)
-│   ├── tests/                  # Pytest unit tests (98 tests, 91% coverage)
+│   ├── tests/                  # Pytest unit tests (110 tests, >=80% coverage enforced)
 │   ├── pyproject.toml          # Ruff, Mypy, and Pytest coverage configuration
 │   ├── pytest.ini              # Pytest runtime configuration
 │   ├── requirements.txt        # Production dependencies
@@ -195,7 +197,7 @@ SGSK-Wealth/
 ├── frontend/                   # Angular 22 Single Page Application
 │   ├── src/
 │   │   ├── app/
-│   │   │   ├── components/     # UI feature components (dashboard, holdings, analytics, dividend, tools)
+│   │   │   ├── components/     # UI feature components (dashboard, holdings, pvd-holdings, analytics, dividend, tools)
 │   │   │   ├── config/         # Tab configurations and asset class constants
 │   │   │   ├── interceptors/   # HTTP interceptors (API key injection, error handling)
 │   │   │   ├── models/         # TypeScript interfaces and domain models
@@ -223,13 +225,13 @@ SGSK-Wealth/
 │       │   └── steps/          # Rest Assured API and Playwright UI step definitions
 │       └── resources/
 │           ├── features/api/   # REST API Gherkin specifications (01..05 .feature files)
-│           ├── features/ui/    # End-to-end UI Gherkin specifications (01..10 .feature files)
+│           ├── features/ui/    # End-to-end UI Gherkin specifications (01..11 .feature files)
 │           ├── fixtures/       # Deterministic JSON mock payloads
 │           ├── application.yml # Spring Boot externalized E2E test configuration
 │           ├── junit-platform.properties
 │           └── allure.properties
 │
-├── .agent/skills/              # Single source of truth for AI agent skills (dividend-payments, cucumber-bdd-best-practices)
+├── .agent/skills/              # Single source of truth for AI agent skills (dividend-payments, cucumber-bdd-best-practices, fifo-cost-basis, sec-open-apis)
 ├── .claude/                    # Claude Code adapter (skills symlink -> ../.agent/skills)
 ├── .github/workflows/          # CI/CD Workflows
 │   └── ci.yml                  # Unified monorepo pipeline (Backend QA, Frontend QA, Java E2E)
@@ -316,14 +318,15 @@ SGSK-Wealth enforces strict quality standards before any code is committed. Unif
 
 | Command | Description | Tech Stack |
 |:---|:---|:---|
-| **`npm run check`** | Run complete pre-commit QA suite (backend lint, backend test, frontend test, frontend build) | Monorepo Orchestration |
+| **`npm run check`** | Run complete pre-commit QA suite (Gherkin lint, backend lint/test, frontend test/build) | Monorepo Orchestration |
+| **`npm run lint:gherkin`** | Validate all `.feature` files with `validate_gherkin.py --strict` | Python Gherkin Linter |
 | **`npm run lint:backend`** | Run Ruff linter and Mypy static type checker on `backend/` | Ruff & Mypy |
 | **`npm run test:backend`** | Run Pytest unit test suite with coverage enforcement ($\ge 80\%$) | Pytest & Coverage |
-| **`npm run test:frontend`** | Run Vitest unit test suite (313 unit tests across 31 suites) | Vitest & jsdom |
-| **`npm run test:e2e`** | Run complete Java E2E test suite (**59 scenarios: 18 API, 41 UI**) | Playwright, Rest Assured & Cucumber |
-| **`npm run test:e2e:ui`** | Run only Playwright web UI browser automation scenarios | Playwright & Cucumber-JVM |
-| **`npm run test:e2e:api`** | Run only Rest Assured API automation scenarios | Rest Assured & Cucumber-JVM |
-| **`npm run test:e2e:smoke`** | Run critical path navigation and dashboard smoke scenarios | Playwright & Cucumber-JVM |
+| **`npm run test:frontend`** | Run Vitest unit test suite (327 unit tests across 33 suites) | Vitest & jsdom |
+| **`npm run test:e2e`** | Run complete Java E2E test suite (**161 scenarios**: 61 API + 100 UI) | Playwright, Rest Assured & Cucumber |
+| **`npm run test:e2e:ui`** | Run only Playwright web UI browser automation scenarios (**100 `@ui` scenarios**) | Playwright & Cucumber-JVM |
+| **`npm run test:e2e:api`** | Run only Rest Assured API automation scenarios (**61 `@api` scenarios**) | Rest Assured & Cucumber-JVM |
+| **`npm run test:e2e:smoke`** | Run critical path navigation and dashboard smoke scenarios (**79 `@smoke` scenarios**) | Playwright & Cucumber-JVM |
 | **`npm run test:e2e:report`** | Generate and open the interactive Allure HTML report locally | Allure Maven Plugin |
 | **`npm run build`** | Compile production-ready Angular bundle with budget validation | Angular CLI |
 
