@@ -18,13 +18,10 @@ Feature: Provident Fund (PVD) Holdings & SEC Metadata Analytics
     And the SEC risk spectrum card should display "RS6" and all 8 risk levels
 
   @TC-PVD-02
-  Scenario: TC-PVD-02: Mode toggle synchronizes Market Holdings and Provident Fund views
+  Scenario: TC-PVD-02: Switching to Market Holdings sub-view activates Market Holdings mode
     When I switch to the Market Holdings sub-view
     Then the Market Holdings mode button should be active
     And the card for "AAPL" should be visible
-    When I select the "Provident Fund" asset tab
-    Then the PVD holdings screen should be visible
-    And the Provident Fund mode button should be active
 
   @TC-PVD-03
   Scenario: TC-PVD-03: PVD sub-policy cards display SEC metadata badges, objectives, and contribution pools
@@ -60,31 +57,37 @@ Feature: Provident Fund (PVD) Holdings & SEC Metadata Analytics
       | Risk       | PVDSP500     |
 
   @smoke @TC-PVD-06
-  Scenario: TC-PVD-06: PVD sub-policy cards display localized sub-policy names across EN and TH
+  Scenario Outline: TC-PVD-06: PVD sub-policy cards display localized sub-policy names in <TargetLang>
+    Given the active language is "<InitialLang>"
+    When I switch language to "<TargetLang>"
     Then the PVD sub-policy cards should display localized policy names:
       | Symbol   | ExpectedName                     |
       | PVDSP500 | นโยบายกองทุนรวมดัชนี S&P 500 THB |
       | PVDMPINC | นโยบายกองทุนรวมผสม THB เฮดจ์     |
     And the PVD policy card "PVDSP500" should not display "SCB S&P 500 Index Policy"
     And the PVD policy card "PVDMPINC" should not display "SCB Fixed Income Plus Policy"
-    When I switch language to TH
-    Then the PVD sub-policy cards should display localized policy names:
-      | Symbol   | ExpectedName                     |
-      | PVDSP500 | นโยบายกองทุนรวมดัชนี S&P 500 THB |
-      | PVDMPINC | นโยบายกองทุนรวมผสม THB เฮดจ์     |
-    And the PVD policy card "PVDSP500" should not display "SCB S&P 500 Index Policy"
-    And the PVD policy card "PVDMPINC" should not display "SCB Fixed Income Plus Policy"
-    When I switch language to EN
-    Then the PVD sub-policy cards should display localized policy names:
-      | Symbol   | ExpectedName                     |
-      | PVDSP500 | นโยบายกองทุนรวมดัชนี S&P 500 THB |
-      | PVDMPINC | นโยบายกองทุนรวมผสม THB เฮดจ์     |
+
+    Examples:
+      | InitialLang | TargetLang |
+      | EN          | TH         |
+      | TH          | EN         |
 
   @smoke @TC-PVD-07
-  Scenario: View Provident Fund policy fact sheet modal from PVD Holdings
+  Scenario: TC-PVD-07: Opening Provident Fund policy fact sheet modal displays SEC metadata
     When I open the fund fact sheet for PVD policy "PVDSP500"
     Then the fund fact sheet modal should display "นโยบายกองทุนรวมดัชนี S&P 500 THB" with risk "RS6"
     And the fund fact sheet modal should contain "ไทยพาณิชย์ มาสเตอร์ฟันด์"
     And the fund fact sheet modal should contain "0.45%"
+
+  @TC-PVD-08
+  Scenario: TC-PVD-08: Selecting Provident Fund asset tab synchronizes back to PVD Holdings view
+    Given I am on the Market Holdings sub-view
+    When I select the "Provident Fund" asset tab
+    Then the PVD holdings screen should be visible
+    And the Provident Fund mode button should be active
+
+  @smoke @TC-PVD-09
+  Scenario: TC-PVD-09: Closing Provident Fund policy fact sheet modal hides the modal
+    Given I have opened the fund fact sheet for PVD policy "PVDSP500"
     When I close the fund fact sheet modal
     Then the fund fact sheet modal should be hidden

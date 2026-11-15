@@ -19,9 +19,7 @@ Feature: API Failure & Error Resilience
 
   @TC-ERR-02
   Scenario: TC-ERR-02: Retry button recovers portfolio data after backend API outage
-    Given the backend API returns error status 503
-    When I open the SGSK Wealth application without mocking
-    Then the error state card should be visible with "Unable to load data"
+    Given I see the error state after a 503 backend outage
     When the backend API recovers
     And I retry loading the portfolio
     Then the Dashboard view should be visible

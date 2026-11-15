@@ -24,27 +24,12 @@ Feature: Financial Simulators & Portfolio Tools API
 
   @smoke @TC-API-TOOL-02
   Scenario: TC-API-TOOL-02: Average Cost Calculator forward buy simulation
-    When I send a POST request to "/portfolio/tools/simulate" with payload:
-      """
-      {
-        "initialPosition": {
-          "symbol": "AAPL",
-          "shares": 10.0,
-          "avgCost": 150.0,
-          "marketPrice": 200.0,
-          "currency": "USD"
-        },
-        "steps": [
-          {
-            "action": "BUY",
-            "shares": 5.0,
-            "price": 180.0,
-            "feePercent": 0.157
-          }
-        ],
-        "currency": "USD"
-      }
-      """
+    Given an initial simulation position:
+      | symbol | shares | avgCost | marketPrice | currency |
+      | AAPL   | 10.0   | 150.0   | 200.0       | USD      |
+    When I send a POST simulation request to "/portfolio/tools/simulate" in currency "USD" with steps:
+      | action | shares | price | feePercent |
+      | BUY    | 5.0    | 180.0 | 0.157      |
     Then the response status should be 200
     And the response time should be within 2000 ms
     And the response property "currency" should equal "USD"

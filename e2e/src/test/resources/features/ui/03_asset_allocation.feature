@@ -34,18 +34,16 @@ Feature: Target Asset Allocation & Rebalancing Engine
     Then the analytics overview grid should display 5 KPI cards
 
   @smoke @TC-ALC-06
-  Scenario: TC-ALC-06: Allocation drill-down displays localized asset names across TH and EN
-    When I switch language to TH
+  Scenario Outline: TC-ALC-06: Allocation drill-down displays localized asset names in <Language>
+    When I switch language to "<Language>"
     Then the allocation class drill-down should display localized symbol names:
-      | AssetClass       | Symbol | ExpectedName                 |
-      | หุ้นไทย          | PTT.BK | บริษัท ปตท. จำกัด (มหาชน)   |
-      | กองทุนรวม        | K-USA  | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
-      | หุ้นสหรัฐฯ       | AAPL   | Apple Inc.                   |
-      | คริปโตเคอร์เรนซี | BTC    | Bitcoin                      |
-    When I switch language to EN
-    Then the allocation class drill-down should display localized symbol names:
-      | AssetClass     | Symbol | ExpectedName               |
-      | Thai Stock     | PTT.BK | PTT Public Company Limited |
-      | Mutual Fund    | K-USA  | Kasikorn US Equity Fund    |
-      | U.S. Stock     | AAPL   | Apple Inc.                 |
-      | Cryptocurrency | BTC    | Bitcoin                    |
+      | AssetClass  | Symbol | ExpectedName |
+      | <ThaiClass> | PTT.BK | <PttName>    |
+      | <MfClass>   | K-USA  | <KusaName>   |
+      | <UsClass>   | AAPL   | Apple Inc.   |
+      | <CrypClass> | BTC    | Bitcoin      |
+
+    Examples:
+      | Language | ThaiClass  | MfClass     | UsClass    | CrypClass        | PttName                    | KusaName                     |
+      | TH       | หุ้นไทย    | กองทุนรวม   | หุ้นสหรัฐฯ  | คริปโตเคอร์เรนซี | บริษัท ปตท. จำกัด (มหาชน) | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
+      | EN       | Thai Stock | Mutual Fund | U.S. Stock | Cryptocurrency   | PTT Public Company Limited | Kasikorn US Equity Fund      |

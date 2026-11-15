@@ -8,29 +8,27 @@ Feature: Mobile Responsiveness & Touch Layouts
     Given I open the SGSK Wealth application on a mobile viewport
 
   @smoke @TC-MOB-01
-  Scenario: TC-MOB-01: Mobile view renders responsive cards and native bottom navigation bar
+  Scenario: TC-MOB-01: Mobile view renders native bottom navigation bar with active Dashboard tab
     Then the native bottom navigation bar should be visible
-    When I tap Analytics on the bottom navigation bar
-    Then the analytics container should be visible
+    And the bottom nav dashboard tab should be active
 
-  @TC-MOB-02
+  @smoke @TC-MOB-02
   Scenario: TC-MOB-02: Mobile view renders responsive Rebalance Planner cards and touch mode toggle
     When I tap Tools on the bottom navigation bar
+    And I select Rebalance Planner from the mobile tools dropdown
     Then the tools container should be visible
-    When I select Rebalance Planner from the mobile tools dropdown
-    Then the rebalance calculator should be visible
+    And the rebalance calculator should be visible
     And the mobile rebalance mode toggle should be visible
     And the mobile symbol cards should be visible
 
   @TC-MOB-03
-  Scenario: TC-MOB-03: Native bottom navigation bar highlights active tab and switches views smoothly
-    Then the bottom nav dashboard tab should be active
-    When I tap Holdings on the bottom navigation bar
-    Then the bottom nav holdings tab should be active
-    And the asset tab bar should be visible
-    When I tap Analytics on the bottom navigation bar
-    Then the bottom nav analytics tab should be active
-    And the analytics container should be visible
-    When I tap Dividends on the bottom navigation bar
-    Then the bottom nav dividends tab should be active
-    And the dividend container should be visible
+  Scenario Outline: TC-MOB-03: Native bottom navigation bar switches to <TabName> view cleanly
+    When I tap "<TabName>" on the bottom navigation bar
+    Then the bottom nav "<TabName>" tab should be active
+    And the "<TabName>" workspace view should be visible
+
+    Examples:
+      | TabName   |
+      | Holdings  |
+      | Analytics |
+      | Dividends |

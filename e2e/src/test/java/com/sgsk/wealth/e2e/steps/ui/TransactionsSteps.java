@@ -4,6 +4,7 @@ import com.microsoft.playwright.Download;
 import com.sgsk.wealth.e2e.context.TestContext;
 import com.sgsk.wealth.e2e.pages.TransactionsPage;
 import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import java.util.Map;
@@ -41,6 +42,7 @@ public class TransactionsSteps {
         context.setDownloadedFileName(download.suggestedFilename());
     }
 
+    @Given("transactions are filtered to symbol {string}")
     @When("I filter transactions to symbol {string}")
     public void filterTransactionsToSymbol(String symbol) {
         transactionsPage.selectSymbolFilter(symbol);

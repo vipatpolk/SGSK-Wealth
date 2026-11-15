@@ -2,6 +2,7 @@ package com.sgsk.wealth.e2e.steps.ui;
 
 import com.sgsk.wealth.e2e.pages.DashboardPage;
 import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import java.util.Map;
@@ -35,6 +36,7 @@ public class DashboardSteps {
         assertThat(dashboardPage.kpiDividends).isVisible();
     }
 
+    @Given("the Dashboard allocation card and donut svg are visible")
     @Then("the Dashboard allocation card and donut svg should be visible")
     public void verifyDashboardAllocationCard() {
         assertThat(dashboardPage.allocationCard).isVisible();
@@ -46,6 +48,7 @@ public class DashboardSteps {
         dashboardPage.navigateToAllocation();
     }
 
+    @Given("the Dashboard performance card is visible")
     @Then("the Dashboard performance card should be visible")
     public void verifyDashboardPerformanceCard() {
         assertThat(dashboardPage.performanceCard).isVisible();
@@ -56,6 +59,7 @@ public class DashboardSteps {
         dashboardPage.navigateToPerformance();
     }
 
+    @Given("the Dashboard tools launchpad card is visible")
     @Then("the Dashboard tools launchpad card should be visible")
     public void verifyDashboardToolsCard() {
         assertThat(dashboardPage.toolsLaunchpadCard).isVisible();
@@ -73,6 +77,7 @@ public class DashboardSteps {
         dashboardPage.launchTool(toolName);
     }
 
+    @Given("the Dashboard retirement card displays {string}")
     @Then("the Dashboard retirement card should display {string}")
     public void verifyDashboardRetirementCardContains(String expectedText) {
         assertThat(dashboardPage.retirementCard).isVisible();

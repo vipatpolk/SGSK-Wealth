@@ -5,6 +5,7 @@ import com.microsoft.playwright.Page;
 import com.sgsk.wealth.e2e.context.TestContext;
 import com.sgsk.wealth.e2e.pages.ToolsPage;
 import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import java.util.Map;
@@ -62,6 +63,7 @@ public class ToolsSteps {
         assertThat(toolsPage.simAmountInput).isVisible();
     }
 
+    @Given("I am using the TVM Calculator tool")
     @When("I switch to the TVM Calculator tool")
     public void switchToTvmCalculator() {
         toolsPage.selectTvmCalculator();
@@ -147,6 +149,17 @@ public class ToolsSteps {
         toolsPage.setChartMode(mode);
     }
 
+    @Then("the {string} chart mode button should be active")
+    public void verifyChartModeActive(String mode) {
+        if ("Lines".equalsIgnoreCase(mode.trim())) {
+            verifyLinesChartModeActive();
+        } else if ("Area".equalsIgnoreCase(mode.trim())) {
+            verifyAreaChartModeActive();
+        } else {
+            throw new IllegalArgumentException("Unsupported chart mode: " + mode);
+        }
+    }
+
     @Then("the lines chart mode button should be active")
     public void verifyLinesChartModeActive() {
         assertThat(toolsPage.chartLinesBtn).hasClass(Pattern.compile(".*active.*"));
@@ -159,6 +172,7 @@ public class ToolsSteps {
         assertThat(page().locator(".chart-area-balance")).isVisible();
     }
 
+    @Given("I am using the Rebalance Planner tool")
     @When("I switch to the Rebalance Planner tool")
     public void switchToRebalancePlanner() {
         toolsPage.selectRebalancePlanner();

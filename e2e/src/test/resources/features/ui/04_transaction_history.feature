@@ -25,12 +25,10 @@ Feature: Transaction History Ledger & CSV Exporter
       | K-USA  | units     |
 
   @TC-TXN-03
-  Scenario: TC-TXN-03: Selecting a symbol opens hero summary and returning restores all feed
+  Scenario: TC-TXN-03: Selecting a symbol opens the transaction hero summary card
     When I filter transactions to symbol "AAPL"
     Then the symbol hero card should be visible
     And the symbol hero card should display "AAPL"
-    When I reset transactions to all symbols
-    Then the symbol hero card should be hidden
 
   @TC-TXN-04
   Scenario: TC-TXN-04: Transaction symbol selector excludes Provident Fund policies
@@ -50,48 +48,54 @@ Feature: Transaction History Ledger & CSV Exporter
       | open  |
 
   @smoke @TC-TXN-06
-  Scenario: TC-TXN-06: Transaction ledger and hero subtitle localize asset names across TH and EN
-    When I switch language to TH
+  Scenario Outline: TC-TXN-06: Transaction ledger localizes asset names in <Language>
+    When I switch language to "<Language>"
     Then the transaction ledger should display localized asset names:
-      | Symbol | ExpectedName                 |
-      | PTT.BK | บริษัท ปตท. จำกัด (มหาชน)   |
-      | K-USA  | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
-      | AAPL   | Apple Inc.                   |
-      | BTC    | Bitcoin                      |
-    When I focus transaction symbol "PTT.BK"
-    Then the transaction hero card subtitle should be "บริษัท ปตท. จำกัด (มหาชน)"
-    When I focus transaction symbol "K-USA"
-    Then the transaction hero card subtitle should be "กองทุนเปิดเค ยูเอสเอ หุ้นทุน"
-    When I focus transaction symbol "AAPL"
-    Then the transaction hero card subtitle should be "Apple Inc."
-    When I focus transaction symbol "BTC"
-    Then the transaction hero card subtitle should be "Bitcoin"
-    When I switch language to EN
-    And I view all transactions in the unified ledger
-    Then the transaction ledger should display localized asset names:
-      | Symbol | ExpectedName               |
-      | PTT.BK | PTT Public Company Limited |
-      | K-USA  | Kasikorn US Equity Fund    |
-      | AAPL   | Apple Inc.                 |
-      | BTC    | Bitcoin                    |
-    When I focus transaction symbol "PTT.BK"
-    Then the transaction hero card subtitle should be "PTT Public Company Limited"
-    When I focus transaction symbol "K-USA"
-    Then the transaction hero card subtitle should be "Kasikorn US Equity Fund"
+      | Symbol | ExpectedName |
+      | PTT.BK | <PttName>    |
+      | K-USA  | <KusaName>   |
+      | AAPL   | Apple Inc.   |
+      | BTC    | Bitcoin      |
+
+    Examples:
+      | Language | PttName                    | KusaName                     |
+      | TH       | บริษัท ปตท. จำกัด (มหาชน) | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
+      | EN       | PTT Public Company Limited | Kasikorn US Equity Fund      |
 
   @TC-TXN-07
-  Scenario: TC-TXN-07: Transaction symbol selector dropdown localizes asset names across TH and EN
-    When I switch language to TH
+  Scenario Outline: TC-TXN-07: Transaction symbol selector dropdown localizes asset names in <Language>
+    When I switch language to "<Language>"
     Then the transaction symbol selector should display localized asset names:
-      | Symbol | ExpectedName                 |
-      | PTT.BK | บริษัท ปตท. จำกัด (มหาชน)   |
-      | K-USA  | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
-      | AAPL   | Apple Inc.                   |
-      | BTC    | Bitcoin                      |
-    When I switch language to EN
-    Then the transaction symbol selector should display localized asset names:
-      | Symbol | ExpectedName               |
-      | PTT.BK | PTT Public Company Limited |
-      | K-USA  | Kasikorn US Equity Fund    |
-      | AAPL   | Apple Inc.                 |
-      | BTC    | Bitcoin                    |
+      | Symbol | ExpectedName |
+      | PTT.BK | <PttName>    |
+      | K-USA  | <KusaName>   |
+      | AAPL   | Apple Inc.   |
+      | BTC    | Bitcoin      |
+
+    Examples:
+      | Language | PttName                    | KusaName                     |
+      | TH       | บริษัท ปตท. จำกัด (มหาชน) | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
+      | EN       | PTT Public Company Limited | Kasikorn US Equity Fund      |
+
+  @TC-TXN-08
+  Scenario: TC-TXN-08: Resetting symbol filter hides the transaction hero summary card
+    Given transactions are filtered to symbol "AAPL"
+    When I reset transactions to all symbols
+    Then the symbol hero card should be hidden
+
+  @smoke @TC-TXN-09
+  Scenario Outline: TC-TXN-09: Transaction hero subtitle localizes <Symbol> in <Language>
+    When I switch language to "<Language>"
+    And I focus transaction symbol "<Symbol>"
+    Then the transaction hero card subtitle should be "<ExpectedName>"
+
+    Examples:
+      | Language | Symbol | ExpectedName                 |
+      | TH       | PTT.BK | บริษัท ปตท. จำกัด (มหาชน)   |
+      | TH       | K-USA  | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
+      | TH       | AAPL   | Apple Inc.                   |
+      | TH       | BTC    | Bitcoin                      |
+      | EN       | PTT.BK | PTT Public Company Limited   |
+      | EN       | K-USA  | Kasikorn US Equity Fund      |
+      | EN       | AAPL   | Apple Inc.                   |
+      | EN       | BTC    | Bitcoin                      |

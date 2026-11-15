@@ -8,34 +8,30 @@ Feature: Global Navigation & Header Controls
     Given I open the SGSK Wealth application
 
   @smoke @TC-NAV-01
-  Scenario: TC-NAV-01: View Mode Switcher navigates between primary views
-    Then the Dashboard view should be visible
-    When I switch to the Holdings view
-    Then the asset tab bar should be visible
-    When I switch to the Analytics view
-    Then the analytics container should be visible
-    When I switch to the Allocation sub-tab
-    Then the asset allocation container should be visible
-    When I switch to the Performance sub-tab
-    Then the performance analytics container should be visible
-    When I switch to the Transactions view
-    Then the transaction history container should be visible
-    When I switch back to the Dashboard view
+  Scenario: TC-NAV-01: Application lands on Dashboard view by default
     Then the Dashboard view should be visible
 
   @smoke @TC-NAV-02
-  Scenario: TC-NAV-02: Currency Toggle switches display currency between USD and THB
-    When I switch currency to USD
-    Then the USD currency button should be active
-    When I switch currency to THB
-    Then the THB currency button should be active
+  Scenario Outline: TC-NAV-02: Currency Toggle switches display currency from <InitialCurrency> to <TargetCurrency>
+    Given the active currency is "<InitialCurrency>"
+    When I switch currency to "<TargetCurrency>"
+    Then the "<TargetCurrency>" currency button should be active
+
+    Examples:
+      | InitialCurrency | TargetCurrency |
+      | THB             | USD            |
+      | USD             | THB            |
 
   @TC-NAV-03
-  Scenario: TC-NAV-03: Theme Switcher toggles dark and light theme state
+  Scenario Outline: TC-NAV-03: Theme Switcher toggles theme from <InitialTheme> to <ExpectedTheme>
+    Given the application theme is "<InitialTheme>"
     When I toggle the theme
-    Then the document theme attribute should be "light"
-    When I toggle the theme
-    Then the document theme attribute should be "dark"
+    Then the document theme attribute should be "<ExpectedTheme>"
+
+    Examples:
+      | InitialTheme | ExpectedTheme |
+      | dark         | light         |
+      | light        | dark          |
 
   @TC-NAV-04
   Scenario Outline: TC-NAV-04: Primary navigation routes to each workspace module
@@ -52,12 +48,24 @@ Feature: Global Navigation & Header Controls
       | Dashboard    |
 
   @smoke @TC-NAV-05
-  Scenario: TC-NAV-05: Language Switcher toggles display language between EN and TH
-    Then the EN language button should be active
-    When I switch language to TH
-    Then the TH language button should be active
-    And the document language attribute should be "th"
-    And the navigation dashboard button should display "ภาพรวม"
-    When I switch language to EN
-    Then the EN language button should be active
-    And the document language attribute should be "en"
+  Scenario Outline: TC-NAV-05: Language Switcher toggles display language to <TargetLang>
+    Given the active language is "<InitialLang>"
+    When I switch language to "<TargetLang>"
+    Then the "<TargetLang>" language button should be active
+    And the document language attribute should be "<ExpectedAttr>"
+    And the navigation dashboard button should display "<ExpectedNavText>"
+
+    Examples:
+      | InitialLang | TargetLang | ExpectedAttr | ExpectedNavText |
+      | EN          | TH         | th           | ภาพรวม          |
+      | TH          | EN         | en           | Dashboard       |
+
+  @smoke @TC-NAV-06
+  Scenario Outline: TC-NAV-06: Analytics sub-tab navigation routes to <ViewName> view
+    When I navigate to the "<ViewName>" workspace view
+    Then the "<ViewName>" workspace view should be visible
+
+    Examples:
+      | ViewName    |
+      | Allocation  |
+      | Performance |

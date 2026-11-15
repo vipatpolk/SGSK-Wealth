@@ -3,6 +3,7 @@ package com.sgsk.wealth.e2e.steps.ui;
 import com.microsoft.playwright.Locator;
 import com.sgsk.wealth.e2e.pages.PvdHoldingsPage;
 import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import java.util.Map;
@@ -24,6 +25,7 @@ public class PvdHoldingsSteps {
         pvdHoldingsPage.switchToPvdMode();
     }
 
+    @Given("I am on the Market Holdings sub-view")
     @When("I switch to the Market Holdings sub-view")
     public void switchToMarketHoldingsSubView() {
         pvdHoldingsPage.switchToMarketMode();

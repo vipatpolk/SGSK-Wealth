@@ -50,16 +50,15 @@ Feature: Dividend Analytics & Yield on Cost (YOC)
     And the timeline legend should contain "U.S. Stocks", "Thai Stocks", "Mutual Funds", and "Bonds"
 
   @smoke @TC-DIV-06
-  Scenario: TC-DIV-06: Dividend breakdown table localizes Thai stocks and mutual funds across TH and EN
-    When I switch language to TH
+  Scenario Outline: TC-DIV-06: Dividend breakdown table localizes asset names in <Language>
+    When I switch language to "<Language>"
     Then the dividend table should display localized asset names:
-      | Symbol | ExpectedName                 |
-      | PTT.BK | บริษัท ปตท. จำกัด (มหาชน)   |
-      | K-USA  | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
-      | AAPL   | Apple Inc.                   |
-    When I switch language to EN
-    Then the dividend table should display localized asset names:
-      | Symbol | ExpectedName               |
-      | PTT.BK | PTT Public Company Limited |
-      | K-USA  | Kasikorn US Equity Fund    |
-      | AAPL   | Apple Inc.                 |
+      | Symbol | ExpectedName |
+      | PTT.BK | <PttName>    |
+      | K-USA  | <KusaName>   |
+      | AAPL   | Apple Inc.   |
+
+    Examples:
+      | Language | PttName                    | KusaName                     |
+      | TH       | บริษัท ปตท. จำกัด (มหาชน) | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
+      | EN       | PTT Public Company Limited | Kasikorn US Equity Fund      |

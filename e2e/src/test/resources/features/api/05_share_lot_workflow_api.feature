@@ -8,12 +8,9 @@ Feature: Share Lot Accounting & User Portfolio Workflow
   Scenario: TC-API-SL-01: Root service health check
     When I send a GET request to "/"
     Then the response status should be 200
-    And the response JSON should contain:
-      """
-      {
-        "message": "Welcome to SGSKBackend!"
-      }
-      """
+    And the response properties should match:
+      | property | expectedValue           |
+      | message  | Welcome to SGSKBackend! |
 
   @TC-API-SL-02
   Scenario Outline: TC-API-SL-02: Fetch share lot sheet across asset class tabs
@@ -37,12 +34,9 @@ Feature: Share Lot Accounting & User Portfolio Workflow
   Scenario: TC-API-SL-03: Fetch share lot sheet with invalid tab ID returns error
     When I send a GET request to "/share-lot/sheet/non-existent-tab"
     Then the response status should be 200
-    And the response JSON should contain:
-      """
-      {
-        "error": "Invalid tab id: non-existent-tab"
-      }
-      """
+    And the response properties should match:
+      | property | expectedValue                    |
+      | error    | Invalid tab id: non-existent-tab |
 
   @smoke @TC-API-SL-04
   Scenario: TC-API-SL-04: Fetch all share lot sheets aggregated
@@ -54,14 +48,9 @@ Feature: Share Lot Accounting & User Portfolio Workflow
   Scenario: TC-API-SL-05: Full user portfolio price fetch workflow
     Given the backend service root is available
     And the share lot sheet for "us-stock" is available
-    When I send a POST request to "/price/fetch-prices" with payload:
-      """
-      {
-        "summaries": [
-          { "symbol": "AAPL", "assetClass": "U.S. Stock", "currency": "USD" },
-          { "symbol": "PVDSP500", "assetClass": "Provident Fund", "currency": "THB" }
-        ]
-      }
-      """
+    When I send a POST request to "/price/fetch-prices" with summaries:
+      | symbol   | assetClass     | currency |
+      | AAPL     | U.S. Stock     | USD      |
+      | PVDSP500 | Provident Fund | THB      |
     Then the response status should be 200
     And the response should contain a positive number property "rate"

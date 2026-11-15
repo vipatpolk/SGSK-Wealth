@@ -37,6 +37,13 @@ public class CommonUiSteps {
         apiRouteMocker.mockPortfolioAPIError(page(), statusCode);
     }
 
+    @Given("I see the error state after a {int} backend outage")
+    public void openWithBackendOutageAndVerifyErrorState(int statusCode) {
+        setBackendApiError(statusCode);
+        openApplicationWithoutMocking();
+        verifyErrorState("Unable to load data");
+    }
+
     @When("I open the SGSK Wealth application without mocking")
     public void openApplicationWithoutMocking() {
         page().navigate("/");
@@ -144,6 +151,18 @@ public class CommonUiSteps {
         }
     }
 
+    @Given("the active currency is {string}")
+    @When("I switch currency to {string}")
+    public void switchCurrency(String currency) {
+        if ("USD".equalsIgnoreCase(currency.trim())) {
+            headerPage.switchToUSD();
+        } else if ("THB".equalsIgnoreCase(currency.trim())) {
+            headerPage.switchToTHB();
+        } else {
+            throw new IllegalArgumentException("Unsupported currency: " + currency);
+        }
+    }
+
     @When("I switch currency to USD")
     public void switchCurrencyToUSD() {
         headerPage.switchToUSD();
@@ -152,6 +171,17 @@ public class CommonUiSteps {
     @When("I switch currency to THB")
     public void switchCurrencyToTHB() {
         headerPage.switchToTHB();
+    }
+
+    @Then("the {string} currency button should be active")
+    public void verifyCurrencyButtonActive(String currency) {
+        if ("USD".equalsIgnoreCase(currency.trim())) {
+            verifyUsdActive();
+        } else if ("THB".equalsIgnoreCase(currency.trim())) {
+            verifyThbActive();
+        } else {
+            throw new IllegalArgumentException("Unsupported currency: " + currency);
+        }
     }
 
     @Then("the USD currency button should be active")
@@ -164,6 +194,18 @@ public class CommonUiSteps {
         assertThat(headerPage.currencyThbBtn).hasClass(Pattern.compile(".*currency-btn-active.*"));
     }
 
+    @Given("the active language is {string}")
+    @When("I switch language to {string}")
+    public void switchLanguage(String language) {
+        if ("EN".equalsIgnoreCase(language.trim())) {
+            headerPage.switchToEN();
+        } else if ("TH".equalsIgnoreCase(language.trim())) {
+            headerPage.switchToTH();
+        } else {
+            throw new IllegalArgumentException("Unsupported language: " + language);
+        }
+    }
+
     @When("I switch language to EN")
     public void switchLanguageToEN() {
         headerPage.switchToEN();
@@ -172,6 +214,17 @@ public class CommonUiSteps {
     @When("I switch language to TH")
     public void switchLanguageToTH() {
         headerPage.switchToTH();
+    }
+
+    @Then("the {string} language button should be active")
+    public void verifyLanguageButtonActive(String language) {
+        if ("EN".equalsIgnoreCase(language.trim())) {
+            verifyEnLangActive();
+        } else if ("TH".equalsIgnoreCase(language.trim())) {
+            verifyThLangActive();
+        } else {
+            throw new IllegalArgumentException("Unsupported language: " + language);
+        }
     }
 
     @Then("the EN language button should be active")
@@ -194,6 +247,15 @@ public class CommonUiSteps {
         assertThat(headerPage.viewToggleDashboardBtn).containsText(text);
     }
 
+    @Given("the application theme is {string}")
+    public void ensureApplicationTheme(String targetTheme) {
+        String current = page().locator("html").getAttribute("data-theme");
+        if (!targetTheme.equalsIgnoreCase(current)) {
+            headerPage.toggleTheme();
+        }
+        verifyTheme(targetTheme);
+    }
+
     @When("I toggle the theme")
     public void toggleTheme() {
         headerPage.toggleTheme();
@@ -202,6 +264,17 @@ public class CommonUiSteps {
     @Then("the document theme attribute should be {string}")
     public void verifyTheme(String theme) {
         assertThat(page().locator("html")).hasAttribute("data-theme", theme);
+    }
+
+    @Given("privacy mode is {string}")
+    public void ensurePrivacyMode(String targetState) {
+        String current = page().locator("html").getAttribute("data-privacy");
+        boolean isCurrentlyEnabled = "true".equalsIgnoreCase(current);
+        boolean shouldBeEnabled = "true".equalsIgnoreCase(targetState);
+        if (isCurrentlyEnabled != shouldBeEnabled) {
+            headerPage.privacyToggleBtn.click();
+        }
+        verifyPrivacyAttribute(shouldBeEnabled ? "true" : "false");
     }
 
     @When("I toggle privacy mode")

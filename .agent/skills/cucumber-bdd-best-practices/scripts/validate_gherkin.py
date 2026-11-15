@@ -64,19 +64,41 @@ def lint_feature_file(file_path: str) -> List[Issue]:
     in_background = False
     background_step_count = 0
     background_line_start = 0
+    in_scenario = False
+    scenario_step_count = 0
+    scenario_line_start = 0
+    scenario_title_current = ''
+    scenario_keywords_seen: set = set()
     feature_found = False
     feature_tags: List[str] = []
     pending_tags: List[str] = []
     in_doc_string = False
+    doc_string_start = 0
+    doc_string_lines: List[str] = []
 
     for i, raw_line in enumerate(lines, start=1):
         line = raw_line.strip()
 
         # Handle doc strings (\"\"\" or ```)
         if line.startswith('"""') or line.startswith('```'):
-            in_doc_string = not in_doc_string
+            if not in_doc_string:
+                in_doc_string = True
+                doc_string_start = i
+                doc_string_lines = []
+            else:
+                in_doc_string = False
+                doc_content = '\n'.join(doc_string_lines).strip()
+                if (doc_content.startswith('{') and doc_content.endswith('}')) or \
+                   (doc_content.startswith('[') and doc_content.endswith(']')) or \
+                   (doc_content.startswith('<') and doc_content.endswith('>')):
+                    issues.append(Issue(
+                        file_path, doc_string_start, 'DATA-01',
+                        'Raw JSON or XML detected in DocString. Convert structured payloads and assertions to a Gherkin DataTable.',
+                        'WARNING', doc_content.splitlines()[0]
+                    ))
             continue
         if in_doc_string:
+            doc_string_lines.append(line)
             continue
 
         # Ignore comments or empty lines
@@ -111,6 +133,7 @@ def lint_feature_file(file_path: str) -> List[Issue]:
         bg_match = BACKGROUND_KEYWORD_REGEX.match(line)
         if bg_match:
             in_background = True
+            in_scenario = False
             background_step_count = 0
             background_line_start = i
             pending_tags.clear()
@@ -128,7 +151,20 @@ def lint_feature_file(file_path: str) -> List[Issue]:
                     ))
                 in_background = False
 
+            if in_scenario and scenario_step_count > 8:
+                issues.append(Issue(
+                    file_path, scenario_line_start, 'SCEN-03',
+                    f'Scenario "{scenario_title_current}" has {scenario_step_count} steps (max recommended is 8). Split using Scenario Outline + Examples or separate scenarios.',
+                    'WARNING', f'Scenario (steps: {scenario_step_count})'
+                ))
+
+            in_scenario = True
+            scenario_step_count = 0
+            scenario_line_start = i
+            scenario_keywords_seen.clear()
+
             scen_title = scen_match.group(2)
+            scenario_title_current = scen_title.strip() if scen_title else ''
             if not scen_title or not scen_title.strip():
                 issues.append(Issue(
                     file_path, i, 'SCEN-01',
@@ -161,6 +197,16 @@ def lint_feature_file(file_path: str) -> List[Issue]:
                         f'Background contains an action/outcome step ({keyword}). Background should only establish Given preconditions.',
                         'ERROR', raw_line
                     ))
+            elif in_scenario:
+                scenario_step_count += 1
+                if keyword in ['Given', 'When', 'Then']:
+                    if keyword in scenario_keywords_seen:
+                        issues.append(Issue(
+                            file_path, i, 'STEP-03',
+                            f'Repeated "{keyword}" within the same scenario. Use "And" for consecutive steps or split into Scenario Outline / separate scenarios.',
+                            'WARNING', raw_line
+                        ))
+                    scenario_keywords_seen.add(keyword)
 
             # Check Trailing Punctuation
             if TRAILING_PUNCTUATION.match(line):
@@ -192,12 +238,18 @@ def lint_feature_file(file_path: str) -> List[Issue]:
                     ))
                     break
 
-    # Final check on background if last item
+    # Final check on background or scenario if last item
     if in_background and background_step_count > 4:
         issues.append(Issue(
             file_path, background_line_start, 'BG-01',
             f'Background has {background_step_count} steps; maximum recommended is 3-4',
             'WARNING', f'Background (steps: {background_step_count})'
+        ))
+    if in_scenario and scenario_step_count > 8:
+        issues.append(Issue(
+            file_path, scenario_line_start, 'SCEN-03',
+            f'Scenario "{scenario_title_current}" has {scenario_step_count} steps (max recommended is 8). Split using Scenario Outline + Examples or separate scenarios.',
+            'WARNING', f'Scenario (steps: {scenario_step_count})'
         ))
 
     return issues

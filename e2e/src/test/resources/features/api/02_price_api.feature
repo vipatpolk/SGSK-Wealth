@@ -18,18 +18,13 @@ Feature: Price & Market Data API Services
 
   @smoke @TC-API-PRC-02
   Scenario: TC-API-PRC-02: Batch fetch market prices for portfolio symbols
-    When I send a POST request to "/price/fetch-prices" with payload:
-      """
-      {
-        "summaries": [
-          { "symbol": "AAPL", "assetClass": "U.S. Stock", "currency": "USD" },
-          { "symbol": "PTT.BK", "assetClass": "Thai Stock", "currency": "THB" },
-          { "symbol": "BTC", "assetClass": "Cryptocurrency", "currency": "USD" },
-          { "symbol": "K-USA", "assetClass": "Mutual Fund", "currency": "THB" },
-          { "symbol": "PVDSP500", "assetClass": "Provident Fund", "currency": "THB" }
-        ]
-      }
-      """
+    When I send a POST request to "/price/fetch-prices" with summaries:
+      | symbol   | assetClass     | currency |
+      | AAPL     | U.S. Stock     | USD      |
+      | PTT.BK   | Thai Stock     | THB      |
+      | BTC      | Cryptocurrency | USD      |
+      | K-USA    | Mutual Fund    | THB      |
+      | PVDSP500 | Provident Fund | THB      |
     Then the response status should be 200
     And the response time should be within 5000 ms
     And the response should contain a positive number property "rate"
@@ -37,12 +32,10 @@ Feature: Price & Market Data API Services
 
   @TC-API-PRC-03
   Scenario: TC-API-PRC-03: Fetch mutual fund NAVs
-    When I send a POST request to "/nav/fetch" with payload:
-      """
-      {
-        "symbols": ["K-CHANGE.FUND", "K-USA"]
-      }
-      """
+    When I send a POST request to "/nav/fetch" with symbols:
+      | symbol        |
+      | K-CHANGE.FUND |
+      | K-USA         |
     Then the response status should be 200
     And the response time should be within 5000 ms
 

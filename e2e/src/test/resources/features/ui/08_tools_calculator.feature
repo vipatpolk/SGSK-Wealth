@@ -27,34 +27,25 @@ Feature: Tools Hub & Investor Simulators
     Then the simulation amount input should be visible
 
   @smoke @TC-TOOLS-04
-  Scenario: TC-TOOLS-04: Switch to TVM Calculator and calculate Future Value
+  Scenario: TC-TOOLS-04: Switching to TVM Calculator displays projected future value hero
     When I switch to the TVM Calculator tool
     Then the TVM hero display and projected value should be visible
-    When I switch the TVM solve mode to PMT
-    Then the target FV input should be visible
-    When I select TVM compounding frequency "Quarterly"
-    Then the active compounding frequency should display "Quarterly"
-    When I toggle the TVM accumulation schedule table
-    Then the schedule table should be visible
 
   @TC-TOOLS-05
-  Scenario: TC-TOOLS-05: TVM Calculator asset class multi-selection and valuation basis
-    When I switch to the TVM Calculator tool
-    And I click the PV valuation basis "Invested Cost"
-    Then the "Invested Cost" valuation basis button should be active
-    When I click the PV valuation basis "Market Value"
-    Then the "Market Value" valuation basis button should be active
-    When I toggle asset type chips selection
-    Then the selected asset type chip should be active
+  Scenario Outline: TC-TOOLS-05: TVM Calculator switches PV valuation basis to <Basis>
+    Given I am using the TVM Calculator tool
+    When I click the PV valuation basis "<Basis>"
+    Then the "<Basis>" valuation basis button should be active
+
+    Examples:
+      | Basis         |
+      | Invested Cost |
+      | Market Value  |
 
   @TC-TOOLS-06
-  Scenario: TC-TOOLS-06: TVM Calculator Year-by-Year Growth Chart and Area/Lines toggle
+  Scenario: TC-TOOLS-06: TVM Calculator renders Year-by-Year growth chart
     When I switch to the TVM Calculator tool
     Then the TVM growth chart card and svg should be visible
-    When I toggle TVM chart mode to "Lines"
-    Then the lines chart mode button should be active
-    When I toggle TVM chart mode to "Area"
-    Then the area chart mode button should be active
 
   @smoke @TC-TOOLS-07
   Scenario: TC-TOOLS-07: Switch to Rebalance Planner tool and render asset class groups
@@ -67,21 +58,21 @@ Feature: Tools Hub & Investor Simulators
   @TC-TOOLS-08
   Scenario: TC-TOOLS-08: Rebalance Planner quick actions and target adjustments
     When I switch to the Rebalance Planner tool
-    When I apply equal weight targets to the first asset class
+    And I apply equal weight targets to the first asset class
     Then the target sum badge should be visible
 
   @TC-TOOLS-09
   Scenario: TC-TOOLS-09: Rebalance Planner No-Sell mode and cash deposit calculation
     When I switch to the Rebalance Planner tool
     And I click the No-Sell mode button
+    And I select the custom cash deposit radio
     Then the No-Sell settings panel should be visible
-    When I select the custom cash deposit radio
-    Then the custom cash input should be visible
+    And the custom cash input should be visible
 
   @TC-TOOLS-10
   Scenario: TC-TOOLS-10: Rebalance Planner filter refreshes KPI grid and orders checklist
     When I switch to the Rebalance Planner tool
-    When I filter rebalance orders by asset class
+    And I filter rebalance orders by asset class
     Then the rebalance KPI summary should reflect the filtered class
 
   @TC-TOOLS-11
@@ -119,48 +110,82 @@ Feature: Tools Hub & Investor Simulators
       | RATE      | Required Annual Rate      |
 
   @smoke @TC-TOOLS-14
-  Scenario: TC-TOOLS-14: Average Cost Calculator dropdown and badge localize asset names across TH and EN
-    When I switch language to TH
+  Scenario Outline: TC-TOOLS-14: Average Cost Calculator dropdown localizes asset names in <Language>
+    When I switch language to "<Language>"
     Then the average cost calculator dropdown should display localized asset names:
-      | Symbol | ExpectedName                 |
-      | PTT.BK | บริษัท ปตท. จำกัด (มหาชน)   |
-      | K-USA  | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
-      | AAPL   | Apple Inc.                   |
-      | BTC    | Bitcoin                      |
-    When I select portfolio symbol "PTT.BK" in the average cost calculator
-    Then the average cost calculator selected badge should display "บริษัท ปตท. จำกัด (มหาชน)"
-    When I select portfolio symbol "K-USA" in the average cost calculator
-    Then the average cost calculator selected badge should display "กองทุนเปิดเค ยูเอสเอ หุ้นทุน"
-    When I select portfolio symbol "AAPL" in the average cost calculator
-    Then the average cost calculator selected badge should display "Apple Inc."
-    When I select portfolio symbol "BTC" in the average cost calculator
-    Then the average cost calculator selected badge should display "Bitcoin"
-    When I switch language to EN
-    Then the average cost calculator dropdown should display localized asset names:
-      | Symbol | ExpectedName               |
-      | PTT.BK | PTT Public Company Limited |
-      | K-USA  | Kasikorn US Equity Fund    |
-      | AAPL   | Apple Inc.                 |
-      | BTC    | Bitcoin                    |
-    When I select portfolio symbol "PTT.BK" in the average cost calculator
-    Then the average cost calculator selected badge should display "PTT Public Company Limited"
-    When I select portfolio symbol "K-USA" in the average cost calculator
-    Then the average cost calculator selected badge should display "Kasikorn US Equity Fund"
+      | Symbol | ExpectedName |
+      | PTT.BK | <PttName>    |
+      | K-USA  | <KusaName>   |
+      | AAPL   | Apple Inc.   |
+      | BTC    | Bitcoin      |
+
+    Examples:
+      | Language | PttName                    | KusaName                     |
+      | TH       | บริษัท ปตท. จำกัด (มหาชน) | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
+      | EN       | PTT Public Company Limited | Kasikorn US Equity Fund      |
 
   @TC-TOOLS-15
-  Scenario: TC-TOOLS-15: Rebalance Planner table localizes Thai market names across TH and EN
-    When I switch to the Rebalance Planner tool
-    And I switch language to TH
+  Scenario Outline: TC-TOOLS-15: Rebalance Planner table localizes asset names in <Language>
+    Given I am using the Rebalance Planner tool
+    When I switch language to "<Language>"
     Then the rebalance planner table should display localized asset names:
-      | Symbol | ExpectedName                 |
-      | PTT.BK | บริษัท ปตท. จำกัด (มหาชน)   |
-      | K-USA  | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
-      | AAPL   | Apple Inc.                   |
-      | BTC    | Bitcoin                      |
-    When I switch language to EN
-    Then the rebalance planner table should display localized asset names:
-      | Symbol | ExpectedName               |
-      | PTT.BK | PTT Public Company Limited |
-      | K-USA  | Kasikorn US Equity Fund    |
-      | AAPL   | Apple Inc.                 |
-      | BTC    | Bitcoin                    |
+      | Symbol | ExpectedName |
+      | PTT.BK | <PttName>    |
+      | K-USA  | <KusaName>   |
+      | AAPL   | Apple Inc.   |
+      | BTC    | Bitcoin      |
+
+    Examples:
+      | Language | PttName                    | KusaName                     |
+      | TH       | บริษัท ปตท. จำกัด (มหาชน) | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
+      | EN       | PTT Public Company Limited | Kasikorn US Equity Fund      |
+
+  @smoke @TC-TOOLS-16
+  Scenario: TC-TOOLS-16: Switching TVM solve mode to PMT displays target FV input
+    Given I am using the TVM Calculator tool
+    When I switch the TVM solve mode to PMT
+    Then the target FV input should be visible
+
+  @smoke @TC-TOOLS-17
+  Scenario: TC-TOOLS-17: Selecting TVM compounding frequency updates active compounding display
+    Given I am using the TVM Calculator tool
+    When I select TVM compounding frequency "Quarterly"
+    Then the active compounding frequency should display "Quarterly"
+
+  @smoke @TC-TOOLS-18
+  Scenario: TC-TOOLS-18: Toggling TVM accumulation schedule displays schedule table
+    Given I am using the TVM Calculator tool
+    When I toggle the TVM accumulation schedule table
+    Then the schedule table should be visible
+
+  @TC-TOOLS-19
+  Scenario: TC-TOOLS-19: TVM Calculator toggles asset type chips selection
+    Given I am using the TVM Calculator tool
+    When I toggle asset type chips selection
+    Then the selected asset type chip should be active
+
+  @TC-TOOLS-20
+  Scenario Outline: TC-TOOLS-20: TVM Calculator toggles growth chart mode to <Mode>
+    Given I am using the TVM Calculator tool
+    When I toggle TVM chart mode to "<Mode>"
+    Then the "<Mode>" chart mode button should be active
+
+    Examples:
+      | Mode  |
+      | Lines |
+      | Area  |
+
+  @smoke @TC-TOOLS-21
+  Scenario Outline: TC-TOOLS-21: Average Cost Calculator badge localizes <Symbol> in <Language>
+    When I switch language to "<Language>"
+    And I select portfolio symbol "<Symbol>" in the average cost calculator
+    Then the average cost calculator selected badge should display "<ExpectedName>"
+
+    Examples:
+      | Language | Symbol | ExpectedName                 |
+      | TH       | PTT.BK | บริษัท ปตท. จำกัด (มหาชน)   |
+      | TH       | K-USA  | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
+      | TH       | AAPL   | Apple Inc.                   |
+      | TH       | BTC    | Bitcoin                      |
+      | EN       | PTT.BK | PTT Public Company Limited   |
+      | EN       | K-USA  | Kasikorn US Equity Fund      |

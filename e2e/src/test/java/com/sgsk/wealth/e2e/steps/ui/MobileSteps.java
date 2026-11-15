@@ -88,6 +88,30 @@ public class MobileSteps {
         mobilePage.tapDividends();
     }
 
+    @When("I tap {string} on the bottom navigation bar")
+    public void tapTabOnBottomNav(String tabName) {
+        switch (tabName.trim().toLowerCase(java.util.Locale.ROOT)) {
+            case "dashboard" -> mobilePage.bottomNavDashboard.click();
+            case "holdings" -> mobilePage.tapHoldings();
+            case "analytics" -> mobilePage.tapAnalytics();
+            case "dividends" -> mobilePage.tapDividends();
+            case "tools" -> mobilePage.tapTools();
+            default -> throw new IllegalArgumentException("Unsupported bottom navigation tab: " + tabName);
+        }
+    }
+
+    @Then("the bottom nav {string} tab should be active")
+    public void verifyBottomNavTabActive(String tabName) {
+        switch (tabName.trim().toLowerCase(java.util.Locale.ROOT)) {
+            case "dashboard" -> verifyBottomNavDashboardActive();
+            case "holdings" -> verifyBottomNavHoldingsActive();
+            case "analytics" -> verifyBottomNavAnalyticsActive();
+            case "dividends" -> verifyBottomNavDividendsActive();
+            case "tools" -> assertThat(mobilePage.bottomNavTools).hasClass(Pattern.compile(".*view-toggle-btn-active.*"));
+            default -> throw new IllegalArgumentException("Unsupported bottom navigation tab: " + tabName);
+        }
+    }
+
     @Then("the bottom nav dividends tab should be active")
     public void verifyBottomNavDividendsActive() {
         assertThat(mobilePage.bottomNavDividends).hasClass(Pattern.compile(".*view-toggle-btn-active.*"));

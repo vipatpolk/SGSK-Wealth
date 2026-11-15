@@ -4,6 +4,7 @@ import com.sgsk.wealth.e2e.pages.DashboardPage;
 import com.sgsk.wealth.e2e.pages.FactsheetModalPage;
 import com.sgsk.wealth.e2e.pages.HoldingsPage;
 import com.sgsk.wealth.e2e.pages.PvdHoldingsPage;
+import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
@@ -26,18 +27,26 @@ public class FactsheetSteps {
         this.dashboardPage = dashboardPage;
     }
 
+    @Given("I have opened the fund fact sheet for {string} from {string} holdings")
+    public void openFundFactsheetFromHoldingsTab(String symbol, String tabName) {
+        holdingsPage.selectTab(tabName);
+        openFundFactsheetFromHoldings(symbol);
+    }
+
     @When("I open the fund fact sheet for {string} from holdings")
     public void openFundFactsheetFromHoldings(String symbol) {
         holdingsPage.openFactsheet(symbol);
         factsheetModalPage.modal().waitFor();
     }
 
+    @Given("I have opened the fund fact sheet for PVD policy {string}")
     @When("I open the fund fact sheet for PVD policy {string}")
     public void openFundFactsheetFromPvdHoldings(String symbol) {
         pvdHoldingsPage.openFactsheet(symbol);
         factsheetModalPage.modal().waitFor();
     }
 
+    @Given("I have opened the fund fact sheet for Dashboard PVD policy {string}")
     @When("I open the fund fact sheet for Dashboard PVD policy {string}")
     public void openFundFactsheetFromDashboardPvd(String symbol) {
         dashboardPage.openPvdFactsheet(symbol);

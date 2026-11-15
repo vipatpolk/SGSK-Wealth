@@ -45,52 +45,37 @@ Feature: Investment Performance & Analytics Engine
       | all    |
 
   @smoke @TC-PRF-06
-  Scenario: TC-PRF-06: Performance table and top movers localize Thai market names across TH and EN
-    When I switch language to TH
+  Scenario Outline: TC-PRF-06: Performance table and top movers localize asset names in <Language>
+    When I switch language to "<Language>"
     Then the performance table should display localized asset names:
-      | Symbol | ExpectedName                 |
-      | PTT.BK | บริษัท ปตท. จำกัด (มหาชน)   |
-      | K-USA  | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
-      | AAPL   | Apple Inc.                   |
-      | BTC    | Bitcoin                      |
+      | Symbol | ExpectedName |
+      | PTT.BK | <PttName>    |
+      | K-USA  | <KusaName>   |
+      | AAPL   | Apple Inc.   |
+      | BTC    | Bitcoin      |
     And the performance top movers should display localized asset names:
-      | Symbol | ExpectedName                 |
-      | PTT.BK | บริษัท ปตท. จำกัด (มหาชน)   |
-      | K-USA  | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
-      | AAPL   | Apple Inc.                   |
-      | BTC    | Bitcoin                      |
-    When I switch language to EN
-    Then the performance table should display localized asset names:
-      | Symbol | ExpectedName               |
-      | PTT.BK | PTT Public Company Limited |
-      | K-USA  | Kasikorn US Equity Fund    |
-      | AAPL   | Apple Inc.                 |
-      | BTC    | Bitcoin                    |
-    And the performance top movers should display localized asset names:
-      | Symbol | ExpectedName               |
-      | PTT.BK | PTT Public Company Limited |
-      | K-USA  | Kasikorn US Equity Fund    |
-      | AAPL   | Apple Inc.                 |
-      | BTC    | Bitcoin                    |
+      | Symbol | ExpectedName |
+      | PTT.BK | <PttName>    |
+      | K-USA  | <KusaName>   |
+      | AAPL   | Apple Inc.   |
+      | BTC    | Bitcoin      |
+
+    Examples:
+      | Language | PttName                    | KusaName                     |
+      | TH       | บริษัท ปตท. จำกัด (มหาชน) | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
+      | EN       | PTT Public Company Limited | Kasikorn US Equity Fund      |
 
   @TC-PRF-07
-  Scenario: TC-PRF-07: Performance search autocomplete displays localized asset suggestions across TH and EN
-    When I switch language to TH
-    And I search performance autocomplete for "PTT"
-    Then the performance autocomplete should suggest "บริษัท ปตท. จำกัด (มหาชน)" for "PTT"
-    When I close the performance search autocomplete
-    And I search performance autocomplete for "K-USA"
-    Then the performance autocomplete should suggest "กองทุนเปิดเค ยูเอสเอ หุ้นทุน" for "K-USA"
-    When I close the performance search autocomplete
-    And I search performance autocomplete for "AAPL"
-    Then the performance autocomplete should suggest "Apple Inc." for "AAPL"
-    When I close the performance search autocomplete
-    And I switch language to EN
-    And I search performance autocomplete for "PTT"
-    Then the performance autocomplete should suggest "PTT Public Company Limited" for "PTT"
-    When I close the performance search autocomplete
-    And I search performance autocomplete for "K-USA"
-    Then the performance autocomplete should suggest "Kasikorn US Equity Fund" for "K-USA"
-    When I close the performance search autocomplete
-    And I search performance autocomplete for "AAPL"
-    Then the performance autocomplete should suggest "Apple Inc." for "AAPL"
+  Scenario Outline: TC-PRF-07: Performance search autocomplete suggests localized <Symbol> in <Language>
+    When I switch language to "<Language>"
+    And I search performance autocomplete for "<Query>"
+    Then the performance autocomplete should suggest "<ExpectedName>" for "<Symbol>"
+
+    Examples:
+      | Language | Query | Symbol | ExpectedName                 |
+      | TH       | PTT   | PTT    | บริษัท ปตท. จำกัด (มหาชน)   |
+      | TH       | K-USA | K-USA  | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
+      | TH       | AAPL  | AAPL   | Apple Inc.                   |
+      | EN       | PTT   | PTT    | PTT Public Company Limited   |
+      | EN       | K-USA | K-USA  | Kasikorn US Equity Fund      |
+      | EN       | AAPL  | AAPL   | Apple Inc.                   |

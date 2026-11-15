@@ -1,6 +1,5 @@
 package com.sgsk.wealth.e2e.steps.api;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sgsk.wealth.e2e.config.E2eProperties;
 import com.sgsk.wealth.e2e.context.TestContext;
@@ -13,7 +12,8 @@ import io.restassured.response.Response;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 
-import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
@@ -77,12 +77,59 @@ public class ApiSteps {
         context.setLastApiResponse(response);
     }
 
-    @When("I send a POST request to {string} with payload:")
-    public void sendAuthorizedPostWithPayload(String endpoint, String docString) {
+    @When("I send a POST request to {string} with summaries:")
+    public void sendAuthorizedPostWithSummaries(String endpoint, DataTable dataTable) throws Exception {
+        String body = mapper.writeValueAsString(Map.of("summaries", dataTable.asMaps()));
+        sendAuthorizedJsonPost(endpoint, body);
+    }
+
+    @When("I send a POST request to {string} with symbols:")
+    public void sendAuthorizedPostWithSymbols(String endpoint, DataTable dataTable) throws Exception {
+        List<String> symbols = dataTable.asMaps().stream()
+                .map(row -> row.get("symbol"))
+                .toList();
+        String body = mapper.writeValueAsString(Map.of("symbols", symbols));
+        sendAuthorizedJsonPost(endpoint, body);
+    }
+
+    @Given("an initial simulation position:")
+    public void setInitialSimulationPosition(DataTable dataTable) {
+        Map<String, String> row = dataTable.asMaps().get(0);
+        Map<String, Object> position = new LinkedHashMap<>();
+        position.put("symbol", row.get("symbol"));
+        position.put("shares", Double.parseDouble(row.get("shares")));
+        position.put("avgCost", Double.parseDouble(row.get("avgCost")));
+        position.put("marketPrice", Double.parseDouble(row.get("marketPrice")));
+        position.put("currency", row.get("currency"));
+        context.setSimulationInitialPosition(position);
+    }
+
+    @When("I send a POST simulation request to {string} in currency {string} with steps:")
+    public void sendPostSimulationWithSteps(String endpoint, String currency, DataTable dataTable) throws Exception {
+        Map<String, Object> initialPosition = context.getSimulationInitialPosition();
+        Assertions.assertNotNull(initialPosition, "Initial simulation position must be set before sending simulation request");
+        List<Map<String, Object>> steps = dataTable.asMaps().stream()
+                .map(row -> {
+                    Map<String, Object> step = new LinkedHashMap<>();
+                    step.put("action", row.get("action"));
+                    step.put("shares", Double.parseDouble(row.get("shares")));
+                    step.put("price", Double.parseDouble(row.get("price")));
+                    step.put("feePercent", Double.parseDouble(row.get("feePercent")));
+                    return step;
+                })
+                .toList();
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("initialPosition", initialPosition);
+        payload.put("steps", steps);
+        payload.put("currency", currency);
+        sendAuthorizedJsonPost(endpoint, mapper.writeValueAsString(payload));
+    }
+
+    private void sendAuthorizedJsonPost(String endpoint, String jsonBody) {
         Response response = given()
                 .header("X-API-Key", apiKey())
-                .contentType("application/json")
-                .body(docString)
+                .contentType(ContentType.JSON)
+                .body(jsonBody)
                 .post(endpoint);
         context.setLastApiResponse(response);
     }
@@ -206,11 +253,11 @@ public class ApiSteps {
         context.getLastApiResponse().then().time(Matchers.lessThan((long) maxMs + 5000L));
     }
 
-    @Then("the response JSON should contain:")
-    public void verifyJsonContains(String docString) throws Exception {
-        JsonNode expectedNode = mapper.readTree(docString);
-        JsonNode actualNode = mapper.readTree(context.getLastApiResponse().getBody().asString());
-        assertJsonContains(expectedNode, actualNode);
+    @Then("the response properties should match:")
+    public void verifyPropertiesMatch(DataTable dataTable) {
+        for (Map<String, String> row : dataTable.asMaps()) {
+            verifyPropertyEquals(row.get("property"), row.get("expectedValue"));
+        }
     }
 
     @Then("the response should contain a positive number property {string}")
@@ -225,18 +272,5 @@ public class ApiSteps {
     public void verifyPropertyExists(String property) {
         Object val = context.getLastApiResponse().jsonPath().get(property);
         Assertions.assertNotNull(val, "Property '" + property + "' should be present in response");
-    }
-
-    private void assertJsonContains(JsonNode expected, JsonNode actual) {
-        if (expected.isObject()) {
-            Iterator<Map.Entry<String, JsonNode>> fields = expected.properties().iterator();
-            while (fields.hasNext()) {
-                Map.Entry<String, JsonNode> entry = fields.next();
-                Assertions.assertTrue(actual.has(entry.getKey()), "Actual JSON missing expected key: " + entry.getKey());
-                assertJsonContains(entry.getValue(), actual.get(entry.getKey()));
-            }
-        } else {
-            Assertions.assertEquals(expected.asText(), actual.asText());
-        }
     }
 }
