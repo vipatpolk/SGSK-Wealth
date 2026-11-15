@@ -18,6 +18,7 @@ All agents (Antigravity, OpenAI Codex, and Claude Code via `.claude/skills/`) sh
 | **`cucumber-bdd-best-practices`** | [`.agent/skills/cucumber-bdd-best-practices/SKILL.md`](.agent/skills/cucumber-bdd-best-practices/SKILL.md) | Authoring, reviewing, or refactoring `.feature` Gherkin specifications, Cucumber step definitions, Playwright Page Objects, REST Assured steps, and tagging taxonomy in `e2e/`. |
 | **`fifo-cost-basis`** | [`.agent/skills/fifo-cost-basis/SKILL.md`](.agent/skills/fifo-cost-basis/SKILL.md) | First In, First Out (FIFO) inventory valuation (COGS, ending inventory, GAAP/IFRS vs. LIFO) and portfolio cost-basis accounting (lot matching, acquisition fees, FIFO vs. Average Cost, `share_lot_service.py`). |
 | **`sec-open-apis`** | [`.agent/skills/sec-open-apis/SKILL.md`](.agent/skills/sec-open-apis/SKILL.md) | Thailand SEC Open Data APIs for Mutual Funds (`/v2/fund/*`, 21 endpoints) and Provident Funds (`/v1/pvd/factsheet/*`, 15 endpoints), cursor pagination, `Ocp-Apim-Subscription-Key` auth, `204` handling, and `nav_service.py`. |
+| **`ai-native-sdlc`** | [`.agent/skills/ai-native-sdlc/SKILL.md`](.agent/skills/ai-native-sdlc/SKILL.md) | Authoritative guide and operational standards for the AI-Native Software Development Lifecycle across all 6 stages (Plan, Design, Build, Test, Deploy, Maintain), artifact chains (`intent.md` -> `spec.md` -> `plan.md` -> `REVIEW.md` -> `bands.yaml`), plan mode, continuous evals, and closed-loop maintenance. |
 
 ---
 

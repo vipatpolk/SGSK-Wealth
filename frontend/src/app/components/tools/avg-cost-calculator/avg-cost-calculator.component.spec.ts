@@ -291,4 +291,30 @@ describe('AvgCostCalculatorComponent', () => {
     expect(component.positionSnapshot().totalCost).toBe(15000 * 35);
     expect(component.positionSnapshot().currentPrice).toBe(140 * 35);
   });
+
+  it('should filter filteredSymbolOptions by assetFilter and close dropdown cleanly', () => {
+    expect(component.filteredSymbolOptions().map((o) => o.symbol)).toEqual(['NVDA', 'PTT.BK']);
+
+    component.setAssetFilter('thai-stock');
+    expect(component.assetFilter()).toBe('thai-stock');
+    expect(component.filteredSymbolOptions().map((o) => o.symbol)).toEqual(['PTT.BK']);
+
+    // Toggling the same filter resets it
+    component.setAssetFilter('thai-stock');
+    expect(component.assetFilter()).toBe('');
+    expect(component.filteredSymbolOptions().length).toBe(2);
+
+    // Supports normalized aliases (e.g. 'US Stock') and explicit reset ('')
+    component.setAssetFilter('US Stock');
+    expect(component.filteredSymbolOptions().map((o) => o.symbol)).toEqual(['NVDA']);
+
+    component.setAssetFilter('');
+    expect(component.assetFilter()).toBe('');
+    expect(component.filteredSymbolOptions().length).toBe(2);
+
+    component.toggleDropdown();
+    expect(component.isDropdownOpen()).toBe(true);
+    component.closeDropdown();
+    expect(component.isDropdownOpen()).toBe(false);
+  });
 });

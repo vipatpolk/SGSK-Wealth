@@ -123,4 +123,33 @@ describe('DateRangePickerComponent', () => {
     expect(emittedRange).toEqual({ startDate: '2024-01-10', endDate: '2024-01-20' });
     expect(component.isOpen()).toBe(false);
   });
+
+  it('should expose isSelectingEndDate state and close via mobile sheet close button', () => {
+    component.toggleOpen();
+    fixture.detectChanges();
+
+    expect(component.isSelectingEndDate()).toBe(false);
+
+    component.selectDay({
+      date: '2024-01-10',
+      dayNumber: 10,
+      isCurrentMonth: true,
+      isToday: false,
+      isSelectedStart: false,
+      isSelectedEnd: false,
+      isInRange: false,
+      isInHoverRange: false,
+    });
+    fixture.detectChanges();
+
+    expect(component.isSelectingEndDate()).toBe(true);
+    const statusText = (fixture.nativeElement as HTMLElement).querySelector('.mobile-range-status')?.textContent;
+    expect(statusText).toContain('Tap end date');
+
+    const closeBtn = (fixture.nativeElement as HTMLElement).querySelector('.mobile-sheet-close') as HTMLButtonElement | null;
+    expect(closeBtn).toBeTruthy();
+    closeBtn?.click();
+    fixture.detectChanges();
+    expect(component.isOpen()).toBe(false);
+  });
 });

@@ -54,6 +54,25 @@
 
     <!-- Dropdown Popover Modal -->
     <div class="datepicker-popover" role="dialog" aria-modal="true" aria-label="Date Range Picker">
+      <!-- Mobile Bottom Sheet Header -->
+      <div class="datepicker-mobile-header">
+        <div class="mobile-sheet-handle" aria-hidden="true"></div>
+        <div class="mobile-sheet-title-row">
+          <span class="mobile-sheet-title">Select Date Range</span>
+          <button
+            type="button"
+            class="mobile-sheet-close"
+            (click)="close()"
+            aria-label="Close date picker"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sheet-close-icon">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
       <div class="datepicker-body">
         <!-- Sidebar Presets -->
         <div class="datepicker-presets-sidebar">
@@ -74,6 +93,19 @@
 
         <!-- Main Calendar Area -->
         <div class="datepicker-calendar-panel">
+          <!-- Touch-friendly Range Selection Status Bar -->
+          <div class="mobile-range-status" aria-live="polite">
+            <div class="range-step-box" [class.active-step]="!tempStartDate()" [class.filled]="!!tempStartDate()">
+              <span class="range-step-label">From</span>
+              <span class="range-step-value">{{ tempStartDate() ? formatDisplayDate(tempStartDate()) : 'Start date' }}</span>
+            </div>
+            <span class="range-step-arrow" aria-hidden="true">→</span>
+            <div class="range-step-box" [class.active-step]="isSelectingEndDate()" [class.filled]="!!tempEndDate()">
+              <span class="range-step-label">To</span>
+              <span class="range-step-value">{{ tempEndDate() ? formatDisplayDate(tempEndDate()) : (isSelectingEndDate() ? 'Tap end date' : 'End date') }}</span>
+            </div>
+          </div>
+
           <!-- Calendar Month Navigation Header -->
           <div class="calendar-header">
             <button

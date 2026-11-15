@@ -31,6 +31,7 @@ import {
   getPriceFormat,
   getQuantityFormat,
   getSymbolColor,
+  normalizeAssetType,
   resolveSymbolName,
   convertCurrency,
 } from '../../../utils/format.utils';
@@ -78,6 +79,7 @@ export class AvgCostCalculatorComponent {
   readonly selectedSymbol = signal<string>('');
   readonly isCustomMode = signal<boolean>(false);
   readonly symbolSearchQuery = signal<string>('');
+  readonly assetFilter = signal<string>('');
   readonly isDropdownOpen = signal<boolean>(false);
 
   /** Custom Position Inputs (when user enters un-owned stock/crypto) */
@@ -196,7 +198,14 @@ export class AvgCostCalculatorComponent {
 
   readonly filteredSymbolOptions = computed<SymbolOption[]>(() => {
     const q = this.symbolSearchQuery().trim().toUpperCase();
-    const list = this.availableSymbols();
+    const rawFilter = this.assetFilter().trim();
+    const filter = rawFilter ? normalizeAssetType(rawFilter) || rawFilter : '';
+    let list = this.availableSymbols();
+
+    if (filter) {
+      list = list.filter((s) => getAssetType(s.assetType, s.symbol) === filter);
+    }
+
     if (!q) return list;
     return list.filter(
       (s) =>
@@ -206,6 +215,27 @@ export class AvgCostCalculatorComponent {
         s.assetTypeLabel.toUpperCase().includes(q)
     );
   });
+
+  toggleDropdown(): void {
+    const next = !this.isDropdownOpen();
+    this.isDropdownOpen.set(next);
+    if (next) {
+      this.symbolSearchQuery.set('');
+    }
+  }
+
+  closeDropdown(): void {
+    this.isDropdownOpen.set(false);
+  }
+
+  setAssetFilter(type: string, event?: Event): void {
+    event?.stopPropagation();
+    if (!type || type === 'all') {
+      this.assetFilter.set('');
+      return;
+    }
+    this.assetFilter.set(this.assetFilter() === type ? '' : type);
+  }
 
   readonly selectedPosition = computed<PortfolioPosition | null>(() => {
     const sym = this.selectedSymbol();

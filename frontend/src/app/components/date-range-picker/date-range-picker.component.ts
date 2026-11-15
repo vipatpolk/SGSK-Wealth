@@ -189,6 +189,10 @@ export class DateRangePickerComponent {
     return !!this.startDate() || !!this.endDate();
   });
 
+  readonly isSelectingEndDate = computed<boolean>(() => {
+    return !!this.tempStartDate() && !this.tempEndDate();
+  });
+
   readonly displayText = computed<string>(() => {
     const start = this.startDate();
     const end = this.endDate();
@@ -446,6 +450,10 @@ export class DateRangePickerComponent {
     }
 
     this.selectedPreset.set('');
+  }
+
+  formatDisplayDate(iso: string): string {
+    return this.formatReadableDate(iso);
   }
 
   private formatReadableDate(iso: string): string {

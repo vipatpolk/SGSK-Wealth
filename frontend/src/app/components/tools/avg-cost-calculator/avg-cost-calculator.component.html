@@ -5,7 +5,7 @@
       <div class="symbol-selector-wrap">
         <label class="calc-label" for="symbol-search-input">Selected Asset / Symbol</label>
         <div class="symbol-dropdown-container">
-          <div class="symbol-search-box" (click)="isDropdownOpen.set(!isDropdownOpen())">
+          <div class="symbol-search-box" (click)="toggleDropdown()">
             @if (isCustomMode()) {
               <div class="symbol-selected-badge custom-badge">
                 <span class="badge-tag">CUSTOM</span>
@@ -28,8 +28,27 @@
 
           <!-- Dropdown Menu -->
           @if (isDropdownOpen()) {
-            <div class="dropdown-backdrop" (click)="isDropdownOpen.set(false)"></div>
-            <div class="symbol-dropdown-menu">
+            <div class="dropdown-backdrop symbol-dropdown-backdrop" (click)="closeDropdown()"></div>
+            <div class="symbol-dropdown-menu" role="dialog" aria-modal="true" aria-label="Select Asset">
+              <!-- Mobile Bottom Sheet Header -->
+              <div class="mobile-sheet-header">
+                <div class="mobile-sheet-handle" aria-hidden="true"></div>
+                <div class="mobile-sheet-title-row">
+                  <span class="mobile-sheet-title">Select Asset</span>
+                  <button
+                    type="button"
+                    class="mobile-sheet-close"
+                    (click)="closeDropdown()"
+                    aria-label="Close asset selector"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sheet-close-icon">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
               <div class="dropdown-search-input-wrap">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="search-lens-icon">
                   <circle cx="11" cy="11" r="8"></circle>
@@ -42,8 +61,55 @@
                   placeholder="Search portfolio symbols…"
                   [(ngModel)]="symbolSearchQuery"
                   (click)="$event.stopPropagation()"
-                  autofocus
                 />
+                @if (symbolSearchQuery()) {
+                  <button
+                    type="button"
+                    class="dropdown-search-clear"
+                    (click)="symbolSearchQuery.set(''); $event.stopPropagation()"
+                    aria-label="Clear symbol search"
+                  >✕</button>
+                }
+              </div>
+
+              <!-- Quick Asset-Type Filter Chips -->
+              <div class="dropdown-asset-pills">
+                <button
+                  type="button"
+                  class="dropdown-asset-pill"
+                  [class.active]="assetFilter() === ''"
+                  (click)="setAssetFilter('', $event)"
+                >All</button>
+                <button
+                  type="button"
+                  class="dropdown-asset-pill"
+                  [class.active]="assetFilter() === 'us-stock'"
+                  (click)="setAssetFilter('us-stock', $event)"
+                >U.S.</button>
+                <button
+                  type="button"
+                  class="dropdown-asset-pill"
+                  [class.active]="assetFilter() === 'thai-stock'"
+                  (click)="setAssetFilter('thai-stock', $event)"
+                >Thai</button>
+                <button
+                  type="button"
+                  class="dropdown-asset-pill"
+                  [class.active]="assetFilter() === 'crypto'"
+                  (click)="setAssetFilter('crypto', $event)"
+                >Crypto</button>
+                <button
+                  type="button"
+                  class="dropdown-asset-pill"
+                  [class.active]="assetFilter() === 'mutual-fund'"
+                  (click)="setAssetFilter('mutual-fund', $event)"
+                >Fund</button>
+                <button
+                  type="button"
+                  class="dropdown-asset-pill"
+                  [class.active]="assetFilter() === 'bond'"
+                  (click)="setAssetFilter('bond', $event)"
+                >Bond</button>
               </div>
 
               <div class="dropdown-options-list">

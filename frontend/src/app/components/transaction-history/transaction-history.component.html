@@ -53,7 +53,27 @@
 
         <!-- Dropdown Menu -->
         @if (isSymbolDropdownOpen()) {
-          <div class="symbol-dropdown-menu" id="symbol-dropdown-menu">
+          <div class="symbol-dropdown-backdrop" (click)="closeSymbolDropdown()"></div>
+          <div class="symbol-dropdown-menu" id="symbol-dropdown-menu" role="dialog" aria-modal="true" aria-label="Select Symbol">
+            <!-- Mobile Bottom Sheet Header -->
+            <div class="mobile-sheet-header">
+              <div class="mobile-sheet-handle" aria-hidden="true"></div>
+              <div class="mobile-sheet-title-row">
+                <span class="mobile-sheet-title">Select Symbol</span>
+                <button
+                  type="button"
+                  class="mobile-sheet-close"
+                  (click)="closeSymbolDropdown()"
+                  aria-label="Close symbol selector"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sheet-close-icon">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
             <div class="dropdown-search-wrap">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="search-icon-sm">
                 <circle cx="11" cy="11" r="8"></circle>
@@ -66,8 +86,15 @@
                 [value]="symbolSearchQuery()"
                 (input)="symbolSearchQuery.set($any($event.target).value)"
                 id="symbol-search-input"
-                autofocus
               />
+              @if (symbolSearchQuery()) {
+                <button
+                  type="button"
+                  class="dropdown-search-clear"
+                  (click)="symbolSearchQuery.set(''); $event.stopPropagation()"
+                  aria-label="Clear symbol search"
+                >✕</button>
+              }
             </div>
 
             <!-- Asset Type filter inside dropdown -->
@@ -131,7 +158,14 @@
                     <span class="dropdown-item-sub">Unified transaction log</span>
                   </div>
                 </div>
-                <span class="dropdown-item-count">{{ totalTxCount() }} trades</span>
+                <div class="dropdown-item-right">
+                  <span class="dropdown-item-count">{{ totalTxCount() }} trades</span>
+                  @if (!currentSymbol()) {
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="dropdown-check-icon" aria-hidden="true">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  }
+                </div>
               </button>
 
               @for (item of availableSymbols(); track item.symbol) {
@@ -168,6 +202,11 @@
                       {{ item.currentStatus }}
                     </span>
                     <span class="dropdown-item-count">{{ item.totalTransactions }} trades</span>
+                    @if (currentSymbol() === item.symbol) {
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="dropdown-check-icon" aria-hidden="true">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    }
                   </div>
                 </button>
               } @empty {
@@ -177,8 +216,8 @@
               }
             </div>
           </div>
-          <!-- Backdrop overlay to dismiss dropdown -->
-          <div class="dropdown-backdrop" (click)="closeSymbolDropdown()"></div>
+          <!-- Desktop backdrop fallback -->
+          <div class="dropdown-backdrop desktop-symbol-backdrop" (click)="closeSymbolDropdown()"></div>
         }
       </div>
     </div>

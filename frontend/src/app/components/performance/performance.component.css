@@ -1090,3 +1090,19 @@
   background: var(--color-surface-overlay);
   border-color: var(--color-border-hover);
 }
+
+@media (max-width: 768px) {
+  .perf-autocomplete-hint {
+    display: none;
+  }
+
+  .perf-search-input {
+    font-size: 1rem;
+    min-height: 42px;
+  }
+
+  .perf-autocomplete-item {
+    min-height: 48px;
+    padding: 0.65rem 0.875rem;
+  }
+}
