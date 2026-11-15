@@ -369,6 +369,8 @@ export class AnalyticsComponent {
         return {
           symbol: s.symbol,
           displaySymbol: displaySymbol(s.symbol),
+          assetType: getAssetType(s.assetType, s.symbol),
+          pvdFundName: s.pvdFundName,
           value: val,
           percent: tot > 0 ? (val / tot) * 100 : 0,
           color: getSymbolColor(s.symbol),
@@ -396,6 +398,7 @@ export class AnalyticsComponent {
         displaySymbol: displaySymbol(s.symbol),
         name: resolveSymbolName(s.symbol, pm, lang, assetType),
         assetType,
+        pvdFundName: s.pvdFundName,
         totalReturnPercent: pct,
         color: getSymbolColor(s.symbol),
       };

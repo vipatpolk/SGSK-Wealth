@@ -45,6 +45,15 @@ describe('symbol-icon.utils', () => {
       expect(getBackendSymbolIconUrl('SCBBLN.FUND')).toBe(
         '/api/backend/icon/SCBBLN.FUND?asset_type=mutual-fund'
       );
+      expect(
+        getBackendSymbolIconUrl('PVDSP500', 'provident-fund', 'ไทยพาณิชย์ มาสเตอร์ฟันด์')
+      ).toBe(
+        '/api/backend/icon/PVDSP500?asset_type=provident-fund&fund_name=' +
+          encodeURIComponent('ไทยพาณิชย์ มาสเตอร์ฟันด์')
+      );
+      expect(getBackendSymbolIconUrl('AAPL', 'us-stock', 'Ignored Fund')).toBe(
+        '/api/backend/icon/AAPL?asset_type=us-stock'
+      );
     });
 
     it('returns null for empty or null symbol', () => {
@@ -88,9 +97,12 @@ describe('symbol-icon.utils', () => {
     });
 
     it('returns isMutualFund: true and backend icon URL for Provident Funds', () => {
-      const config = getSymbolLogoConfig('PVDSP500', 'provident-fund');
+      const config = getSymbolLogoConfig('PVDSP500', 'provident-fund', 'ไทยพาณิชย์ มาสเตอร์ฟันด์');
       expect(config.isMutualFund).toBe(true);
-      expect(config.primaryUrl).toBe('/api/backend/icon/PVDSP500?asset_type=provident-fund');
+      expect(config.primaryUrl).toBe(
+        '/api/backend/icon/PVDSP500?asset_type=provident-fund&fund_name=' +
+          encodeURIComponent('ไทยพาณิชย์ มาสเตอร์ฟันด์')
+      );
       expect(config.secondaryUrl).toBeNull();
       expect(config.monogram).toBe('PV');
     });

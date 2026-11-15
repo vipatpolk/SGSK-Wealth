@@ -362,7 +362,7 @@
               <div class="concentration-item">
                 <div class="concentration-header">
                   <div class="concentration-symbol">
-                    <app-symbol-icon [symbol]="h.symbol" [size]="'sm'"></app-symbol-icon>
+                    <app-symbol-icon [symbol]="h.symbol" [assetType]="h.assetType" [fundName]="h.pvdFundName" [size]="'sm'"></app-symbol-icon>
                     <span
                       class="symbol-badge symbol-badge-sm"
                       [style.background-color]="h.color + '18'"
@@ -422,6 +422,7 @@
                   <app-symbol-icon
                     [symbol]="g.symbol"
                     [assetType]="g.assetType"
+                    [fundName]="g.pvdFundName"
                     [size]="'xs'"
                   ></app-symbol-icon>
                   <span class="mover-sym font-semibold">{{ g.displaySymbol }}</span>
@@ -441,6 +442,7 @@
                   <app-symbol-icon
                     [symbol]="l.symbol"
                     [assetType]="l.assetType"
+                    [fundName]="l.pvdFundName"
                     [size]="'xs'"
                   ></app-symbol-icon>
                   <span class="mover-sym font-semibold">{{ l.displaySymbol }}</span>

@@ -4,7 +4,7 @@
     <button class="card-header" (click)="toggleExpand.emit(summary().symbol)" [id]="'toggle-' + summary().symbol">
       <div class="card-header-left">
         <div class="symbol-identity-row">
-          <app-symbol-icon [symbol]="summary().symbol" [assetType]="summary().assetType" [size]="'md'"></app-symbol-icon>
+          <app-symbol-icon [symbol]="summary().symbol" [assetType]="summary().assetType" [fundName]="summary().pvdFundName" [size]="'md'"></app-symbol-icon>
           <div class="symbol-identity">
             <span class="symbol-badge" [style.background-color]="getSymbolColor()(summary().symbol) + '18'" [style.color]="getSymbolColor()(summary().symbol)" [style.border-color]="getSymbolColor()(summary().symbol) + '30'">
               {{ getDisplaySymbol()(summary().symbol) }}
@@ -396,7 +396,7 @@
     <button class="card-header" (click)="toggleExpand.emit(summary().symbol)" [id]="'toggle-' + summary().symbol">
       <div class="card-header-left">
         <div class="symbol-identity-row">
-          <app-symbol-icon [symbol]="summary().symbol" [assetType]="summary().assetType" [size]="'md'"></app-symbol-icon>
+          <app-symbol-icon [symbol]="summary().symbol" [assetType]="summary().assetType" [fundName]="summary().pvdFundName" [size]="'md'"></app-symbol-icon>
           <div class="symbol-identity">
             <span class="symbol-badge" [style.background-color]="getSymbolColor()(summary().symbol) + '18'" [style.color]="getSymbolColor()(summary().symbol)" [style.border-color]="getSymbolColor()(summary().symbol) + '30'">
               {{ getDisplaySymbol()(summary().symbol) }}

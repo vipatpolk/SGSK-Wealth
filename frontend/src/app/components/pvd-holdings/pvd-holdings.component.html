@@ -471,7 +471,7 @@
             <article class="pvd-policy-card" [id]="'pvd-policy-' + policy.symbol">
               <div class="pvd-policy-head">
                 <div class="pvd-policy-identity">
-                  <app-symbol-icon [symbol]="policy.symbol" [assetType]="policy.assetType" size="md"></app-symbol-icon>
+                  <app-symbol-icon [symbol]="policy.symbol" [assetType]="policy.assetType" [fundName]="policy.pvdFundName" size="md"></app-symbol-icon>
                   <div class="pvd-policy-titles">
                     <div class="pvd-symbol-line">
                       <span class="pvd-symbol-code font-mono">{{ policy.displaySymbol }}</span>

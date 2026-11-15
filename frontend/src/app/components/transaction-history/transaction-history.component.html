@@ -794,7 +794,7 @@
                   <td class="col-symbol">
                     <button class="symbol-link-btn" (click)="selectSymbol(tx.symbol)" type="button" [title]="getSymbolName(tx.symbol, tx.assetType) || getDisplaySymbol(tx.symbol)">
                       <div class="tx-badge-row">
-                        <app-symbol-icon [symbol]="tx.symbol" [size]="'xs'"></app-symbol-icon>
+                        <app-symbol-icon [symbol]="tx.symbol" [assetType]="tx.assetType" [size]="'xs'"></app-symbol-icon>
                         <span
                           class="symbol-badge symbol-badge-xs"
                           [style.background-color]="getSymbolColor(tx.symbol) + '18'"
@@ -957,7 +957,7 @@
               @if (!activeSummary()) {
                 <button class="symbol-link-btn mobile-symbol-link" (click)="selectSymbol(tx.symbol)" type="button" [title]="getSymbolName(tx.symbol, tx.assetType) || getDisplaySymbol(tx.symbol)">
                   <div class="tx-badge-row">
-                    <app-symbol-icon [symbol]="tx.symbol" [size]="'xs'"></app-symbol-icon>
+                    <app-symbol-icon [symbol]="tx.symbol" [assetType]="tx.assetType" [size]="'xs'"></app-symbol-icon>
                     <span
                       class="symbol-badge symbol-badge-xs"
                       [style.background-color]="getSymbolColor(tx.symbol) + '18'"

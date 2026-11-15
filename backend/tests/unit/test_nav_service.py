@@ -712,3 +712,78 @@ async def test_fetch_fund_factsheet_pvd_selects_latest_period_and_prevents_sibli
     assert axj_fs.assetAllocation == []
     assert axj_fs.topHoldings == []
 
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_resolve_fund_amc_caches_pvd_and_mutual_fund_unique_id(monkeypatch):
+    from utils.cache import ttl_cache
+
+    ttl_cache.clear()
+    svc = NavService()
+    monkeypatch.setitem(svc.headers, "Ocp-Apim-Subscription-Key", "test-key")
+
+    class MockPostResponse:
+        status_code = 200
+
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return [
+                {
+                    "proj_id": "V0001_2553",
+                    "proj_name_th": "ไทยพาณิชย์ มาสเตอร์ฟันด์",
+                    "fund_status": "RG",
+                    "unique_id": "C0000000239",
+                }
+            ]
+
+    class MockPolicyResponse:
+        status_code = 200
+
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return [
+                {
+                    "sub_policy_id": "PVDSP500",
+                    "sub_policy_name": "นโยบายหุ้นยูเอส",
+                }
+            ]
+
+    async def mock_post(url, *args, **kwargs):
+        return MockPostResponse()
+
+    async def mock_get(url, *args, **kwargs):
+        return MockPolicyResponse()
+
+    monkeypatch.setattr(svc.client, "post", mock_post)
+    monkeypatch.setattr(svc.client, "get", mock_get)
+
+    # Resolving PVD fund populates amcId on policies and symbol->AMC cache
+    policies = await svc.fetch_pvd_policies(fund_name="ไทยพาณิชย์ มาสเตอร์ฟันด์")
+    assert policies["PVDSP500"]["amcId"] == "C0000000239"
+    assert ttl_cache.get("sec_pvd_symbol_amc_PVDSP500") == "C0000000239"
+
+    # resolve_fund_amc returns cached AMC ID with fund_name or by symbol
+    amc_id, hint = await svc.resolve_fund_amc("PVDSP500", "provident-fund", "ไทยพาณิชย์ มาสเตอร์ฟันด์")
+    assert amc_id == "C0000000239"
+    assert hint == "ไทยพาณิชย์ มาสเตอร์ฟันด์"
+
+    amc_id_by_sym, _ = await svc.resolve_fund_amc("PVDSP500", "provident-fund")
+    assert amc_id_by_sym == "C0000000239"
+
+    # Mutual fund resolution via fetch_fund_profile
+    async def mock_fetch_profile(clean_symbol: str, sym_upper: str):
+        return {
+            "proj_id": "M0159_2555",
+            "unique_id": "C0000000021",
+            "comp_name_en": "KASIKORN ASSET MANAGEMENT COMPANY LIMITED",
+        }
+
+    monkeypatch.setattr(svc, "fetch_fund_profile", mock_fetch_profile)
+    mf_amc_id, mf_name = await svc.resolve_fund_amc("K-USA-A(A).FUND", "mutual-fund")
+    assert mf_amc_id == "C0000000021"
+    assert mf_name == "KASIKORN ASSET MANAGEMENT COMPANY LIMITED"
+

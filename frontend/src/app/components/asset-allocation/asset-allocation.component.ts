@@ -248,6 +248,8 @@ export class AssetAllocationComponent implements OnInit {
         return {
           symbol: s.symbol,
           displaySymbol: displaySymbol(s.symbol),
+          assetType: getAssetType(s.assetType, s.symbol),
+          pvdFundName: s.pvdFundName,
           value: val,
           percent: 0,
           color: getSymbolColor(s.symbol),
@@ -287,6 +289,8 @@ export class AssetAllocationComponent implements OnInit {
         return {
           symbol: s.symbol,
           displaySymbol: displaySymbol(s.symbol),
+          assetType,
+          pvdFundName: s.pvdFundName,
           name: resolveSymbolName(s.symbol, pm, lang, assetType),
           shares: s.totalShares,
           price: pd?.price || 0,

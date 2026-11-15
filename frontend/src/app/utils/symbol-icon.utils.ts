@@ -26,20 +26,30 @@ export function cleanTickerForUrl(symbol: string): string {
  */
 export function getBackendSymbolIconUrl(
   symbol: string | null | undefined,
-  assetType?: string | null
+  assetType?: string | null,
+  fundName?: string | null
 ): string | null {
   if (!symbol) return null;
   const clean = symbol.trim();
   if (!clean) return null;
 
   const resolvedType = getAssetType(assetType || undefined, clean);
-  return `/api/backend/icon/${encodeURIComponent(clean)}?asset_type=${encodeURIComponent(resolvedType)}`;
+  let url = `/api/backend/icon/${encodeURIComponent(clean)}?asset_type=${encodeURIComponent(resolvedType)}`;
+  const cleanFund = (fundName || '').trim();
+  if (resolvedType === 'provident-fund' && cleanFund) {
+    url += `&fund_name=${encodeURIComponent(cleanFund)}`;
+  }
+  return url;
 }
 
 /**
  * Resolves backend logo URL and fallback configuration for a given symbol and asset type.
  */
-export function getSymbolLogoConfig(symbol: string, assetType?: string): SymbolLogoConfig {
+export function getSymbolLogoConfig(
+  symbol: string,
+  assetType?: string,
+  fundName?: string
+): SymbolLogoConfig {
   if (!symbol) {
     return {
       primaryUrl: null,
@@ -54,7 +64,7 @@ export function getSymbolLogoConfig(symbol: string, assetType?: string): SymbolL
   const brandColor = getSymbolColor(symbol);
   const monogram = getSymbolMonogram(symbol);
   const isMutualFund = type === 'mutual-fund' || type === 'provident-fund';
-  const backendUrl = getBackendSymbolIconUrl(symbol, type);
+  const backendUrl = getBackendSymbolIconUrl(symbol, type, fundName);
 
   return {
     primaryUrl: backendUrl,

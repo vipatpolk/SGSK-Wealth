@@ -30,6 +30,7 @@ export type SymbolIconShape = 'circle' | 'rounded';
 export class SymbolIconComponent {
   readonly symbol = input.required<string>();
   readonly assetType = input<string | undefined>(undefined);
+  readonly fundName = input<string | undefined>(undefined);
   readonly size = input<SymbolIconSize>('md');
   readonly shape = input<SymbolIconShape>('circle');
   readonly alt = input<string>('');
@@ -39,7 +40,7 @@ export class SymbolIconComponent {
   readonly isLoaded = signal<boolean>(false);
 
   readonly config = computed<SymbolLogoConfig>(() =>
-    getSymbolLogoConfig(this.symbol(), this.assetType())
+    getSymbolLogoConfig(this.symbol(), this.assetType(), this.fundName())
   );
 
   readonly pixelSize = computed<number>(() => {

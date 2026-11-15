@@ -120,6 +120,21 @@ describe('SymbolIconComponent', () => {
     expect(wrapper?.classList.contains('shape-rounded')).toBe(true);
   });
 
+  it('appends fund_name query param for provident funds when fundName input is set', () => {
+    fixture.componentRef.setInput('symbol', 'PVDSP500');
+    fixture.componentRef.setInput('assetType', 'provident-fund');
+    fixture.componentRef.setInput('fundName', 'ไทยพาณิชย์ มาสเตอร์ฟันด์');
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const img = compiled.querySelector('img');
+    expect(img).toBeTruthy();
+    expect(img?.getAttribute('src')).toBe(
+      '/api/backend/icon/PVDSP500?asset_type=provident-fund&fund_name=' +
+        encodeURIComponent('ไทยพาณิชย์ มาสเตอร์ฟันด์')
+    );
+  });
+
   it('marks image as loaded on load event', () => {
     fixture.componentRef.setInput('symbol', 'AAPL');
     fixture.detectChanges();

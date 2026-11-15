@@ -7,15 +7,15 @@ service = IconService()
 
 
 @router.get("/meta/{symbol:path}")
-async def get_icon_metadata(symbol: str, asset_type: str = ""):
+async def get_icon_metadata(symbol: str, asset_type: str = "", fund_name: str = ""):
     """Returns metadata for the given ticker symbol icon."""
-    return service.get_symbol_metadata(symbol, asset_type)
+    return await service.get_symbol_metadata(symbol, asset_type, fund_name)
 
 
 @router.get("")
-async def get_icon_by_query(symbol: str = "", asset_type: str = ""):
+async def get_icon_by_query(symbol: str = "", asset_type: str = "", fund_name: str = ""):
     """Returns icon image or SVG when symbol is passed as a query parameter."""
-    content, media_type = await service.get_symbol_icon(symbol, asset_type)
+    content, media_type = await service.get_symbol_icon(symbol, asset_type, fund_name)
     return Response(
         content=content,
         media_type=media_type,
@@ -26,9 +26,9 @@ async def get_icon_by_query(symbol: str = "", asset_type: str = ""):
 
 
 @router.get("/{symbol:path}")
-async def get_icon_by_path(symbol: str, asset_type: str = ""):
+async def get_icon_by_path(symbol: str, asset_type: str = "", fund_name: str = ""):
     """Returns icon image or SVG when symbol is passed as a path parameter."""
-    content, media_type = await service.get_symbol_icon(symbol, asset_type)
+    content, media_type = await service.get_symbol_icon(symbol, asset_type, fund_name)
     return Response(
         content=content,
         media_type=media_type,

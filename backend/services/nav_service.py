@@ -23,6 +23,7 @@ from models.transaction import PriceData
 from utils.cache import singleflight, ttl_cache
 from utils.http_client import get_http_client, get_sec_semaphore
 from utils.pvd_constants import DEFAULT_PVD_METADATA, DEFAULT_PVD_NAMES
+from utils.symbol_icon_utils import extract_brand_tokens, extract_domain_candidates
 
 logger = logging.getLogger(__name__)
 
@@ -311,6 +312,17 @@ class NavService:
                 if resolved_fund_name:
                     ttl_cache.set(f"sec_pvd_fund_name_{resolved_proj_id}", resolved_fund_name, ttl=86400.0)
 
+                resolved_amc_id = str(matched.get("unique_id") or "").strip()
+                if resolved_amc_id:
+                    ttl_cache.set(f"sec_pvd_amc_id_proj_{resolved_proj_id}", resolved_amc_id, ttl=86400.0)
+                    ttl_cache.set(f"sec_pvd_amc_id_name_{clean_name}", resolved_amc_id, ttl=86400.0)
+                    if resolved_fund_name:
+                        ttl_cache.set(
+                            f"sec_pvd_amc_id_name_{resolved_fund_name}",
+                            resolved_amc_id,
+                            ttl=86400.0,
+                        )
+
                 ttl_cache.set(cache_key, resolved_proj_id, ttl=86400.0)
                 return resolved_proj_id
             except Exception:
@@ -331,14 +343,22 @@ class NavService:
         resolved_fund_name = str(
             ttl_cache.get(f"sec_pvd_fund_name_{target_proj_id}") or fund_name or ""
         ).strip()
+        resolved_amc_id = str(ttl_cache.get(f"sec_pvd_amc_id_proj_{target_proj_id}") or "").strip()
 
         cache_key = f"sec_pvd_policies_{target_proj_id}"
         cached = ttl_cache.get(cache_key)
         if cached is not None:
             cached_map = cast(dict[str, dict[str, Any]], cached)
-            if resolved_fund_name:
+            if resolved_amc_id:
+                for sym_key in cached_map:
+                    ttl_cache.set(f"sec_pvd_symbol_amc_{sym_key}", resolved_amc_id, ttl=86400.0)
+            if resolved_fund_name or resolved_amc_id:
                 return {
-                    k: ({**v, "fundName": resolved_fund_name} if not v.get("fundName") else v)
+                    k: {
+                        **v,
+                        **({"fundName": resolved_fund_name} if resolved_fund_name and not v.get("fundName") else {}),
+                        **({"amcId": resolved_amc_id} if resolved_amc_id and not v.get("amcId") else {}),
+                    }
                     for k, v in cached_map.items()
                 }
             return cached_map
@@ -347,9 +367,16 @@ class NavService:
             c = ttl_cache.get(cache_key)
             if c is not None:
                 c_map = cast(dict[str, dict[str, Any]], c)
-                if resolved_fund_name:
+                if resolved_amc_id:
+                    for sym_key in c_map:
+                        ttl_cache.set(f"sec_pvd_symbol_amc_{sym_key}", resolved_amc_id, ttl=86400.0)
+                if resolved_fund_name or resolved_amc_id:
                     return {
-                        k: ({**v, "fundName": resolved_fund_name} if not v.get("fundName") else v)
+                        k: {
+                            **v,
+                            **({"fundName": resolved_fund_name} if resolved_fund_name and not v.get("fundName") else {}),
+                            **({"amcId": resolved_amc_id} if resolved_amc_id and not v.get("amcId") else {}),
+                        }
                         for k, v in c_map.items()
                     }
                 return c_map
@@ -381,6 +408,7 @@ class NavService:
                             "uniqueSubPolicyId": _clean_str(item.get("unique_sub_policy_id")) or "",
                             "name": _clean_str(item.get("sub_policy_name")) or "",
                             "fundName": resolved_fund_name,
+                            "amcId": resolved_amc_id,
                             "policyName": _clean_str(item.get("policy_name")) or "",
                             "aimcType": _clean_str(item.get("aimc_type")) or "",
                             "aimcDescription": _clean_str(item.get("aimc_description")) or "",
@@ -389,6 +417,8 @@ class NavService:
                             "inceptionDate": _clean_str(item.get("sub_policy_inception_date")) or "",
                             "foreignRiskLevel": _clean_str(item.get("foreign_risk_level")) or "",
                         }
+                        if resolved_amc_id:
+                            ttl_cache.set(f"sec_pvd_symbol_amc_{key}", resolved_amc_id, ttl=86400.0)
 
                 ttl_cache.set(cache_key, policy_map, ttl=86400.0)
                 return policy_map
@@ -503,6 +533,246 @@ class NavService:
                 return None
 
         return await singleflight.execute(f"sec_profile_{clean_symbol.upper()}", _do_fetch_profile)
+
+    async def fetch_mf_amcs(self) -> list[dict[str, Any]]:
+        """Fetch and cache the full SEC Mutual Fund AMC directory."""
+        cache_key = "sec_mf_amcs_directory"
+        cached = ttl_cache.get(cache_key)
+        if isinstance(cached, list):
+            return cast(list[dict[str, Any]], cached)
+
+        async def _do_fetch() -> list[dict[str, Any]]:
+            c = ttl_cache.get(cache_key)
+            if isinstance(c, list):
+                return cast(list[dict[str, Any]], c)
+            items: list[dict[str, Any]] = []
+            cursor: str | None = None
+            while True:
+                params: dict[str, str] = {}
+                if cursor:
+                    params["cursor"] = cursor
+                payload = await self._fetch_sec_json(
+                    f"{SEC_API_CONFIG['baseUrl']}/general-info/amcs",
+                    params=params or None,
+                )
+                batch = self._extract_items(payload)
+                if not batch:
+                    break
+                items.extend(batch)
+                next_cursor = _clean_str(payload.get("next_cursor")) if isinstance(payload, dict) else None
+                if not next_cursor or next_cursor == cursor:
+                    break
+                cursor = next_cursor
+            if items:
+                ttl_cache.set(cache_key, items, ttl=86400.0)
+            return items
+
+        return await singleflight.execute(cache_key, _do_fetch)
+
+    async def fetch_pvd_amcs(self) -> list[dict[str, Any]]:
+        """Fetch and cache the full SEC Provident Fund AMC directory."""
+        cache_key = "sec_pvd_amcs_directory"
+        cached = ttl_cache.get(cache_key)
+        if isinstance(cached, list):
+            return cast(list[dict[str, Any]], cached)
+
+        async def _do_fetch() -> list[dict[str, Any]]:
+            c = ttl_cache.get(cache_key)
+            if isinstance(c, list):
+                return cast(list[dict[str, Any]], c)
+            settings = get_settings()
+            payload = await self._fetch_sec_json(f"{settings.sec_pvd_base_url}/factsheet/amc")
+            items = self._extract_items(payload)
+            if items:
+                ttl_cache.set(cache_key, items, ttl=86400.0)
+            return items
+
+        return await singleflight.execute(cache_key, _do_fetch)
+
+    async def _fetch_host_from_proj_id(self, proj_id: str) -> str | None:
+        payload = await self._fetch_sec_json(
+            f"{SEC_API_CONFIG['baseUrl']}/factsheet/urls",
+            {"proj_id": proj_id},
+        )
+        for item in self._extract_items(payload):
+            raw_url = _clean_str(item.get("amc_url_factsheet")) or _clean_str(item.get("amc_url"))
+            candidates = extract_domain_candidates(raw_url)
+            if candidates:
+                return candidates[0]
+        return None
+
+    async def _fetch_host_from_company_info(self, amc_id: str) -> str | None:
+        payload = await self._fetch_sec_json(
+            f"{SEC_API_CONFIG['baseUrl']}/general-info/profiles",
+            {"company_info": amc_id, "fund_status": "Registered", "page_size": "5"},
+        )
+        for proj in self._extract_items(payload)[:5]:
+            pid = _clean_str(proj.get("proj_id"))
+            if not pid:
+                continue
+            host = await self._fetch_host_from_proj_id(pid)
+            if host:
+                return host
+        return None
+
+    async def resolve_amc_website_host(
+        self,
+        amc_id: str,
+        proj_id: str | None = None,
+        amc_name: str | None = None,
+        abbr_name: str | None = None,
+    ) -> str | None:
+        """Dynamically discover an AMC's official website hostname from SEC Open APIs."""
+        clean_id = (amc_id or "").strip()
+        if not clean_id:
+            return None
+
+        cache_key = f"sec_amc_host_{clean_id}"
+        cached = ttl_cache.get(cache_key)
+        if isinstance(cached, str):
+            return cached or None
+
+        async def _do_resolve() -> str | None:
+            c = ttl_cache.get(cache_key)
+            if isinstance(c, str):
+                return c or None
+
+            host: str | None = None
+            if proj_id:
+                host = await self._fetch_host_from_proj_id(proj_id)
+
+            if not host:
+                host = await self._fetch_host_from_company_info(clean_id)
+
+            if not host and (amc_name or abbr_name):
+                brand_tokens = extract_brand_tokens(amc_name or abbr_name)
+                abbr_upper = re.sub(r"[^A-Z0-9]", "", (abbr_name or "").upper())
+                if brand_tokens:
+                    mf_amcs = await self.fetch_mf_amcs()
+                    for row in mf_amcs:
+                        sister_id = _clean_str(row.get("unique_id"))
+                        if not sister_id or sister_id == clean_id:
+                            continue
+                        row_name = _clean_str(row.get("comp_name_en")) or ""
+                        sister_tokens = extract_brand_tokens(row_name)
+                        if not sister_tokens:
+                            continue
+                        if sister_tokens[0] == brand_tokens[0] or (abbr_upper and abbr_upper == sister_tokens[0]):
+                            host = await self._fetch_host_from_company_info(sister_id)
+                            if host:
+                                break
+
+            if host:
+                ttl_cache.set(cache_key, host, ttl=604800.0)
+                return host
+
+            ttl_cache.set(cache_key, "", ttl=3600.0)
+            return None
+
+        return await singleflight.execute(cache_key, _do_resolve)
+
+    async def resolve_fund_amc_details(
+        self,
+        symbol: str,
+        asset_type: str,
+        fund_name: str | None = None,
+    ) -> dict[str, str | None]:
+        """Dynamically resolve SEC AMC metadata and website host for a mutual or provident fund."""
+        empty_res: dict[str, str | None] = {
+            "amc_id": None,
+            "amc_name": None,
+            "abbr_name": None,
+            "website_host": None,
+            "proj_id": None,
+        }
+        sym_clean = re.sub(r"(?i)\.(FUND|BKFUND|BK)$", "", (symbol or "").strip()).strip()
+        sym_upper = sym_clean.upper()
+        normalized_type = (asset_type or "").strip().lower()
+        has_sec_access = bool(self.headers.get("Ocp-Apim-Subscription-Key")) or self._custom_client is not None
+
+        amc_id: str | None = None
+        amc_name: str | None = None
+        abbr_name: str | None = None
+        proj_id: str | None = None
+
+        if normalized_type == "provident-fund":
+            clean_fund = (fund_name or "").strip()
+            if clean_fund:
+                cached_by_name = ttl_cache.get(f"sec_pvd_amc_id_name_{clean_fund}")
+                if isinstance(cached_by_name, str) and cached_by_name:
+                    amc_id = cached_by_name
+                cached_proj = ttl_cache.get(f"sec_pvd_proj_id_{clean_fund}")
+                if isinstance(cached_proj, str) and cached_proj:
+                    proj_id = cached_proj
+                if not amc_id and has_sec_access:
+                    proj_id = await self.fetch_pvd_proj_id(clean_fund)
+                    if proj_id:
+                        cached_proj_amc = ttl_cache.get(f"sec_pvd_amc_id_proj_{proj_id}")
+                        if isinstance(cached_proj_amc, str) and cached_proj_amc:
+                            amc_id = cached_proj_amc
+                amc_name = clean_fund
+            elif sym_upper:
+                cached_by_sym = ttl_cache.get(f"sec_pvd_symbol_amc_{sym_upper}")
+                if isinstance(cached_by_sym, str) and cached_by_sym:
+                    amc_id = cached_by_sym
+
+            if amc_id and has_sec_access:
+                pvd_amcs = await self.fetch_pvd_amcs()
+                for row in pvd_amcs:
+                    if _clean_str(row.get("unique_id")) == amc_id:
+                        abbr_name = _clean_str(row.get("abbr_name"))
+                        amc_name = _clean_str(row.get("name_en")) or _clean_str(row.get("name_th")) or amc_name
+                        break
+        else:
+            if not sym_upper:
+                return empty_res
+
+            cached_profile = ttl_cache.get(f"sec_profile_{sym_upper}")
+            profile = cached_profile if isinstance(cached_profile, dict) else None
+            if profile is None and has_sec_access:
+                fetched = await self.fetch_fund_profile(sym_clean, sym_upper)
+                if isinstance(fetched, dict):
+                    profile = fetched
+
+            if profile:
+                amc_id = _clean_str(profile.get("unique_id"))
+                amc_name = _clean_str(profile.get("comp_name_en")) or _clean_str(profile.get("comp_name_th"))
+                proj_id = _clean_str(profile.get("proj_id"))
+
+        if not amc_id:
+            return empty_res
+
+        website_host: str | None = None
+        cached_host = ttl_cache.get(f"sec_amc_host_{amc_id}")
+        if isinstance(cached_host, str):
+            website_host = cached_host or None
+        elif has_sec_access:
+            # For PVD funds, proj_id is a PVD project ID rather than MF proj_id; resolve via company_info.
+            mf_proj_id = proj_id if normalized_type != "provident-fund" else None
+            website_host = await self.resolve_amc_website_host(
+                amc_id,
+                proj_id=mf_proj_id,
+                amc_name=amc_name,
+                abbr_name=abbr_name,
+            )
+
+        return {
+            "amc_id": amc_id,
+            "amc_name": amc_name,
+            "abbr_name": abbr_name,
+            "website_host": website_host,
+            "proj_id": proj_id,
+        }
+
+    async def resolve_fund_amc(
+        self,
+        symbol: str,
+        asset_type: str,
+        fund_name: str | None = None,
+    ) -> tuple[str | None, str | None]:
+        """Resolve SEC AMC (unique_id, amc_name_hint) for a mutual fund or provident fund."""
+        details = await self.resolve_fund_amc_details(symbol, asset_type, fund_name)
+        return (details["amc_id"], details["amc_name"])
 
     async def fetch_fund_nav_data(
         self, symbol: str, clean_symbol: str, sym_upper: str, fund: dict[str, Any]
