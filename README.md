@@ -23,6 +23,7 @@
   <img src="https://img.shields.io/badge/Vitest-4.1-FCC72B?style=flat-square&logo=vitest&logoColor=black" alt="Vitest Unit Testing" />
   <img src="https://img.shields.io/badge/Node.js-26.13_LTS-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js 26 LTS" />
   <img src="https://img.shields.io/badge/Deploy-Vercel-000000?style=flat-square&logo=vercel&logoColor=white" alt="Vercel" />
+  <a href="https://vipatpolk.github.io/SGSK-Wealth/"><img src="https://img.shields.io/badge/Allure_Live_Report-GitHub_Pages-10B981?style=flat-square&logo=githubpages&logoColor=white" alt="Live Allure Report on GitHub Pages" /></a>
 </p>
 
 ---
@@ -184,7 +185,8 @@ flowchart LR
 A unified GitHub Actions workflow configured for `push`, `pull_request`, and `workflow_dispatch`:
 1. **`backend-qa`**: Python 3.11 environment running Ruff linter, Mypy type checker, and Pytest with code coverage artifact upload.
 2. **`frontend-qa`**: Node.js 26 LTS environment running Vitest unit tests (351 tests) and production Angular build.
-3. **`e2e-automation`**: Runs after both QA jobs (`needs: [backend-qa, frontend-qa]`), sets up JDK 25 and Node.js 26, downloads Playwright Chromium, executes the 177 E2E test cases across 16 feature files (`5` `@api` + `11` `@ui`), generates the Allure HTML report, and stores `allure-e2e-report` build artifacts.
+3. **`e2e-automation`**: Runs after both QA jobs (`needs: [backend-qa, frontend-qa]`), sets up JDK 25 and Node.js 26, downloads Playwright Chromium, executes the 177 E2E test cases across 16 feature files (`5` `@api` + `11` `@ui`), restores Allure execution history (via Actions cache + artifact API fallback), injects CI executor/environment metadata, generates the Allure HTML report, writes an E2E scorecard to the GitHub Actions Job Summary, and stores `allure-e2e-report` build artifacts.
+4. **`publish-allure-report`**: Runs on `main`/`master` pushes and manual `workflow_dispatch` triggers (even when E2E tests fail so failures are inspectable immediately) and deploys the Allure report directly to **GitHub Pages** at [vipatpolk.github.io/SGSK-Wealth](https://vipatpolk.github.io/SGSK-Wealth/) via `actions/deploy-pages`—avoiding `gh-pages` branch pushes so Vercel Preview deployments are never triggered or broken.
 
 ---
 
@@ -342,6 +344,7 @@ SGSK-Wealth enforces strict quality standards before any code is committed. Unif
 | **`npm run test:e2e:api`** | Run only Rest Assured API automation scenarios (**61 `@api` test cases**) | Rest Assured & Cucumber-JVM |
 | **`npm run test:e2e:smoke`** | Run critical path navigation, factsheet, and dashboard smoke scenarios (**91 `@smoke` test cases**) | Playwright & Cucumber-JVM |
 | **`npm run test:e2e:report`** | Generate and open the interactive Allure HTML report locally | Allure Maven Plugin |
+| **`npm run test:e2e:report:build`** | Generate the static Allure HTML report (`e2e/target/site/allure-maven-plugin/`) | Allure Maven Plugin |
 | **`npm run build`** | Compile production-ready Angular bundle with budget validation | Angular CLI |
 
 ---

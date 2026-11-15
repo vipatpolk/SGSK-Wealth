@@ -21,6 +21,7 @@
     "test:e2e:api": "node scripts/dev.mjs --e2e --tags=@api",
     "test:e2e:smoke": "node scripts/dev.mjs --e2e --tags=@smoke",
     "test:e2e:report": "mvn -f e2e/pom.xml allure:serve",
+    "test:e2e:report:build": "mvn -f e2e/pom.xml allure:report",
     "test:backend": "node scripts/dev.mjs --test-backend",
     "lint:backend": "node scripts/dev.mjs --lint-backend",
     "lint:gherkin": "py .agent/skills/cucumber-bdd-best-practices/scripts/validate_gherkin.py --strict e2e/src/test/resources/features",

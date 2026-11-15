@@ -7,6 +7,10 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   security-scan:
     name: Security Secret Scan (Gitleaks)
@@ -90,6 +94,8 @@ jobs:
     name: End-to-End Automation (Java, Playwright, Rest Assured & Allure)
     needs: [backend-qa, frontend-qa]
     runs-on: ubuntu-latest
+    outputs:
+      report_generated: ${{ steps.allure_gen.outputs.generated }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -117,14 +123,79 @@ jobs:
       - name: Execute Unified E2E Test Suite
         run: mvn -f e2e/pom.xml clean test
 
-      - name: Generate Allure Report
+      - name: Restore Allure History Cache
         if: always()
-        run: mvn -f e2e/pom.xml allure:report
+        uses: actions/cache/restore@v4
+        with:
+          path: e2e/target/allure-history-cache
+          key: allure-history-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            allure-history-${{ github.base_ref || github.ref_name }}-
+            allure-history-main-
+
+      - name: Restore Allure History Fallback (Artifact API)
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node .github/scripts/allure-ci-helper.mjs restore-history-from-artifact
+
+      - name: Prepare Allure Metadata & History
+        if: always()
+        run: |
+          if [ -d "e2e/target/allure-results" ]; then
+            node .github/scripts/allure-ci-helper.mjs prepare-results
+          fi
+
+      - name: Generate Allure Report
+        id: allure_gen
+        if: always()
+        run: |
+          if [ -d "e2e/target/allure-results" ]; then
+            mvn -f e2e/pom.xml allure:report
+            node .github/scripts/allure-ci-helper.mjs finalize-report
+            node .github/scripts/allure-ci-helper.mjs step-summary
+            echo "generated=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No Allure results directory found; skipping report generation."
+            echo "generated=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Upload Allure Report Artifact
-        if: always()
+        if: always() && steps.allure_gen.outputs.generated == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: allure-e2e-report
           path: e2e/target/site/allure-maven-plugin/
-          retention-days: 14
+          retention-days: 30
+
+      - name: Save Allure History Cache
+        if: always() && steps.allure_gen.outputs.generated == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+        uses: actions/cache/save@v4
+        with:
+          path: e2e/target/allure-history-cache
+          key: allure-history-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Upload GitHub Pages Artifact
+        if: always() && steps.allure_gen.outputs.generated == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: e2e/target/site/allure-maven-plugin/
+
+  publish-allure-report:
+    name: Publish Allure Report to GitHub Pages
+    needs: [e2e-automation]
+    if: always() && needs.e2e-automation.outputs.report_generated == 'true' && needs.e2e-automation.result != 'cancelled' && needs.e2e-automation.result != 'skipped' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
