@@ -64,6 +64,8 @@ export interface TvmCalculationResult {
   schedule: TvmScheduleEntry[];
   isValid: boolean;
   errorMessage?: string;
+  errorKey?: string;
+  errorParams?: Record<string, string | number>;
 }
 
 export type SimulationAction = 'BUY' | 'SELL';
@@ -140,6 +142,8 @@ export interface TargetAvgCostGoalInput {
 export interface TargetAvgCostGoalResult {
   isValid: boolean;
   errorMessage?: string;
+  errorKey?: string;
+  errorParams?: Record<string, string | number>;
   requiredShares: number;
   requiredCapital: number;
   feeAmount: number;

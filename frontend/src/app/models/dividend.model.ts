@@ -68,6 +68,7 @@ export interface SymbolDividendSummary {
   symbol: string;
   displaySymbol: string;
   name: string;
+  nameTh?: string;
   assetType: string;
   assetTypeLabel: string;
   currency: string;

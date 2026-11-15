@@ -58,3 +58,33 @@ Feature: Provident Fund (PVD) Holdings & SEC Metadata Analytics
       | Principal  | PVDSP500     |
       | Units      | PVDMPINC     |
       | Risk       | PVDSP500     |
+
+  @smoke @TC-PVD-06
+  Scenario: TC-PVD-06: PVD sub-policy cards display localized sub-policy names across EN and TH
+    Then the PVD sub-policy cards should display localized policy names:
+      | Symbol   | ExpectedName                     |
+      | PVDSP500 | นโยบายกองทุนรวมดัชนี S&P 500 THB |
+      | PVDMPINC | นโยบายกองทุนรวมผสม THB เฮดจ์     |
+    And the PVD policy card "PVDSP500" should not display "SCB S&P 500 Index Policy"
+    And the PVD policy card "PVDMPINC" should not display "SCB Fixed Income Plus Policy"
+    When I switch language to TH
+    Then the PVD sub-policy cards should display localized policy names:
+      | Symbol   | ExpectedName                     |
+      | PVDSP500 | นโยบายกองทุนรวมดัชนี S&P 500 THB |
+      | PVDMPINC | นโยบายกองทุนรวมผสม THB เฮดจ์     |
+    And the PVD policy card "PVDSP500" should not display "SCB S&P 500 Index Policy"
+    And the PVD policy card "PVDMPINC" should not display "SCB Fixed Income Plus Policy"
+    When I switch language to EN
+    Then the PVD sub-policy cards should display localized policy names:
+      | Symbol   | ExpectedName                     |
+      | PVDSP500 | นโยบายกองทุนรวมดัชนี S&P 500 THB |
+      | PVDMPINC | นโยบายกองทุนรวมผสม THB เฮดจ์     |
+
+  @smoke @TC-PVD-07
+  Scenario: View Provident Fund policy fact sheet modal from PVD Holdings
+    When I open the fund fact sheet for PVD policy "PVDSP500"
+    Then the fund fact sheet modal should display "นโยบายกองทุนรวมดัชนี S&P 500 THB" with risk "RS6"
+    And the fund fact sheet modal should contain "ไทยพาณิชย์ มาสเตอร์ฟันด์"
+    And the fund fact sheet modal should contain "0.45%"
+    When I close the fund fact sheet modal
+    Then the fund fact sheet modal should be hidden

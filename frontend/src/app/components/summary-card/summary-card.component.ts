@@ -1,15 +1,22 @@
-import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
-import { CurrencyPipe, DecimalPipe, DatePipe } from '@angular/common';
+import { Component, input, output, inject, ChangeDetectionStrategy } from '@angular/core';
+import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { SymbolIconComponent } from '../symbol-icon/symbol-icon.component';
+import { I18nService } from '../../services/i18n.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
+import { FactsheetRequestTarget } from '../../models/factsheet.model';
+import { getAssetType, getUnitLabel } from '../../utils/format.utils';
 
 @Component({
   selector: 'app-summary-card',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe, DatePipe, SymbolIconComponent],
+  imports: [CurrencyPipe, DecimalPipe, SymbolIconComponent, TranslatePipe, LocalizedDatePipe],
   templateUrl: './summary-card.component.html'
 })
 export class SummaryCardComponent {
+  readonly i18n = inject(I18nService);
+
   type = input.required<'open' | 'closed'>();
   summary = input.required<any>();
   isAllTab = input.required<boolean>();
@@ -20,6 +27,7 @@ export class SummaryCardComponent {
   
   toggleExpand = output<string>();
   openHistory = output<string>();
+  openFactsheet = output<FactsheetRequestTarget>();
   
   // Formatters as inputs
   getSymbolColor = input.required<(symbol: string) => string>();
@@ -42,7 +50,35 @@ export class SummaryCardComponent {
   getLotHoldingValue = input.required<(lot: any, summary: any) => number>();
   getLotUnrealizedPL = input.required<(lot: any, summary: any) => number>();
 
+  canViewFactsheet(summary: any): boolean {
+    const type = getAssetType(summary?.assetType, summary?.symbol);
+    return type === 'mutual-fund' || type === 'provident-fund';
+  }
+
+  onOpenFactsheet(event: Event, summary: any): void {
+    event.stopPropagation();
+    const assetType = getAssetType(summary?.assetType, summary?.symbol);
+    this.openFactsheet.emit({
+      symbol: summary?.symbol || '',
+      assetType,
+      fundName: summary?.pvdFundName || undefined,
+      displayName: this.getSymbolName()(summary?.symbol, summary?.name),
+      displayNameTh: summary?.nameTh || undefined,
+    });
+  }
+
   // PVD Contribution Helpers
+  getUnitText(summary: any): string {
+    return getUnitLabel(summary?.symbol, summary?.assetType, this.i18n.lang());
+  }
+
+  formatLotNote(note: string): string {
+    if (!note) return '';
+    if (note.includes('Employee')) return this.i18n.t('summary.empContribTitle');
+    if (note.includes('Employer')) return this.i18n.t('summary.emprMatchTitle');
+    return note;
+  }
+
   getEmployeeShares(summary: any): number {
     if (summary.employeeShares !== undefined && summary.employeeShares !== null) {
       return summary.employeeShares;

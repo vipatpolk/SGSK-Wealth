@@ -1,8 +1,10 @@
 package com.sgsk.wealth.e2e.steps.ui;
 
 import com.sgsk.wealth.e2e.pages.DashboardPage;
+import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import java.util.Map;
 
 import java.util.regex.Pattern;
 
@@ -80,5 +82,19 @@ public class DashboardSteps {
     @When("I navigate from the Dashboard retirement card to PVD Holdings")
     public void navigateFromDashboardToPvdHoldings() {
         dashboardPage.navigateToPvdHoldings();
+    }
+
+    @Then("the Dashboard top movers should display localized asset names:")
+    public void verifyDashboardTopMoversLocalizedNames(DataTable dataTable) {
+        for (Map<String, String> row : dataTable.asMaps()) {
+            String symbol = row.get("Symbol");
+            String expectedName = row.get("ExpectedName");
+            assertThat(dashboardPage.moverNameBySymbol(symbol)).containsText(expectedName);
+        }
+    }
+
+    @Then("the Dashboard retirement card should not display {string}")
+    public void verifyDashboardRetirementCardDoesNotDisplay(String unexpectedText) {
+        assertThat(dashboardPage.pvdPositionsMiniList()).not().containsText(unexpectedText);
     }
 }

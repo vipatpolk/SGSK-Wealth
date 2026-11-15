@@ -2,12 +2,17 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  inject,
   input,
   output,
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PortfolioPosition } from '../../models/portfolio.model';
+import { FactsheetRequestTarget } from '../../models/factsheet.model';
+import { I18nService } from '../../services/i18n.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+import { TranslationKey } from '../../i18n/en';
 import { SymbolIconComponent } from '../symbol-icon/symbol-icon.component';
 import {
   convertCurrency,
@@ -35,6 +40,8 @@ export interface PvdPolicyViewModel {
   symbol: string;
   displaySymbol: string;
   name: string;
+  nameEn: string;
+  nameTh: string;
   assetType: string;
   color: string;
   totalShares: number;
@@ -143,7 +150,7 @@ export function parseRiskInfo(riskLevel?: string | null): PvdRiskInfo {
 @Component({
   selector: 'app-pvd-holdings',
   standalone: true,
-  imports: [CommonModule, SymbolIconComponent],
+  imports: [CommonModule, SymbolIconComponent, TranslatePipe],
   templateUrl: './pvd-holdings.component.html',
   styleUrl: './pvd-holdings.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -152,6 +159,8 @@ export function parseRiskInfo(riskLevel?: string | null): PvdRiskInfo {
   },
 })
 export class PvdHoldingsComponent {
+  readonly i18n = inject(I18nService);
+
   readonly positions = input.required<PortfolioPosition[]>();
   readonly displayCurrency = input.required<'USD' | 'THB'>();
   readonly exchangeRate = input.required<number>();
@@ -160,6 +169,7 @@ export class PvdHoldingsComponent {
   readonly pricesLoading = input<boolean>(false);
 
   readonly refresh = output<void>();
+  readonly openFactsheet = output<FactsheetRequestTarget>();
 
   readonly searchQuery = signal<string>('');
   readonly sortBy = signal<PvdSortKey>('value');
@@ -223,11 +233,25 @@ export class PvdHoldingsComponent {
       const returnPct =
         effectivePrincipal > 0 ? (effectiveEarnings / effectivePrincipal) * 100 : 0;
 
+      const resolvedName =
+        getSymbolName(
+          pos.symbol,
+          pos.name || '',
+          this.i18n.lang(),
+          pos.nameTh || '',
+          pos.assetType
+        ) ||
+        (pos.policyName || '').trim() ||
+        pos.displaySymbol ||
+        displaySymbol(pos.symbol);
+
       return {
         position: pos,
         symbol: pos.symbol,
         displaySymbol: pos.displaySymbol || displaySymbol(pos.symbol),
-        name: getSymbolName(pos.symbol, pos.name || ''),
+        name: resolvedName,
+        nameEn: pos.name || '',
+        nameTh: pos.nameTh || '',
         assetType: getAssetType(pos.assetType, pos.symbol),
         color: getSymbolColor(pos.symbol),
         totalShares,
@@ -401,6 +425,8 @@ export class PvdHoldingsComponent {
             p.symbol.toLowerCase().includes(q) ||
             p.displaySymbol.toLowerCase().includes(q) ||
             p.name.toLowerCase().includes(q) ||
+            p.nameEn.toLowerCase().includes(q) ||
+            p.nameTh.toLowerCase().includes(q) ||
             p.pvdFundName.toLowerCase().includes(q) ||
             p.policyName.toLowerCase().includes(q) ||
             p.aimcType.toLowerCase().includes(q) ||
@@ -495,6 +521,24 @@ export class PvdHoldingsComponent {
 
   getNavFormat(): string {
     return getPriceFormat('', 'provident-fund');
+  }
+
+  getRiskLabel(risk: PvdRiskInfo): string {
+    if (risk.score >= 1 && risk.score <= 8) {
+      return this.i18n.t(`pvd.rs.${risk.score}` as TranslationKey);
+    }
+    return this.i18n.t('pvd.rs.unknown');
+  }
+
+  onOpenFactsheet(event: Event, policy: PvdPolicyViewModel): void {
+    event.stopPropagation();
+    this.openFactsheet.emit({
+      symbol: policy.symbol,
+      assetType: 'provident-fund',
+      fundName: policy.pvdFundName || undefined,
+      displayName: policy.name,
+      displayNameTh: policy.nameTh || undefined,
+    });
   }
 
   private toDisplay(amount: number | undefined | null, fromCurrency: string): number {

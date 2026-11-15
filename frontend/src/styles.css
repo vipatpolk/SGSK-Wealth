@@ -30,7 +30,7 @@
   --text-secondary: var(--color-text-secondary);
   --text-muted: var(--color-text-muted);
 
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Inter', 'Noto Sans Thai', system-ui, -apple-system, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
   color-scheme: dark;
 }
@@ -79,7 +79,7 @@
   --color-text-muted: var(--color-text-muted);
   --color-accent: var(--color-accent);
   --color-accent-soft: var(--color-accent-soft);
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Inter', 'Noto Sans Thai', system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-mono);
 }
 
@@ -215,4 +215,32 @@ body {
   filter: none !important;
   user-select: auto !important;
   pointer-events: auto !important;
+}
+
+/* Shared Fund Fact Sheet Icon Button */
+.factsheet-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  flex-shrink: 0;
+  padding: 0;
+  border-radius: 0.35rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-overlay);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out);
+}
+
+.factsheet-icon-btn:hover {
+  background-color: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.factsheet-icon-svg {
+  width: 0.8125rem;
+  height: 0.8125rem;
 }

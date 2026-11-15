@@ -91,7 +91,18 @@ public class ApiRouteMocker {
                         ObjectNode pos = mapper.createObjectNode();
                         pos.put("symbol", sym);
                         pos.put("displaySymbol", s.path("displaySymbol").asText(sym));
-                        pos.put("name", s.path("name").asText());
+                        String stockName = s.path("name").asText("");
+                        if (stockName.isEmpty()) {
+                            stockName = priceNode.path(sym).path("name").asText(s.path("policyName").asText(""));
+                        }
+                        pos.put("name", stockName);
+                        String nameTh = s.path("nameTh").asText("");
+                        if (nameTh.isEmpty()) {
+                            nameTh = priceNode.path(sym).path("nameTh").asText("");
+                        }
+                        if (!nameTh.isEmpty()) {
+                            pos.put("nameTh", nameTh);
+                        }
                         pos.put("assetType", s.path("assetType").asText());
                         pos.put("assetTypeLabel", s.path("assetType").asText());
                         pos.put("totalShares", totalShares);
@@ -212,15 +223,69 @@ public class ApiRouteMocker {
                       "name": "Apple Inc.",
                       "assetType": "us-stock",
                       "currency": "USD",
-                      "totalCost": 9000.0,
-                      "marketValue": 11250.0,
-                      "unrealizedPL": 2250.0,
-                      "unrealizedPLPercent": 25.0,
+                      "investedCost": 319500.0,
+                      "currentValue": 400262.5,
+                      "unrealizedPL": 80762.5,
+                      "unrealizedPLPercent": 25.28,
                       "realizedPL": 0.0,
                       "realizedPLPercent": 0.0,
-                      "totalReturn": 2250.0,
-                      "totalReturnPercent": 25.0,
-                      "status": "open"
+                      "totalReturn": 80762.5,
+                      "totalReturnAmount": 80762.5,
+                      "totalReturnPercent": 25.28,
+                      "status": "OPEN"
+                    },
+                    {
+                      "symbol": "BTC",
+                      "displaySymbol": "BTC",
+                      "name": "Bitcoin",
+                      "assetType": "crypto",
+                      "currency": "USD",
+                      "investedCost": 1136000.0,
+                      "currentValue": 1686250.0,
+                      "unrealizedPL": 550250.0,
+                      "unrealizedPLPercent": 48.44,
+                      "realizedPL": 0.0,
+                      "realizedPLPercent": 0.0,
+                      "totalReturn": 550250.0,
+                      "totalReturnAmount": 550250.0,
+                      "totalReturnPercent": 48.44,
+                      "status": "OPEN"
+                    },
+                    {
+                      "symbol": "K-USA",
+                      "displaySymbol": "K-USA",
+                      "name": "Kasikorn US Equity Fund",
+                      "nameTh": "กองทุนเปิดเค ยูเอสเอ หุ้นทุน",
+                      "assetType": "mutual-fund",
+                      "currency": "THB",
+                      "investedCost": 7500.0,
+                      "currentValue": 9100.0,
+                      "unrealizedPL": 1600.0,
+                      "unrealizedPLPercent": 21.33,
+                      "realizedPL": 0.0,
+                      "realizedPLPercent": 0.0,
+                      "totalReturn": 1600.0,
+                      "totalReturnAmount": 1600.0,
+                      "totalReturnPercent": 21.33,
+                      "status": "OPEN"
+                    },
+                    {
+                      "symbol": "PTT.BK",
+                      "displaySymbol": "PTT",
+                      "name": "PTT Public Company Limited",
+                      "nameTh": "บริษัท ปตท. จำกัด (มหาชน)",
+                      "assetType": "thai-stock",
+                      "currency": "THB",
+                      "investedCost": 33000.0,
+                      "currentValue": 32000.0,
+                      "unrealizedPL": -1000.0,
+                      "unrealizedPLPercent": -3.03,
+                      "realizedPL": 0.0,
+                      "realizedPLPercent": 0.0,
+                      "totalReturn": -1000.0,
+                      "totalReturnAmount": -1000.0,
+                      "totalReturnPercent": -3.03,
+                      "status": "OPEN"
                     }
                   ],
                   "error": null
@@ -243,6 +308,36 @@ public class ApiRouteMocker {
                       "currentValue": 40000,
                       "actualPercent": 40,
                       "targetPercent": 40,
+                      "rebalanceAmount": 0,
+                      "deviationPercent": 0,
+                      "action": "BALANCED"
+                    },
+                    {
+                      "assetType": "thai-stock",
+                      "label": "Thai Stock",
+                      "currentValue": 25000,
+                      "actualPercent": 25,
+                      "targetPercent": 25,
+                      "rebalanceAmount": 0,
+                      "deviationPercent": 0,
+                      "action": "BALANCED"
+                    },
+                    {
+                      "assetType": "mutual-fund",
+                      "label": "Mutual Fund",
+                      "currentValue": 20000,
+                      "actualPercent": 20,
+                      "targetPercent": 20,
+                      "rebalanceAmount": 0,
+                      "deviationPercent": 0,
+                      "action": "BALANCED"
+                    },
+                    {
+                      "assetType": "crypto",
+                      "label": "Cryptocurrency",
+                      "currentValue": 15000,
+                      "actualPercent": 15,
+                      "targetPercent": 15,
                       "rebalanceAmount": 0,
                       "deviationPercent": 0,
                       "action": "BALANCED"
@@ -333,7 +428,8 @@ public class ApiRouteMocker {
                     {
                       "symbol": "PTT.BK",
                       "displaySymbol": "PTT",
-                      "name": "PTT Public Company",
+                      "name": "PTT Public Company Limited",
+                      "nameTh": "บริษัท ปตท. จำกัด (มหาชน)",
                       "assetType": "thai-stock",
                       "assetTypeLabel": "Thai Stock",
                       "currency": "THB",
@@ -379,6 +475,32 @@ public class ApiRouteMocker {
                       "yieldOnCostPercent": 0.54,
                       "projectedAnnualIncome": 350,
                       "recentDistributions": []
+                    },
+                    {
+                      "symbol": "K-USA",
+                      "displaySymbol": "K-USA",
+                      "name": "Kasikorn US Equity Fund",
+                      "nameTh": "กองทุนเปิดเค ยูเอสเอ หุ้นทุน",
+                      "assetType": "mutual-fund",
+                      "assetTypeLabel": "Mutual Fund",
+                      "currency": "THB",
+                      "totalGrossDividends": 500,
+                      "totalNetDividends": 450,
+                      "totalWithholdingTax": 50,
+                      "convertedNetDividends": 450,
+                      "convertedGrossDividends": 500,
+                      "convertedWithholdingTax": 50,
+                      "dividendCount": 1,
+                      "firstDividendDate": "2026-01-15",
+                      "lastDividendDate": "2026-01-15",
+                      "currentShares": 500,
+                      "currentCostBasis": 7500,
+                      "currentValue": 9100,
+                      "trailingAnnualDPS": 0.9,
+                      "currentYieldPercent": 4.95,
+                      "yieldOnCostPercent": 6.00,
+                      "projectedAnnualIncome": 450,
+                      "recentDistributions": []
                     }
                   ],
                   "records": [
@@ -418,6 +540,105 @@ public class ApiRouteMocker {
                 fulfillJson(route, 200, "{\"mode\":\"FV\",\"future_value\":150000.0,\"total_contributions\":100000.0,\"total_interest\":50000.0,\"schedule\":[]}");
             } else {
                 fulfillJson(route, 200, "{\"success\":true,\"data\":{\"simulated_avg_cost\":192.5}}");
+            }
+        });
+
+        // Mock /api/backend/nav/factsheet
+        page.route("**/api/backend/nav/factsheet**", route -> {
+            String url = route.request().url();
+            String symbol = extractQueryParam(url, "symbol", "K-USA").toUpperCase();
+            String assetType = extractQueryParam(url, "asset_type", "mutual-fund");
+            if ("provident-fund".equalsIgnoreCase(assetType) || symbol.startsWith("PVD")) {
+                String pvdJson = """
+                    {
+                      "symbol": "__SYMBOL__",
+                      "displaySymbol": "__SYMBOL__",
+                      "assetType": "provident-fund",
+                      "projId": "V0001_2553",
+                      "fundName": "นโยบายกองทุนรวมดัชนี S&P 500 THB",
+                      "fundNameTh": "นโยบายกองทุนรวมดัชนี S&P 500 THB",
+                      "amcName": "ไทยพาณิชย์ มาสเตอร์ฟันด์",
+                      "amcNameTh": "ไทยพาณิชย์ มาสเตอร์ฟันด์",
+                      "policyDesc": "ตราสารทุนต่างประเทศ",
+                      "objective": "ลงทุนในกองทุนหลักต่างประเทศ S&P 500 เพื่อโอกาสรับผลตอบแทนระยะยาว",
+                      "aimcType": "US Equity",
+                      "aimcDescription": "US Equity Index Fund",
+                      "riskLevel": "RS6",
+                      "inceptionDate": "2555-01-15",
+                      "asOfDate": "2026-09-30",
+                      "fxHedgingPolicy": "Foreign Investment Only",
+                      "fees": [
+                        {"description": "ManagementFee", "actualRate": "0.45%"},
+                        {"description": "TotalFeeMax", "ceilingRate": "0.85%"}
+                      ],
+                      "performance": [
+                        {"category": "Trailing Return", "period": "1Y", "value": 22.8}
+                      ],
+                      "statistics": {
+                        "maxDrawdown": -15.4,
+                        "sharpeRatio": 1.35
+                      },
+                      "assetAllocation": [
+                        {"seq": 1, "name": "หน่วยลงทุน", "ratio": 98.5}
+                      ],
+                      "topHoldings": [
+                        {"seq": 1, "name": "SCBS&P500", "ratio": 98.5}
+                      ]
+                    }
+                    """.replace("__SYMBOL__", symbol);
+                fulfillJson(route, 200, pvdJson);
+            } else {
+                String mfJson = """
+                    {
+                      "symbol": "__SYMBOL__",
+                      "displaySymbol": "__SYMBOL__",
+                      "assetType": "mutual-fund",
+                      "projId": "M0888_2560",
+                      "fundName": "Kasikorn US Equity Fund",
+                      "fundNameTh": "กองทุนเปิดเค ยูเอสเอ หุ้นทุน",
+                      "amcName": "Kasikorn Asset Management Co., Ltd.",
+                      "amcNameTh": "บริษัทหลักทรัพย์จัดการกองทุน กสิกรไทย จำกัด",
+                      "policyDesc": "Foreign Equity",
+                      "investmentPolicyDesc": "Invests in Morgan Stanley US Advantage Fund.",
+                      "managementStyle": "AN - Feeder Fund (Active Master)",
+                      "riskLevel": "RS6",
+                      "riskDescription": "High Risk",
+                      "benchmark": "S&P 500 Total Return Net",
+                      "dividendPolicy": "N",
+                      "inceptionDate": "2017-05-10",
+                      "pdfUrl": "https://sec.example/factsheet/k-usa.pdf",
+                      "amcUrl": "https://kasikornasset.example/k-usa",
+                      "asOfDate": "2026-09-30",
+                      "fees": [
+                        {"description": "Management Fee", "ceilingRate": "2.14%", "actualRate": "1.605%"}
+                      ],
+                      "performance": [
+                        {"category": "Fund Return", "period": "1Y", "value": 18.45}
+                      ],
+                      "statistics": {
+                        "maxDrawdown": -21.3,
+                        "sharpeRatio": 1.12,
+                        "trackingError": 3.4,
+                        "fxHedging": "78.5%"
+                      },
+                      "assetAllocation": [
+                        {"seq": 1, "name": "Foreign Equity", "ratio": 96.5}
+                      ],
+                      "topHoldings": [
+                        {"seq": 1, "name": "MS US Advantage", "ratio": 96.5}
+                      ],
+                      "tradeConditions": {
+                        "minimumInitialSub": 500,
+                        "minimumNextSub": 500,
+                        "minimumRedempt": 500,
+                        "currency": "THB",
+                        "subscriptionPeriod": "08:30 - 15:30",
+                        "redemptionPeriod": "08:30 - 14:00",
+                        "settlementPeriod": "T+4"
+                      }
+                    }
+                    """.replace("__SYMBOL__", symbol);
+                fulfillJson(route, 200, mfJson);
             }
         });
     }

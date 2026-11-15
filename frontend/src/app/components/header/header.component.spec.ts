@@ -1,16 +1,21 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HeaderComponent } from './header.component';
 import { ComponentRef } from '@angular/core';
+import { I18nService } from '../../services/i18n.service';
 
 describe('HeaderComponent', () => {
   let component: HeaderComponent;
   let componentRef: ComponentRef<HeaderComponent>;
   let fixture: ComponentFixture<HeaderComponent>;
+  let i18n: I18nService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HeaderComponent],
     }).compileComponents();
+
+    i18n = TestBed.inject(I18nService);
+    i18n.setLang('en');
 
     fixture = TestBed.createComponent(HeaderComponent);
     component = fixture.componentInstance;
@@ -223,5 +228,35 @@ describe('HeaderComponent', () => {
     const button = fixture.nativeElement.querySelector('#privacy-toggle-btn') as HTMLButtonElement;
     expect(button.classList.contains('privacy-active')).toBe(true);
     expect(button.getAttribute('title')).toContain('Show sensitive');
+  });
+
+  it('should render EN/TH language toggle and switch language when clicked', () => {
+    const toggle = fixture.nativeElement.querySelector('#lang-toggle') as HTMLElement;
+    const enBtn = fixture.nativeElement.querySelector('#lang-en') as HTMLButtonElement;
+    const thBtn = fixture.nativeElement.querySelector('#lang-th') as HTMLButtonElement;
+
+    expect(toggle).toBeTruthy();
+    expect(enBtn).toBeTruthy();
+    expect(thBtn).toBeTruthy();
+    expect(enBtn.classList.contains('lang-btn-active')).toBe(true);
+    expect(thBtn.classList.contains('lang-btn-active')).toBe(false);
+
+    const emittedLangs: string[] = [];
+    component.langChange.subscribe((lang) => emittedLangs.push(lang));
+
+    thBtn.click();
+    fixture.detectChanges();
+
+    expect(i18n.lang()).toBe('th');
+    expect(thBtn.classList.contains('lang-btn-active')).toBe(true);
+    expect(enBtn.classList.contains('lang-btn-active')).toBe(false);
+    expect(emittedLangs).toEqual(['th']);
+
+    enBtn.click();
+    fixture.detectChanges();
+
+    expect(i18n.lang()).toBe('en');
+    expect(enBtn.classList.contains('lang-btn-active')).toBe(true);
+    expect(emittedLangs).toEqual(['th', 'en']);
   });
 });

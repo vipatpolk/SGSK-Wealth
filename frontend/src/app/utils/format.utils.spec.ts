@@ -4,6 +4,7 @@ import {
   toYahooSymbol,
   getPriceFormat,
   getSymbolColor,
+  isThaiMarketAsset,
   getSymbolName,
   resolveSymbolName,
   convertCurrency,
@@ -172,20 +173,68 @@ describe('FormatUtils', () => {
       expect(getSymbolName('USDT.CRYPTO', 'Tether USD')).toBe('Tether');
       expect(getSymbolName('DOT.CRYPTO', 'Polkadot USDT')).toBe('Polkadot');
     });
+
+    it('should resolve Thai name dynamically for Thai stocks and mutual funds in TH mode and keep non-Thai assets in English', () => {
+      expect(isThaiMarketAsset('PTT.BK')).toBe(true);
+      expect(isThaiMarketAsset('K-USA.FUND')).toBe(true);
+      expect(isThaiMarketAsset('SCBSFF.BKFUND')).toBe(true);
+      expect(isThaiMarketAsset('AAPL')).toBe(false);
+      expect(isThaiMarketAsset('BTC.CRYPTO')).toBe(false);
+      expect(isThaiMarketAsset('US-BOND', 'bond')).toBe(false);
+
+      expect(
+        getSymbolName('PTT.BK', 'PTT Public Company Limited', 'th', 'บริษัท ปตท. จำกัด (มหาชน)')
+      ).toBe('บริษัท ปตท. จำกัด (มหาชน)');
+      expect(
+        getSymbolName('PTT.BK', 'PTT Public Company Limited', 'en', 'บริษัท ปตท. จำกัด (มหาชน)')
+      ).toBe('PTT Public Company Limited');
+      expect(
+        getSymbolName('SCBSFF.FUND', 'SCB Short Term Fixed Income Fund', 'th', 'กองทุนเปิดไทยพาณิชย์ตราสารหนี้ระยะสั้น')
+      ).toBe('กองทุนเปิดไทยพาณิชย์ตราสารหนี้ระยะสั้น');
+
+      // Falls back to formatted English name if nameTh is blank
+      expect(getSymbolName('PTT.BK', 'PTT_PETROLEUM PUBLIC', 'th', '   ')).toBe('Petroleum Public');
+
+      // Non-Thai market assets always remain English regardless of language or rawNameTh
+      expect(getSymbolName('AAPL', 'Apple Inc.', 'th', 'ไม่ควรใช้')).toBe('Apple Inc.');
+      expect(getSymbolName('BTC.CRYPTO', 'Bitcoin USD', 'th', 'ไม่ควรใช้')).toBe('Bitcoin');
+      expect(getSymbolName('BND', 'Vanguard Total Bond Market ETF', 'th', 'ไม่ควรใช้', 'bond')).toBe(
+        'Vanguard Total Bond Market ETF'
+      );
+    });
+
+    it('should preserve uppercase acronyms inside Thai PVD and mutual fund names', () => {
+      expect(
+        getSymbolName('PVDMGLDH', 'นโยบายกองทุนรวมโกลด์ THB เฮดจ์', 'en', '', 'provident-fund')
+      ).toBe('นโยบายกองทุนรวมโกลด์ THB เฮดจ์');
+      expect(
+        getSymbolName('PVDWEQ', 'นโยบายกองทุนรวมต่างประเทศ World Equity', 'en', '', 'provident-fund')
+      ).toBe('นโยบายกองทุนรวมต่างประเทศ World Equity');
+      expect(
+        getSymbolName('SCBS&P500.FUND', 'SCB S&P 500 Index', 'th', 'กองทุนเปิดไทยพาณิชย์ หุ้นยูเอส SSF')
+      ).toBe('กองทุนเปิดไทยพาณิชย์ หุ้นยูเอส SSF');
+    });
   });
 
   describe('resolveSymbolName', () => {
-    const pricesMap = new Map<string, { name?: string }>([
+    const pricesMap = new Map<string, { name?: string; nameTh?: string }>([
       ['AAPL', { name: 'Apple Inc.' }],
-      ['PTT.BK', { name: 'PTT_PETROLEUM PUBLIC' }],
+      ['PTT.BK', { name: 'PTT_PETROLEUM PUBLIC', nameTh: 'บริษัท ปตท. จำกัด (มหาชน)' }],
       ['BTC.CRYPTO', { name: 'Bitcoin USD' }],
-      ['SCBSFF.FUND', { name: 'SCB Short Term Fixed Income Fund' }],
+      ['SCBSFF.FUND', { name: 'SCB Short Term Fixed Income Fund', nameTh: 'กองทุนเปิดไทยพาณิชย์ตราสารหนี้ระยะสั้น' }],
       ['SCBSFF.BKFUND', { name: 'SCB Short Term Fixed Income Fund' }],
     ]);
 
     it('should resolve exact symbol name from price map', () => {
       expect(resolveSymbolName('AAPL', pricesMap)).toBe('Apple Inc.');
       expect(resolveSymbolName('PTT.BK', pricesMap)).toBe('Petroleum Public');
+    });
+
+    it('should resolve Thai name from pricesMap in TH mode for Thai market assets only', () => {
+      expect(resolveSymbolName('PTT.BK', pricesMap, 'th')).toBe('บริษัท ปตท. จำกัด (มหาชน)');
+      expect(resolveSymbolName('SCBSFF.FUND', pricesMap, 'th')).toBe('กองทุนเปิดไทยพาณิชย์ตราสารหนี้ระยะสั้น');
+      expect(resolveSymbolName('AAPL', pricesMap, 'th')).toBe('Apple Inc.');
+      expect(resolveSymbolName('BTC', pricesMap, 'th')).toBe('Bitcoin');
     });
 
     it('should resolve symbol name with suffix variations fallback', () => {
@@ -271,6 +320,9 @@ describe('FormatUtils', () => {
       expect(getAssetTypeLabel(undefined, 'ES-GTECHSSF.BKFUND')).toBe('Mutual Fund');
       expect(getAssetTypeLabel(undefined, 'PVDSP500')).toBe('Provident Fund');
       expect(getAssetTypeLabel('crypto', 'ADA')).toBe('Cryptocurrency');
+      expect(getAssetTypeLabel('thai-stock', 'PTT.BK', 'th')).toBe('หุ้นไทย');
+      expect(getAssetTypeLabel('mutual-fund', 'SCBSFF.FUND', 'th')).toBe('กองทุนรวม');
+      expect(getAssetTypeLabel('us-stock', 'AAPL', 'th')).toBe('หุ้นสหรัฐฯ');
     });
 
     it('should return appropriate CSS classes', () => {
@@ -350,6 +402,9 @@ describe('FormatUtils', () => {
       expect(getUnitLabel('PTT.BK', 'thai-stock')).toBe('shares');
       expect(getUnitLabelSingular('AAPL')).toBe('share');
       expect(getUnitLabelSingular('PTT.BK', 'thai-stock')).toBe('share');
+      expect(getUnitLabel('PTT.BK', 'thai-stock', 'th')).toBe('หุ้น');
+      expect(getUnitLabel('SCBSFF.FUND', 'mutual-fund', 'th')).toBe('หน่วย');
+      expect(getUnitLabel('BTC.CRYPTO', 'crypto', 'th')).toBe('เหรียญ');
     });
   });
 
@@ -368,6 +423,10 @@ describe('FormatUtils', () => {
         { id: 'bond', label: 'Bond', count: 2 },
         { id: 'provident-fund', label: 'Provident Fund', count: 1 },
       ]);
+
+      const thOptions = generateAssetTypeOptions(items, 'th');
+      expect(thOptions[0].label).toBe('ทุกประเภท');
+      expect(thOptions[1].label).toBe('หุ้นสหรัฐฯ');
     });
   });
 });

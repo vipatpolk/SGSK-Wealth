@@ -4,8 +4,10 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.sgsk.wealth.e2e.context.TestContext;
 import com.sgsk.wealth.e2e.pages.AllocationPage;
+import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import java.util.Map;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -56,5 +58,17 @@ public class AllocationSteps {
     @Then("the analytics overview grid should display {int} KPI cards")
     public void verifyOverviewKpiCards(int count) {
         assertThat(allocationPage.overviewKpiCards).hasCount(count);
+    }
+
+    @Then("the allocation class drill-down should display localized symbol names:")
+    public void verifyAllocationClassDrillDownLocalizedNames(DataTable dataTable) {
+        for (Map<String, String> row : dataTable.asMaps()) {
+            String assetClass = row.get("AssetClass");
+            String symbol = row.get("Symbol");
+            String expectedName = row.get("ExpectedName");
+            allocationPage.drillDownToAssetClass(assetClass);
+            assertThat(allocationPage.symbolBreakdownName(symbol)).containsText(expectedName);
+            allocationPage.resetDrillDownToAllClasses();
+        }
     }
 }

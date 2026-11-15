@@ -23,6 +23,7 @@ class PortfolioPosition(BaseModel):
     symbol: str
     displaySymbol: str
     name: str = ""
+    nameTh: str = ""
     assetType: str
     assetTypeLabel: str
     totalShares: float
@@ -54,6 +55,7 @@ class ClosedPortfolioPosition(BaseModel):
     symbol: str
     displaySymbol: str
     name: str = ""
+    nameTh: str = ""
     assetType: str
     assetTypeLabel: str
     totalShares: float

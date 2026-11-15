@@ -48,3 +48,50 @@ Feature: Transaction History Ledger & CSV Exporter
       | Scope |
       | all   |
       | open  |
+
+  @smoke @TC-TXN-06
+  Scenario: TC-TXN-06: Transaction ledger and hero subtitle localize asset names across TH and EN
+    When I switch language to TH
+    Then the transaction ledger should display localized asset names:
+      | Symbol | ExpectedName                 |
+      | PTT.BK | บริษัท ปตท. จำกัด (มหาชน)   |
+      | K-USA  | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
+      | AAPL   | Apple Inc.                   |
+      | BTC    | Bitcoin                      |
+    When I focus transaction symbol "PTT.BK"
+    Then the transaction hero card subtitle should be "บริษัท ปตท. จำกัด (มหาชน)"
+    When I focus transaction symbol "K-USA"
+    Then the transaction hero card subtitle should be "กองทุนเปิดเค ยูเอสเอ หุ้นทุน"
+    When I focus transaction symbol "AAPL"
+    Then the transaction hero card subtitle should be "Apple Inc."
+    When I focus transaction symbol "BTC"
+    Then the transaction hero card subtitle should be "Bitcoin"
+    When I switch language to EN
+    And I view all transactions in the unified ledger
+    Then the transaction ledger should display localized asset names:
+      | Symbol | ExpectedName               |
+      | PTT.BK | PTT Public Company Limited |
+      | K-USA  | Kasikorn US Equity Fund    |
+      | AAPL   | Apple Inc.                 |
+      | BTC    | Bitcoin                    |
+    When I focus transaction symbol "PTT.BK"
+    Then the transaction hero card subtitle should be "PTT Public Company Limited"
+    When I focus transaction symbol "K-USA"
+    Then the transaction hero card subtitle should be "Kasikorn US Equity Fund"
+
+  @TC-TXN-07
+  Scenario: TC-TXN-07: Transaction symbol selector dropdown localizes asset names across TH and EN
+    When I switch language to TH
+    Then the transaction symbol selector should display localized asset names:
+      | Symbol | ExpectedName                 |
+      | PTT.BK | บริษัท ปตท. จำกัด (มหาชน)   |
+      | K-USA  | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
+      | AAPL   | Apple Inc.                   |
+      | BTC    | Bitcoin                      |
+    When I switch language to EN
+    Then the transaction symbol selector should display localized asset names:
+      | Symbol | ExpectedName               |
+      | PTT.BK | PTT Public Company Limited |
+      | K-USA  | Kasikorn US Equity Fund    |
+      | AAPL   | Apple Inc.                 |
+      | BTC    | Bitcoin                    |

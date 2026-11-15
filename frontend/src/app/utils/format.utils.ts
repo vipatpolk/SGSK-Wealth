@@ -1,4 +1,7 @@
 import { KNOWN_ASSET_TYPES } from '../config/asset.constants';
+import { AppLang } from '../services/i18n.service';
+import { en, TranslationKey } from '../i18n/en';
+import { th } from '../i18n/th';
 
 export function getQuantityFormat(symbol: string, assetType?: string): string {
   return symbol.toUpperCase().endsWith('.CRYPTO') || assetType === 'crypto' ? '1.0-10' : '1.0-7';
@@ -82,7 +85,26 @@ function toProperCase(text: string): string {
     .join(' ');
 }
 
-export function getSymbolName(symbol: string, rawName: string = ''): string {
+export function isThaiMarketAsset(symbol?: string, assetType?: string): boolean {
+  const type = assetType ? assetType.toLowerCase().trim() : '';
+  if (type === 'thai-stock' || type === 'mutual-fund') {
+    return true;
+  }
+  const sym = symbol ? symbol.toUpperCase().trim() : '';
+  return sym.endsWith('.BK') || sym.endsWith('.FUND') || sym.endsWith('.BKFUND');
+}
+
+export function getSymbolName(
+  symbol: string,
+  rawName: string = '',
+  lang: AppLang = 'en',
+  rawNameTh: string = '',
+  assetType?: string
+): string {
+  if (lang === 'th' && rawNameTh && rawNameTh.trim() && isThaiMarketAsset(symbol, assetType)) {
+    return rawNameTh.trim();
+  }
+
   if (!rawName) return '';
 
   let name = rawName.trim();
@@ -98,8 +120,10 @@ export function getSymbolName(symbol: string, rawName: string = ''): string {
     }
   }
 
+  const hasThaiScript = /[\u0E00-\u0E7F]/.test(name);
+
   // Strip trailing quote currency / pair suffixes (e.g. "Bitcoin USD" -> "Bitcoin", "PAX Gold USD" -> "PAX Gold")
-  if (symUpper.endsWith('.CRYPTO') || /\s+(USD|USDT|THB|USDC)$/i.test(name)) {
+  if (!hasThaiScript && (symUpper.endsWith('.CRYPTO') || /\s+(USD|USDT|THB|USDC)$/i.test(name))) {
     name = name.replace(/\s+(USD|USDT|THB|USDC)$/i, '').trim();
   }
 
@@ -107,7 +131,7 @@ export function getSymbolName(symbol: string, rawName: string = ''): string {
   name = name.replace(/\([R|TM|r|tm]\)/g, '').trim();
 
   // Convert ALL-CAPS names to Proper Case dynamically
-  if (name === name.toUpperCase() && name !== name.toLowerCase()) {
+  if (!hasThaiScript && name === name.toUpperCase() && name !== name.toLowerCase()) {
     return toProperCase(name);
   }
 
@@ -120,21 +144,22 @@ export function getSymbolName(symbol: string, rawName: string = ''): string {
  */
 export function resolveSymbolName(
   symbol: string,
-  pricesMap?: Map<string, { name?: string }>
+  pricesMap?: Map<string, { name?: string; nameTh?: string }>,
+  lang: AppLang = 'en',
+  assetType?: string
 ): string {
   if (!symbol || !pricesMap) return '';
-  const rawName =
-    pricesMap.get(symbol)?.name ||
-    pricesMap.get(symbol + '.CRYPTO')?.name ||
-    pricesMap.get(symbol.replace(/\.CRYPTO$/i, ''))?.name ||
-    pricesMap.get(symbol + '.FUND')?.name ||
-    pricesMap.get(symbol.replace(/\.FUND$/i, ''))?.name ||
-    pricesMap.get(symbol + '.BKFUND')?.name ||
-    pricesMap.get(symbol.replace(/\.BKFUND$/i, ''))?.name ||
-    pricesMap.get(symbol + '.BK')?.name ||
-    pricesMap.get(symbol.replace(/\.BK$/i, ''))?.name ||
-    '';
-  return getSymbolName(symbol, rawName);
+  const entry =
+    pricesMap.get(symbol) ||
+    pricesMap.get(symbol + '.CRYPTO') ||
+    pricesMap.get(symbol.replace(/\.CRYPTO$/i, '')) ||
+    pricesMap.get(symbol + '.FUND') ||
+    pricesMap.get(symbol.replace(/\.FUND$/i, '')) ||
+    pricesMap.get(symbol + '.BKFUND') ||
+    pricesMap.get(symbol.replace(/\.BKFUND$/i, '')) ||
+    pricesMap.get(symbol + '.BK') ||
+    pricesMap.get(symbol.replace(/\.BK$/i, ''));
+  return getSymbolName(symbol, entry?.name || '', lang, entry?.nameTh || '', assetType);
 }
 
 /**
@@ -215,8 +240,25 @@ const ASSET_TYPE_CONFIG: Record<string, { label: string; cssClass: string; color
   'provident-fund': { label: 'Provident Fund', cssClass: 'asset-type-tag asset-type-provident-fund', color: '#6366f1' },
 };
 
-export function getAssetTypeLabel(assetType?: string, symbol?: string): string {
+const ASSET_TYPE_TRANSLATION_KEYS: Record<string, TranslationKey> = {
+  'us-stock': 'asset.usStock',
+  'thai-stock': 'asset.thaiStock',
+  crypto: 'asset.crypto',
+  'mutual-fund': 'asset.mutualFund',
+  bond: 'asset.bond',
+  'provident-fund': 'asset.providentFund',
+};
+
+export function getAssetTypeLabel(
+  assetType?: string,
+  symbol?: string,
+  lang: AppLang = 'en'
+): string {
   const type = getAssetType(assetType, symbol);
+  const key = ASSET_TYPE_TRANSLATION_KEYS[type];
+  if (key) {
+    return lang === 'th' ? th[key] : en[key];
+  }
   if (ASSET_TYPE_CONFIG[type]) {
     return ASSET_TYPE_CONFIG[type].label;
   }
@@ -245,7 +287,10 @@ export interface AssetTypeOption {
   count: number;
 }
 
-export function generateAssetTypeOptions(list: { assetType?: string; symbol: string }[]): AssetTypeOption[] {
+export function generateAssetTypeOptions(
+  list: { assetType?: string; symbol: string }[],
+  lang: AppLang = 'en'
+): AssetTypeOption[] {
   const countByType: Record<string, number> = {
     all: list.length,
   };
@@ -263,26 +308,32 @@ export function generateAssetTypeOptions(list: { assetType?: string; symbol: str
   }
 
   return [
-    { id: 'all', label: 'All Types', count: countByType['all'] },
+    { id: 'all', label: lang === 'th' ? 'ทุกประเภท' : 'All Types', count: countByType['all'] },
     ...KNOWN_ASSET_TYPES.map((type) => ({
       id: type,
-      label: getAssetTypeLabel(type),
+      label: getAssetTypeLabel(type, undefined, lang),
       count: countByType[type] || 0,
     })),
   ].filter((opt) => opt.id === 'all' || opt.count > 0);
 }
 
-export function getUnitLabel(symbol?: string, assetType?: string): string {
+export function getUnitLabel(symbol?: string, assetType?: string, lang: AppLang = 'en'): string {
   const type = getAssetType(assetType, symbol);
-  if (type === 'crypto') return 'coins';
-  if (type === 'mutual-fund' || type === 'provident-fund') return 'units';
-  return 'shares';
+  const dict = lang === 'th' ? th : en;
+  if (type === 'crypto') return dict['unit.coins'];
+  if (type === 'mutual-fund' || type === 'provident-fund') return dict['unit.units'];
+  return dict['unit.shares'];
 }
 
-export function getUnitLabelSingular(symbol?: string, assetType?: string): string {
+export function getUnitLabelSingular(
+  symbol?: string,
+  assetType?: string,
+  lang: AppLang = 'en'
+): string {
   const type = getAssetType(assetType, symbol);
-  if (type === 'crypto') return 'coin';
-  if (type === 'mutual-fund' || type === 'provident-fund') return 'unit';
-  return 'share';
+  const dict = lang === 'th' ? th : en;
+  if (type === 'crypto') return dict['unit.coin'];
+  if (type === 'mutual-fund' || type === 'provident-fund') return dict['unit.unit'];
+  return dict['unit.share'];
 }
 

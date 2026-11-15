@@ -60,4 +60,10 @@ public class DividendPage {
     public void selectYearFilter(String yearLabel) {
         getYearPill(yearLabel).click();
     }
+
+    public Locator symbolTableRowName(String symbol) {
+        return com.sgsk.wealth.e2e.support.LocatorUtils
+                .filterBySymbolWord(page.locator("app-dividend .div-table tbody tr"), symbol)
+                .locator(".symbol-name-sub");
+    }
 }

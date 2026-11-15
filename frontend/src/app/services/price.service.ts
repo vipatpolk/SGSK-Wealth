@@ -7,6 +7,7 @@ import { environment } from '../../environments/environment';
 export interface PriceData {
   symbol: string;
   name?: string;
+  nameTh?: string;
   price: number;
   currency: string;
 }

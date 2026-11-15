@@ -54,3 +54,60 @@ Feature: Portfolio Holdings & FIFO Share Lot Accounting
       | Total Cost    | BTC         |
       | Avg Cost      | BTC         |
       | Symbol        | AAPL        |
+
+  @smoke @TC-HLD-05
+  Scenario: TC-HLD-05: Holdings cards localize Thai market names across TH and EN while keeping non-Thai assets in English
+    When I select the "All" asset tab
+    And I switch language to TH
+    Then the holdings cards should display localized asset names:
+      | Symbol | ExpectedName                 |
+      | PTT.BK | บริษัท ปตท. จำกัด (มหาชน)   |
+      | K-USA  | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
+      | AAPL   | Apple Inc.                   |
+      | BTC    | Bitcoin                      |
+    When I switch language to EN
+    Then the holdings cards should display localized asset names:
+      | Symbol | ExpectedName               |
+      | PTT.BK | PTT Public Company Limited |
+      | K-USA  | Kasikorn US Equity Fund    |
+      | AAPL   | Apple Inc.                 |
+      | BTC    | Bitcoin                    |
+
+  @TC-HLD-06
+  Scenario: TC-HLD-06: Holdings search autocomplete displays localized asset suggestions across TH and EN
+    When I select the "All" asset tab
+    And I switch language to TH
+    And I search holdings autocomplete for "PTT"
+    Then the holdings search autocomplete should suggest "บริษัท ปตท. จำกัด (มหาชน)" for "PTT"
+    When I close the holdings search autocomplete
+    And I search holdings autocomplete for "K-USA"
+    Then the holdings search autocomplete should suggest "กองทุนเปิดเค ยูเอสเอ หุ้นทุน" for "K-USA"
+    When I close the holdings search autocomplete
+    And I search holdings autocomplete for "AAPL"
+    Then the holdings search autocomplete should suggest "Apple Inc." for "AAPL"
+    When I close the holdings search autocomplete
+    And I switch language to EN
+    And I search holdings autocomplete for "PTT"
+    Then the holdings search autocomplete should suggest "PTT Public Company Limited" for "PTT"
+    When I close the holdings search autocomplete
+    And I search holdings autocomplete for "K-USA"
+    Then the holdings search autocomplete should suggest "Kasikorn US Equity Fund" for "K-USA"
+    When I close the holdings search autocomplete
+    And I search holdings autocomplete for "AAPL"
+    Then the holdings search autocomplete should suggest "Apple Inc." for "AAPL"
+
+  @smoke @TC-HLD-07
+  Scenario: View Mutual Fund fact sheet modal in English and Thai from Holdings
+    When I select the "All" asset tab
+    And I open the fund fact sheet for "K-USA" from holdings
+    Then the fund fact sheet modal should display "Kasikorn US Equity Fund" with risk "RS6"
+    And the fund fact sheet modal should contain "S&P 500 Total Return Net"
+    And the fund fact sheet modal should display the official PDF link
+    When I close the fund fact sheet modal
+    Then the fund fact sheet modal should be hidden
+    And the lots drawer for "K-USA" should remain collapsed
+    When I switch language to TH
+    And I open the fund fact sheet for "K-USA" from holdings
+    Then the fund fact sheet modal should display "กองทุนเปิดเค ยูเอสเอ หุ้นทุน" with risk "RS6"
+    When I close the fund fact sheet modal
+    Then the fund fact sheet modal should be hidden

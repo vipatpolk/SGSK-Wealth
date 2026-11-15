@@ -9,6 +9,7 @@ import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 @Component
 @ScenarioScope(proxyMode = ScopedProxyMode.NO)
@@ -84,6 +85,16 @@ public class PvdHoldingsPage {
         return page.locator("#pvd-policy-" + symbol);
     }
 
+    public Locator policyName(String symbol) {
+        return policyCard(symbol).locator(".pvd-policy-name");
+    }
+
+    public Locator policyDonutLegendName(String symbol) {
+        return com.sgsk.wealth.e2e.support.LocatorUtils
+                .filterBySymbolWord(page.locator("#pvd-policy-allocation-card .pvd-alloc-row"), symbol)
+                .locator(".pvd-alloc-name");
+    }
+
     public Locator riskSpectrumScale() {
         return page.locator(".pvd-rs-scale .pvd-rs-step");
     }
@@ -147,5 +158,15 @@ public class PvdHoldingsPage {
     public boolean isMarketModeActive() {
         String cls = marketSubtabBtn().getAttribute("class");
         return cls != null && cls.contains("active");
+    }
+
+    public Locator factsheetButton(String symbol) {
+        return page.locator("#btn-pvd-factsheet-" + symbol);
+    }
+
+    public void openFactsheet(String symbol) {
+        Locator btn = factsheetButton(symbol);
+        btn.waitFor();
+        btn.click();
     }
 }

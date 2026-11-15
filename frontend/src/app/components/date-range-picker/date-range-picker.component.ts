@@ -4,12 +4,15 @@ import {
   HostListener,
   computed,
   effect,
+  inject,
   input,
   output,
   signal,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { I18nService } from '../../services/i18n.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 export interface DateRange {
   startDate: string;
@@ -113,15 +116,17 @@ export const DATE_PRESETS: DatePreset[] = [
   selector: 'app-date-range-picker',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './date-range-picker.component.html',
   styleUrl: './date-range-picker.component.css',
 })
 export class DateRangePickerComponent {
+  readonly i18n = inject(I18nService);
+
   /** Inputs */
   readonly startDate = input<string>('');
   readonly endDate = input<string>('');
-  readonly placeholder = input<string>('All Dates');
+  readonly placeholder = input<string>('');
 
   /** Output */
   readonly rangeChange = output<DateRange>();
@@ -138,22 +143,15 @@ export class DateRangePickerComponent {
   readonly viewMonth = signal<number>(new Date().getMonth());
 
   readonly presets = DATE_PRESETS;
-  readonly weekDays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-
-  readonly monthNames = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
+  readonly weekDays = computed<string[]>(() => [
+    this.i18n.t('date.su'),
+    this.i18n.t('date.mo'),
+    this.i18n.t('date.tu'),
+    this.i18n.t('date.we'),
+    this.i18n.t('date.th'),
+    this.i18n.t('date.fr'),
+    this.i18n.t('date.sa'),
+  ]);
 
   constructor(public readonly elementRef: ElementRef) {
     effect(() => {
@@ -179,10 +177,32 @@ export class DateRangePickerComponent {
     });
   }
 
+  getPresetLabel(id: string): string {
+    switch (id) {
+      case 'all':
+        return this.i18n.t('date.allTime');
+      case 'last-7-days':
+        return this.i18n.t('date.last7Days');
+      case 'last-30-days':
+        return this.i18n.t('date.last30Days');
+      case 'last-90-days':
+        return this.i18n.t('date.last90Days');
+      case 'this-month':
+        return this.i18n.t('date.thisMonth');
+      case 'last-month':
+        return this.i18n.t('date.lastMonth');
+      case 'ytd':
+        return this.i18n.t('date.ytd');
+      case 'last-year':
+        return this.i18n.t('date.lastYear');
+      default:
+        return id;
+    }
+  }
+
   readonly currentMonthLabel = computed<string>(() => {
-    const month = this.monthNames[this.viewMonth()];
-    const year = this.viewYear();
-    return `${month} ${year}`;
+    this.i18n.lang();
+    return this.i18n.formatMonthYear(this.viewYear(), this.viewMonth());
   });
 
   readonly hasActiveFilter = computed<boolean>(() => {
@@ -194,17 +214,18 @@ export class DateRangePickerComponent {
   });
 
   readonly displayText = computed<string>(() => {
+    this.i18n.lang();
     const start = this.startDate();
     const end = this.endDate();
 
     if (!start && !end) {
-      return this.placeholder();
+      return this.placeholder() || this.i18n.t('date.allDates');
     }
 
     // Check if matches preset label
     const preset = this.presets.find((p) => p.id === this.selectedPreset() && p.id !== 'all');
     if (preset) {
-      return preset.label;
+      return this.getPresetLabel(preset.id);
     }
 
     if (start && end) {
@@ -215,10 +236,10 @@ export class DateRangePickerComponent {
     }
 
     if (start) {
-      return `From ${this.formatReadableDate(start)}`;
+      return this.i18n.t('date.fromPrefix', { date: this.formatReadableDate(start) });
     }
 
-    return `Until ${this.formatReadableDate(end)}`;
+    return this.i18n.t('date.untilPrefix', { date: this.formatReadableDate(end) });
   });
 
   readonly calendarDays = computed<CalendarDay[]>(() => {
@@ -458,12 +479,6 @@ export class DateRangePickerComponent {
 
   private formatReadableDate(iso: string): string {
     if (!iso) return '';
-    const parts = iso.split('-');
-    if (parts.length !== 3) return iso;
-    const year = parseInt(parts[0], 10);
-    const month = parseInt(parts[1], 10) - 1;
-    const day = parseInt(parts[2], 10);
-    const d = new Date(year, month, day);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return this.i18n.formatDate(iso, 'medium') || iso;
   }
 }

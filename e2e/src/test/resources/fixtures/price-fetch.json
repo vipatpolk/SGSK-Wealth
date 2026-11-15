@@ -9,7 +9,8 @@
     "PTT.BK": {
       "symbol": "PTT.BK",
       "name": "PTT Public Company Limited",
-      "price": 35.0,
+      "nameTh": "บริษัท ปตท. จำกัด (มหาชน)",
+      "price": 32.0,
       "currency": "THB"
     },
     "BTC": {
@@ -21,18 +22,19 @@
     "K-USA": {
       "symbol": "K-USA",
       "name": "Kasikorn US Equity Fund",
+      "nameTh": "กองทุนเปิดเค ยูเอสเอ หุ้นทุน",
       "price": 18.2,
       "currency": "THB"
     },
     "PVDSP500": {
       "symbol": "PVDSP500",
-      "name": "SCB S&P 500 Index Policy",
+      "name": "นโยบายกองทุนรวมดัชนี S&P 500 THB",
       "price": 14.0,
       "currency": "THB"
     },
     "PVDMPINC": {
       "symbol": "PVDMPINC",
-      "name": "SCB Fixed Income Plus Policy",
+      "name": "นโยบายกองทุนรวมผสม THB เฮดจ์",
       "price": 5.0,
       "currency": "THB"
     }

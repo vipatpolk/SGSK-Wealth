@@ -2,7 +2,7 @@
   <!-- Mode Selector Header Bar -->
   <div class="tvm-mode-bar">
     <div class="mode-bar-left">
-      <span class="mode-bar-label">Calculation Goal:</span>
+      <span class="mode-bar-label">{{ 'tools.tvm.calcGoal' | t }}</span>
       <div class="mode-pill-group">
         <button
           type="button"
@@ -12,7 +12,7 @@
           id="mode-solve-fv"
         >
           <span class="pill-badge">FV</span>
-          <span>Future Value</span>
+          <span>{{ 'tools.tvm.modeFV' | t }}</span>
         </button>
         <button
           type="button"
@@ -22,7 +22,7 @@
           id="mode-solve-pmt"
         >
           <span class="pill-badge">PMT</span>
-          <span>Required Payment</span>
+          <span>{{ 'tools.tvm.modePMT' | t }}</span>
         </button>
         <button
           type="button"
@@ -32,7 +32,7 @@
           id="mode-solve-pv"
         >
           <span class="pill-badge">PV</span>
-          <span>Starting Capital</span>
+          <span>{{ 'tools.tvm.modePV' | t }}</span>
         </button>
         <button
           type="button"
@@ -42,7 +42,7 @@
           id="mode-solve-n"
         >
           <span class="pill-badge">N</span>
-          <span>Time Horizon</span>
+          <span>{{ 'tools.tvm.modeN' | t }}</span>
         </button>
         <button
           type="button"
@@ -52,14 +52,14 @@
           id="mode-solve-rate"
         >
           <span class="pill-badge">%</span>
-          <span>Required Rate</span>
+          <span>{{ 'tools.tvm.modeRATE' | t }}</span>
         </button>
       </div>
     </div>
 
     <!-- Quick Compounding Selector -->
     <div class="compounding-select-wrap">
-      <label class="compounding-label" for="compounding-dropdown-btn">Compounding:</label>
+      <label class="compounding-label" for="compounding-dropdown-btn">{{ 'tools.tvm.compoundingLabel' | t }}</label>
       <div class="compounding-dropdown">
         <button
           type="button"
@@ -112,16 +112,16 @@
             <line x1="9" y1="8" x2="15" y2="8"></line>
             <line x1="17" y1="16" x2="23" y2="16"></line>
           </svg>
-          <h3 class="card-title">Parameters & Assumptions</h3>
+          <h3 class="card-title">{{ 'tools.tvm.paramsTitle' | t }}</h3>
         </div>
-        <span class="card-tag">Interactive</span>
+        <span class="card-tag">{{ 'tools.tvm.interactiveTag' | t }}</span>
       </div>
 
       <!-- Section: Target FV Input (Visible when Solving for PMT, PV, N, RATE) -->
       @if (solveMode() !== 'FV') {
         <div class="input-group target-highlight-group">
           <div class="input-label-row">
-            <label class="input-label highlight-label" for="input-target-fv">Target Future Value Goal (FV)</label>
+            <label class="input-label highlight-label" for="input-target-fv">{{ 'tools.tvm.targetFvLabel' | t }}</label>
             <span class="currency-indicator">{{ displayCurrency() }}</span>
           </div>
           <div class="input-with-steppers">
@@ -148,7 +148,7 @@
       @if (solveMode() !== 'PV') {
         <div class="input-group">
           <div class="input-label-row">
-            <label class="input-label" for="input-present-value">Present Value (Starting Principal)</label>
+            <label class="input-label" for="input-present-value">{{ 'tools.tvm.pvLabel' | t }}</label>
             <span class="currency-indicator">{{ displayCurrency() }}</span>
           </div>
 
@@ -159,30 +159,30 @@
               class="pv-source-btn"
               [class.active]="pvSource() === 'portfolio'"
               (click)="setPvSource('portfolio')"
-              title="Use current market value"
+              [title]="'tools.tvm.useMarketTitle' | t"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="source-icon"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-              <span>Market Value</span>
+              <span>{{ 'tools.tvm.marketValue' | t }}</span>
             </button>
             <button
               type="button"
               class="pv-source-btn"
               [class.active]="pvSource() === 'invested'"
               (click)="setPvSource('invested')"
-              title="Use total invested cost basis"
+              [title]="'tools.tvm.useInvestedTitle' | t"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="source-icon"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-              <span>Invested Cost</span>
+              <span>{{ 'tools.tvm.investedCost' | t }}</span>
             </button>
             <button
               type="button"
               class="pv-source-btn"
               [class.active]="pvSource() === 'custom'"
               (click)="setPvSource('custom')"
-              title="Enter custom numeric value"
+              [title]="'tools.tvm.useCustomTitle' | t"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="source-icon"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>Custom Input</span>
+              <span>{{ 'tools.tvm.customInput' | t }}</span>
             </button>
           </div>
 
@@ -190,7 +190,7 @@
           @if (pvSource() !== 'custom' && assetTypeOptions().length > 0) {
             <div class="asset-type-chips-container">
               <div class="asset-chips-header">
-                <span class="asset-chips-title">Select Asset Types:</span>
+                <span class="asset-chips-title">{{ 'tools.tvm.selectAssetTypes' | t }}</span>
                 <span class="asset-chips-active-desc">{{ pvSourceDescription() }}</span>
               </div>
               <div class="asset-type-chips-grid">
@@ -202,7 +202,7 @@
                   (click)="toggleAssetType('all')"
                 >
                   <span class="chip-dot" style="background-color: var(--color-accent);"></span>
-                  <span class="chip-label">All Classes</span>
+                  <span class="chip-label">{{ 'asset.allClasses' | t }}</span>
                   <span class="chip-val" [class.privacy-mask]="privacyMode()">
                     {{ (pvSource() === 'invested' ? portfolioInvestedCost() : portfolioMarketValue()) | currency:displayCurrency():'symbol-narrow':'1.0-0' }}
                   </span>
@@ -247,7 +247,7 @@
             <button type="button" class="quick-chip" (click)="adjustPresentValue(50000)">+50k</button>
             <button type="button" class="quick-chip" (click)="adjustPresentValue(100000)">+100k</button>
             <button type="button" class="quick-chip" (click)="adjustPresentValue(500000)">+500k</button>
-            <button type="button" class="quick-chip chip-reset" (click)="customPresentValue.set(0); pvSource.set('custom')">Clear</button>
+            <button type="button" class="quick-chip chip-reset" (click)="customPresentValue.set(0); pvSource.set('custom')">{{ 'common.clear' | t }}</button>
           </div>
         </div>
       }
@@ -256,25 +256,25 @@
       @if (solveMode() !== 'PMT') {
         <div class="input-group">
           <div class="input-label-row">
-            <label class="input-label" for="input-payment">Periodic Payment (Recurring Contribution)</label>
+            <label class="input-label" for="input-payment">{{ 'tools.tvm.pmtLabel' | t }}</label>
             <div class="timing-toggle">
               <button
                 type="button"
                 class="timing-btn"
                 [class.active]="paymentTiming() === 'end'"
                 (click)="setPaymentTiming('end')"
-                title="Ordinary Annuity: Payment made at the end of each period"
+                [title]="'tools.tvm.endOfPeriodTitle' | t"
               >
-                End of Period
+                {{ 'tools.tvm.endOfPeriod' | t }}
               </button>
               <button
                 type="button"
                 class="timing-btn"
                 [class.active]="paymentTiming() === 'beginning'"
                 (click)="setPaymentTiming('beginning')"
-                title="Annuity Due: Payment made at the beginning of each period"
+                [title]="'tools.tvm.beginningTitle' | t"
               >
-                Beginning
+                {{ 'tools.tvm.beginning' | t }}
               </button>
             </div>
           </div>
@@ -306,8 +306,8 @@
       @if (solveMode() !== 'RATE') {
         <div class="input-group">
           <div class="input-label-row">
-            <label class="input-label" for="input-annual-rate">Annual Nominal Return Rate (%)</label>
-            <span class="effective-ear-hint">EAR: {{ calculationResult().effectiveAnnualRatePct | number:'1.2-2' }}%</span>
+            <label class="input-label" for="input-annual-rate">{{ 'tools.tvm.annualRateLabel' | t }}</label>
+            <span class="effective-ear-hint">{{ 'tools.tvm.earPrefix' | t }} {{ calculationResult().effectiveAnnualRatePct | number:'1.2-2' }}%</span>
           </div>
 
           <div class="input-with-steppers">
@@ -324,11 +324,11 @@
           </div>
 
           <div class="quick-chips-row">
-            <button type="button" class="quick-chip" [class.active-rate]="annualRatePct() === 4" (click)="setAnnualRate(4)">4% Safe</button>
-            <button type="button" class="quick-chip" [class.active-rate]="annualRatePct() === 7" (click)="setAnnualRate(7)">7% S&P Avg</button>
-            <button type="button" class="quick-chip" [class.active-rate]="annualRatePct() === 10" (click)="setAnnualRate(10)">10% Growth</button>
-            <button type="button" class="quick-chip" [class.active-rate]="annualRatePct() === 12" (click)="setAnnualRate(12)">12% High</button>
-            <button type="button" class="quick-chip" [class.active-rate]="annualRatePct() === 15" (click)="setAnnualRate(15)">15% Aggressive</button>
+            <button type="button" class="quick-chip" [class.active-rate]="annualRatePct() === 4" (click)="setAnnualRate(4)">{{ 'tools.tvm.rateSafe' | t }}</button>
+            <button type="button" class="quick-chip" [class.active-rate]="annualRatePct() === 7" (click)="setAnnualRate(7)">{{ 'tools.tvm.rateSpAvg' | t }}</button>
+            <button type="button" class="quick-chip" [class.active-rate]="annualRatePct() === 10" (click)="setAnnualRate(10)">{{ 'tools.tvm.rateGrowth' | t }}</button>
+            <button type="button" class="quick-chip" [class.active-rate]="annualRatePct() === 12" (click)="setAnnualRate(12)">{{ 'tools.tvm.rateHigh' | t }}</button>
+            <button type="button" class="quick-chip" [class.active-rate]="annualRatePct() === 15" (click)="setAnnualRate(15)">{{ 'tools.tvm.rateAggressive' | t }}</button>
           </div>
         </div>
       }
@@ -337,8 +337,8 @@
       @if (solveMode() !== 'N') {
         <div class="input-group">
           <div class="input-label-row">
-            <label class="input-label" for="input-years">Investment Horizon</label>
-            <span class="horizon-periods-count">{{ calculationResult().totalPeriods }} total compounding periods</span>
+            <label class="input-label" for="input-years">{{ 'tools.tvm.horizonLabel' | t }}</label>
+            <span class="horizon-periods-count">{{ 'tools.tvm.totalCompPeriods' | t:{ count: calculationResult().totalPeriods } }}</span>
           </div>
 
           <div class="slider-with-number">
@@ -360,17 +360,14 @@
                 min="1"
                 max="100"
               />
-              <span class="slider-unit">Years</span>
+              <span class="slider-unit">{{ 'tools.tvm.yearsUnit' | t }}</span>
             </div>
           </div>
 
           <div class="quick-chips-row">
-            <button type="button" class="quick-chip" [class.active-rate]="years() === 1" (click)="setYears(1)">1Y</button>
-            <button type="button" class="quick-chip" [class.active-rate]="years() === 3" (click)="setYears(3)">3Y</button>
-            <button type="button" class="quick-chip" [class.active-rate]="years() === 5" (click)="setYears(5)">5Y</button>
-            <button type="button" class="quick-chip" [class.active-rate]="years() === 10" (click)="setYears(10)">10Y</button>
-            <button type="button" class="quick-chip" [class.active-rate]="years() === 20" (click)="setYears(20)">20Y</button>
-            <button type="button" class="quick-chip" [class.active-rate]="years() === 30" (click)="setYears(30)">30Y</button>
+            @for (y of [1, 3, 5, 10, 20, 30]; track y) {
+              <button type="button" class="quick-chip" [class.active-rate]="years() === y" (click)="setYears(y)">{{ 'tools.tvm.yearChip' | t:{ n: y } }}</button>
+            }
           </div>
         </div>
       }
@@ -385,11 +382,11 @@
             <polyline points="17 6 23 6 23 12"></polyline>
           </svg>
           <h3 class="card-title">
-            @if (solveMode() === 'FV') { Projected Future Value }
-            @else if (solveMode() === 'PMT') { Required Periodic Payment }
-            @else if (solveMode() === 'PV') { Required Starting Capital }
-            @else if (solveMode() === 'N') { Required Horizon }
-            @else { Required Annual Rate }
+            @if (solveMode() === 'FV') { {{ 'tools.tvm.titleFV' | t }} }
+            @else if (solveMode() === 'PMT') { {{ 'tools.tvm.titlePMT' | t }} }
+            @else if (solveMode() === 'PV') { {{ 'tools.tvm.titlePV' | t }} }
+            @else if (solveMode() === 'N') { {{ 'tools.tvm.titleN' | t }} }
+            @else { {{ 'tools.tvm.titleRATE' | t }} }
           </h3>
         </div>
         <span class="hero-currency-tag">{{ displayCurrency() }}</span>
@@ -399,11 +396,11 @@
       <div class="tvm-hero-display" [class.error-state]="!calculationResult().isValid">
         @if (calculationResult().isValid) {
           <div class="hero-label">
-            @if (solveMode() === 'FV') { Future Value at Year {{ years() }} }
-            @else if (solveMode() === 'PMT') { Required Contribution per Period }
-            @else if (solveMode() === 'PV') { Starting Principal Needed Today }
-            @else if (solveMode() === 'N') { Time to Reach {{ targetFutureValue() | currency:displayCurrency():'symbol-narrow':'1.0-0' }} }
-            @else { Required Annual Rate (CAGR) }
+            @if (solveMode() === 'FV') { {{ 'tools.tvm.heroFV' | t:{ years: years() } }} }
+            @else if (solveMode() === 'PMT') { {{ 'tools.tvm.heroPMT' | t }} }
+            @else if (solveMode() === 'PV') { {{ 'tools.tvm.heroPV' | t }} }
+            @else if (solveMode() === 'N') { {{ 'tools.tvm.heroN' | t:{ target: (targetFutureValue() | currency:displayCurrency():'symbol-narrow':'1.0-0') ?? '' } }} }
+            @else { {{ 'tools.tvm.heroRATE' | t }} }
           </div>
 
           <div class="hero-main-value" [class.privacy-mask]="privacyMode() && solveMode() !== 'N' && solveMode() !== 'RATE'">
@@ -411,15 +408,15 @@
               {{ calculationResult().futureValue | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
             } @else if (solveMode() === 'PMT') {
               {{ calculationResult().payment | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
-              <span class="hero-unit">/ {{ compounding() }}</span>
+              <span class="hero-unit">/ {{ compoundingUnitLabel() }}</span>
             } @else if (solveMode() === 'PV') {
               {{ calculationResult().presentValue | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
             } @else if (solveMode() === 'N') {
               {{ calculationResult().years | number:'1.1-1' }}
-              <span class="hero-unit">Years ({{ calculationResult().totalPeriods }} periods)</span>
+              <span class="hero-unit">{{ 'tools.tvm.yearsPeriods' | t:{ periods: calculationResult().totalPeriods } }}</span>
             } @else {
               {{ calculationResult().annualRatePct | number:'1.2-2' }}%
-              <span class="hero-unit">Annual Return</span>
+              <span class="hero-unit">{{ 'tools.tvm.annualReturn' | t }}</span>
             }
           </div>
 
@@ -433,7 +430,7 @@
                 +{{ calculationResult().totalInterestEarned | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
               </span>
               <span class="gain-divider">&bull;</span>
-              <span>{{ calculationResult().multiplier | number:'1.2-2' }}x Return Multiple</span>
+              <span>{{ 'tools.tvm.returnMultiple' | t:{ mult: (calculationResult().multiplier | number:'1.2-2') ?? '0.00' } }}</span>
             </div>
           }
         } @else {
@@ -443,7 +440,7 @@
               <line x1="12" y1="8" x2="12" y2="12"></line>
               <line x1="12" y1="16" x2="12.01" y2="16"></line>
             </svg>
-            <span>{{ calculationResult().errorMessage || 'Unable to solve with given inputs.' }}</span>
+            <span>{{ tvmErrorMessage(calculationResult()) }}</span>
           </div>
         }
       </div>
@@ -452,9 +449,9 @@
       @if (calculationResult().isValid && calculationResult().futureValue > 0) {
         <div class="composition-container">
           <div class="composition-header">
-            <span class="composition-title">Capital Composition</span>
+            <span class="composition-title">{{ 'tools.tvm.capitalComposition' | t }}</span>
             <span class="composition-total" [class.privacy-mask]="privacyMode()">
-              Total: {{ calculationResult().futureValue | currency:displayCurrency():'symbol-narrow':'1.0-0' }}
+              {{ 'tools.tvm.totalLabel' | t:{ value: (calculationResult().futureValue | currency:displayCurrency():'symbol-narrow':'1.0-0') ?? '' } }}
             </span>
           </div>
 
@@ -462,17 +459,17 @@
             <div
               class="bar-segment bar-principal"
               [style.width.%]="principalPercent()"
-              title="Starting Principal: {{ principalPercent() | number:'1.1-1' }}%"
+              [title]="'tools.tvm.startingPrincipalTooltip' | t:{ pct: (principalPercent() | number:'1.1-1') ?? '0.0' }"
             ></div>
             <div
               class="bar-segment bar-contributions"
               [style.width.%]="contributionsPercent()"
-              title="Total Contributions: {{ contributionsPercent() | number:'1.1-1' }}%"
+              [title]="'tools.tvm.totalContribTooltip' | t:{ pct: (contributionsPercent() | number:'1.1-1') ?? '0.0' }"
             ></div>
             <div
               class="bar-segment bar-interest"
               [style.width.%]="interestPercent()"
-              title="Compound Interest: {{ interestPercent() | number:'1.1-1' }}%"
+              [title]="'tools.tvm.compoundInterestTooltip' | t:{ pct: (interestPercent() | number:'1.1-1') ?? '0.0' }"
             ></div>
           </div>
 
@@ -480,17 +477,17 @@
           <div class="composition-legend">
             <div class="legend-item">
               <span class="legend-dot dot-principal"></span>
-              <span class="legend-text">Starting Principal:</span>
+              <span class="legend-text">{{ 'tools.tvm.startingPrincipalColon' | t }}</span>
               <span class="legend-val" [class.privacy-mask]="privacyMode()">{{ principalPercent() | number:'1.1-1' }}%</span>
             </div>
             <div class="legend-item">
               <span class="legend-dot dot-contributions"></span>
-              <span class="legend-text">Contributions:</span>
+              <span class="legend-text">{{ 'tools.tvm.contributionsColon' | t }}</span>
               <span class="legend-val" [class.privacy-mask]="privacyMode()">{{ contributionsPercent() | number:'1.1-1' }}%</span>
             </div>
             <div class="legend-item">
               <span class="legend-dot dot-interest"></span>
-              <span class="legend-text">Compound Interest:</span>
+              <span class="legend-text">{{ 'tools.tvm.compoundInterestColon' | t }}</span>
               <span class="legend-val" [class.privacy-mask]="privacyMode()">{{ interestPercent() | number:'1.1-1' }}%</span>
             </div>
           </div>
@@ -500,47 +497,47 @@
       <!-- Detailed KPI Metric Grid -->
       <div class="tvm-kpi-grid">
         <div class="kpi-cell">
-          <span class="kpi-cell-label">Starting Principal (PV)</span>
+          <span class="kpi-cell-label">{{ 'tools.tvm.kpiPVLabel' | t }}</span>
           <span class="kpi-cell-val" [class.privacy-mask]="privacyMode()">
             {{ calculationResult().totalPrincipal | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
           </span>
-          <span class="kpi-cell-sub">{{ principalPercent() | number:'1.1-1' }}% of Total</span>
+          <span class="kpi-cell-sub">{{ 'tools.tvm.pctOfTotal' | t:{ pct: (principalPercent() | number:'1.1-1') ?? '0.0' } }}</span>
         </div>
 
         <div class="kpi-cell">
-          <span class="kpi-cell-label">Total Contributions (PMT)</span>
+          <span class="kpi-cell-label">{{ 'tools.tvm.kpiPMTLabel' | t }}</span>
           <span class="kpi-cell-val" [class.privacy-mask]="privacyMode()">
             {{ calculationResult().totalContributions | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
           </span>
-          <span class="kpi-cell-sub">{{ calculationResult().totalPeriods }} deposits of {{ calculationResult().payment | currency:displayCurrency():'symbol-narrow':'1.0-0' }}</span>
+          <span class="kpi-cell-sub">{{ 'tools.tvm.depositsOf' | t:{ periods: calculationResult().totalPeriods, amount: (calculationResult().payment | currency:displayCurrency():'symbol-narrow':'1.0-0') ?? '' } }}</span>
         </div>
 
         <div class="kpi-cell">
-          <span class="kpi-cell-label">Total Invested Outlay</span>
+          <span class="kpi-cell-label">{{ 'tools.tvm.kpiInvestedLabel' | t }}</span>
           <span class="kpi-cell-val" [class.privacy-mask]="privacyMode()">
             {{ calculationResult().totalInvested | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
           </span>
-          <span class="kpi-cell-sub">Principal + Deposits</span>
+          <span class="kpi-cell-sub">{{ 'tools.tvm.principalPlusDeposits' | t }}</span>
         </div>
 
         <div class="kpi-cell kpi-highlight-cell">
-          <span class="kpi-cell-label">Compound Interest Earned</span>
+          <span class="kpi-cell-label">{{ 'tools.tvm.kpiInterestLabel' | t }}</span>
           <span class="kpi-cell-val pl-positive" [class.privacy-mask]="privacyMode()">
             +{{ calculationResult().totalInterestEarned | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
           </span>
-          <span class="kpi-cell-sub">{{ interestPercent() | number:'1.1-1' }}% of Total</span>
+          <span class="kpi-cell-sub">{{ 'tools.tvm.pctOfTotal' | t:{ pct: (interestPercent() | number:'1.1-1') ?? '0.0' } }}</span>
         </div>
 
         <div class="kpi-cell">
-          <span class="kpi-cell-label">Effective APY (EAR)</span>
+          <span class="kpi-cell-label">{{ 'tools.tvm.kpiEffectiveApy' | t }}</span>
           <span class="kpi-cell-val">{{ calculationResult().effectiveAnnualRatePct | number:'1.2-2' }}%</span>
-          <span class="kpi-cell-sub">Compounded {{ activeCompoundingLabel() }}</span>
+          <span class="kpi-cell-sub">{{ 'tools.tvm.compoundedWith' | t:{ label: activeCompoundingLabel() } }}</span>
         </div>
 
         <div class="kpi-cell">
-          <span class="kpi-cell-label">Total Return Multiple</span>
+          <span class="kpi-cell-label">{{ 'tools.tvm.kpiMultiplierLabel' | t }}</span>
           <span class="kpi-cell-val">{{ calculationResult().multiplier | number:'1.2-2' }}x</span>
-          <span class="kpi-cell-sub">FV / Total Invested</span>
+          <span class="kpi-cell-sub">{{ 'tools.tvm.fvDivInvested' | t }}</span>
         </div>
       </div>
     </div>
@@ -555,8 +552,8 @@
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
           </svg>
           <div>
-            <h3 class="card-title">Year-by-Year Wealth Trajectory</h3>
-            <span class="chart-subtext">Visual projection of compound growth vs invested capital over {{ calculationResult().years }} years.</span>
+            <h3 class="card-title">{{ 'tools.tvm.chartTitle' | t }}</h3>
+            <span class="chart-subtext">{{ 'tools.tvm.chartSubtitle' | t:{ years: calculationResult().years } }}</span>
           </div>
         </div>
 
@@ -568,18 +565,18 @@
               class="chart-mode-btn"
               [class.active]="isAreaChartMode()"
               (click)="isAreaChartMode.set(true)"
-              title="Show shaded area curves"
+              [title]="'tools.tvm.areaTitle' | t"
             >
-              Area
+              {{ 'tools.tvm.areaBtn' | t }}
             </button>
             <button
               type="button"
               class="chart-mode-btn"
               [class.active]="!isAreaChartMode()"
               (click)="isAreaChartMode.set(false)"
-              title="Show line curves only"
+              [title]="'tools.tvm.linesTitle' | t"
             >
-              Lines
+              {{ 'tools.tvm.linesBtn' | t }}
             </button>
           </div>
 
@@ -587,11 +584,11 @@
           <div class="chart-legend">
             <div class="legend-badge">
               <span class="badge-indicator indicator-balance"></span>
-              <span>Projected Balance (FV)</span>
+              <span>{{ 'tools.tvm.legendBalance' | t }}</span>
             </div>
             <div class="legend-badge">
               <span class="badge-indicator indicator-invested"></span>
-              <span>Invested Capital</span>
+              <span>{{ 'tools.tvm.legendInvested' | t }}</span>
             </div>
           </div>
         </div>
@@ -745,25 +742,25 @@
             [class.tooltip-flip-left]="hp.x > growthChartData().svgWidth * 0.65"
           >
             <div class="tooltip-header">
-              <span class="tooltip-yr-badge">{{ hp.year === 0 ? 'Starting Principal' : 'Year ' + hp.year }}</span>
+              <span class="tooltip-yr-badge">{{ hp.year === 0 ? ('tools.tvm.startingPrincipal' | t) : ('tools.tvm.yearN' | t:{ year: hp.year }) }}</span>
               <span class="tooltip-multiplier" [class.privacy-mask]="privacyMode()">{{ hp.multiplier | number:'1.2-2' }}x</span>
             </div>
             <div class="tooltip-body">
               <div class="tooltip-metric-row">
-                <span class="metric-label dot-balance">Total Balance:</span>
+                <span class="metric-label dot-balance">{{ 'tools.tvm.tooltipBalance' | t }}</span>
                 <span class="metric-val text-balance" [class.privacy-mask]="privacyMode()">
                   {{ hp.balance | currency:displayCurrency():'symbol-narrow':'1.0-0' }}
                 </span>
               </div>
               <div class="tooltip-metric-row">
-                <span class="metric-label dot-invested">Invested Capital:</span>
+                <span class="metric-label dot-invested">{{ 'tools.tvm.tooltipInvested' | t }}</span>
                 <span class="metric-val" [class.privacy-mask]="privacyMode()">
                   {{ hp.invested | currency:displayCurrency():'symbol-narrow':'1.0-0' }}
                 </span>
               </div>
               @if (hp.interest > 0) {
                 <div class="tooltip-metric-row">
-                  <span class="metric-label dot-interest">Compound Interest:</span>
+                  <span class="metric-label dot-interest">{{ 'tools.tvm.tooltipInterest' | t }}</span>
                   <span class="metric-val text-interest" [class.privacy-mask]="privacyMode()">
                     +{{ hp.interest | currency:displayCurrency():'symbol-narrow':'1.0-0' }}
                   </span>
@@ -788,12 +785,12 @@
             <line x1="3" y1="10" x2="21" y2="10"></line>
           </svg>
           <div>
-            <h3 class="card-title">Year-by-Year Growth & Accumulation Schedule</h3>
-            <span class="schedule-subtext">View yearly capital contributions, interest breakdown, and progression over {{ calculationResult().schedule.length }} years.</span>
+            <h3 class="card-title">{{ 'tools.tvm.scheduleTitle' | t }}</h3>
+            <span class="schedule-subtext">{{ 'tools.tvm.scheduleSub' | t:{ years: calculationResult().schedule.length } }}</span>
           </div>
         </div>
         <button type="button" class="schedule-toggle-btn" id="btn-toggle-tvm-schedule">
-          <span>{{ isScheduleExpanded() ? 'Collapse Table' : 'Expand Schedule (' + calculationResult().schedule.length + ' Years)' }}</span>
+          <span>{{ isScheduleExpanded() ? ('tools.tvm.collapseTable' | t) : ('tools.tvm.expandSchedule' | t:{ years: calculationResult().schedule.length }) }}</span>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="toggle-chevron" [class.rotated]="isScheduleExpanded()">
             <polyline points="6 9 12 15 18 9"></polyline>
           </svg>
@@ -805,19 +802,19 @@
           <table class="schedule-table">
             <thead>
               <tr>
-                <th class="th-year">Year</th>
-                <th class="th-start">Starting Balance</th>
-                <th class="th-deposits">Annual Deposits</th>
-                <th class="th-interest">Interest Earned</th>
-                <th class="th-end">Ending Balance</th>
-                <th class="th-cum-interest">Cum. Interest</th>
+                <th class="th-year">{{ 'tools.tvm.thYear' | t }}</th>
+                <th class="th-start">{{ 'tools.tvm.thStartBal' | t }}</th>
+                <th class="th-deposits">{{ 'tools.tvm.thAnnualDeposits' | t }}</th>
+                <th class="th-interest">{{ 'tools.tvm.thInterestEarned' | t }}</th>
+                <th class="th-end">{{ 'tools.tvm.thEndBal' | t }}</th>
+                <th class="th-cum-interest">{{ 'tools.tvm.thCumInterest' | t }}</th>
               </tr>
             </thead>
             <tbody>
               @for (row of calculationResult().schedule; track row.year) {
                 <tr [class.final-row]="row.year === calculationResult().schedule.length">
                   <td class="td-year">
-                    <span class="year-badge">Year {{ row.year }}</span>
+                    <span class="year-badge">{{ 'tools.tvm.yearN' | t:{ year: row.year } }}</span>
                   </td>
                   <td class="td-start" [class.privacy-mask]="privacyMode()">
                     {{ row.startBalance | currency:displayCurrency():'symbol-narrow':'1.2-2' }}

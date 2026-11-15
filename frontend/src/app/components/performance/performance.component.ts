@@ -5,19 +5,31 @@ import { SymbolIconComponent } from '../symbol-icon/symbol-icon.component';
 import { SymbolSummary, ClosedSymbolSummary, SymbolTransactionSummary, Transaction } from '../../models/transaction.model';
 import { PriceData } from '../../services/price.service';
 import { PortfolioService } from '../../services/portfolio.service';
+import { I18nService } from '../../services/i18n.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 import { PortfolioPerformanceResponse } from '../../models/portfolio.model';
-import { getAssetType, getAssetTypeLabel, getAssetColor, getSymbolColor, displaySymbol, resolveSymbolName, convertCurrency } from '../../utils/format.utils';
+import {
+  getAssetType,
+  getAssetTypeLabel,
+  getAssetColor,
+  getSymbolColor,
+  getSymbolName,
+  displaySymbol,
+  resolveSymbolName,
+  convertCurrency,
+} from '../../utils/format.utils';
 
 @Component({
   selector: 'app-performance',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe, DateRangePickerComponent, SymbolIconComponent],
+  imports: [CurrencyPipe, DecimalPipe, DateRangePickerComponent, SymbolIconComponent, TranslatePipe],
   templateUrl: './performance.component.html',
   styleUrls: ['./performance.component.css']
 })
 export class PerformanceComponent {
   private readonly portfolioService = inject(PortfolioService);
+  readonly i18n = inject(I18nService);
 
   summaries = input.required<SymbolSummary[]>();
   closedSummaries = input.required<ClosedSymbolSummary[]>();
@@ -39,15 +51,18 @@ export class PerformanceComponent {
 
   readonly serverPerformance = signal<PortfolioPerformanceResponse | null>(null);
 
-  readonly sortOptions = [
-    { field: 'symbol', label: 'Symbol' },
-    { field: 'totalReturn', label: 'Total Return %' },
-    { field: 'totalReturnAmount', label: 'Total Return $' },
-    { field: 'investedCost', label: 'Invested Cost' },
-    { field: 'currentValue', label: 'Current Value' },
-    { field: 'realizedPL', label: 'Realized P/L' },
-    { field: 'unrealizedPL', label: 'Unrealized P/L' },
-  ];
+  readonly sortOptions = computed(() => {
+    this.i18n.lang();
+    return [
+      { field: 'symbol', label: this.i18n.t('perf.sort.symbol') },
+      { field: 'totalReturn', label: this.i18n.t('perf.sort.totalReturnPct') },
+      { field: 'totalReturnAmount', label: this.i18n.t('perf.sort.totalReturnAmt') },
+      { field: 'investedCost', label: this.i18n.t('perf.sort.investedCost') },
+      { field: 'currentValue', label: this.i18n.t('perf.sort.currentValue') },
+      { field: 'realizedPL', label: this.i18n.t('perf.sort.realizedPL') },
+      { field: 'unrealizedPL', label: this.i18n.t('perf.sort.unrealizedPL') },
+    ];
+  });
 
   getAssetColor = getAssetColor;
 
@@ -79,6 +94,7 @@ export class PerformanceComponent {
   }
 
   assetTypeOptions = computed(() => {
+    const lang = this.i18n.lang();
     const types = new Set<string>();
     for (const s of this.summaries()) {
       types.add(getAssetType(s.assetType || '', s.symbol));
@@ -86,19 +102,20 @@ export class PerformanceComponent {
     for (const c of this.closedSummaries()) {
       types.add(getAssetType(c.assetType || '', c.symbol));
     }
-    const options = [{ value: 'all', label: 'All' }];
+    const options = [{ value: 'all', label: this.i18n.t('asset.all') }];
     for (const t of Array.from(types).sort()) {
-      options.push({ value: t, label: getAssetTypeLabel(t) });
+      options.push({ value: t, label: getAssetTypeLabel(t, undefined, lang) });
     }
     return options;
   });
 
   assetTypePerformance = computed(() => {
+    const lang = this.i18n.lang();
     const perf = this.serverPerformance();
     if (perf && perf.assetTypePerformance && perf.assetTypePerformance.length > 0) {
       return perf.assetTypePerformance.map((t) => ({
         type: t.assetType,
-        label: t.label,
+        label: getAssetTypeLabel(t.assetType, undefined, lang),
         investedCost: this.cx(t.investedCost, perf.currency),
         currentValue: this.cx(t.currentValue, perf.currency),
         realizedPL: this.cx(t.realizedPL, perf.currency),
@@ -169,12 +186,14 @@ export class PerformanceComponent {
         totalReturn,
         totalReturnPercent,
         color: this.getAssetColor(t.type),
-        label: getAssetTypeLabel(t.type)
+        label: getAssetTypeLabel(t.type, undefined, lang)
       };
     }).sort((a, b) => b.totalReturnPercent - a.totalReturnPercent);
   });
 
   rawSymbolPerformance = computed(() => {
+    const lang = this.i18n.lang();
+    const pm = this.pricesMap();
     const perf = this.serverPerformance();
     if (perf && perf.symbolPerformance && perf.symbolPerformance.length > 0) {
       return perf.symbolPerformance.map((s) => {
@@ -183,8 +202,13 @@ export class PerformanceComponent {
         const unPL = this.cx(s.unrealizedPL, perf.currency);
         const rePL = this.cx(s.realizedPL, perf.currency);
         const totRet = this.cx(s.totalReturnAmount ?? s.totalReturn, perf.currency);
+        const assetType = s.assetType || getAssetType('', s.symbol);
+        const nameEn = s.name || resolveSymbolName(s.symbol, pm, 'en', assetType);
+        const nameTh = s.nameTh || pm.get(s.symbol)?.nameTh || '';
         return {
           ...s,
+          assetType,
+          assetTypeLabel: getAssetTypeLabel(assetType, s.symbol, lang),
           investedCost: invCost,
           currentValue: curVal,
           unrealizedPL: unPL,
@@ -192,7 +216,9 @@ export class PerformanceComponent {
           totalReturnAmount: totRet,
           totalReturn: totRet,
           color: getSymbolColor(s.symbol),
-          name: s.name || resolveSymbolName(s.symbol, this.pricesMap()),
+          nameEn,
+          nameTh,
+          name: getSymbolName(s.symbol, nameEn, lang, nameTh, assetType),
           displaySymbol: s.displaySymbol || displaySymbol(s.symbol),
         };
       });
@@ -202,7 +228,7 @@ export class PerformanceComponent {
     const symbolMap = new Map<string, any>();
     for (const summary of this.summaries()) {
       const sym = summary.symbol;
-      const priceData = this.pricesMap().get(sym);
+      const priceData = pm.get(sym);
       const currency = summary.currency;
       const investedCost = this.cx(summary.totalCost, currency);
       let currentValue = 0;
@@ -212,12 +238,18 @@ export class PerformanceComponent {
         currentValue = this.cx(summary.totalShares * summary.averageCost, currency);
       }
 
+      const assetType = getAssetType(summary.assetType || '', sym);
+      const nameEn = summary.name || resolveSymbolName(sym, pm, 'en', assetType);
+      const nameTh = summary.nameTh || priceData?.nameTh || '';
+
       symbolMap.set(sym, {
         symbol: sym,
         displaySymbol: displaySymbol(sym),
-        name: resolveSymbolName(sym, this.pricesMap()),
-        assetType: getAssetType(summary.assetType || '', sym),
-        assetTypeLabel: getAssetTypeLabel(getAssetType(summary.assetType || '', sym)),
+        nameEn,
+        nameTh,
+        name: getSymbolName(sym, nameEn, lang, nameTh, assetType),
+        assetType,
+        assetTypeLabel: getAssetTypeLabel(assetType, sym, lang),
         color: getSymbolColor(sym),
         status: 'OPEN',
         investedCost,
@@ -253,12 +285,17 @@ export class PerformanceComponent {
         existing.investedCost += closedInvested;
         existing.currentValue += closedProceeds;
       } else {
+        const assetType = getAssetType(closed.assetType || '', sym);
+        const nameEn = closed.name || resolveSymbolName(sym, pm, 'en', assetType);
+        const nameTh = closed.nameTh || pm.get(sym)?.nameTh || '';
         symbolMap.set(sym, {
           symbol: sym,
           displaySymbol: displaySymbol(sym),
-          name: resolveSymbolName(sym, this.pricesMap()),
-          assetType: getAssetType(closed.assetType || '', sym),
-          assetTypeLabel: getAssetTypeLabel(getAssetType(closed.assetType || '', sym)),
+          nameEn,
+          nameTh,
+          name: getSymbolName(sym, nameEn, lang, nameTh, assetType),
+          assetType,
+          assetTypeLabel: getAssetTypeLabel(assetType, sym, lang),
           color: getSymbolColor(sym),
           status: 'CLOSED',
           investedCost: closedInvested,
@@ -290,6 +327,8 @@ export class PerformanceComponent {
           s.symbol.toLowerCase().includes(search) ||
           s.displaySymbol.toLowerCase().includes(search) ||
           s.name.toLowerCase().includes(search) ||
+          (s.nameEn || '').toLowerCase().includes(search) ||
+          (s.nameTh || '').toLowerCase().includes(search) ||
           s.assetTypeLabel.toLowerCase().includes(search)
       );
     }
@@ -440,6 +479,8 @@ export class PerformanceComponent {
         s.symbol.toUpperCase().includes(query) ||
         s.displaySymbol.toUpperCase().includes(query) ||
         s.name.toUpperCase().includes(query) ||
+        (s.nameEn || '').toUpperCase().includes(query) ||
+        (s.nameTh || '').toUpperCase().includes(query) ||
         s.assetTypeLabel.toUpperCase().includes(query)
     );
 
@@ -564,5 +605,13 @@ export class PerformanceComponent {
 
   toggleShowAll(): void {
     this.showAllSymbols.set(!this.showAllSymbols());
+  }
+
+  getStatusLabel(status: string): string {
+    const normalized = (status || '').toUpperCase();
+    if (normalized === 'OPEN') return this.i18n.t('perf.status.open');
+    if (normalized === 'CLOSED') return this.i18n.t('perf.status.closed');
+    if (normalized === 'BOTH') return this.i18n.t('perf.status.both');
+    return status;
   }
 }

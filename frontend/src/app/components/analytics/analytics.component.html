@@ -2,11 +2,11 @@
   <!-- Analytics Header with Segmented Sub-Tab Switcher -->
   <div class="analytics-header">
     <div class="analytics-title-group">
-      <h2 class="analytics-title">Portfolio Analytics</h2>
-      <p class="analytics-subtitle">Asset allocation, rebalancing, and investment return metrics</p>
+      <h2 class="analytics-title">{{ 'analytics.title' | t }}</h2>
+      <p class="analytics-subtitle">{{ 'analytics.subtitle' | t }}</p>
     </div>
 
-    <div class="analytics-subnav" role="tablist" aria-label="Analytics Views">
+    <div class="analytics-subnav" role="tablist" [attr.aria-label]="'analytics.viewsAria' | t">
       <button
         type="button"
         role="tab"
@@ -31,7 +31,7 @@
           <rect x="14" y="12" width="7" height="9" rx="1.5"></rect>
           <rect x="3" y="16" width="7" height="5" rx="1.5"></rect>
         </svg>
-        <span>Overview</span>
+        <span>{{ 'analytics.overview' | t }}</span>
       </button>
 
       <button
@@ -56,7 +56,7 @@
           <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
           <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
         </svg>
-        <span>Allocation</span>
+        <span>{{ 'dash.allocationBtn' | t }}</span>
       </button>
 
       <button
@@ -82,7 +82,7 @@
           <line x1="12" y1="20" x2="12" y2="4"></line>
           <line x1="6" y1="20" x2="6" y2="14"></line>
         </svg>
-        <span>Performance</span>
+        <span>{{ 'analytics.performance' | t }}</span>
       </button>
     </div>
   </div>
@@ -93,7 +93,7 @@
       <!-- Top Row: Portfolio Performance & Value KPIs -->
       <div class="overview-kpi-grid">
         <div class="overview-kpi-card">
-          <div class="kpi-label">Total Invested</div>
+          <div class="kpi-label">{{ 'common.totalInvested' | t }}</div>
           <div class="kpi-value font-mono">
             {{
               portfolioSummary().totalInvested
@@ -102,7 +102,7 @@
           </div>
         </div>
         <div class="overview-kpi-card">
-          <div class="kpi-label">Total Value</div>
+          <div class="kpi-label">{{ 'common.totalValue' | t }}</div>
           <div class="kpi-value font-mono">
             {{
               portfolioSummary().totalCurrentValue
@@ -111,7 +111,7 @@
           </div>
         </div>
         <div class="overview-kpi-card">
-          <div class="kpi-label">Unrealized P/L</div>
+          <div class="kpi-label">{{ 'common.unrealizedPL' | t }}</div>
           <div
             class="kpi-value font-mono"
             [class.pl-positive]="portfolioSummary().totalUnrealizedPL >= 0"
@@ -133,7 +133,7 @@
           </div>
         </div>
         <div class="overview-kpi-card">
-          <div class="kpi-label">Realized P/L</div>
+          <div class="kpi-label">{{ 'common.realizedPL' | t }}</div>
           <div
             class="kpi-value font-mono"
             [class.pl-positive]="portfolioSummary().totalRealizedPL >= 0"
@@ -155,7 +155,7 @@
           </div>
         </div>
         <div class="overview-kpi-card kpi-card-highlight">
-          <div class="kpi-label">Total Return</div>
+          <div class="kpi-label">{{ 'common.totalReturn' | t }}</div>
           <div
             class="kpi-value font-mono"
             [class.pl-positive]="portfolioSummary().totalReturn >= 0"
@@ -183,9 +183,9 @@
         <!-- Asset Distribution Card -->
         <div class="overview-card">
           <div class="overview-card-header">
-            <h3 class="overview-card-title">Asset Distribution</h3>
+            <h3 class="overview-card-title">{{ 'alloc.assetDistribution' | t }}</h3>
             <button type="button" class="card-action-btn" (click)="selectSubTab('allocation')">
-              <span>View Allocation</span>
+              <span>{{ 'analytics.viewAllocation' | t }}</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -232,7 +232,7 @@
                   totalPortfolioValue() | currency: displayCurrency() : 'symbol-narrow' : '1.0-0'
                 }}
               </div>
-              <div class="donut-center-label">Total Value</div>
+              <div class="donut-center-label">{{ 'common.totalValue' | t }}</div>
             </div>
           </div>
           <div class="overview-legend-grid">
@@ -251,9 +251,9 @@
         <!-- Asset Type Returns & Currency Exposure Card -->
         <div class="overview-card">
           <div class="overview-card-header">
-            <h3 class="overview-card-title">Returns by Asset Class</h3>
+            <h3 class="overview-card-title">{{ 'analytics.returnsByClass' | t }}</h3>
             <button type="button" class="card-action-btn" (click)="selectSubTab('performance')">
-              <span>View Performance</span>
+              <span>{{ 'analytics.viewPerformance' | t }}</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -306,7 +306,7 @@
           </div>
 
           <div class="overview-currency-section">
-            <div class="overview-section-title">Currency Exposure</div>
+            <div class="overview-section-title">{{ 'analytics.currencyExposure' | t }}</div>
             <div class="currency-labels">
               <span
                 >USD
@@ -340,9 +340,9 @@
         <!-- Top Concentration Card -->
         <div class="overview-card">
           <div class="overview-card-header">
-            <h3 class="overview-card-title">Top Holdings Concentration</h3>
+            <h3 class="overview-card-title">{{ 'analytics.topConcentration' | t }}</h3>
             <button type="button" class="card-action-btn" (click)="selectSubTab('allocation')">
-              <span>All Holdings</span>
+              <span>{{ 'analytics.allHoldings' | t }}</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -396,9 +396,9 @@
         <!-- Top Movers Card -->
         <div class="overview-card">
           <div class="overview-card-header">
-            <h3 class="overview-card-title">Top Movers</h3>
+            <h3 class="overview-card-title">{{ 'perf.topMovers' | t }}</h3>
             <button type="button" class="card-action-btn" (click)="selectSubTab('performance')">
-              <span>Performance Table</span>
+              <span>{{ 'analytics.perfTable' | t }}</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -416,7 +416,7 @@
 
           <div class="movers-preview-grid">
             <div class="movers-col">
-              <div class="movers-sub-heading text-positive">Gainers</div>
+              <div class="movers-sub-heading text-positive">{{ 'analytics.gainers' | t }}</div>
               @for (g of topMovers().gainers; track g.symbol) {
                 <div class="mover-preview-row">
                   <app-symbol-icon
@@ -430,12 +430,12 @@
                   >
                 </div>
               } @empty {
-                <div class="mover-empty-text">No gainers found</div>
+                <div class="mover-empty-text">{{ 'analytics.noGainers' | t }}</div>
               }
             </div>
 
             <div class="movers-col">
-              <div class="movers-sub-heading text-negative">Losers</div>
+              <div class="movers-sub-heading text-negative">{{ 'analytics.losers' | t }}</div>
               @for (l of topMovers().losers; track l.symbol) {
                 <div class="mover-preview-row">
                   <app-symbol-icon
@@ -449,7 +449,7 @@
                   >
                 </div>
               } @empty {
-                <div class="mover-empty-text">No losers found</div>
+                <div class="mover-empty-text">{{ 'analytics.noLosers' | t }}</div>
               }
             </div>
           </div>

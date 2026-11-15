@@ -5,16 +5,19 @@ import {
   signal,
   computed,
   effect,
+  inject,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import {
   DecimalPipe,
   CurrencyPipe,
-  DatePipe,
   NgIf,
 } from '@angular/common';
 import { DateRangePickerComponent, DateRange } from '../date-range-picker/date-range-picker.component';
 import { SymbolIconComponent } from '../symbol-icon/symbol-icon.component';
+import { I18nService } from '../../services/i18n.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
 import {
   SymbolTransaction,
   SymbolTransactionSummary,
@@ -26,7 +29,6 @@ import {
   displaySymbol,
   getPriceFormat,
   getSymbolColor,
-  getSymbolName,
   resolveSymbolName,
   convertCurrency,
   getAssetType,
@@ -50,11 +52,12 @@ export type SortOrder = 'desc' | 'asc';
   selector: 'app-transaction-history',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe, CurrencyPipe, DatePipe, NgIf, DateRangePickerComponent, SymbolIconComponent],
+  imports: [DecimalPipe, CurrencyPipe, NgIf, DateRangePickerComponent, SymbolIconComponent, TranslatePipe, LocalizedDatePipe],
   templateUrl: './transaction-history.component.html',
   styleUrl: './transaction-history.component.css',
 })
 export class TransactionHistoryComponent {
+  readonly i18n = inject(I18nService);
   /** Input transaction summaries per symbol */
   readonly transactionSummaries = input<SymbolTransactionSummary[]>([]);
 
@@ -180,7 +183,7 @@ export class TransactionHistoryComponent {
 
   readonly assetTypeOptions = computed(() => {
     const list = this.tradeSummaries();
-    return generateAssetTypeOptions(list);
+    return generateAssetTypeOptions(list, this.i18n.lang());
   });
 
   /** Matched summaries based on assetFilter */
@@ -196,16 +199,21 @@ export class TransactionHistoryComponent {
   /** All available symbols list for selector, sorted by Open position then by symbol */
   readonly availableSymbols = computed(() => {
     const list = this.filteredSummaries();
+    const prices = this.prices();
     const query = this.symbolSearchQuery().trim().toUpperCase();
 
     let filtered = [...list];
     if (query) {
-      filtered = filtered.filter(
-        (s) =>
+      filtered = filtered.filter((s) => {
+        const nameEn = resolveSymbolName(s.symbol, prices, 'en', s.assetType).toUpperCase();
+        const nameTh = resolveSymbolName(s.symbol, prices, 'th', s.assetType).toUpperCase();
+        return (
           s.symbol.toUpperCase().includes(query) ||
           this.getDisplaySymbol(s.symbol).toUpperCase().includes(query) ||
-          this.getSymbolName(s.symbol).toUpperCase().includes(query)
-      );
+          nameEn.includes(query) ||
+          nameTh.includes(query)
+        );
+      });
     }
 
     filtered.sort((a, b) => {
@@ -416,8 +424,8 @@ export class TransactionHistoryComponent {
     return displaySymbol(symbol);
   }
 
-  getSymbolName(symbol: string): string {
-    return resolveSymbolName(symbol, this.prices());
+  getSymbolName(symbol: string, assetType?: string): string {
+    return resolveSymbolName(symbol, this.prices(), this.i18n.lang(), assetType);
   }
 
   getSymbolColor(symbol: string): string {
@@ -433,7 +441,7 @@ export class TransactionHistoryComponent {
   }
 
   getAssetTypeLabel(assetType?: string, symbol?: string): string {
-    return getAssetTypeLabel(assetType, symbol);
+    return getAssetTypeLabel(assetType, symbol, this.i18n.lang());
   }
 
   getAssetTypeClass(assetType?: string, symbol?: string): string {
@@ -441,11 +449,18 @@ export class TransactionHistoryComponent {
   }
 
   getUnitLabel(symbol?: string, assetType?: string): string {
-    return getUnitLabel(symbol, assetType);
+    return getUnitLabel(symbol, assetType, this.i18n.lang());
   }
 
   getUnitLabelSingular(symbol?: string, assetType?: string): string {
-    return getUnitLabelSingular(symbol, assetType);
+    return getUnitLabelSingular(symbol, assetType, this.i18n.lang());
+  }
+
+  getExecSectionKey(symbol?: string, assetType?: string): 'tx.coinsExec' | 'tx.unitsExec' | 'tx.sharesExec' {
+    const resolvedType = getAssetType(assetType, symbol);
+    if (resolvedType === 'crypto') return 'tx.coinsExec';
+    if (resolvedType === 'mutual-fund') return 'tx.unitsExec';
+    return 'tx.sharesExec';
   }
 
   /** Pagination Computeds */

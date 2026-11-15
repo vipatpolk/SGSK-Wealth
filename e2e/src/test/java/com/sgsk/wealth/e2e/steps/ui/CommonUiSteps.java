@@ -164,6 +164,36 @@ public class CommonUiSteps {
         assertThat(headerPage.currencyThbBtn).hasClass(Pattern.compile(".*currency-btn-active.*"));
     }
 
+    @When("I switch language to EN")
+    public void switchLanguageToEN() {
+        headerPage.switchToEN();
+    }
+
+    @When("I switch language to TH")
+    public void switchLanguageToTH() {
+        headerPage.switchToTH();
+    }
+
+    @Then("the EN language button should be active")
+    public void verifyEnLangActive() {
+        assertThat(headerPage.langEnBtn).hasClass(Pattern.compile(".*lang-btn-active.*"));
+    }
+
+    @Then("the TH language button should be active")
+    public void verifyThLangActive() {
+        assertThat(headerPage.langThBtn).hasClass(Pattern.compile(".*lang-btn-active.*"));
+    }
+
+    @Then("the document language attribute should be {string}")
+    public void verifyDocumentLanguage(String lang) {
+        assertThat(page().locator("html")).hasAttribute("lang", lang);
+    }
+
+    @Then("the navigation dashboard button should display {string}")
+    public void verifyNavDashboardText(String text) {
+        assertThat(headerPage.viewToggleDashboardBtn).containsText(text);
+    }
+
     @When("I toggle the theme")
     public void toggleTheme() {
         headerPage.toggleTheme();

@@ -2,8 +2,10 @@ package com.sgsk.wealth.e2e.steps.ui;
 
 import com.microsoft.playwright.Locator;
 import com.sgsk.wealth.e2e.pages.PvdHoldingsPage;
+import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 
 import java.util.List;
@@ -111,5 +113,21 @@ public class PvdHoldingsSteps {
         List<String> ids = pvdHoldingsPage.visiblePolicyIds();
         Assertions.assertFalse(ids.isEmpty(), "Expected at least one PVD policy card");
         Assertions.assertEquals("pvd-policy-" + symbol, ids.get(0));
+    }
+
+    @Then("the PVD sub-policy cards should display localized policy names:")
+    public void verifyPvdSubPolicyLocalizedNames(DataTable dataTable) {
+        for (Map<String, String> row : dataTable.asMaps()) {
+            String symbol = row.get("Symbol");
+            String expectedName = row.get("ExpectedName");
+            assertThat(pvdHoldingsPage.policyName(symbol)).containsText(expectedName);
+            assertThat(pvdHoldingsPage.policyDonutLegendName(symbol)).containsText(expectedName);
+        }
+    }
+
+    @Then("the PVD policy card {string} should not display {string}")
+    public void verifyPvdPolicyCardDoesNotDisplay(String symbol, String unexpectedText) {
+        assertThat(pvdHoldingsPage.policyName(symbol)).not().containsText(unexpectedText);
+        assertThat(pvdHoldingsPage.policyDonutLegendName(symbol)).not().containsText(unexpectedText);
     }
 }

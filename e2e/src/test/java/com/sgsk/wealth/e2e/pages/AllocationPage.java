@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 
+import java.util.regex.Pattern;
+
 @Component
 @ScenarioScope(proxyMode = ScopedProxyMode.NO)
 public class AllocationPage {
@@ -42,5 +44,24 @@ public class AllocationPage {
 
     public void selectOverviewSubTab() {
         overviewTabBtn.click();
+    }
+
+    public void drillDownToAssetClass(String className) {
+        page.locator("app-asset-allocation .clickable-class-row")
+                .filter(new Locator.FilterOptions().setHasText(className))
+                .first()
+                .click();
+        page.locator("app-asset-allocation .symbol-class-list").waitFor();
+    }
+
+    public void resetDrillDownToAllClasses() {
+        page.locator("app-asset-allocation button.back-class-btn").click();
+        page.locator("app-asset-allocation .rebalance-list").waitFor();
+    }
+
+    public Locator symbolBreakdownName(String symbol) {
+        return com.sgsk.wealth.e2e.support.LocatorUtils
+                .filterBySymbolWord(page.locator("app-asset-allocation .symbol-class-item"), symbol)
+                .locator(".symbol-full-name");
     }
 }

@@ -480,8 +480,9 @@
   pointer-events: auto !important;
 }
 
-/* ===== CURRENCY TOGGLE ===== */
-.currency-toggle {
+/* ===== CURRENCY & LANGUAGE TOGGLES ===== */
+.currency-toggle,
+.lang-toggle {
   display: flex;
   background: var(--color-surface-overlay);
   border-radius: 0.5rem;
@@ -489,7 +490,8 @@
   border: 1px solid var(--color-border);
 }
 
-.currency-btn {
+.currency-btn,
+.lang-btn {
   background: transparent;
   border: none;
   color: var(--color-text-muted);
@@ -502,11 +504,13 @@
   transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out);
 }
 
-.currency-btn:hover {
+.currency-btn:hover,
+.lang-btn:hover {
   color: var(--color-text-primary);
 }
 
-.currency-btn-active {
+.currency-btn-active,
+.lang-btn-active {
   background: var(--color-surface-raised);
   color: var(--color-accent);
   box-shadow: 0 1px 3px var(--color-shadow-sm);
@@ -1526,6 +1530,14 @@
   letter-spacing: 0.02em;
   border: 1px solid;
   white-space: nowrap;
+}
+
+.symbol-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  max-width: 22rem;
+  min-width: 0;
 }
 
 .symbol-name {
@@ -2724,11 +2736,13 @@
   }
 
   /* Header action toggles */
-  .currency-toggle {
+  .currency-toggle,
+  .lang-toggle {
     padding: 0.125rem;
   }
 
-  .currency-btn {
+  .currency-btn,
+  .lang-btn {
     padding: 0.2rem 0.45rem;
     font-size: 0.7rem;
   }
@@ -3145,6 +3159,11 @@
     font-size: 0.8125rem;
     padding: 0.2rem 0.5rem;
     line-height: 1.2;
+  }
+
+  .symbol-name-row {
+    max-width: 100%;
+    width: 100%;
   }
 
   .symbol-name {

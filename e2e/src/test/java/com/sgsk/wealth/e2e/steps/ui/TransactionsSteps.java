@@ -3,8 +3,10 @@ package com.sgsk.wealth.e2e.steps.ui;
 import com.microsoft.playwright.Download;
 import com.sgsk.wealth.e2e.context.TestContext;
 import com.sgsk.wealth.e2e.pages.TransactionsPage;
+import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 
 import java.util.regex.Pattern;
@@ -86,5 +88,40 @@ public class TransactionsSteps {
         Assertions.assertNotNull(fileName, "Downloaded file name should not be null");
         Pattern pattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
         Assertions.assertTrue(pattern.matcher(fileName).find(), "File name '" + fileName + "' does not match pattern: " + patternStr);
+    }
+
+    @Then("the transaction ledger should display localized asset names:")
+    public void verifyTransactionLedgerLocalizedNames(DataTable dataTable) {
+        for (Map<String, String> row : dataTable.asMaps()) {
+            String symbol = row.get("Symbol");
+            String expectedName = row.get("ExpectedName");
+            assertThat(transactionsPage.ledgerRowAssetName(symbol)).containsText(expectedName);
+        }
+    }
+
+    @Then("the transaction symbol selector should display localized asset names:")
+    public void verifyTransactionSymbolSelectorLocalizedNames(DataTable dataTable) {
+        transactionsPage.openSymbolDropdown();
+        for (Map<String, String> row : dataTable.asMaps()) {
+            String symbol = row.get("Symbol");
+            String expectedName = row.get("ExpectedName");
+            assertThat(transactionsPage.dropdownItemName(symbol)).containsText(expectedName);
+        }
+        transactionsPage.closeSymbolDropdown();
+    }
+
+    @When("I focus transaction symbol {string}")
+    public void focusTransactionSymbol(String symbol) {
+        transactionsPage.selectSymbolFilter(symbol);
+    }
+
+    @When("I view all transactions in the unified ledger")
+    public void viewAllTransactionsInUnifiedLedger() {
+        transactionsPage.clearSymbolSelection();
+    }
+
+    @Then("the transaction hero card subtitle should be {string}")
+    public void verifyTransactionHeroSubtitle(String expectedSubtitle) {
+        assertThat(transactionsPage.heroSubtitle()).containsText(expectedSubtitle);
     }
 }

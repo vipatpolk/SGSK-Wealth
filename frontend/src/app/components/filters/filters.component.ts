@@ -1,9 +1,11 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-filters',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [TranslatePipe],
   templateUrl: './filters.component.html'
 })
 export class FiltersComponent {

@@ -800,8 +800,26 @@
   gap: 0.1rem;
 }
 
+.pvd-mini-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
 .pvd-mini-name {
   color: var(--color-text-secondary);
+}
+
+.pvd-mini-name-row .factsheet-icon-btn {
+  width: 1.25rem;
+  height: 1.25rem;
+  background: var(--color-surface-raised);
+}
+
+.pvd-mini-name-row .factsheet-icon-svg {
+  width: 0.75rem;
+  height: 0.75rem;
 }
 
 .pvd-mini-fund {

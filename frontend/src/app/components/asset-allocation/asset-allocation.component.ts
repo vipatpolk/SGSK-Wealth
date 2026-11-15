@@ -17,6 +17,8 @@ import {
 } from '../../models/transaction.model';
 import { PriceData } from '../../services/price.service';
 import { PortfolioService } from '../../services/portfolio.service';
+import { I18nService } from '../../services/i18n.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 import { PortfolioAllocationResponse } from '../../models/portfolio.model';
 import {
   getAssetType,
@@ -31,12 +33,13 @@ import {
   selector: 'app-asset-allocation',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe, SymbolIconComponent],
+  imports: [CurrencyPipe, DecimalPipe, SymbolIconComponent, TranslatePipe],
   templateUrl: './asset-allocation.component.html',
   styleUrls: ['./asset-allocation.component.css'],
 })
 export class AssetAllocationComponent implements OnInit {
   private readonly portfolioService = inject(PortfolioService);
+  readonly i18n = inject(I18nService);
 
   summaries = input.required<SymbolSummary[]>();
   pricesMap = input.required<Map<string, PriceData>>();
@@ -68,7 +71,7 @@ export class AssetAllocationComponent implements OnInit {
 
   readonly selectedAssetLabel = computed<string>(() => {
     const type = this.selectedAssetType();
-    return type ? this.getAssetLabel(type) : 'All Classes';
+    return type ? this.getAssetLabel(type) : this.i18n.t('asset.allClasses');
   });
 
   constructor() {
@@ -274,15 +277,17 @@ export class AssetAllocationComponent implements OnInit {
     if (!selectedType) return [];
 
     const pm = this.pricesMap();
+    const lang = this.i18n.lang();
     return this.summaries()
       .filter((s) => getAssetType(s.assetType, s.symbol) === selectedType)
       .map((s) => {
         const pd = pm.get(s.symbol);
         const val = pd && pd.price > 0 ? this.cx(s.totalShares * pd.price, pd.currency) : 0;
+        const assetType = getAssetType(s.assetType, s.symbol);
         return {
           symbol: s.symbol,
           displaySymbol: displaySymbol(s.symbol),
-          name: resolveSymbolName(s.symbol, pm),
+          name: resolveSymbolName(s.symbol, pm, lang, assetType),
           shares: s.totalShares,
           price: pd?.price || 0,
           currency: pd?.currency || 'USD',
@@ -321,7 +326,7 @@ export class AssetAllocationComponent implements OnInit {
   getAssetColor = getAssetColor;
 
   getAssetLabel(type: string): string {
-    return getAssetTypeLabel(type);
+    return getAssetTypeLabel(type, undefined, this.i18n.lang());
   }
 
   readonly donutSegments = computed(() => {

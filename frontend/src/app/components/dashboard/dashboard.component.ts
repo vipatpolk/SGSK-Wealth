@@ -1,11 +1,15 @@
-import { Component, input, output, computed, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule, CurrencyPipe, DecimalPipe, DatePipe } from '@angular/common';
+import { Component, input, output, computed, inject, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule, CurrencyPipe, DecimalPipe } from '@angular/common';
 import { PortfolioHoldingsResponse, PortfolioPosition } from '../../models/portfolio.model';
 import { PortfolioDividendResponse } from '../../models/dividend.model';
+import { FactsheetRequestTarget } from '../../models/factsheet.model';
 import { PriceData } from '../../services/price.service';
 import { ToolId } from '../../models/tools.model';
 import { AppView } from '../../config/asset.constants';
 import { SymbolIconComponent } from '../symbol-icon/symbol-icon.component';
+import { I18nService } from '../../services/i18n.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
 import {
   displaySymbol,
   getSymbolName,
@@ -46,11 +50,12 @@ export interface RecentTransactionItem {
   selector: 'app-dashboard',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, CurrencyPipe, DecimalPipe, DatePipe, SymbolIconComponent],
+  imports: [CommonModule, CurrencyPipe, DecimalPipe, SymbolIconComponent, TranslatePipe, LocalizedDatePipe],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
 })
 export class DashboardComponent {
+  readonly i18n = inject(I18nService);
   portfolioData = input<PortfolioHoldingsResponse | null>(null);
   dividendData = input<PortfolioDividendResponse | null>(null);
   pricesMap = input<Map<string, PriceData>>(new Map());
@@ -64,15 +69,51 @@ export class DashboardComponent {
   openPvdHoldings = output<void>();
   symbolSelected = output<string>();
   toolSelected = output<ToolId>();
+  openFactsheet = output<FactsheetRequestTarget>();
 
   // Formatting helpers
   readonly displaySymbol = displaySymbol;
-  readonly getSymbolName = getSymbolName;
   readonly getAssetType = getAssetType;
-  readonly getAssetTypeLabel = getAssetTypeLabel;
   readonly getAssetColor = getAssetColor;
   readonly getQuantityFormat = getQuantityFormat;
-  readonly getUnitLabel = getUnitLabel;
+
+  getSymbolName(
+    symbol: string,
+    rawName: string = '',
+    assetType?: string,
+    rawNameTh: string = '',
+  ): string {
+    const lang = this.i18n.lang();
+    const pd = this.pricesMap().get(symbol);
+    return getSymbolName(
+      symbol,
+      rawName || pd?.name || '',
+      lang,
+      rawNameTh || pd?.nameTh || '',
+      assetType,
+    );
+  }
+
+  getAssetTypeLabel(type?: string, symbol?: string): string {
+    return getAssetTypeLabel(type, symbol, this.i18n.lang());
+  }
+
+  getUnitLabel(symbol?: string, assetType?: string): string {
+    return getUnitLabel(symbol, assetType, this.i18n.lang());
+  }
+
+  getTxTypeLabel(type: 'BUY' | 'SELL' | 'EX-IN' | 'EX-OUT'): string {
+    switch (type) {
+      case 'BUY':
+        return this.i18n.t('common.buy');
+      case 'SELL':
+        return this.i18n.t('common.sell');
+      case 'EX-IN':
+        return this.i18n.t('common.exIn');
+      case 'EX-OUT':
+        return this.i18n.t('common.exOut');
+    }
+  }
 
   private cx(value: number, originalCurrency: string): number {
     if (!this.hasRate()) return value;
@@ -196,7 +237,7 @@ export class DashboardComponent {
 
       result.push({
         type,
-        label: getAssetTypeLabel(type),
+        label: this.getAssetTypeLabel(type),
         color: getAssetColor(type),
         value: item.value,
         percentage: pct,
@@ -330,7 +371,7 @@ export class DashboardComponent {
               type: t,
               symbol: symbol,
               displaySymbol: displaySymbol(symbol),
-              name: getSymbolName(symbol),
+              name: this.getSymbolName(symbol, '', assetType),
               assetType: assetType,
               quantity: tx.quantity,
               price: this.cx(tx.price, tx.currency || 'USD'),
@@ -364,7 +405,7 @@ export class DashboardComponent {
           type: t,
           symbol: tx.symbol,
           displaySymbol: displaySymbol(tx.symbol),
-          name: getSymbolName(tx.symbol),
+          name: this.getSymbolName(tx.symbol, '', tx.assetType),
           assetType: tx.assetType,
           quantity: tx.quantity,
           price: this.cx(tx.price, tx.currency || 'USD'),
@@ -399,5 +440,20 @@ export class DashboardComponent {
 
   onOpenPvdHoldings(): void {
     this.openPvdHoldings.emit();
+  }
+
+  onOpenFactsheet(event: Event, pos: PortfolioPosition): void {
+    event.stopPropagation();
+    const resolvedName =
+      this.getSymbolName(pos.symbol, pos.name, pos.assetType, pos.nameTh) ||
+      pos.policyName ||
+      this.displaySymbol(pos.symbol);
+    this.openFactsheet.emit({
+      symbol: pos.symbol,
+      assetType: pos.assetType || 'provident-fund',
+      fundName: pos.pvdFundName || undefined,
+      displayName: resolvedName,
+      displayNameTh: pos.nameTh || undefined,
+    });
   }
 }

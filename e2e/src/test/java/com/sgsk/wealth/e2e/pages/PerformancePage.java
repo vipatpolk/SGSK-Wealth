@@ -2,8 +2,10 @@ package com.sgsk.wealth.e2e.pages;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.WaitForSelectorState;
 import com.sgsk.wealth.e2e.context.TestContext;
 import io.cucumber.spring.ScenarioScope;
+import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
@@ -47,5 +49,40 @@ public class PerformancePage {
             datePickerTrigger.click();
         }
         page.locator(".preset-item:has-text(\"" + preset + "\")").click();
+    }
+
+    public Locator symbolTableRowName(String symbol) {
+        return com.sgsk.wealth.e2e.support.LocatorUtils
+                .filterBySymbolWord(page.locator(".perf-table-row"), symbol)
+                .locator(".symbol-name");
+    }
+
+    public Locator topMoverRowName(String symbol) {
+        return com.sgsk.wealth.e2e.support.LocatorUtils
+                .filterBySymbolWord(page.locator(".perf-rank-item"), symbol)
+                .locator(".perf-rank-name");
+    }
+
+    public void openSearchAutocomplete(String query) {
+        searchInput.click();
+        searchInput.fill(query);
+        page.locator("#perf-autocomplete-dropdown").waitFor();
+    }
+
+    public void closeSearchAutocomplete() {
+        searchInput.fill("");
+        Locator backdrop = page.locator(".perf-search-backdrop");
+        if (backdrop.isVisible()) {
+            backdrop.dispatchEvent("mousedown");
+        }
+        page.locator("#perf-autocomplete-dropdown").waitFor(
+                new Locator.WaitForOptions().setState(WaitForSelectorState.HIDDEN));
+    }
+
+    public Locator autocompleteSuggestionName(String symbol) {
+        return com.sgsk.wealth.e2e.support.LocatorUtils
+                .filterBySymbolWord(
+                        page.locator("#perf-autocomplete-dropdown .perf-autocomplete-item"), symbol)
+                .locator(".perf-autocomplete-item-name");
     }
 }

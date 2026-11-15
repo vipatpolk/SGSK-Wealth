@@ -1,4 +1,5 @@
 import asyncio
+import html
 import re
 import time
 import urllib.parse
@@ -11,6 +12,25 @@ from services.nav_service import NavService
 from utils.cache import singleflight, ttl_cache
 from utils.format_utils import resolve_quote_currency, to_yahoo_symbol
 from utils.http_client import get_binance_semaphore, get_http_client, get_yahoo_semaphore
+
+SET_LISTED_COMPANIES_TH_URL = "https://weblink.set.or.th/dat/eod/listedcompany/static/listedCompanies_th_TH.xls"
+SET_LISTED_COMPANIES_EN_URL = "https://weblink.set.or.th/dat/eod/listedcompany/static/listedCompanies_en_US.xls"
+
+
+def _parse_set_listed_companies_html(raw_bytes: bytes) -> dict[str, str]:
+    """Parse SET cp874 XLS-HTML listed-companies table into {SYMBOL: company_name}."""
+    text = raw_bytes.decode("cp874", errors="replace")
+    parsed: dict[str, str] = {}
+    for row_html in re.findall(r"<tr[^>]*>(.*?)</tr>", text, flags=re.IGNORECASE | re.DOTALL):
+        cells = re.findall(r"<td[^>]*>(.*?)</td>", row_html, flags=re.IGNORECASE | re.DOTALL)
+        if len(cells) < 2:
+            continue
+        sym_raw = html.unescape(re.sub(r"<[^>]+>", "", cells[0])).strip().upper()
+        name_raw = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", "", cells[1]))).strip()
+        if not sym_raw or not name_raw or " " in sym_raw or sym_raw in {"SYMBOL", "หลักทรัพย์", "SECURITIES"}:
+            continue
+        parsed[sym_raw] = name_raw
+    return parsed
 
 COMMON_CRYPTO_NAMES: dict[str, str] = {
     "BTC": "Bitcoin",
@@ -101,12 +121,20 @@ class PriceService:
                 ]
             )
         )
+        thai_stock_symbols: set[str] = {
+            s["symbol"]
+            for s in summaries
+            if (s.get("assetType") == "thai-stock" or s.get("symbol", "").upper().endswith(".BK"))
+            and not self._is_fund(s)
+            and not self._is_crypto(s)
+            and not self._is_pvd(s)
+        }
         crypto_symbols = list(set([s["symbol"] for s in summaries if self._is_crypto(s)]))
         fund_symbols = list(set([s["symbol"] for s in summaries if self._is_fund(s)]))
 
         tasks = []
         if stock_symbols:
-            tasks.append(self.fetch_stock_prices(stock_symbols))
+            tasks.append(self.fetch_stock_prices(stock_symbols, thai_symbols=thai_stock_symbols))
         if crypto_symbols:
             tasks.append(self.fetch_crypto_prices(crypto_symbols))
         if fund_symbols:
@@ -154,12 +182,78 @@ class PriceService:
 
         return await singleflight.execute(f"stock_price_{symbol}", _do_fetch_stock)
 
-    async def fetch_stock_prices(self, symbols: list[str]) -> dict[str, PriceData]:
-        results = await asyncio.gather(*[self._fetch_single_stock(sym) for sym in symbols])
-        price_map = {}
+    async def _fetch_set_html_map(self, url: str) -> dict[str, str]:
+        try:
+            res = await self.client.get(url, follow_redirects=True)
+            res.raise_for_status()
+            return _parse_set_listed_companies_html(res.content)
+        except Exception:
+            return {}
+
+    async def _fetch_set_listed_company_names(self) -> dict[str, dict[str, str]]:
+        """Dynamically fetch official Thai & English company names for all SET listed securities."""
+        cache_key = "set_listed_company_names"
+        cached = ttl_cache.get(cache_key)
+        if cached is not None:
+            return cast(dict[str, dict[str, str]], cached)
+
+        async def _do_fetch_set_names() -> dict[str, dict[str, str]]:
+            c = ttl_cache.get(cache_key)
+            if c is not None:
+                return cast(dict[str, dict[str, str]], c)
+
+            th_map, en_map = await asyncio.gather(
+                self._fetch_set_html_map(SET_LISTED_COMPANIES_TH_URL),
+                self._fetch_set_html_map(SET_LISTED_COMPANIES_EN_URL),
+            )
+            combined: dict[str, dict[str, str]] = {}
+            for sym in set(th_map) | set(en_map):
+                combined[sym] = {
+                    "th": th_map.get(sym, ""),
+                    "en": en_map.get(sym, ""),
+                }
+            if combined:
+                ttl_cache.set(cache_key, combined, ttl=86400.0)
+            return combined
+
+        return await singleflight.execute("set_listed_company_names", _do_fetch_set_names)
+
+    async def fetch_stock_prices(
+        self, symbols: list[str], thai_symbols: set[str] | None = None
+    ) -> dict[str, PriceData]:
+        resolved_thai: set[str] = {
+            sym for sym in symbols if sym.upper().endswith(".BK") or (thai_symbols is not None and sym in thai_symbols)
+        }
+        set_names: dict[str, dict[str, str]] = {}
+        results: list[tuple[str, PriceData]]
+        if resolved_thai:
+            stock_coro = asyncio.gather(*[self._fetch_single_stock(sym) for sym in symbols])
+            set_coro = self._fetch_set_listed_company_names()
+            raw_results, set_names = await asyncio.gather(stock_coro, set_coro)
+            results = list(raw_results)
+        else:
+            results = list(await asyncio.gather(*[self._fetch_single_stock(sym) for sym in symbols]))
+
+        price_map: dict[str, PriceData] = {}
         for sym, data in results:
-            if data.price > 0 or data.name:
-                price_map[sym] = data
+            updated_data = data
+            if sym in resolved_thai and set_names:
+                base_sym = re.sub(r"(?i)\.BK$", "", sym).strip().upper()
+                names_entry = set_names.get(base_sym, {})
+                th_name = names_entry.get("th", "")
+                en_name = names_entry.get("en", "")
+                if th_name or en_name:
+                    final_en = updated_data.name or en_name or th_name
+                    final_curr = updated_data.currency or ("THB" if updated_data.price > 0 or th_name or en_name else "")
+                    updated_data = updated_data.model_copy(
+                        update={
+                            "name": final_en,
+                            "nameTh": th_name,
+                            "currency": final_curr,
+                        }
+                    )
+            if updated_data.price > 0 or updated_data.name:
+                price_map[sym] = updated_data
         return price_map
 
     async def _fetch_binance_tickers(self) -> Any:

@@ -3,7 +3,7 @@
   <div class="rebalance-control-card">
     <div class="control-top-row">
       <div class="control-title-group">
-        <h3 class="control-heading">Asset Allocation & Rebalance Planner</h3>
+        <h3 class="control-heading">{{ 'tools.reb.heading' | t }}</h3>
       </div>
 
       <!-- Mode Toggle Switcher -->
@@ -16,8 +16,8 @@
           (click)="setMode('standard')"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="btn-icon-sm"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
-          <span class="mode-text-desktop">Standard (Buy & Sell)</span>
-          <span class="mode-text-mobile">Standard</span>
+          <span class="mode-text-desktop">{{ 'tools.reb.modeStandardDesktop' | t }}</span>
+          <span class="mode-text-mobile">{{ 'tools.reb.modeStandardMobile' | t }}</span>
         </button>
         <button
           type="button"
@@ -27,8 +27,8 @@
           (click)="setMode('no-sell')"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="btn-icon-sm"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-          <span class="mode-text-desktop">No-Sell (Buy-Only Inflow)</span>
-          <span class="mode-text-mobile">No-Sell Inflow</span>
+          <span class="mode-text-desktop">{{ 'tools.reb.modeNoSellDesktop' | t }}</span>
+          <span class="mode-text-mobile">{{ 'tools.reb.modeNoSellMobile' | t }}</span>
         </button>
       </div>
     </div>
@@ -36,7 +36,7 @@
 
     <!-- Asset Class Filter Tabs -->
     <div class="class-filter-bar">
-      <span class="filter-label">Filter Class:</span>
+      <span class="filter-label">{{ 'tools.reb.filterClass' | t }}</span>
       <div class="class-filter-chips">
         @for (item of availableAssetClasses(); track item.id) {
           <button
@@ -66,8 +66,8 @@
               (change)="setNoSellSubMode('min-inflow')"
             />
             <div class="radio-content">
-              <span class="radio-title">Calculate Minimum Cash Inflow to Meet Target</span>
-              <span class="radio-desc">Calculates the exact capital needed so no positions are sold.</span>
+              <span class="radio-title">{{ 'tools.reb.minInflowTitle' | t }}</span>
+              <span class="radio-desc">{{ 'tools.reb.minInflowDesc' | t }}</span>
             </div>
           </label>
 
@@ -80,15 +80,15 @@
               (change)="setNoSellSubMode('custom-deposit')"
             />
             <div class="radio-content">
-              <span class="radio-title">Custom Cash Deposit Budget</span>
-              <span class="radio-desc">Allocates available cash strictly to underweight positions.</span>
+              <span class="radio-title">{{ 'tools.reb.customDepositTitle' | t }}</span>
+              <span class="radio-desc">{{ 'tools.reb.customDepositDesc' | t }}</span>
             </div>
           </label>
         </div>
 
         @if (noSellSubMode() === 'custom-deposit') {
           <div class="deposit-input-group">
-            <label class="deposit-label" for="custom-cash-input">Available Cash Deposit:</label>
+            <label class="deposit-label" for="custom-cash-input">{{ 'tools.reb.availableCash' | t }}</label>
             <div class="deposit-input-wrap">
               <span class="currency-prefix">{{ displayCurrency() === 'THB' ? '฿' : '$' }}</span>
               <input
@@ -126,7 +126,7 @@
 
     @if (mode() === 'no-sell') {
       <div class="kpi-card highlight-inflow">
-        <span class="kpi-label">{{ noSellSubMode() === 'min-inflow' ? 'Min Inflow Required' : 'Cash Contribution' }}</span>
+        <span class="kpi-label">{{ (noSellSubMode() === 'min-inflow' ? 'tools.reb.minInflowReq' : 'tools.reb.cashContribution') | t }}</span>
         <div class="kpi-value-row">
           <span class="kpi-value text-emerald" [class.privacy-blur]="privacyMode()">
             +{{ filteredCashContribution() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
@@ -136,7 +136,7 @@
     }
 
     <div class="kpi-card">
-      <span class="kpi-label">Total Buy Orders</span>
+      <span class="kpi-label">{{ 'tools.reb.totalBuyOrders' | t }}</span>
       <div class="kpi-value-row">
         <span class="kpi-value text-emerald" [class.privacy-blur]="privacyMode()">
           {{ filteredBuyAmount() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
@@ -146,7 +146,7 @@
 
     @if (mode() === 'standard') {
       <div class="kpi-card">
-        <span class="kpi-label">Total Sell Orders</span>
+        <span class="kpi-label">{{ 'tools.reb.totalSellOrders' | t }}</span>
         <div class="kpi-value-row">
           <span class="kpi-value text-rose" [class.privacy-blur]="privacyMode()">
             {{ filteredSellAmount() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
@@ -179,14 +179,14 @@
             </div>
             <div class="class-meta-stats">
               <span class="meta-item">
-                <span class="meta-label">Class Value:</span>
+                <span class="meta-label">{{ 'tools.reb.classValueColon' | t }}</span>
                 <strong class="meta-val" [class.privacy-blur]="privacyMode()">
                   {{ group.currentValue | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
                 </strong>
               </span>
               <span class="meta-sep">&bull;</span>
               <span class="meta-item">
-                <span class="meta-label">Portfolio Share:</span>
+                <span class="meta-label">{{ 'tools.reb.portfolioShareColon' | t }}</span>
                 <strong>{{ group.currentPortfolioPercent | number:'1.1-1' }}%</strong>
               </span>
             </div>
@@ -195,7 +195,7 @@
           <div class="header-right">
             <!-- Target Sum Indicator -->
             <div class="target-sum-badge" [class.sum-valid]="group.isValid" [class.sum-invalid]="!group.isValid">
-              <span class="sum-label">Target Sum:</span>
+              <span class="sum-label">{{ 'tools.reb.targetSumColon' | t }}</span>
               <strong class="sum-value">{{ group.targetTotalPercent | number:'1.1-1' }}%</strong>
               @if (group.isValid) {
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="sum-icon icon-valid"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -211,25 +211,25 @@
                 class="action-btn"
                 [id]="'btn-equal-weight-' + group.assetType"
                 (click)="applyEqualWeight(group)"
-                title="Equally distribute 100% across all symbols in this class"
+                [title]="'tools.reb.equalWeightTitle' | t"
               >
-                <span>Equal Weight</span>
+                <span>{{ 'tools.reb.equalWeight' | t }}</span>
               </button>
               <button
                 type="button"
                 class="action-btn"
                 (click)="applyCurrentWeight(group)"
-                title="Set targets to match current holdings weight"
+                [title]="'tools.reb.setCurrentTitle' | t"
               >
-                <span>Set Current</span>
+                <span>{{ 'tools.reb.setCurrent' | t }}</span>
               </button>
               <button
                 type="button"
                 class="action-btn"
                 (click)="normalizeGroup(group)"
-                title="Proportionally scale targets to 100%"
+                [title]="'tools.reb.normalizeTitle' | t"
               >
-                <span>Normalize</span>
+                <span>{{ 'tools.reb.normalize' | t }}</span>
               </button>
             </div>
           </div>
@@ -238,7 +238,7 @@
         @if (!group.isValid) {
           <div class="class-warning-alert">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="alert-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-            <span>Target weights sum to <strong>{{ group.targetTotalPercent | number:'1.1-1' }}%</strong>. Please adjust them to sum to 100% or click <em>Normalize</em>.</span>
+            <span>{{ 'tools.reb.sumWarningBefore' | t }} <strong>{{ group.targetTotalPercent | number:'1.1-1' }}%</strong>{{ 'tools.reb.sumWarningMiddle' | t }} <em>{{ 'tools.reb.normalize' | t }}</em>.</span>
           </div>
         }
 
@@ -247,12 +247,12 @@
           <table class="rebalance-table">
             <thead>
               <tr>
-                <th class="th-symbol">Symbol</th>
-                <th class="th-shares">Current Position</th>
-                <th class="th-weight">Current %</th>
-                <th class="th-target">Target %</th>
-                <th class="th-target-val">Target Value</th>
-                <th class="th-action">Rebalance Action</th>
+                <th class="th-symbol">{{ 'tools.reb.thSymbol' | t }}</th>
+                <th class="th-shares">{{ 'tools.reb.thCurrentPos' | t }}</th>
+                <th class="th-weight">{{ 'tools.reb.thCurrentPct' | t }}</th>
+                <th class="th-target">{{ 'tools.reb.thTargetPct' | t }}</th>
+                <th class="th-target-val">{{ 'tools.reb.thTargetVal' | t }}</th>
+                <th class="th-action">{{ 'tools.reb.thAction' | t }}</th>
               </tr>
             </thead>
             <tbody>
@@ -263,7 +263,10 @@
                     <div class="sym-badge-cell">
                       <span class="sym-dot" [style.background-color]="item.color"></span>
                       <div class="sym-info">
-                        <span class="sym-ticker">{{ item.displaySymbol }}</span>
+                        <span class="sym-ticker" [title]="item.name">{{ item.displaySymbol }}</span>
+                        @if (item.name && item.name !== item.displaySymbol) {
+                          <span class="sym-name" [title]="item.name" style="font-size: 0.72rem; color: var(--color-text-muted); max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ item.name }}</span>
+                        }
                         <span class="sym-price" [class.privacy-blur]="privacyMode()">
                           {{ item.currentPrice | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
                         </span>
@@ -278,7 +281,7 @@
                         {{ item.currentValue | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
                       </span>
                       <span class="holding-shares" [class.privacy-blur]="privacyMode()">
-                        {{ item.currentShares | number:'1.0-4' }} sh
+                        {{ item.currentShares | number:'1.0-4' }} {{ 'tools.avg.unitShort' | t }}
                       </span>
                     </div>
                   </td>
@@ -300,7 +303,7 @@
                         type="button"
                         class="step-btn step-minus"
                         (click)="adjustTarget(item.symbol, -1)"
-                        title="Decrease target %"
+                        [title]="'tools.reb.decreaseTarget' | t"
                       >-</button>
                       <input
                         type="number"
@@ -318,7 +321,7 @@
                         type="button"
                         class="step-btn step-plus"
                         (click)="adjustTarget(item.symbol, 1)"
-                        title="Increase target %"
+                        [title]="'tools.reb.increaseTarget' | t"
                       >+</button>
                     </div>
                   </td>
@@ -334,33 +337,33 @@
                   <td class="td-action">
                     @if (item.action === 'BUY') {
                       <div class="action-badge badge-buy">
-                        <span class="action-type">BUY</span>
+                        <span class="action-type">{{ 'common.buy' | t }}</span>
                         <div class="action-details">
                           <span class="action-amount" [class.privacy-blur]="privacyMode()">
                             +{{ item.deltaValue | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
                           </span>
                           <span class="action-shares" [class.privacy-blur]="privacyMode()">
-                            (+{{ item.deltaShares | number:'1.0-4' }} sh)
+                            (+{{ item.deltaShares | number:'1.0-4' }} {{ 'tools.avg.unitShort' | t }})
                           </span>
                         </div>
                       </div>
                     } @else if (item.action === 'SELL') {
                       <div class="action-badge badge-sell">
-                        <span class="action-type">SELL</span>
+                        <span class="action-type">{{ 'common.sell' | t }}</span>
                         <div class="action-details">
                           <span class="action-amount" [class.privacy-blur]="privacyMode()">
                             -{{ (item.deltaValue < 0 ? -item.deltaValue : item.deltaValue) | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
                           </span>
                           <span class="action-shares" [class.privacy-blur]="privacyMode()">
-                            (-{{ (item.deltaShares < 0 ? -item.deltaShares : item.deltaShares) | number:'1.0-4' }} sh)
+                            (-{{ (item.deltaShares < 0 ? -item.deltaShares : item.deltaShares) | number:'1.0-4' }} {{ 'tools.avg.unitShort' | t }})
                           </span>
                         </div>
                       </div>
                     } @else {
                       <div class="action-badge badge-balanced">
-                        <span class="action-type">BALANCED</span>
+                        <span class="action-type">{{ 'tools.reb.balanced' | t }}</span>
                         @if (item.isAnchorPosition) {
-                          <span class="anchor-tag">Anchor</span>
+                          <span class="anchor-tag">{{ 'tools.reb.anchor' | t }}</span>
                         }
                       </div>
                     }
@@ -380,7 +383,10 @@
                 <div class="sym-badge-cell">
                   <span class="sym-dot" [style.background-color]="item.color"></span>
                   <div class="sym-info">
-                    <span class="sym-ticker">{{ item.displaySymbol }}</span>
+                    <span class="sym-ticker" [title]="item.name">{{ item.displaySymbol }}</span>
+                    @if (item.name && item.name !== item.displaySymbol) {
+                      <span class="sym-name" [title]="item.name" style="font-size: 0.72rem; color: var(--color-text-muted); max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ item.name }}</span>
+                    }
                     <span class="sym-price" [class.privacy-blur]="privacyMode()">
                       {{ item.currentPrice | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
                     </span>
@@ -390,33 +396,33 @@
                 <div class="m-card-action-wrap">
                   @if (item.action === 'BUY') {
                     <div class="action-badge badge-buy">
-                      <span class="action-type">BUY</span>
+                      <span class="action-type">{{ 'common.buy' | t }}</span>
                       <div class="action-details">
                         <span class="action-amount" [class.privacy-blur]="privacyMode()">
                           +{{ item.deltaValue | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
                         </span>
                         <span class="action-shares" [class.privacy-blur]="privacyMode()">
-                          (+{{ item.deltaShares | number:'1.0-4' }} sh)
+                          (+{{ item.deltaShares | number:'1.0-4' }} {{ 'tools.avg.unitShort' | t }})
                         </span>
                       </div>
                     </div>
                   } @else if (item.action === 'SELL') {
                     <div class="action-badge badge-sell">
-                      <span class="action-type">SELL</span>
+                      <span class="action-type">{{ 'common.sell' | t }}</span>
                       <div class="action-details">
                         <span class="action-amount" [class.privacy-blur]="privacyMode()">
                           -{{ (item.deltaValue < 0 ? -item.deltaValue : item.deltaValue) | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
                         </span>
                         <span class="action-shares" [class.privacy-blur]="privacyMode()">
-                          (-{{ (item.deltaShares < 0 ? -item.deltaShares : item.deltaShares) | number:'1.0-4' }} sh)
+                          (-{{ (item.deltaShares < 0 ? -item.deltaShares : item.deltaShares) | number:'1.0-4' }} {{ 'tools.avg.unitShort' | t }})
                         </span>
                       </div>
                     </div>
                   } @else {
                     <div class="action-badge badge-balanced">
-                      <span class="action-type">BALANCED</span>
+                      <span class="action-type">{{ 'tools.reb.balanced' | t }}</span>
                       @if (item.isAnchorPosition) {
-                        <span class="anchor-tag">Anchor</span>
+                        <span class="anchor-tag">{{ 'tools.reb.anchor' | t }}</span>
                       }
                     </div>
                   }
@@ -426,17 +432,17 @@
               <!-- Metrics Row: Position, Current %, Target Value -->
               <div class="m-card-metrics-grid">
                 <div class="m-metric-item">
-                  <span class="m-metric-label">Current Position</span>
+                  <span class="m-metric-label">{{ 'tools.reb.thCurrentPos' | t }}</span>
                   <span class="m-metric-val" [class.privacy-blur]="privacyMode()">
                     {{ item.currentValue | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
                   </span>
                   <span class="m-metric-sub" [class.privacy-blur]="privacyMode()">
-                    {{ item.currentShares | number:'1.0-4' }} sh
+                    {{ item.currentShares | number:'1.0-4' }} {{ 'tools.avg.unitShort' | t }}
                   </span>
                 </div>
 
                 <div class="m-metric-item">
-                  <span class="m-metric-label">Current Weight</span>
+                  <span class="m-metric-label">{{ 'tools.reb.currentWeight' | t }}</span>
                   <div class="weight-cell">
                     <div class="weight-bar-bg">
                       <div class="weight-bar-fill" [style.width.%]="item.currentClassPercent" [style.background-color]="item.color"></div>
@@ -446,7 +452,7 @@
                 </div>
 
                 <div class="m-metric-item">
-                  <span class="m-metric-label">Target Value</span>
+                  <span class="m-metric-label">{{ 'tools.reb.thTargetVal' | t }}</span>
                   <span class="m-metric-val" [class.privacy-blur]="privacyMode()">
                     {{ item.targetValue | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
                   </span>
@@ -456,8 +462,8 @@
               <!-- Bottom Control Row: Target Weight Stepper -->
               <div class="m-card-control-row">
                 <div class="m-control-info">
-                  <span class="m-control-label">Target Weight</span>
-                  <span class="m-control-desc">Class allocation %</span>
+                  <span class="m-control-label">{{ 'tools.reb.targetWeight' | t }}</span>
+                  <span class="m-control-desc">{{ 'tools.reb.classAllocPct' | t }}</span>
                 </div>
 
                 <div class="target-stepper">
@@ -465,7 +471,7 @@
                     type="button"
                     class="step-btn step-minus"
                     (click)="adjustTarget(item.symbol, -1)"
-                    title="Decrease target %"
+                    [title]="'tools.reb.decreaseTarget' | t"
                   >-</button>
                   <input
                     type="number"
@@ -482,7 +488,7 @@
                     type="button"
                     class="step-btn step-plus"
                     (click)="adjustTarget(item.symbol, 1)"
-                    title="Increase target %"
+                    [title]="'tools.reb.increaseTarget' | t"
                   >+</button>
                 </div>
               </div>
@@ -494,8 +500,8 @@
     } @empty {
       <div class="empty-rebalance-card">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><circle cx="12" cy="12" r="10"></circle><path d="M16 16s-1.5-2-4-2-4 2-4 2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
-        <p class="empty-title">No Open Positions to Rebalance</p>
-        <p class="empty-desc">There are no open positions currently available for the selected asset class.</p>
+        <p class="empty-title">{{ 'tools.reb.emptyTitle' | t }}</p>
+        <p class="empty-desc">{{ 'tools.reb.emptyDesc' | t }}</p>
       </div>
     }
   </div>
@@ -509,8 +515,8 @@
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="drawer-icon"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
           </div>
           <div>
-            <h4 class="drawer-title">Trade Execution Plan</h4>
-            <span class="drawer-subtitle">{{ orders().length }} recommended order{{ orders().length === 1 ? '' : 's' }}</span>
+            <h4 class="drawer-title">{{ 'tools.reb.drawerTitle' | t }}</h4>
+            <span class="drawer-subtitle">{{ (orders().length === 1 ? 'tools.reb.recommendedOrdersSingular' : 'tools.reb.recommendedOrdersPlural') | t:{ count: orders().length } }}</span>
           </div>
         </div>
 
@@ -523,10 +529,10 @@
           >
             @if (isCopiedOrders()) {
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="btn-icon-xs"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              <span>Copied!</span>
+              <span>{{ 'tools.reb.copied' | t }}</span>
             } @else {
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="btn-icon-xs"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-              <span>Copy Trade Plan</span>
+              <span>{{ 'tools.reb.copyPlan' | t }}</span>
             }
           </button>
 
@@ -541,12 +547,12 @@
               <div class="order-item-card" [class.order-buy]="order.action === 'BUY'" [class.order-sell]="order.action === 'SELL'">
                 <div class="order-num">{{ idx + 1 }}</div>
                 <div class="order-action-pill" [class.pill-buy]="order.action === 'BUY'" [class.pill-sell]="order.action === 'SELL'">
-                  {{ order.action }}
+                  {{ (order.action === 'BUY' ? 'common.buy' : 'common.sell') | t }}
                 </div>
                 <div class="order-main-info">
-                  <span class="order-sym">{{ order.displaySymbol }}</span>
+                  <span class="order-sym" [title]="order.name">{{ order.displaySymbol }}</span>
                   <span class="order-shares" [class.privacy-blur]="privacyMode()">
-                    {{ order.shares | number:'1.0-4' }} shares @ {{ order.price | currency:order.currency:'symbol-narrow':'1.2-2' }}
+                    {{ 'tools.reb.sharesAt' | t:{ shares: (order.shares | number:'1.0-4') ?? '0' } }} {{ order.price | currency:order.currency:'symbol-narrow':'1.2-2' }}
                   </span>
                 </div>
                 <div class="order-amount-col">

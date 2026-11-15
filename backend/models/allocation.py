@@ -23,6 +23,7 @@ class HoldingConcentration(BaseModel):
     symbol: str
     displaySymbol: str
     name: str = ""
+    nameTh: str = ""
     assetType: str
     value: float
     portfolioPercent: float

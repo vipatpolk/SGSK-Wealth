@@ -253,4 +253,41 @@ public class ToolsPage {
         modeBtn.click();
         assertThat(modeBtn).hasClass(Pattern.compile(".*active.*"));
     }
+
+    public void openAvgCostSymbolDropdown() {
+        symbolSearchBox.click();
+        symbolDropdownMenu.waitFor();
+    }
+
+    public void closeAvgCostSymbolDropdown() {
+        Locator backdrop = page.locator(".symbol-dropdown-backdrop");
+        if (backdrop.isVisible()) {
+            backdrop.dispatchEvent("click");
+        }
+        symbolDropdownMenu.waitFor(
+                new Locator.WaitForOptions().setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN));
+    }
+
+    public void selectAvgCostSymbol(String symbol) {
+        if (!symbolDropdownMenu.isVisible()) {
+            openAvgCostSymbolDropdown();
+        }
+        com.sgsk.wealth.e2e.support.LocatorUtils
+                .filterBySymbolWord(symbolDropdownMenu.locator(".dropdown-option-item"), symbol)
+                .click();
+    }
+
+    public Locator avgCostDropdownOptionName(String symbol) {
+        return com.sgsk.wealth.e2e.support.LocatorUtils
+                .filterBySymbolWord(symbolDropdownMenu.locator(".dropdown-option-item"), symbol)
+                .locator(".opt-name-sub");
+    }
+
+    public Locator avgCostSelectedBadgeName() {
+        return avgCostCalculator.locator(".symbol-selected-badge .badge-name");
+    }
+
+    public Locator rebalanceRowAssetName(String symbol) {
+        return rebalanceCalculator.locator("[id='rebalance-row-" + symbol + "'] .sym-name").first();
+    }
 }

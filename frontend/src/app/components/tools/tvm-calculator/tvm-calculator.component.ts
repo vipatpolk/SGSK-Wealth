@@ -4,11 +4,15 @@ import {
   signal,
   computed,
   effect,
+  inject,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule, CurrencyPipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PortfolioPosition, PortfolioSummary } from '../../../models/portfolio.model';
+import { I18nService } from '../../../services/i18n.service';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
+import { TranslationKey } from '../../../i18n/en';
 import {
   CompoundingFrequency,
   PaymentTiming,
@@ -19,7 +23,6 @@ import { KNOWN_ASSET_TYPES } from '../../../config/asset.constants';
 import {
   calculateTVM,
   COMPOUNDING_FREQUENCIES,
-  getCompoundingFrequencyLabel,
 } from '../../../utils/tvm-calculator.utils';
 import {
   convertCurrency,
@@ -80,11 +83,12 @@ export interface TvmGrowthChartData {
   selector: 'app-tvm-calculator',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, CurrencyPipe, DecimalPipe, FormsModule],
+  imports: [CommonModule, CurrencyPipe, DecimalPipe, FormsModule, TranslatePipe],
   templateUrl: './tvm-calculator.component.html',
   styleUrls: ['./tvm-calculator.component.css'],
 })
 export class TvmCalculatorComponent {
+  readonly i18n = inject(I18nService);
   portfolioPositions = input<PortfolioPosition[]>([]);
   portfolioSummary = input<PortfolioSummary | null>(null);
   displayCurrency = input.required<'USD' | 'THB'>();
@@ -111,7 +115,18 @@ export class TvmCalculatorComponent {
   /** UI Controls */
   readonly isCompoundingDropdownOpen = signal<boolean>(false);
   readonly isScheduleExpanded = signal<boolean>(false);
-  readonly compoundingOptions = COMPOUNDING_FREQUENCIES;
+
+  private readonly localizedCompoundingOptions = computed(() => {
+    this.i18n.lang();
+    return COMPOUNDING_FREQUENCIES.map((c) => ({
+      ...c,
+      label: this.i18n.t(`tools.tvm.freq.${c.id}` as TranslationKey),
+    }));
+  });
+
+  get compoundingOptions(): { id: CompoundingFrequency; label: string; periods: number }[] {
+    return this.localizedCompoundingOptions();
+  }
 
   /** Convert an amount to current display currency (USD / THB) */
   private toDisplayCurrency(amount: number, fromCurrency?: string): number {
@@ -156,6 +171,7 @@ export class TvmCalculatorComponent {
   /** Distinct Asset Types Available in Portfolio with Aggregated Values */
   readonly assetTypeOptions = computed<AssetTypeOption[]>(() => {
     const positions = this.portfolioPositions();
+    const lang = this.i18n.lang();
     if (!positions || positions.length === 0) {
       return [];
     }
@@ -180,7 +196,7 @@ export class TvmCalculatorComponent {
       if (data) {
         result.push({
           id: typeKey,
-          label: getAssetTypeLabel(typeKey),
+          label: getAssetTypeLabel(typeKey, undefined, lang),
           color: getAssetColor(typeKey),
           holdingValue: data.holdingValue,
           investedCost: data.investedCost,
@@ -194,7 +210,7 @@ export class TvmCalculatorComponent {
     for (const [typeKey, data] of typeMap.entries()) {
       result.push({
         id: typeKey,
-        label: getAssetTypeLabel(typeKey),
+        label: getAssetTypeLabel(typeKey, undefined, lang),
         color: getAssetColor(typeKey),
         holdingValue: data.holdingValue,
         investedCost: data.investedCost,
@@ -244,18 +260,21 @@ export class TvmCalculatorComponent {
   /** Human-readable description of the active PV source */
   readonly pvSourceDescription = computed<string>(() => {
     const source = this.pvSource();
+    const lang = this.i18n.lang();
     if (source === 'custom') {
-      return 'Custom manual value';
+      return this.i18n.t('tools.tvm.customManualDesc');
     }
 
     const selected = this.selectedAssetTypes();
-    const basisLabel = source === 'invested' ? 'Invested Cost' : 'Market Value';
+    const basisLabel = this.i18n.t(
+      source === 'invested' ? 'tools.tvm.investedCost' : 'tools.tvm.marketValue'
+    );
 
     if (selected.has('all')) {
-      return `All Portfolio Assets (${basisLabel})`;
+      return this.i18n.t('tools.tvm.allPortfolioBasis', { basis: basisLabel });
     }
 
-    const labels = Array.from(selected).map((t) => getAssetTypeLabel(t));
+    const labels = Array.from(selected).map((t) => getAssetTypeLabel(t, undefined, lang));
     return `${labels.join(' + ')} (${basisLabel})`;
   });
 
@@ -293,7 +312,8 @@ export class TvmCalculatorComponent {
   });
 
   readonly activeCompoundingLabel = computed<string>(() => {
-    return getCompoundingFrequencyLabel(this.compounding());
+    this.i18n.lang();
+    return this.i18n.t(`tools.tvm.freq.${this.compounding()}` as TranslationKey);
   });
 
   /** Chart Hover & View Mode Signals */
@@ -404,18 +424,19 @@ export class TvmCalculatorComponent {
     else if (numYears > 8) tickStep = 2;
 
     const xTicks: XAxisTick[] = [];
+    this.i18n.lang();
     for (let yr = 0; yr <= numYears; yr += tickStep) {
       xTicks.push({
         x: scaleX(yr),
         year: yr,
-        label: yr === 0 ? 'Start' : `Yr ${yr}`,
+        label: yr === 0 ? this.i18n.t('tools.tvm.startTick') : this.i18n.t('tools.tvm.yrTick', { year: yr }),
       });
     }
     if (xTicks[xTicks.length - 1].year !== numYears) {
       xTicks.push({
         x: scaleX(numYears),
         year: numYears,
-        label: `Yr ${numYears}`,
+        label: this.i18n.t('tools.tvm.yrTick', { year: numYears }),
       });
     }
 
@@ -559,5 +580,16 @@ export class TvmCalculatorComponent {
 
   closeCompoundingDropdown(): void {
     this.isCompoundingDropdownOpen.set(false);
+  }
+
+  compoundingUnitLabel(): string {
+    return this.i18n.t(`tools.tvm.unit.${this.compounding()}` as TranslationKey);
+  }
+
+  tvmErrorMessage(res: TvmCalculationResult): string {
+    if (res.errorKey) {
+      return this.i18n.t(res.errorKey as TranslationKey, res.errorParams);
+    }
+    return res.errorMessage || this.i18n.t('tools.tvm.unableSolve');
   }
 }

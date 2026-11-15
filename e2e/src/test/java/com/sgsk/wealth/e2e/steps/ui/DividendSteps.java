@@ -2,8 +2,10 @@ package com.sgsk.wealth.e2e.steps.ui;
 
 import com.microsoft.playwright.Locator;
 import com.sgsk.wealth.e2e.pages.DividendPage;
+import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import java.util.Map;
 
 import java.util.regex.Pattern;
 
@@ -76,5 +78,14 @@ public class DividendSteps {
     @Then("the Net Dividends KPI card should contain {string}")
     public void verifyNetDividendsCardContains(String expectedText) {
         assertThat(dividendPage.getNetDividendsCard()).containsText(expectedText);
+    }
+
+    @Then("the dividend table should display localized asset names:")
+    public void verifyDividendTableLocalizedNames(DataTable dataTable) {
+        for (Map<String, String> row : dataTable.asMaps()) {
+            String symbol = row.get("Symbol");
+            String expectedName = row.get("ExpectedName");
+            assertThat(dividendPage.symbolTableRowName(symbol)).containsText(expectedName);
+        }
     }
 }

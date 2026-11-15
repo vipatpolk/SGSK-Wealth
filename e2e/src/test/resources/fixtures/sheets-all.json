@@ -34,6 +34,7 @@
       "symbol": "PTT.BK",
       "displaySymbol": "PTT",
       "name": "PTT Public Company Limited",
+      "nameTh": "บริษัท ปตท. จำกัด (มหาชน)",
       "assetType": "thai-stock",
       "totalShares": 1000.0,
       "totalCost": 33000.0,
@@ -76,6 +77,7 @@
       "symbol": "K-USA",
       "displaySymbol": "K-USA",
       "name": "Kasikorn US Equity Fund",
+      "nameTh": "กองทุนเปิดเค ยูเอสเอ หุ้นทุน",
       "assetType": "mutual-fund",
       "totalShares": 500.0,
       "totalCost": 7500.0,
@@ -95,6 +97,7 @@
     },
     {
       "symbol": "PVDSP500",
+      "name": "นโยบายกองทุนรวมดัชนี S&P 500 THB",
       "assetType": "provident-fund",
       "currency": "THB",
       "totalShares": 10000.0,
@@ -126,6 +129,7 @@
     },
     {
       "symbol": "PVDMPINC",
+      "name": "นโยบายกองทุนรวมผสม THB เฮดจ์",
       "assetType": "provident-fund",
       "currency": "THB",
       "totalShares": 12000.0,
@@ -316,6 +320,44 @@
           "runningShares": 500.0,
           "runningTotalCost": 7500.0,
           "runningAverageCost": 15.0
+        }
+      ]
+    },
+    {
+      "symbol": "PTT.BK",
+      "assetType": "thai-stock",
+      "currency": "THB",
+      "totalTransactions": 1,
+      "buyCount": 1,
+      "sellCount": 0,
+      "totalBuyShares": 1000.0,
+      "totalSellShares": 0.0,
+      "totalBuyAmount": 33000.0,
+      "totalSellAmount": 0.0,
+      "averageBuyPrice": 33.0,
+      "averageSellPrice": 0.0,
+      "netShares": 1000.0,
+      "netInvested": 33000.0,
+      "currentStatus": "OPEN",
+      "realizedPL": 0.0,
+      "realizedPLPercent": 0.0,
+      "firstTradeDate": "2024-02-01",
+      "lastTradeDate": "2024-02-01",
+      "transactions": [
+        {
+          "id": "ptt-1",
+          "symbol": "PTT.BK",
+          "date": "2024-02-01",
+          "type": "BUY",
+          "quantity": 1000.0,
+          "rawQuantity": 1000.0,
+          "price": 33.0,
+          "totalAmount": 33000.0,
+          "currency": "THB",
+          "assetType": "thai-stock",
+          "runningShares": 1000.0,
+          "runningTotalCost": 33000.0,
+          "runningAverageCost": 33.0
         }
       ]
     }

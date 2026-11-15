@@ -220,4 +220,22 @@ describe('PvdHoldingsComponent', () => {
     btn.click();
     expect(spy).toHaveBeenCalledTimes(1);
   });
+
+  it('should render factsheet icon beside PVD policy name and emit openFactsheet on click', () => {
+    const spy = vi.fn();
+    component.openFactsheet.subscribe(spy);
+
+    const hostEl = fixture.nativeElement as HTMLElement;
+    const btn = hostEl.querySelector('#btn-pvd-factsheet-PVDSP500') as HTMLButtonElement;
+    expect(btn).toBeTruthy();
+    btn.click();
+
+    expect(spy).toHaveBeenCalledWith({
+      symbol: 'PVDSP500',
+      assetType: 'provident-fund',
+      fundName: 'ไทยพาณิชย์ มาสเตอร์ฟันด์',
+      displayName: 'นโยบายตราสารทุนต่างประเทศ หุ้นสหรัฐฯ',
+      displayNameTh: undefined,
+    });
+  });
 });

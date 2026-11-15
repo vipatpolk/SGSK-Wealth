@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 
+import java.util.regex.Pattern;
+
 @Component
 @ScenarioScope(proxyMode = ScopedProxyMode.NO)
 public class HoldingsPage {
@@ -110,5 +112,49 @@ public class HoldingsPage {
     public String firstSymbolCardId() {
         symbolCards.first().waitFor();
         return symbolCards.first().getAttribute("id");
+    }
+
+    public void openSearchAutocomplete(String query) {
+        Locator input = page.locator("app-search-bar input").first();
+        input.click();
+        input.fill(query);
+        page.locator("#search-autocomplete-dropdown").waitFor();
+    }
+
+    public void closeSearchAutocomplete() {
+        Locator clearBtn = page.locator("#search-clear-btn");
+        if (clearBtn.isVisible()) {
+            clearBtn.click();
+        }
+        Locator backdrop = page.locator(".search-backdrop");
+        if (backdrop.isVisible()) {
+            backdrop.dispatchEvent("mousedown");
+        }
+        page.locator("#search-autocomplete-dropdown").waitFor(
+                new Locator.WaitForOptions().setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN));
+    }
+
+    public Locator searchAutocompleteItemName(String symbol) {
+        return com.sgsk.wealth.e2e.support.LocatorUtils
+                .filterBySymbolWord(page.locator("#search-autocomplete-dropdown .autocomplete-item"), symbol)
+                .locator(".item-name");
+    }
+
+    public Locator symbolCardName(String symbol) {
+        return getSymbolCard(symbol).locator(".symbol-name");
+    }
+
+    public Locator factsheetButton(String symbol) {
+        return page.locator("#btn-factsheet-" + symbol);
+    }
+
+    public void openFactsheet(String symbol) {
+        Locator btn = factsheetButton(symbol);
+        btn.waitFor();
+        btn.click();
+    }
+
+    public Locator lotsDrawerForSymbol(String symbol) {
+        return page.locator("#lots-" + symbol);
     }
 }

@@ -4,13 +4,13 @@
     <div class="tx-nav-left">
 
       @if (currentSymbol()) {
-        <button class="btn btn-ghost all-feed-btn" (click)="clearSymbolSelection()" id="btn-all-symbols-feed" type="button" title="View all transactions across all symbols">
+        <button class="btn btn-ghost all-feed-btn" (click)="clearSymbolSelection()" id="btn-all-symbols-feed" type="button" [title]="'tx.allFeedBtnTitle' | t">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="2" y1="12" x2="22" y2="12"></line>
             <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"></path>
           </svg>
-          <span>All Symbols</span>
+          <span>{{ 'tx.allSymbols' | t }}</span>
         </button>
       }
 
@@ -34,17 +34,17 @@
               {{ getDisplaySymbol(activeSummary()!.symbol) }}
             </span>
             <span class="symbol-selector-text">
-              {{ getSymbolName(activeSummary()!.symbol) || getDisplaySymbol(activeSummary()!.symbol) }}
+              {{ getSymbolName(activeSummary()!.symbol, activeSummary()!.assetType) || getDisplaySymbol(activeSummary()!.symbol) }}
             </span>
-            <span class="symbol-count-pill">{{ activeSummary()!.totalTransactions }} trades</span>
+            <span class="symbol-count-pill">{{ activeSummary()!.totalTransactions }} {{ 'tx.tradesLower' | t }}</span>
           } @else {
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="selector-icon">
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="2" y1="12" x2="22" y2="12"></line>
               <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
             </svg>
-            <span class="symbol-selector-text">All Symbols Feed</span>
-            <span class="symbol-count-pill">{{ totalTxCount() }} trades</span>
+            <span class="symbol-selector-text">{{ 'tx.allSymbolsFeed' | t }}</span>
+            <span class="symbol-count-pill">{{ totalTxCount() }} {{ 'tx.tradesLower' | t }}</span>
           }
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="chevron-arrow" [class.chevron-open]="isSymbolDropdownOpen()">
             <polyline points="6 9 12 15 18 9"></polyline>
@@ -54,17 +54,17 @@
         <!-- Dropdown Menu -->
         @if (isSymbolDropdownOpen()) {
           <div class="symbol-dropdown-backdrop" (click)="closeSymbolDropdown()"></div>
-          <div class="symbol-dropdown-menu" id="symbol-dropdown-menu" role="dialog" aria-modal="true" aria-label="Select Symbol">
+          <div class="symbol-dropdown-menu" id="symbol-dropdown-menu" role="dialog" aria-modal="true" [attr.aria-label]="'tx.selectSymbol' | t">
             <!-- Mobile Bottom Sheet Header -->
             <div class="mobile-sheet-header">
               <div class="mobile-sheet-handle" aria-hidden="true"></div>
               <div class="mobile-sheet-title-row">
-                <span class="mobile-sheet-title">Select Symbol</span>
+                <span class="mobile-sheet-title">{{ 'tx.selectSymbol' | t }}</span>
                 <button
                   type="button"
                   class="mobile-sheet-close"
                   (click)="closeSymbolDropdown()"
-                  aria-label="Close symbol selector"
+                  [attr.aria-label]="'tx.closeSelectorAria' | t"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sheet-close-icon">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -82,7 +82,7 @@
               <input
                 type="text"
                 class="dropdown-search-input"
-                placeholder="Search symbol or name..."
+                [placeholder]="'tx.searchSymbolsPlaceholder' | t"
                 [value]="symbolSearchQuery()"
                 (input)="symbolSearchQuery.set($any($event.target).value)"
                 id="symbol-search-input"
@@ -92,7 +92,7 @@
                   type="button"
                   class="dropdown-search-clear"
                   (click)="symbolSearchQuery.set(''); $event.stopPropagation()"
-                  aria-label="Clear symbol search"
+                  [attr.aria-label]="'tx.clearSymbolSearchAria' | t"
                 >✕</button>
               }
             </div>
@@ -104,37 +104,37 @@
                 [class.active]="assetFilter() === 'all'"
                 (click)="setAssetFilter('all')"
                 type="button"
-              >All</button>
+              >{{ 'asset.all' | t }}</button>
               <button
                 class="dropdown-asset-pill"
                 [class.active]="assetFilter() === 'us-stock'"
                 (click)="setAssetFilter('us-stock')"
                 type="button"
-              >U.S.</button>
+              >{{ 'asset.short.usStock' | t }}</button>
               <button
                 class="dropdown-asset-pill"
                 [class.active]="assetFilter() === 'thai-stock'"
                 (click)="setAssetFilter('thai-stock')"
                 type="button"
-              >Thai</button>
+              >{{ 'asset.short.thaiStock' | t }}</button>
               <button
                 class="dropdown-asset-pill"
                 [class.active]="assetFilter() === 'crypto'"
                 (click)="setAssetFilter('crypto')"
                 type="button"
-              >Crypto</button>
+              >{{ 'asset.short.crypto' | t }}</button>
               <button
                 class="dropdown-asset-pill"
                 [class.active]="assetFilter() === 'mutual-fund'"
                 (click)="setAssetFilter('mutual-fund')"
                 type="button"
-              >Fund</button>
+              >{{ 'asset.short.mutualFund' | t }}</button>
               <button
                 class="dropdown-asset-pill"
                 [class.active]="assetFilter() === 'bond'"
                 (click)="setAssetFilter('bond')"
                 type="button"
-              >Bond</button>
+              >{{ 'asset.short.bond' | t }}</button>
             </div>
 
             <div class="dropdown-list">
@@ -154,12 +154,12 @@
                     </svg>
                   </div>
                   <div>
-                    <span class="dropdown-item-symbol">All Symbols Feed</span>
-                    <span class="dropdown-item-sub">Unified transaction log</span>
+                    <span class="dropdown-item-symbol">{{ 'tx.allSymbolsFeed' | t }}</span>
+                    <span class="dropdown-item-sub">{{ 'tx.unifiedLog' | t }}</span>
                   </div>
                 </div>
                 <div class="dropdown-item-right">
-                  <span class="dropdown-item-count">{{ totalTxCount() }} trades</span>
+                  <span class="dropdown-item-count">{{ totalTxCount() }} {{ 'tx.tradesLower' | t }}</span>
                   @if (!currentSymbol()) {
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="dropdown-check-icon" aria-hidden="true">
                       <polyline points="20 6 9 17 4 12"></polyline>
@@ -192,16 +192,16 @@
                           {{ getAssetTypeLabel(item.assetType, item.symbol) }}
                         </span>
                       </div>
-                      @if (getSymbolName(item.symbol)) {
-                        <span class="dropdown-item-name">{{ getSymbolName(item.symbol) }}</span>
+                      @if (getSymbolName(item.symbol, item.assetType)) {
+                        <span class="dropdown-item-name">{{ getSymbolName(item.symbol, item.assetType) }}</span>
                       }
                     </div>
                   </div>
                   <div class="dropdown-item-right">
                     <span class="badge-status" [class.badge-open]="item.currentStatus === 'OPEN'" [class.badge-closed]="item.currentStatus === 'CLOSED'">
-                      {{ item.currentStatus }}
+                      {{ item.currentStatus === 'OPEN' ? ('common.open' | t) : ('common.closed' | t) }}
                     </span>
-                    <span class="dropdown-item-count">{{ item.totalTransactions }} trades</span>
+                    <span class="dropdown-item-count">{{ item.totalTransactions }} {{ 'tx.tradesLower' | t }}</span>
                     @if (currentSymbol() === item.symbol) {
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="dropdown-check-icon" aria-hidden="true">
                         <polyline points="20 6 9 17 4 12"></polyline>
@@ -211,7 +211,7 @@
                 </button>
               } @empty {
                 <div class="dropdown-empty">
-                  <span>No symbols match "{{ symbolSearchQuery() }}"</span>
+                  <span>{{ 'tx.noSymbolsMatch' | t: { query: symbolSearchQuery() } }}</span>
                 </div>
               }
             </div>
@@ -249,14 +249,14 @@
                 [class.status-closed]="activeSummary()!.currentStatus === 'CLOSED'"
               >
                 @if (activeSummary()!.currentStatus === 'OPEN') {
-                  <span class="status-dot status-dot-open"></span> Open Position
+                  <span class="status-dot status-dot-open"></span> {{ 'tx.openPosition' | t }}
                 } @else {
-                  <span class="status-dot status-dot-closed"></span> Closed Position
+                  <span class="status-dot status-dot-closed"></span> {{ 'tx.closedPosition' | t }}
                 }
               </span>
             </div>
-            @if (getSymbolName(activeSummary()!.symbol)) {
-              <p class="symbol-hero-subtitle">{{ getSymbolName(activeSummary()!.symbol) }}</p>
+            @if (getSymbolName(activeSummary()!.symbol, activeSummary()!.assetType)) {
+              <p class="symbol-hero-subtitle">{{ getSymbolName(activeSummary()!.symbol, activeSummary()!.assetType) }}</p>
             }
           </div>
         </div>
@@ -264,13 +264,13 @@
         <!-- Date Range & Activity Pill -->
         <div class="symbol-hero-meta">
           <div class="meta-item">
-            <span class="meta-label">First Trade</span>
-            <span class="meta-value">{{ activeSummary()!.firstTradeDate | date:'mediumDate' }}</span>
+            <span class="meta-label">{{ 'tx.firstTrade' | t }}</span>
+            <span class="meta-value">{{ activeSummary()!.firstTradeDate | ldate }}</span>
           </div>
           <div class="meta-divider">→</div>
           <div class="meta-item">
-            <span class="meta-label">Latest Trade</span>
-            <span class="meta-value">{{ activeSummary()!.lastTradeDate | date:'mediumDate' }}</span>
+            <span class="meta-label">{{ 'tx.latestTrade' | t }}</span>
+            <span class="meta-value">{{ activeSummary()!.lastTradeDate | ldate }}</span>
           </div>
         </div>
       </div>
@@ -280,8 +280,8 @@
         <!-- 1. Current Holding -->
         <div class="metric-card">
           <div class="metric-header">
-            <span class="metric-label">Current Holding</span>
-            <span class="metric-tag">{{ activeSummary()!.currentStatus === 'OPEN' ? 'Active' : 'Closed' }}</span>
+            <span class="metric-label">{{ 'tx.currentHolding' | t }}</span>
+            <span class="metric-tag">{{ activeSummary()!.currentStatus === 'OPEN' ? ('common.active' | t) : ('common.closed' | t) }}</span>
           </div>
           <div class="metric-main-value">
             {{ activeSummary()!.netShares | number:getQuantityFormat(activeSummary()!.symbol, activeSummary()!.assetType) }}
@@ -298,7 +298,7 @@
             </div>
           } @else {
             <div class="metric-sub-value muted-text">
-              Cost basis: {{ cx(activeSummary()!.netInvested, activeSummary()!.currency) | currency:dc(activeSummary()!.currency):'symbol-narrow':'1.2-2' }}
+              {{ 'tx.costBasisLabel' | t }} {{ cx(activeSummary()!.netInvested, activeSummary()!.currency) | currency:dc(activeSummary()!.currency):'symbol-narrow':'1.2-2' }}
             </div>
           }
         </div>
@@ -306,22 +306,22 @@
         <!-- 2. Avg Buy Price -->
         <div class="metric-card">
           <div class="metric-header">
-            <span class="metric-label">Avg Buy Price</span>
-            <span class="metric-tag tag-buy">{{ activeSummary()!.buyCount }} buys</span>
+            <span class="metric-label">{{ 'tx.avgBuyPrice' | t }}</span>
+            <span class="metric-tag tag-buy">{{ 'tx.buysCount' | t: { count: activeSummary()!.buyCount } }}</span>
           </div>
           <div class="metric-main-value">
             {{ cx(activeSummary()!.averageBuyPrice, activeSummary()!.currency) | currency:dc(activeSummary()!.currency):'symbol-narrow':getPriceFormat(activeSummary()!.symbol, activeSummary()!.assetType) }}
           </div>
           <div class="metric-sub-value">
-            Total bought: {{ activeSummary()!.totalBuyShares | number:getQuantityFormat(activeSummary()!.symbol, activeSummary()!.assetType) }} {{ getUnitLabel(activeSummary()!.symbol, activeSummary()!.assetType) }}
+            {{ 'tx.totalBought' | t }} {{ activeSummary()!.totalBuyShares | number:getQuantityFormat(activeSummary()!.symbol, activeSummary()!.assetType) }} {{ getUnitLabel(activeSummary()!.symbol, activeSummary()!.assetType) }}
           </div>
         </div>
 
         <!-- 3. Avg Sell Price -->
         <div class="metric-card">
           <div class="metric-header">
-            <span class="metric-label">Avg Sell Price</span>
-            <span class="metric-tag tag-sell">{{ activeSummary()!.sellCount }} sells</span>
+            <span class="metric-label">{{ 'tx.avgSellPrice' | t }}</span>
+            <span class="metric-tag tag-sell">{{ 'tx.sellsCount' | t: { count: activeSummary()!.sellCount } }}</span>
           </div>
           <div class="metric-main-value">
             @if (activeSummary()!.sellCount > 0) {
@@ -332,9 +332,9 @@
           </div>
           <div class="metric-sub-value">
             @if (activeSummary()!.sellCount > 0) {
-              Total sold: {{ activeSummary()!.totalSellShares | number:getQuantityFormat(activeSummary()!.symbol, activeSummary()!.assetType) }} {{ getUnitLabel(activeSummary()!.symbol, activeSummary()!.assetType) }}
+              {{ 'tx.totalSold' | t }} {{ activeSummary()!.totalSellShares | number:getQuantityFormat(activeSummary()!.symbol, activeSummary()!.assetType) }} {{ getUnitLabel(activeSummary()!.symbol, activeSummary()!.assetType) }}
             } @else {
-              No sell transactions yet
+              {{ 'tx.noSellYet' | t }}
             }
           </div>
         </div>
@@ -342,33 +342,33 @@
         <!-- 4. Total Capital Invested -->
         <div class="metric-card">
           <div class="metric-header">
-            <span class="metric-label">Total Capital Invested</span>
+            <span class="metric-label">{{ 'tx.totalCapitalInvested' | t }}</span>
           </div>
           <div class="metric-main-value">
             {{ cx(activeSummary()!.totalBuyAmount, activeSummary()!.currency) | currency:dc(activeSummary()!.currency):'symbol-narrow':'1.2-2' }}
           </div>
           <div class="metric-sub-value">
-            Cumulative buy volume
+            {{ 'tx.cumulativeBuyVol' | t }}
           </div>
         </div>
 
         <!-- 5. Total Proceeds -->
         <div class="metric-card">
           <div class="metric-header">
-            <span class="metric-label">Total Proceeds</span>
+            <span class="metric-label">{{ 'tx.totalProceeds' | t }}</span>
           </div>
           <div class="metric-main-value">
             {{ cx(activeSummary()!.totalSellAmount, activeSummary()!.currency) | currency:dc(activeSummary()!.currency):'symbol-narrow':'1.2-2' }}
           </div>
           <div class="metric-sub-value">
-            Cumulative sell volume
+            {{ 'tx.cumulativeSellVol' | t }}
           </div>
         </div>
 
         <!-- 6. Realized P/L -->
         <div class="metric-card" [class.card-pl-pos]="activeSummary()!.realizedPL > 0" [class.card-pl-neg]="activeSummary()!.realizedPL < 0">
           <div class="metric-header">
-            <span class="metric-label">Realized P/L</span>
+            <span class="metric-label">{{ 'common.realizedPL' | t }}</span>
             @if (activeSummary()!.sellCount > 0) {
               <span class="metric-tag tag-pl" [class.tag-pl-pos]="activeSummary()!.realizedPL >= 0" [class.tag-pl-neg]="activeSummary()!.realizedPL < 0">
                 {{ activeSummary()!.realizedPL >= 0 ? '+' : '' }}{{ activeSummary()!.realizedPLPercent | number:'1.2-2' }}%
@@ -384,9 +384,9 @@
           </div>
           <div class="metric-sub-value">
             @if (activeSummary()!.sellCount > 0) {
-              Net gain/loss locked in
+              {{ 'tx.netGainLocked' | t }}
             } @else {
-              Position unclosed
+              {{ 'tx.positionUnclosed' | t }}
             }
           </div>
         </div>
@@ -406,18 +406,18 @@
           </div>
           <div>
             <div class="all-symbols-title-row">
-              <h2 class="all-symbols-title">All Transactions Feed</h2>
-              <span class="all-symbols-count-badge">{{ filteredSummaries().length }} Symbols</span>
+              <h2 class="all-symbols-title">{{ 'tx.allFeedTitle' | t }}</h2>
+              <span class="all-symbols-count-badge">{{ 'tx.symbolsBadge' | t: { count: filteredSummaries().length } }}</span>
             </div>
             <p class="all-symbols-subtitle">
-              Unified chronological trade stream across your portfolio. Click any symbol badge in the table to inspect its individual ledger.
+              {{ 'tx.allFeedSub' | t }}
             </p>
           </div>
         </div>
 
         <!-- Desktop Asset Filter Bar (Same style as Holdings > Closed Position) -->
         <div class="asset-filter-bar desktop-asset-filter-bar" id="history-asset-filter-bar">
-          <span class="asset-filter-label">Asset Type</span>
+          <span class="asset-filter-label">{{ 'tx.assetTypeLabel' | t }}</span>
           <div class="asset-filter-pills">
             @for (opt of assetTypeOptions(); track opt.id) {
               <button
@@ -450,9 +450,9 @@
               type="button"
             >
               @if (assetTypeOptions().find(o => o.id === assetFilter()); as selected) {
-                <span>Filter: {{ selected.label }} ({{ selected.count }})</span>
+                <span>{{ 'common.filter' | t }}: {{ selected.label }} ({{ selected.count }})</span>
               } @else {
-                <span>Filter: All</span>
+                <span>{{ 'common.filter' | t }}: {{ 'common.all' | t }}</span>
               }
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="chevron-arrow-sm" [class.chevron-open]="isMobileAssetFilterOpen()">
                 <polyline points="6 9 12 15 18 9"></polyline>
@@ -468,7 +468,7 @@
                       (click)="setAssetFilter(opt.id)"
                       type="button"
                     >
-                      Filter: {{ opt.label }} ({{ opt.count }})
+                      {{ 'common.filter' | t }}: {{ opt.label }} ({{ opt.count }})
                     </button>
                   }
                 </div>
@@ -484,59 +484,59 @@
         <!-- 1. Total Trades -->
         <div class="metric-card">
           <div class="metric-header">
-            <span class="metric-label">Total Trades</span>
-            <span class="metric-tag">{{ filteredSummaries().length }} symbols</span>
+            <span class="metric-label">{{ 'tx.totalTrades' | t }}</span>
+            <span class="metric-tag">{{ 'tx.symbolsLower' | t: { count: filteredSummaries().length } }}</span>
           </div>
           <div class="metric-main-value">
             {{ totalTxCount() }}
-            <span class="metric-unit">trades</span>
+            <span class="metric-unit">{{ 'tx.tradesLower' | t }}</span>
           </div>
           <div class="metric-sub-value">
-            <span class="tag-buy-text">{{ buyCount() }} buys</span> · <span class="tag-sell-text">{{ sellCount() }} sells</span>
+            <span class="tag-buy-text">{{ 'tx.buysLower' | t: { count: buyCount() } }}</span> · <span class="tag-sell-text">{{ 'tx.sellsLower' | t: { count: sellCount() } }}</span>
           </div>
         </div>
 
         <!-- 2. Traded Volume -->
         <div class="metric-card">
           <div class="metric-header">
-            <span class="metric-label">Total Traded Volume</span>
+            <span class="metric-label">{{ 'tx.totalTradedVolume' | t }}</span>
             <span class="metric-tag">{{ displayCurrency() }}</span>
           </div>
           <div class="metric-main-value">
             {{ allSymbolsTradedVolume() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
           </div>
           <div class="metric-sub-value muted-text">
-            Gross combined buys & sells
+            {{ 'tx.grossBuysSells' | t }}
           </div>
         </div>
 
         <!-- 3. Realized P/L -->
         <div class="metric-card">
           <div class="metric-header">
-            <span class="metric-label">Portfolio Realized P/L</span>
+            <span class="metric-label">{{ 'tx.portfolioRealizedPL' | t }}</span>
             <span class="metric-tag tag-pl" [class.tag-pl-pos]="allSymbolsRealizedPL() >= 0" [class.tag-pl-neg]="allSymbolsRealizedPL() < 0">
-              {{ allSymbolsRealizedPL() >= 0 ? '+' : '' }}{{ (allSymbolsRealizedPL() >= 0 ? 'Profit' : 'Loss') }}
+              {{ (allSymbolsRealizedPL() >= 0 ? 'common.profit' : 'common.loss') | t }}
             </span>
           </div>
           <div class="metric-main-value" [class.pl-positive]="allSymbolsRealizedPL() >= 0" [class.pl-negative]="allSymbolsRealizedPL() < 0">
             {{ allSymbolsRealizedPL() >= 0 ? '+' : '' }}{{ allSymbolsRealizedPL() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
           </div>
           <div class="metric-sub-value">
-            Cumulative closed profit / loss
+            {{ 'tx.cumulativeClosedPL' | t }}
           </div>
         </div>
 
         <!-- 4. Active vs Closed Assets -->
         <div class="metric-card">
           <div class="metric-header">
-            <span class="metric-label">Holdings Status</span>
-            <span class="metric-tag">Portfolio</span>
+            <span class="metric-label">{{ 'tx.holdingsStatus' | t }}</span>
+            <span class="metric-tag">{{ 'tx.portfolioTag' | t }}</span>
           </div>
           <div class="metric-main-value">
-            {{ allSymbolsOpenCount() }} <span class="metric-unit">Open</span>
+            {{ allSymbolsOpenCount() }} <span class="metric-unit">{{ 'tx.openCap' | t }}</span>
           </div>
           <div class="metric-sub-value">
-            {{ allSymbolsClosedCount() }} fully closed positions
+            {{ 'tx.fullyClosedPositions' | t: { count: allSymbolsClosedCount() } }}
           </div>
         </div>
       </div>
@@ -555,7 +555,7 @@
           id="filter-type-all"
           type="button"
         >
-          All ({{ allCount() }})
+          {{ 'tx.allCount' | t: { count: allCount() } }}
         </button>
         <button
           class="type-pill type-pill-buy"
@@ -568,7 +568,7 @@
             <polyline points="7 10 12 15 17 10"></polyline>
             <line x1="12" y1="15" x2="12" y2="3"></line>
           </svg>
-          Buys ({{ buyCount() }})
+          {{ 'tx.buysCountFilter' | t: { count: buyCount() } }}
         </button>
         <button
           class="type-pill type-pill-sell"
@@ -581,7 +581,7 @@
             <polyline points="17 14 12 9 7 14"></polyline>
             <line x1="12" y1="9" x2="12" y2="21"></line>
           </svg>
-          Sells ({{ sellCount() }})
+          {{ 'tx.sellsCountFilter' | t: { count: sellCount() } }}
         </button>
         <button
           class="type-pill type-pill-exchange"
@@ -596,7 +596,7 @@
             <polyline points="8 21 3 21 3 16"></polyline>
             <line x1="15" y1="15" x2="3" y2="21"></line>
           </svg>
-          Exchanges ({{ exchangeCount() }})
+          {{ 'tx.exchangesCountFilter' | t: { count: exchangeCount() } }}
         </button>
       </div>
 
@@ -613,7 +613,7 @@
           (click)="toggleSort()"
           id="btn-toggle-sort"
           type="button"
-          [title]="sortOrder() === 'desc' ? 'Showing Newest First (click for Oldest)' : 'Showing Oldest First (click for Newest)'"
+          [title]="sortOrder() === 'desc' ? ('tx.sortNewestTitle' | t) : ('tx.sortOldestTitle' | t)"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="sort-icon" [class.sort-asc]="sortOrder() === 'asc'">
             <path d="m3 16 4 4 4-4"></path>
@@ -621,7 +621,7 @@
             <path d="m21 8-4-4-4 4"></path>
             <path d="M17 4v16"></path>
           </svg>
-          <span>{{ sortOrder() === 'desc' ? 'Newest First' : 'Oldest First' }}</span>
+          <span>{{ sortOrder() === 'desc' ? ('tx.newestFirst' | t) : ('tx.oldestFirst' | t) }}</span>
         </button>
 
         <div class="export-dropdown-wrapper" [class.dropdown-is-open]="isExportDropdownOpen()">
@@ -630,14 +630,14 @@
             (click)="toggleExportDropdown()"
             id="btn-export-csv-trigger"
             type="button"
-            title="Export transactions to CSV"
+            [title]="'tx.exportCsvTitle' | t"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="sort-icon">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="7 10 12 15 17 10"></polyline>
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
-            <span>Export CSV</span>
+            <span>{{ 'tx.exportCsv' | t }}</span>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="chevron-arrow-sm" [class.chevron-open]="isExportDropdownOpen()">
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
@@ -647,7 +647,7 @@
             <div class="export-dropdown-menu export-dropdown-menu-wide" id="export-dropdown-menu">
               <!-- Position Scope Segment Pills -->
               <div class="export-scope-selector-wrap">
-                <span class="export-scope-label">POSITION SCOPE</span>
+                <span class="export-scope-label">{{ 'tx.exportScope' | t }}</span>
                 <div class="export-scope-pills">
                   <button
                     type="button"
@@ -655,21 +655,21 @@
                     [class.active]="exportStatusScope() === 'all'"
                     (click)="setExportStatusScope('all'); $event.stopPropagation()"
                     id="btn-export-scope-all"
-                  >All</button>
+                  >{{ 'common.all' | t }}</button>
                   <button
                     type="button"
                     class="export-scope-pill"
                     [class.active]="exportStatusScope() === 'open'"
                     (click)="setExportStatusScope('open'); $event.stopPropagation()"
                     id="btn-export-scope-open"
-                  >Only Open</button>
+                  >{{ 'tx.onlyOpen' | t }}</button>
                   <button
                     type="button"
                     class="export-scope-pill"
                     [class.active]="exportStatusScope() === 'closed'"
                     (click)="setExportStatusScope('closed'); $event.stopPropagation()"
                     id="btn-export-scope-closed"
-                  >Only Closed</button>
+                  >{{ 'tx.onlyClosed' | t }}</button>
                 </div>
               </div>
 
@@ -689,9 +689,9 @@
                       <line x1="16" y1="17" x2="8" y2="17"></line>
                     </svg>
                     <div class="export-item-text">
-                      <span class="export-item-title">Export All Asset Types</span>
+                      <span class="export-item-title">{{ 'tx.exportAllTypes' | t }}</span>
                       <span class="export-item-sub">
-                        All trades ({{ exportStatusScope() === 'open' ? 'Only Open' : exportStatusScope() === 'closed' ? 'Only Closed' : 'All Positions' }})
+                        {{ 'tx.allTradesScope' | t: { scope: exportStatusScope() === 'open' ? ('tx.onlyOpen' | t) : exportStatusScope() === 'closed' ? ('tx.onlyClosed' | t) : ('tx.allPositions' | t) } }}
                       </span>
                     </div>
                   </div>
@@ -699,7 +699,7 @@
               </div>
 
               <div class="export-dropdown-header compact-header">
-                <span>EXPORT BY ASSET TYPE</span>
+                <span>{{ 'tx.exportByAssetType' | t }}</span>
               </div>
 
               <!-- 2-Column Grid for Asset Types -->
@@ -710,8 +710,8 @@
                   id="btn-export-us-stock"
                   type="button"
                 >
-                  <span class="asset-type-tag asset-type-us-stock export-tag">U.S.</span>
-                  <span class="export-grid-title">U.S. Stock</span>
+                  <span class="asset-type-tag asset-type-us-stock export-tag">{{ 'asset.short.usStock' | t }}</span>
+                  <span class="export-grid-title">{{ 'asset.usStock' | t }}</span>
                 </button>
 
                 <button
@@ -720,8 +720,8 @@
                   id="btn-export-thai-stock"
                   type="button"
                 >
-                  <span class="asset-type-tag asset-type-thai-stock export-tag">Thai</span>
-                  <span class="export-grid-title">Thai Stock</span>
+                  <span class="asset-type-tag asset-type-thai-stock export-tag">{{ 'asset.short.thaiStock' | t }}</span>
+                  <span class="export-grid-title">{{ 'asset.thaiStock' | t }}</span>
                 </button>
 
                 <button
@@ -730,8 +730,8 @@
                   id="btn-export-crypto"
                   type="button"
                 >
-                  <span class="asset-type-tag asset-type-crypto export-tag">Crypto</span>
-                  <span class="export-grid-title">Cryptocurrency</span>
+                  <span class="asset-type-tag asset-type-crypto export-tag">{{ 'asset.short.crypto' | t }}</span>
+                  <span class="export-grid-title">{{ 'asset.crypto' | t }}</span>
                 </button>
 
                 <button
@@ -740,8 +740,8 @@
                   id="btn-export-mutual-fund"
                   type="button"
                 >
-                  <span class="asset-type-tag asset-type-mutual-fund export-tag">Fund</span>
-                  <span class="export-grid-title">Mutual Fund</span>
+                  <span class="asset-type-tag asset-type-mutual-fund export-tag">{{ 'asset.short.mutualFund' | t }}</span>
+                  <span class="export-grid-title">{{ 'asset.mutualFund' | t }}</span>
                 </button>
 
                 <button
@@ -750,8 +750,8 @@
                   id="btn-export-bond"
                   type="button"
                 >
-                  <span class="asset-type-tag asset-type-bond export-tag">Bond</span>
-                  <span class="export-grid-title">Bond</span>
+                  <span class="asset-type-tag asset-type-bond export-tag">{{ 'asset.short.bond' | t }}</span>
+                  <span class="export-grid-title">{{ 'asset.bond' | t }}</span>
                 </button>
               </div>
             </div>
@@ -769,16 +769,16 @@
             <tr>
               <th class="col-num">#</th>
               @if (!activeSummary()) {
-                <th class="col-symbol">Symbol</th>
+                <th class="col-symbol">{{ 'common.symbol' | t }}</th>
               }
-              <th class="col-date">Date</th>
-              <th class="col-type">Type</th>
-              <th class="col-qty">Quantity</th>
-              <th class="col-price">Price / Unit</th>
-              <th class="col-amount">Total Value</th>
-              <th class="col-pl">Realized P/L</th>
-              <th class="col-running-shares">Position After</th>
-              <th class="col-running-cost">Running Cost</th>
+              <th class="col-date">{{ 'common.date' | t }}</th>
+              <th class="col-type">{{ 'common.type' | t }}</th>
+              <th class="col-qty">{{ 'common.quantity' | t }}</th>
+              <th class="col-price">{{ 'common.pricePerUnit' | t }}</th>
+              <th class="col-amount">{{ 'common.totalValue' | t }}</th>
+              <th class="col-pl">{{ 'common.realizedPL' | t }}</th>
+              <th class="col-running-shares">{{ 'tx.positionAfter' | t }}</th>
+              <th class="col-running-cost">{{ 'tx.runningCost' | t }}</th>
             </tr>
           </thead>
           <tbody>
@@ -792,7 +792,7 @@
                 <!-- Symbol (if in unified feed) -->
                 @if (!activeSummary()) {
                   <td class="col-symbol">
-                    <button class="symbol-link-btn" (click)="selectSymbol(tx.symbol)" type="button" [title]="getSymbolName(tx.symbol) || getDisplaySymbol(tx.symbol)">
+                    <button class="symbol-link-btn" (click)="selectSymbol(tx.symbol)" type="button" [title]="getSymbolName(tx.symbol, tx.assetType) || getDisplaySymbol(tx.symbol)">
                       <div class="tx-badge-row">
                         <app-symbol-icon [symbol]="tx.symbol" [size]="'xs'"></app-symbol-icon>
                         <span
@@ -804,8 +804,8 @@
                           {{ getDisplaySymbol(tx.symbol) }}
                         </span>
                       </div>
-                      @if (getSymbolName(tx.symbol)) {
-                        <span class="tx-symbol-name" [title]="getSymbolName(tx.symbol)">{{ getSymbolName(tx.symbol) }}</span>
+                      @if (getSymbolName(tx.symbol, tx.assetType)) {
+                        <span class="tx-symbol-name" [title]="getSymbolName(tx.symbol, tx.assetType)">{{ getSymbolName(tx.symbol, tx.assetType) }}</span>
                       }
                     </button>
                   </td>
@@ -813,7 +813,7 @@
 
                 <!-- Date -->
                 <td class="col-date">
-                  <span class="date-text">{{ tx.date | date:'MMM d, y' }}</span>
+                  <span class="date-text">{{ tx.date | ldate }}</span>
                 </td>
 
                 <!-- Type -->
@@ -826,7 +826,7 @@
                         <polyline points="8 21 3 21 3 16"></polyline>
                         <line x1="15" y1="15" x2="3" y2="21"></line>
                       </svg>
-                      EX-OUT
+                      {{ 'common.exOut' | t }}
                     </span>
                   } @else if (tx.type === 'EXCHANGE_IN' || !!tx.exchangeFrom || (tx.type === 'BUY' && tx.exchangeFrom)) {
                     <span class="type-tag tag-exchange">
@@ -836,7 +836,7 @@
                         <polyline points="8 21 3 21 3 16"></polyline>
                         <line x1="15" y1="15" x2="3" y2="21"></line>
                       </svg>
-                      EX-IN
+                      {{ 'common.exIn' | t }}
                     </span>
                   } @else if (tx.type === 'EXCHANGE') {
                     <span class="type-tag tag-exchange">
@@ -846,7 +846,7 @@
                         <polyline points="8 21 3 21 3 16"></polyline>
                         <line x1="15" y1="15" x2="3" y2="21"></line>
                       </svg>
-                      EXCHANGE
+                      {{ 'common.exchange' | t }}
                     </span>
                   } @else if (tx.type === 'BUY') {
                     <span class="type-tag tag-buy">
@@ -854,7 +854,7 @@
                         <polyline points="7 10 12 15 17 10"></polyline>
                         <line x1="12" y1="15" x2="12" y2="3"></line>
                       </svg>
-                      BUY
+                      {{ 'common.buy' | t }}
                     </span>
                   } @else {
                     <span class="type-tag tag-sell">
@@ -862,21 +862,21 @@
                         <polyline points="17 14 12 9 7 14"></polyline>
                         <line x1="12" y1="9" x2="12" y2="21"></line>
                       </svg>
-                      SELL
+                      {{ 'common.sell' | t }}
                     </span>
                   }
                   @if (tx.exchangeFrom) {
                     <div class="exchange-connected-wrap">
-                      <button class="exchange-link-btn" (click)="selectSymbol(tx.exchangeFrom!)" type="button" [title]="'Exchanged from ' + getDisplaySymbol(tx.exchangeFrom!)">
-                        <span class="exchange-dir-label">From</span>
+                      <button class="exchange-link-btn" (click)="selectSymbol(tx.exchangeFrom!)" type="button" [title]="'tx.exchangedFrom' | t: { symbol: getDisplaySymbol(tx.exchangeFrom!) }">
+                        <span class="exchange-dir-label">{{ 'common.from' | t }}</span>
                         <span class="exchange-symbol-chip">{{ getDisplaySymbol(tx.exchangeFrom!) }}</span>
                       </button>
                     </div>
                   }
                   @if (tx.exchangeTo) {
                     <div class="exchange-connected-wrap">
-                      <button class="exchange-link-btn" (click)="selectSymbol(tx.exchangeTo!)" type="button" [title]="'Exchanged to ' + getDisplaySymbol(tx.exchangeTo!)">
-                        <span class="exchange-dir-label">To</span>
+                      <button class="exchange-link-btn" (click)="selectSymbol(tx.exchangeTo!)" type="button" [title]="'tx.exchangedTo' | t: { symbol: getDisplaySymbol(tx.exchangeTo!) }">
+                        <span class="exchange-dir-label">{{ 'common.to' | t }}</span>
                         <span class="exchange-symbol-chip">{{ getDisplaySymbol(tx.exchangeTo!) }}</span>
                       </button>
                     </div>
@@ -937,7 +937,7 @@
                       <circle cx="11" cy="11" r="8"></circle>
                       <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
-                    <p class="empty-table-text">No transactions found matching your filter.</p>
+                    <p class="empty-table-text">{{ 'tx.emptyTable' | t }}</p>
                   </div>
                 </td>
               </tr>
@@ -955,7 +955,7 @@
           <div class="mobile-card-header">
             <div class="mobile-card-identity">
               @if (!activeSummary()) {
-                <button class="symbol-link-btn mobile-symbol-link" (click)="selectSymbol(tx.symbol)" type="button" [title]="getSymbolName(tx.symbol) || getDisplaySymbol(tx.symbol)">
+                <button class="symbol-link-btn mobile-symbol-link" (click)="selectSymbol(tx.symbol)" type="button" [title]="getSymbolName(tx.symbol, tx.assetType) || getDisplaySymbol(tx.symbol)">
                   <div class="tx-badge-row">
                     <app-symbol-icon [symbol]="tx.symbol" [size]="'xs'"></app-symbol-icon>
                     <span
@@ -967,8 +967,8 @@
                       {{ getDisplaySymbol(tx.symbol) }}
                     </span>
                   </div>
-                  @if (getSymbolName(tx.symbol)) {
-                    <span class="mobile-tx-symbol-name" [title]="getSymbolName(tx.symbol)">{{ getSymbolName(tx.symbol) }}</span>
+                  @if (getSymbolName(tx.symbol, tx.assetType)) {
+                    <span class="mobile-tx-symbol-name" [title]="getSymbolName(tx.symbol, tx.assetType)">{{ getSymbolName(tx.symbol, tx.assetType) }}</span>
                   }
                 </button>
               } @else {
@@ -981,7 +981,7 @@
                         <polyline points="8 21 3 21 3 16"></polyline>
                         <line x1="15" y1="15" x2="3" y2="21"></line>
                       </svg>
-                      EX-OUT
+                      {{ 'common.exOut' | t }}
                     } @else if (tx.type === 'EXCHANGE_IN' || !!tx.exchangeFrom || (tx.type === 'BUY' && tx.exchangeFrom)) {
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
                         <polyline points="16 3 21 3 21 8"></polyline>
@@ -989,7 +989,7 @@
                         <polyline points="8 21 3 21 3 16"></polyline>
                         <line x1="15" y1="15" x2="3" y2="21"></line>
                       </svg>
-                      EX-IN
+                      {{ 'common.exIn' | t }}
                     } @else if (tx.type === 'EXCHANGE') {
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
                         <polyline points="16 3 21 3 21 8"></polyline>
@@ -997,22 +997,22 @@
                         <polyline points="8 21 3 21 3 16"></polyline>
                         <line x1="15" y1="15" x2="3" y2="21"></line>
                       </svg>
-                      EXCHANGE
+                      {{ 'common.exchange' | t }}
                     } @else if (tx.type === 'BUY') {
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
                         <polyline points="7 10 12 15 17 10"></polyline>
                         <line x1="12" y1="15" x2="12" y2="3"></line>
                       </svg>
-                      BUY
+                      {{ 'common.buy' | t }}
                     } @else {
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
                         <polyline points="17 14 12 9 7 14"></polyline>
                         <line x1="12" y1="9" x2="12" y2="21"></line>
                       </svg>
-                      SELL
+                      {{ 'common.sell' | t }}
                     }
                   </span>
-                  <span class="mobile-tx-date">{{ tx.date | date:'mediumDate' }}</span>
+                  <span class="mobile-tx-date">{{ tx.date | ldate }}</span>
                 </div>
               }
             </div>
@@ -1027,7 +1027,7 @@
                       <polyline points="8 21 3 21 3 16"></polyline>
                       <line x1="15" y1="15" x2="3" y2="21"></line>
                     </svg>
-                    EX-OUT
+                    {{ 'common.exOut' | t }}
                   } @else if (tx.type === 'EXCHANGE_IN' || !!tx.exchangeFrom || (tx.type === 'BUY' && tx.exchangeFrom)) {
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
                       <polyline points="16 3 21 3 21 8"></polyline>
@@ -1035,7 +1035,7 @@
                       <polyline points="8 21 3 21 3 16"></polyline>
                       <line x1="15" y1="15" x2="3" y2="21"></line>
                     </svg>
-                    EX-IN
+                    {{ 'common.exIn' | t }}
                   } @else if (tx.type === 'EXCHANGE') {
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
                       <polyline points="16 3 21 3 21 8"></polyline>
@@ -1043,22 +1043,22 @@
                       <polyline points="8 21 3 21 3 16"></polyline>
                       <line x1="15" y1="15" x2="3" y2="21"></line>
                     </svg>
-                    EXCHANGE
+                    {{ 'common.exchange' | t }}
                   } @else if (tx.type === 'BUY') {
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
                       <polyline points="7 10 12 15 17 10"></polyline>
                       <line x1="12" y1="15" x2="12" y2="3"></line>
                     </svg>
-                    BUY
+                    {{ 'common.buy' | t }}
                   } @else {
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="type-icon-xs">
                       <polyline points="17 14 12 9 7 14"></polyline>
                       <line x1="12" y1="9" x2="12" y2="21"></line>
                     </svg>
-                    SELL
+                    {{ 'common.sell' | t }}
                   }
                 </span>
-                <span class="mobile-tx-date">{{ tx.date | date:'MMM d, y' }}</span>
+                <span class="mobile-tx-date">{{ tx.date | ldate }}</span>
               }
               <span class="mobile-tx-num">#{{ sortOrder() === 'desc' ? filteredTransactions().length - ((currentPage() - 1) * pageSize() + i) : (currentPage() - 1) * pageSize() + i + 1 }}</span>
             </div>
@@ -1069,13 +1069,7 @@
             <div class="mobile-financial-row">
               <div class="mobile-financial-col-left">
                 <span class="mobile-metric-label">
-                  @if (getUnitLabel(tx.symbol, tx.assetType) === 'coins') {
-                    Coins & Execution
-                  } @else if (getUnitLabel(tx.symbol, tx.assetType) === 'units') {
-                    Units & Execution
-                  } @else {
-                    Shares & Execution
-                  }
+                  {{ getExecSectionKey(tx.symbol, tx.assetType) | t }}
                 </span>
                 <div class="mobile-qty-wrap">
                   <span class="mobile-metric-qty" [class.qty-buy]="tx.type === 'BUY' && !tx.exchangeFrom && !tx.exchangeTo" [class.qty-sell]="tx.type === 'SELL' && !tx.exchangeFrom && !tx.exchangeTo" [class.qty-exchange]="tx.type === 'EXCHANGE' || tx.type === 'EXCHANGE_IN' || tx.type === 'EXCHANGE_OUT' || !!tx.exchangeFrom || !!tx.exchangeTo">
@@ -1089,7 +1083,7 @@
               </div>
 
               <div class="mobile-financial-col-right">
-                <span class="mobile-metric-label">Total Amount</span>
+                <span class="mobile-metric-label">{{ 'tx.totalAmount' | t }}</span>
                 <div class="mobile-metric-amount">
                   {{ cx(tx.totalAmount, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }}
                 </div>
@@ -1100,14 +1094,14 @@
             @if (tx.exchangeFrom || tx.exchangeTo) {
               <div class="mobile-exchange-bar">
                 @if (tx.exchangeFrom) {
-                  <button class="mobile-exchange-inline-btn" (click)="selectSymbol(tx.exchangeFrom!)" type="button" [title]="'Exchanged from ' + getDisplaySymbol(tx.exchangeFrom!)">
-                    <span class="mobile-exchange-prefix">From</span>
+                  <button class="mobile-exchange-inline-btn" (click)="selectSymbol(tx.exchangeFrom!)" type="button" [title]="'tx.exchangedFrom' | t: { symbol: getDisplaySymbol(tx.exchangeFrom!) }">
+                    <span class="mobile-exchange-prefix">{{ 'common.from' | t }}</span>
                     <span class="mobile-exchange-chip-val">{{ getDisplaySymbol(tx.exchangeFrom!) }}</span>
                   </button>
                 }
                 @if (tx.exchangeTo) {
-                  <button class="mobile-exchange-inline-btn" (click)="selectSymbol(tx.exchangeTo!)" type="button" [title]="'Exchanged to ' + getDisplaySymbol(tx.exchangeTo!)">
-                    <span class="mobile-exchange-prefix">To</span>
+                  <button class="mobile-exchange-inline-btn" (click)="selectSymbol(tx.exchangeTo!)" type="button" [title]="'tx.exchangedTo' | t: { symbol: getDisplaySymbol(tx.exchangeTo!) }">
+                    <span class="mobile-exchange-prefix">{{ 'common.to' | t }}</span>
                     <span class="mobile-exchange-chip-val">{{ getDisplaySymbol(tx.exchangeTo!) }}</span>
                   </button>
                 }
@@ -1121,7 +1115,7 @@
                     <line x1="12" y1="1" x2="12" y2="23"></line>
                     <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                   </svg>
-                  <span>Realized P/L</span>
+                  <span>{{ 'common.realizedPL' | t }}</span>
                 </div>
                 <div class="mobile-pl-banner-val">
                   <span class="tx-pl-amount">{{ tx.realizedPL >= 0 ? '+' : '' }}{{ cx(tx.realizedPL, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }}</span>
@@ -1135,7 +1129,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="footer-icon">
                   <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                 </svg>
-                Position After
+                {{ 'tx.positionAfter' | t }}
               </span>
               <span class="mobile-footer-val">
                 <strong>{{ tx.runningShares | number:getQuantityFormat(tx.symbol, tx.assetType) }}</strong> {{ getUnitLabel(tx.symbol, tx.assetType) }}
@@ -1150,7 +1144,7 @@
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
-          <p>No transactions match your current filter.</p>
+          <p>{{ 'tx.emptyMobile' | t }}</p>
         </div>
       }
     </div>
@@ -1160,15 +1154,15 @@
       <div class="tx-pagination-bar" id="tx-pagination-bar">
         <div class="pagination-top-row">
           <div class="pagination-info">
-            <span>Showing</span>
+            <span>{{ 'common.showing' | t }}</span>
             <span class="pagination-highlight">{{ startIndex() }}–{{ endIndex() }}</span>
-            <span>of</span>
+            <span>{{ 'common.of' | t }}</span>
             <span class="pagination-highlight">{{ filteredTransactions().length }}</span>
-            <span>trades</span>
+            <span>{{ 'tx.showingTrades' | t }}</span>
           </div>
 
           <div class="pagination-center">
-            <label for="tx-page-size-select" class="page-size-label">Per page:</label>
+            <label for="tx-page-size-select" class="page-size-label">{{ 'common.perPage' | t }}</label>
             <div class="page-size-select-wrap">
               <select
                 id="tx-page-size-select"
@@ -1194,7 +1188,7 @@
             [disabled]="currentPage() === 1"
             (click)="firstPage()"
             type="button"
-            title="First Page"
+            [title]="'common.firstPage' | t"
             id="tx-page-first"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">
@@ -1209,7 +1203,7 @@
             [disabled]="currentPage() === 1"
             (click)="prevPage()"
             type="button"
-            title="Previous Page"
+            [title]="'common.prevPage' | t"
             id="tx-page-prev"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">
@@ -1242,7 +1236,7 @@
             [disabled]="currentPage() === totalPages()"
             (click)="nextPage()"
             type="button"
-            title="Next Page"
+            [title]="'common.nextPage' | t"
             id="tx-page-next"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">
@@ -1256,7 +1250,7 @@
             [disabled]="currentPage() === totalPages()"
             (click)="lastPage()"
             type="button"
-            title="Last Page"
+            [title]="'common.lastPage' | t"
             id="tx-page-last"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">

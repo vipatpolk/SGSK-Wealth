@@ -1,7 +1,7 @@
 import pytest
 
 from models.transaction import PriceData
-from services.price_service import PriceService
+from services.price_service import PriceService, _parse_set_listed_companies_html
 
 
 @pytest.fixture
@@ -63,4 +63,48 @@ async def test_fetch_stock_prices_mocked(service, monkeypatch):
     assert "AAPL" in price_map
     assert price_map["AAPL"].price == 180.50
     assert price_map["AAPL"].name == "Apple Inc."
+    assert price_map["AAPL"].nameTh == ""
     assert "INVALID_SYM" not in price_map
+
+
+@pytest.mark.unit
+def test_parse_set_listed_companies_html_cp874():
+    html_text = """
+    <html><body><table>
+      <tr><td>Symbol</td><td>Company</td></tr>
+      <tr><td>PTT</td><td>บริษัท ปตท.   จำกัด (มหาชน)</td></tr>
+      <tr><td>BDMS</td><td>บริษัท กรุงเทพดุสิตเวชการ จำกัด(มหาชน) &amp; Co</td></tr>
+    </table></body></html>
+    """
+    parsed = _parse_set_listed_companies_html(html_text.encode("cp874"))
+    assert "SYMBOL" not in parsed
+    assert parsed["PTT"] == "บริษัท ปตท. จำกัด (มหาชน)"
+    assert parsed["BDMS"] == "บริษัท กรุงเทพดุสิตเวชการ จำกัด(มหาชน) & Co"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_fetch_stock_prices_enriches_thai_bk_name_only(service, monkeypatch):
+    from utils.cache import ttl_cache
+
+    ttl_cache.clear()
+
+    async def mock_fetch_single_stock(symbol: str):
+        if symbol == "PTT.BK":
+            return "PTT.BK", PriceData(symbol="PTT.BK", name="PTT Public Company Limited", price=34.5, currency="THB")
+        return "AAPL", PriceData(symbol="AAPL", name="Apple Inc.", price=225.0, currency="USD")
+
+    async def mock_fetch_set_names():
+        return {
+            "PTT": {"th": "บริษัท ปตท. จำกัด (มหาชน)", "en": "PTT PUBLIC COMPANY LIMITED"},
+            "AAPL": {"th": "SHOULD_NOT_BE_APPLIED", "en": ""},
+        }
+
+    monkeypatch.setattr(service, "_fetch_single_stock", mock_fetch_single_stock)
+    monkeypatch.setattr(service, "_fetch_set_listed_company_names", mock_fetch_set_names)
+
+    price_map = await service.fetch_stock_prices(["PTT.BK", "AAPL"])
+    assert price_map["PTT.BK"].name == "PTT Public Company Limited"
+    assert price_map["PTT.BK"].nameTh == "บริษัท ปตท. จำกัด (มหาชน)"
+    assert price_map["AAPL"].name == "Apple Inc."
+    assert price_map["AAPL"].nameTh == ""

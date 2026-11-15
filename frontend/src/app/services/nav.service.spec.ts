@@ -71,4 +71,36 @@ describe('NavService', () => {
     expect(result.get('FUND0.FUND')?.price).toBe(10.0);
     expect(result.get('FUND50.FUND')?.price).toBe(20.0);
   });
+
+  it('should fetch and cache fund factsheet data by symbol, assetType, and fundName', async () => {
+    const promise1 = firstValueFrom(
+      service.fetchFundFactsheet('PVDSP500', 'provident-fund', 'ไทยพาณิชย์ มาสเตอร์ฟันด์'),
+    );
+
+    const req = httpMock.expectOne((r) => r.url === '/api/backend/nav/factsheet');
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.get('symbol')).toBe('PVDSP500');
+    expect(req.request.params.get('asset_type')).toBe('provident-fund');
+    expect(req.request.params.get('fund_name')).toBe('ไทยพาณิชย์ มาสเตอร์ฟันด์');
+
+    req.flush({
+      symbol: 'PVDSP500',
+      displaySymbol: 'PVDSP500',
+      assetType: 'provident-fund',
+      fundName: 'US Equity PVD',
+      fees: [],
+      performance: [],
+      assetAllocation: [],
+      topHoldings: [],
+    });
+
+    const first = await promise1;
+    expect(first.fundName).toBe('US Equity PVD');
+
+    // Subsequent call without forceRefresh should hit in-memory cache (zero HTTP calls)
+    const second = await firstValueFrom(
+      service.fetchFundFactsheet('PVDSP500', 'provident-fund', 'ไทยพาณิชย์ มาสเตอร์ฟันด์'),
+    );
+    expect(second.fundName).toBe('US Equity PVD');
+  });
 });

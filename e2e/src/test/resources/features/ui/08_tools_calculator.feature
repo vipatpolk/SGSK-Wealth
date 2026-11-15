@@ -117,3 +117,50 @@ Feature: Tools Hub & Investor Simulators
       | PV        | Required Starting Capital |
       | N         | Required Horizon          |
       | RATE      | Required Annual Rate      |
+
+  @smoke @TC-TOOLS-14
+  Scenario: TC-TOOLS-14: Average Cost Calculator dropdown and badge localize asset names across TH and EN
+    When I switch language to TH
+    Then the average cost calculator dropdown should display localized asset names:
+      | Symbol | ExpectedName                 |
+      | PTT.BK | บริษัท ปตท. จำกัด (มหาชน)   |
+      | K-USA  | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
+      | AAPL   | Apple Inc.                   |
+      | BTC    | Bitcoin                      |
+    When I select portfolio symbol "PTT.BK" in the average cost calculator
+    Then the average cost calculator selected badge should display "บริษัท ปตท. จำกัด (มหาชน)"
+    When I select portfolio symbol "K-USA" in the average cost calculator
+    Then the average cost calculator selected badge should display "กองทุนเปิดเค ยูเอสเอ หุ้นทุน"
+    When I select portfolio symbol "AAPL" in the average cost calculator
+    Then the average cost calculator selected badge should display "Apple Inc."
+    When I select portfolio symbol "BTC" in the average cost calculator
+    Then the average cost calculator selected badge should display "Bitcoin"
+    When I switch language to EN
+    Then the average cost calculator dropdown should display localized asset names:
+      | Symbol | ExpectedName               |
+      | PTT.BK | PTT Public Company Limited |
+      | K-USA  | Kasikorn US Equity Fund    |
+      | AAPL   | Apple Inc.                 |
+      | BTC    | Bitcoin                    |
+    When I select portfolio symbol "PTT.BK" in the average cost calculator
+    Then the average cost calculator selected badge should display "PTT Public Company Limited"
+    When I select portfolio symbol "K-USA" in the average cost calculator
+    Then the average cost calculator selected badge should display "Kasikorn US Equity Fund"
+
+  @TC-TOOLS-15
+  Scenario: TC-TOOLS-15: Rebalance Planner table localizes Thai market names across TH and EN
+    When I switch to the Rebalance Planner tool
+    And I switch language to TH
+    Then the rebalance planner table should display localized asset names:
+      | Symbol | ExpectedName                 |
+      | PTT.BK | บริษัท ปตท. จำกัด (มหาชน)   |
+      | K-USA  | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
+      | AAPL   | Apple Inc.                   |
+      | BTC    | Bitcoin                      |
+    When I switch language to EN
+    Then the rebalance planner table should display localized asset names:
+      | Symbol | ExpectedName               |
+      | PTT.BK | PTT Public Company Limited |
+      | K-USA  | Kasikorn US Equity Fund    |
+      | AAPL   | Apple Inc.                 |
+      | BTC    | Bitcoin                    |

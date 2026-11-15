@@ -23,6 +23,9 @@ public class HeaderPage {
     public final Locator viewToggleDividendsBtn;
     public final Locator currencyUsdBtn;
     public final Locator currencyThbBtn;
+    public final Locator langToggle;
+    public final Locator langEnBtn;
+    public final Locator langThBtn;
     public final Locator themeToggleBtn;
     public final Locator privacyToggleBtn;
 
@@ -44,6 +47,9 @@ public class HeaderPage {
         this.viewToggleDividendsBtn = page.locator("#view-toggle-dividends");
         this.currencyUsdBtn = page.locator("#currency-usd");
         this.currencyThbBtn = page.locator("#currency-thb");
+        this.langToggle = page.locator("#lang-toggle");
+        this.langEnBtn = page.locator("#lang-en");
+        this.langThBtn = page.locator("#lang-th");
         this.themeToggleBtn = page.locator("#theme-toggle-btn");
         this.privacyToggleBtn = page.locator("#privacy-toggle-btn");
     }
@@ -102,6 +108,14 @@ public class HeaderPage {
 
     public void switchToTHB() {
         currencyThbBtn.click();
+    }
+
+    public void switchToEN() {
+        langEnBtn.click();
+    }
+
+    public void switchToTH() {
+        langThBtn.click();
     }
 
     public void toggleTheme() {

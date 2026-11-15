@@ -3,18 +3,18 @@
   <section
     class="dashboard-hero-card"
     id="dashboard-hero"
-    aria-label="Executive Portfolio Overview"
+    [attr.aria-label]="'dash.heroAria' | t"
   >
     <div class="hero-top-row">
       <div class="hero-badge">
-        <span>Executive Dashboard</span>
+        <span>{{ 'dash.execDashboard' | t }}</span>
       </div>
 
       <div class="hero-top-right">
         @if (hasRate()) {
           <div
             class="hero-fx-pill"
-            [title]="'Exchange Rate: 1 USD = ' + (exchangeRate() | number: '1.2-2') + ' THB'"
+            [title]="'dash.rateTooltip' | t: { rate: (exchangeRate() | number: '1.2-2') || '' }"
           >
             <span class="fx-label">USD/THB</span>
             <span class="fx-val font-mono">{{ exchangeRate() | number: '1.2-2' }}</span>
@@ -26,7 +26,7 @@
     <!-- Main Net Worth Figure & Return Pill -->
     <div class="hero-val-section">
       <div class="hero-val-group">
-        <span class="hero-section-caption">Total Net Portfolio Value</span>
+        <span class="hero-section-caption">{{ 'dash.totalNetValue' | t }}</span>
         <div class="hero-net-worth-row">
           <h1 class="hero-net-worth privacy-mask font-mono" id="dashboard-net-worth">
             {{ netPortfolioValue() | currency: displayCurrency() : 'symbol-narrow' : '1.2-2' }}
@@ -81,13 +81,15 @@
               <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
             </svg>
           </span>
-          <span class="kpi-title">Invested Capital</span>
+          <span class="kpi-title">{{ 'dash.investedCapital' | t }}</span>
         </div>
         <div class="kpi-value-row">
           <span class="kpi-primary-val privacy-mask font-mono">{{
             totalInvested() | currency: displayCurrency() : 'symbol-narrow' : '1.2-2'
           }}</span>
-          <span class="kpi-sub-text font-mono">{{ openPositions().length }} Open Positions</span>
+          <span class="kpi-sub-text font-mono">{{
+            'dash.openPosCount' | t: { count: openPositions().length }
+          }}</span>
         </div>
       </div>
 
@@ -113,7 +115,7 @@
               <polyline points="16 7 22 7 22 13"></polyline>
             </svg>
           </span>
-          <span class="kpi-title">Unrealized P&L</span>
+          <span class="kpi-title">{{ 'dash.unrealizedPL' | t }}</span>
         </div>
         <div class="kpi-value-row">
           <span
@@ -157,7 +159,7 @@
               <polyline points="12 6 12 12 14 14"></polyline>
             </svg>
           </span>
-          <span class="kpi-title">Realized Gains</span>
+          <span class="kpi-title">{{ 'dash.realizedGains' | t }}</span>
         </div>
         <div class="kpi-value-row">
           <span
@@ -178,7 +180,7 @@
                 }}{{ realizedPLPercent() | number: '1.2-2' }}%)
               </span>
             } @else {
-              <span>{{ closedPositions().length }} Closed Trades</span>
+              <span>{{ 'dash.closedTradesCount' | t: { count: closedPositions().length } }}</span>
             }
           </span>
         </div>
@@ -203,7 +205,7 @@
               ></path>
             </svg>
           </span>
-          <span class="kpi-title">Projected Dividend</span>
+          <span class="kpi-title">{{ 'dash.projectedDividend' | t }}</span>
         </div>
         <div class="kpi-value-row">
           <span class="kpi-primary-val font-mono privacy-mask text-emerald">
@@ -213,10 +215,12 @@
             }}
           </span>
           <span class="kpi-sub-text font-mono">
-            <span class="badge-accent">{{ portfolioYieldOnCost() | number: '1.2-2' }}% YOC</span>
+            <span class="badge-accent"
+              >{{ portfolioYieldOnCost() | number: '1.2-2' }}% {{ 'dash.yocShort' | t }}</span
+            >
             @if (portfolioCurrentYield() > 0) {
               <span class="text-muted ml-1"
-                >({{ portfolioCurrentYield() | number: '1.2-2' }}% Curr)</span
+                >({{ portfolioCurrentYield() | number: '1.2-2' }}% {{ 'dash.currShort' | t }})</span
               >
             }
           </span>
@@ -247,8 +251,8 @@
             </svg>
           </div>
           <div>
-            <h2 class="card-heading">Asset Allocation</h2>
-            <p class="card-subheading">Distribution across asset classes & holdings</p>
+            <h2 class="card-heading">{{ 'dash.assetAllocation' | t }}</h2>
+            <p class="card-subheading">{{ 'dash.assetAllocationSub' | t }}</p>
           </div>
         </div>
         <button
@@ -256,9 +260,9 @@
           class="card-header-action-btn"
           (click)="onNavigate('allocation')"
           id="btn-goto-allocation"
-          title="Open Asset Allocation view"
+          [title]="'dash.openAllocTooltip' | t"
         >
-          <span>Allocation</span>
+          <span>{{ 'dash.allocationBtn' | t }}</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -305,7 +309,7 @@
               }
             </svg>
             <div class="donut-center-info">
-              <span class="donut-center-label">Classes</span>
+              <span class="donut-center-label">{{ 'dash.classes' | t }}</span>
               <span class="donut-center-val font-mono">{{ assetAllocationList().length }}</span>
             </div>
           </div>
@@ -353,10 +357,15 @@
             </svg>
           </div>
           <div>
-            <h2 class="card-heading">Top Movers</h2>
+            <h2 class="card-heading">{{ 'dash.topMovers' | t }}</h2>
             <p class="card-subheading">
-              <span class="text-positive">{{ winningPositionsCount() }} Profitable</span> ·
-              <span class="text-negative">{{ losingPositionsCount() }} Down</span>
+              <span class="text-positive">{{
+                'dash.profitable' | t: { count: winningPositionsCount() }
+              }}</span>
+              ·
+              <span class="text-negative">{{
+                'dash.down' | t: { count: losingPositionsCount() }
+              }}</span>
             </p>
           </div>
         </div>
@@ -365,9 +374,9 @@
           class="card-header-action-btn"
           (click)="onNavigate('performance')"
           id="btn-goto-performance"
-          title="Open Performance Analytics view"
+          [title]="'dash.openPerfTooltip' | t"
         >
-          <span>Performance</span>
+          <span>{{ 'dash.performanceBtn' | t }}</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -388,14 +397,14 @@
         <!-- Top Gainers Sub-section -->
         <div class="movers-section">
           <div class="movers-section-title text-positive">
-            <span>Top Gainers</span>
+            <span>{{ 'dash.topGainers' | t }}</span>
           </div>
           <div class="movers-list">
             @for (pos of topGainers(); track pos.symbol) {
               <div
                 class="mover-row cursor-pointer"
                 (click)="onSymbolClick(pos.symbol)"
-                [title]="'View ' + pos.symbol + ' in transactions'"
+                [title]="'dash.viewTxTooltip' | t: { symbol: pos.symbol }"
               >
                 <div class="mover-symbol-info">
                   <app-symbol-icon
@@ -405,7 +414,7 @@
                   ></app-symbol-icon>
                   <div class="mover-text-stack">
                     <span class="mover-display-symbol">{{ displaySymbol(pos.symbol) }}</span>
-                    <span class="mover-name">{{ getSymbolName(pos.symbol, pos.name) }}</span>
+                    <span class="mover-name">{{ getSymbolName(pos.symbol, pos.name, pos.assetType, pos.nameTh) }}</span>
                   </div>
                 </div>
                 <div class="mover-stats">
@@ -418,7 +427,7 @@
                 </div>
               </div>
             } @empty {
-              <div class="movers-empty">No positive return positions yet</div>
+              <div class="movers-empty">{{ 'dash.noPositive' | t }}</div>
             }
           </div>
         </div>
@@ -426,14 +435,14 @@
         <!-- Top Losers Sub-section -->
         <div class="movers-section">
           <div class="movers-section-title text-negative">
-            <span>Top Lagging</span>
+            <span>{{ 'dash.topLagging' | t }}</span>
           </div>
           <div class="movers-list">
             @for (pos of topLosers(); track pos.symbol) {
               <div
                 class="mover-row cursor-pointer"
                 (click)="onSymbolClick(pos.symbol)"
-                [title]="'View ' + pos.symbol + ' in transactions'"
+                [title]="'dash.viewTxTooltip' | t: { symbol: pos.symbol }"
               >
                 <div class="mover-symbol-info">
                   <app-symbol-icon
@@ -443,7 +452,7 @@
                   ></app-symbol-icon>
                   <div class="mover-text-stack">
                     <span class="mover-display-symbol">{{ displaySymbol(pos.symbol) }}</span>
-                    <span class="mover-name">{{ getSymbolName(pos.symbol, pos.name) }}</span>
+                    <span class="mover-name">{{ getSymbolName(pos.symbol, pos.name, pos.assetType, pos.nameTh) }}</span>
                   </div>
                 </div>
                 <div class="mover-stats">
@@ -456,7 +465,7 @@
                 </div>
               </div>
             } @empty {
-              <div class="movers-empty">No lagging positions</div>
+              <div class="movers-empty">{{ 'dash.noLagging' | t }}</div>
             }
           </div>
         </div>
@@ -487,8 +496,10 @@
             </svg>
           </div>
           <div>
-            <h2 class="card-heading">Dividend Cashflow</h2>
-            <p class="card-subheading">{{ dividendPayingCount() }} income-generating holdings</p>
+            <h2 class="card-heading">{{ 'dash.dividendCashflow' | t }}</h2>
+            <p class="card-subheading">
+              {{ 'dash.dividendHoldingsCount' | t: { count: dividendPayingCount() } }}
+            </p>
           </div>
         </div>
         <button
@@ -496,9 +507,9 @@
           class="card-header-action-btn"
           (click)="onNavigate('dividends')"
           id="btn-goto-dividends"
-          title="Open Dividends analytics"
+          [title]="'dash.openDivTooltip' | t"
         >
-          <span>Dividends</span>
+          <span>{{ 'dash.dividendsBtn' | t }}</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -518,30 +529,30 @@
       <div class="dividend-summary-layout">
         <div class="div-metrics-strip">
           <div class="div-metric-box">
-            <span class="div-box-label">Annual Projected</span>
+            <span class="div-box-label">{{ 'dash.annualProjected' | t }}</span>
             <span class="div-box-val font-mono privacy-mask text-emerald">
               {{
                 annualProjectedDividendConverted()
                   | currency: displayCurrency() : 'symbol-narrow' : '1.2-2'
               }}
             </span>
-            <span class="div-box-sub">Forward 12-Month Est.</span>
+            <span class="div-box-sub">{{ 'dash.forward12m' | t }}</span>
           </div>
 
           <div class="div-metric-box">
-            <span class="div-box-label">Yield on Cost (YOC)</span>
+            <span class="div-box-label">{{ 'dash.yoc' | t }}</span>
             <span class="div-box-val font-mono text-cyan">
               {{ portfolioYieldOnCost() | number: '1.2-2' }}%
             </span>
-            <span class="div-box-sub">On Original Cost Basis</span>
+            <span class="div-box-sub">{{ 'dash.onOrigCost' | t }}</span>
           </div>
 
           <div class="div-metric-box">
-            <span class="div-box-label">Current Yield</span>
+            <span class="div-box-label">{{ 'dash.currentYield' | t }}</span>
             <span class="div-box-val font-mono text-purple">
               {{ portfolioCurrentYield() | number: '1.2-2' }}%
             </span>
-            <span class="div-box-sub">On Current Market Value</span>
+            <span class="div-box-sub">{{ 'dash.onMarketVal' | t }}</span>
           </div>
         </div>
 
@@ -563,10 +574,7 @@
             </svg>
           </div>
           <div class="callout-text">
-            <span
-              >Historical share-weighted dividends & dynamic yield tracking for US stocks, Thai
-              stocks (.BK), Mutual Funds, and Bonds.</span
-            >
+            <span>{{ 'dash.dividendBanner' | t }}</span>
           </div>
         </div>
       </div>
@@ -593,16 +601,15 @@
               </svg>
             </div>
             <div>
-              <h2 class="card-heading">Provident Fund (PVD)</h2>
+              <h2 class="card-heading">{{ 'dash.pvdTitle' | t }}</h2>
               @if (pvdFundNames().length === 1) {
                 <p class="card-subheading" [title]="pvdFundNames()[0]">{{ pvdFundNames()[0] }}</p>
               } @else if (pvdFundNames().length > 1) {
                 <p class="card-subheading">
-                  {{ pvdFundNames().length }} Master Funds &bull; Thai Employer &amp; Employee
-                  Contributions
+                  {{ 'dash.pvdMultiFunds' | t: { count: pvdFundNames().length } }}
                 </p>
               } @else {
-                <p class="card-subheading">Thai Employer & Employee Contributions</p>
+                <p class="card-subheading">{{ 'dash.pvdSubDefault' | t }}</p>
               }
             </div>
           </div>
@@ -611,9 +618,9 @@
             class="card-header-action-btn"
             (click)="onOpenPvdHoldings()"
             id="btn-goto-pvd-holdings"
-            title="Open Provident Fund Holdings screen"
+            [title]="'dash.openPvdTooltip' | t"
           >
-            <span>Holdings</span>
+            <span>{{ 'dash.holdingsBtn' | t }}</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -632,7 +639,7 @@
 
         <div class="pvd-dashboard-layout">
           <div class="pvd-net-strip">
-            <span class="pvd-net-label">Accumulated PVD Balance</span>
+            <span class="pvd-net-label">{{ 'dash.pvdBalance' | t }}</span>
             <span class="pvd-net-val font-mono privacy-mask text-rose">
               {{ pvdTotalValue() | currency: displayCurrency() : 'symbol-narrow' : '1.2-2' }}
             </span>
@@ -643,7 +650,7 @@
             <div class="pvd-split-container">
               <div class="pvd-split-labels">
                 <span class="split-label-emp"
-                  >Employee:
+                  >{{ 'dash.employeePct' | t }}:
                   {{
                     (pvdEmployeeContribution() /
                       (pvdEmployeeContribution() + pvdEmployerMatching())) *
@@ -651,7 +658,7 @@
                   }}%</span
                 >
                 <span class="split-label-empr"
-                  >Employer Match:
+                  >{{ 'dash.employerMatchPct' | t }}:
                   {{
                     (pvdEmployerMatching() / (pvdEmployeeContribution() + pvdEmployerMatching())) *
                       100 | number: '1.0-0'
@@ -682,7 +689,29 @@
             @for (pos of pvdPositions(); track pos.symbol) {
               <div class="pvd-mini-row">
                 <div class="pvd-mini-title-group">
-                  <span class="pvd-mini-name">{{ pos.policyName || pos.name || pos.symbol }}</span>
+                  <div class="pvd-mini-name-row">
+                    <span class="pvd-mini-name">{{
+                      getSymbolName(pos.symbol, pos.name, pos.assetType, pos.nameTh) ||
+                        pos.policyName ||
+                        displaySymbol(pos.symbol)
+                    }}</span>
+                    <button
+                      type="button"
+                      class="factsheet-icon-btn"
+                      [id]="'btn-dash-pvd-factsheet-' + pos.symbol"
+                      [title]="'factsheet.viewBtn' | t"
+                      [attr.aria-label]="'factsheet.viewBtn' | t"
+                      (click)="onOpenFactsheet($event, pos)"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="factsheet-icon-svg">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                      </svg>
+                    </button>
+                  </div>
                   @if (pvdFundNames().length > 1 && pos.pvdFundName) {
                     <span class="pvd-mini-fund" [title]="pos.pvdFundName">{{ pos.pvdFundName }}</span>
                   }
@@ -714,8 +743,8 @@
               </svg>
             </div>
             <div>
-              <h2 class="card-heading">Portfolio Vitality</h2>
-              <p class="card-subheading">Lot accounting & active coverage</p>
+              <h2 class="card-heading">{{ 'dash.portfolioVitality' | t }}</h2>
+              <p class="card-subheading">{{ 'dash.vitalitySub' | t }}</p>
             </div>
           </div>
           <button
@@ -723,9 +752,9 @@
             class="card-header-action-btn"
             (click)="onNavigate('holdings')"
             id="btn-goto-holdings-health"
-            title="Open Holdings tab"
+            [title]="'dash.openHoldingsTooltip' | t"
           >
-            <span>Holdings</span>
+            <span>{{ 'dash.holdingsBtn' | t }}</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -745,19 +774,19 @@
         <div class="vitality-grid">
           <div class="vitality-item">
             <span class="vitality-val font-mono">{{ openPositions().length }}</span>
-            <span class="vitality-label">Open Positions</span>
+            <span class="vitality-label">{{ 'summary.openPositions' | t }}</span>
           </div>
           <div class="vitality-item">
             <span class="vitality-val font-mono">{{ closedPositions().length }}</span>
-            <span class="vitality-label">Closed Positions</span>
+            <span class="vitality-label">{{ 'summary.closedPositions' | t }}</span>
           </div>
           <div class="vitality-item">
             <span class="vitality-val font-mono">{{ totalLotsCount() }}</span>
-            <span class="vitality-label">FIFO Lots Queued</span>
+            <span class="vitality-label">{{ 'dash.fifoLotsQueued' | t }}</span>
           </div>
           <div class="vitality-item">
             <span class="vitality-val font-mono">{{ assetAllocationList().length }}</span>
-            <span class="vitality-label">Asset Categories</span>
+            <span class="vitality-label">{{ 'dash.assetCategories' | t }}</span>
           </div>
         </div>
       }
@@ -786,8 +815,8 @@
             </svg>
           </div>
           <div>
-            <h2 class="card-heading">Recent Activity</h2>
-            <p class="card-subheading">Latest transaction orders & executions</p>
+            <h2 class="card-heading">{{ 'dash.recentActivity' | t }}</h2>
+            <p class="card-subheading">{{ 'dash.recentActivitySub' | t }}</p>
           </div>
         </div>
         <button
@@ -795,9 +824,9 @@
           class="card-header-action-btn"
           (click)="onNavigate('transactions')"
           id="btn-goto-transactions"
-          title="Open Transaction History"
+          [title]="'dash.openTxTooltip' | t"
         >
-          <span>History</span>
+          <span>{{ 'dash.historyBtn' | t }}</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -819,7 +848,7 @@
           <div
             class="activity-row cursor-pointer"
             (click)="onSymbolClick(tx.symbol)"
-            [title]="'Filter transactions for ' + tx.symbol"
+            [title]="'dash.filterTxTooltip' | t: { symbol: tx.symbol }"
           >
             <div class="activity-left">
               <span
@@ -828,7 +857,7 @@
                 [class.tx-sell]="tx.type === 'SELL'"
                 [class.tx-ex]="tx.type === 'EX-IN' || tx.type === 'EX-OUT'"
               >
-                {{ tx.type }}
+                {{ getTxTypeLabel(tx.type) }}
               </span>
               <app-symbol-icon
                 [symbol]="tx.symbol"
@@ -837,7 +866,7 @@
               ></app-symbol-icon>
               <div class="tx-text-stack">
                 <span class="tx-symbol-title">{{ tx.displaySymbol }}</span>
-                <span class="tx-date font-mono">{{ tx.date | date: 'dd MMM yyyy' }}</span>
+                <span class="tx-date font-mono">{{ tx.date | ldate }}</span>
               </div>
             </div>
 
@@ -852,7 +881,7 @@
             </div>
           </div>
         } @empty {
-          <div class="activity-empty">No recent transactions found</div>
+          <div class="activity-empty">{{ 'dash.noRecentTx' | t }}</div>
         }
       </div>
     </div>
@@ -885,8 +914,8 @@
             </svg>
           </div>
           <div>
-            <h2 class="card-heading">Financial Tools Hub</h2>
-            <p class="card-subheading">Interactive calculators & planners</p>
+            <h2 class="card-heading">{{ 'dash.toolsHub' | t }}</h2>
+            <p class="card-subheading">{{ 'dash.toolsHubSub' | t }}</p>
           </div>
         </div>
         <button
@@ -894,9 +923,9 @@
           class="card-header-action-btn"
           (click)="onNavigate('tools')"
           id="btn-goto-tools"
-          title="Open Financial Tools"
+          [title]="'dash.openToolsTooltip' | t"
         >
-          <span>Tools</span>
+          <span>{{ 'dash.toolsBtn' | t }}</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -938,10 +967,10 @@
                 ></path>
               </svg>
             </div>
-            <span class="tool-launch-badge">Simulator</span>
+            <span class="tool-launch-badge">{{ 'dash.simBadge' | t }}</span>
           </div>
-          <h3 class="tool-launch-title">Rebalance Planner</h3>
-          <p class="tool-launch-desc">Target allocation model & no-sell cash inflow solver.</p>
+          <h3 class="tool-launch-title">{{ 'dash.rebalanceTitle' | t }}</h3>
+          <p class="tool-launch-desc">{{ 'dash.rebalanceDesc' | t }}</p>
         </div>
 
         <!-- Tool 2: TVM Calculator -->
@@ -966,10 +995,10 @@
                 <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
               </svg>
             </div>
-            <span class="tool-launch-badge">Growth</span>
+            <span class="tool-launch-badge">{{ 'dash.growthBadge' | t }}</span>
           </div>
-          <h3 class="tool-launch-title">TVM Wealth Trajectory</h3>
-          <p class="tool-launch-desc">Compound interest modeling with 8 compounding frequencies.</p>
+          <h3 class="tool-launch-title">{{ 'dash.tvmTitle' | t }}</h3>
+          <p class="tool-launch-desc">{{ 'dash.tvmDesc' | t }}</p>
         </div>
 
         <!-- Tool 3: Average Cost Calculator -->
@@ -995,11 +1024,11 @@
                 <line x1="16" y1="14" x2="16" y2="18"></line>
               </svg>
             </div>
-            <span class="tool-launch-badge">DCA</span>
+            <span class="tool-launch-badge">{{ 'dash.dcaBadge' | t }}</span>
           </div>
-          <h3 class="tool-launch-title">Avg Cost Calculator</h3>
+          <h3 class="tool-launch-title">{{ 'dash.avgCostTitle' | t }}</h3>
           <p class="tool-launch-desc">
-            Simulate multi-trade buy/sell chains & target break-even cost.
+            {{ 'dash.avgCostDesc' | t }}
           </p>
         </div>
 
@@ -1026,11 +1055,11 @@
                 <polyline points="2 12 12 17 22 12"></polyline>
               </svg>
             </div>
-            <span class="tool-launch-badge">Ledger</span>
+            <span class="tool-launch-badge">{{ 'dash.ledgerBadge' | t }}</span>
           </div>
-          <h3 class="tool-launch-title">FIFO Share Lots</h3>
+          <h3 class="tool-launch-title">{{ 'dash.fifoLotsTitle' | t }}</h3>
           <p class="tool-launch-desc">
-            Explore lot queues, acquisition dates, and tax basis per holding.
+            {{ 'dash.fifoLotsDesc' | t }}
           </p>
         </div>
       </div>

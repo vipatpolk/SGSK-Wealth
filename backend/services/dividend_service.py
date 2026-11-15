@@ -381,6 +381,7 @@ class DividendService:
                         symbol=sym,
                         displaySymbol=pos.displaySymbol,
                         name=pos.name,
+                        nameTh=pos.nameTh,
                         assetType=asset_type,
                         assetTypeLabel=pos.assetTypeLabel,
                         currency=curr,
@@ -422,6 +423,7 @@ class DividendService:
             cost_basis = pos.totalCost
             val = pos.holdingValue
             name = pos.name
+            name_th = pos.nameTh
 
             # Get market trailing 12M DPS and SEC distribution schedule
             trailing_dps = 0.0
@@ -509,6 +511,7 @@ class DividendService:
                     symbol=sym,
                     displaySymbol=pos.displaySymbol,
                     name=name,
+                    nameTh=name_th,
                     assetType=asset_type,
                     assetTypeLabel=pos.assetTypeLabel,
                     currency=curr,
@@ -523,6 +526,7 @@ class DividendService:
 
             entry = symbol_summary_map[sym]
             entry.name = name
+            entry.nameTh = name_th
             entry.currentShares = shares
             entry.currentCostBasis = cost_basis
             entry.currentValue = val

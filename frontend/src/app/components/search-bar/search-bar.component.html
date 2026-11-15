@@ -7,7 +7,7 @@
     <input
       type="text"
       class="search-input"
-      placeholder="Search symbols..."
+      placeholder="{{ 'holdings.searchSymbolsShort' | t }}"
       [value]="searchQuery()"
       (input)="searchInput.emit($any($event.target).value)"
       (focus)="searchFocus.emit()"
@@ -22,8 +22,8 @@
         class="btn-search-clear"
         (mousedown)="$event.preventDefault(); clearSearch.emit(searchInputEl)"
         type="button"
-        title="Clear search"
-        aria-label="Clear search"
+        [title]="'common.clearSearch' | t"
+        [attr.aria-label]="'common.clearSearch' | t"
         id="search-clear-btn"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="clear-icon">
@@ -39,12 +39,12 @@
         <div class="autocomplete-header">
           <span class="autocomplete-title">
             @if (searchQuery()) {
-              Matching Symbols ({{ autocompleteSuggestions().length }})
+              {{ 'holdings.matchingSymbols' | t:{ count: autocompleteSuggestions().length } }}
             } @else {
-              Available Symbols ({{ autocompleteSuggestions().length }})
+              {{ 'holdings.availableSymbols' | t:{ count: autocompleteSuggestions().length } }}
             }
           </span>
-          <span class="autocomplete-hint">↑↓ navigate · ↵ select · esc</span>
+          <span class="autocomplete-hint">{{ 'holdings.searchHint' | t }}</span>
         </div>
 
         <div class="autocomplete-list" role="listbox">
@@ -74,7 +74,7 @@
                       {{ item.assetTypeLabel }}
                     </span>
                     @if (item.isClosed) {
-                      <span class="closed-tag-badge">Closed</span>
+                      <span class="closed-tag-badge">{{ 'asset.closed' | t }}</span>
                     }
                   </div>
                   @if (item.name) {
@@ -89,7 +89,7 @@
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
-              <p>No symbols match "<strong>{{ searchQuery() }}</strong>"</p>
+              <p>{{ 'holdings.noMatchQuoted' | t }} "<strong>{{ searchQuery() }}</strong>"</p>
             </div>
           }
         </div>
@@ -101,7 +101,7 @@
               class="autocomplete-footer-btn"
               (mousedown)="$event.preventDefault(); closeDropdown.emit()"
             >
-              Show results in list ({{ (filteredSummariesCount() + (isClosedTab() || isAllTab() ? filteredClosedSummariesCount() : 0)) }})
+              {{ 'holdings.showResultsInList' | t:{ count: (filteredSummariesCount() + (isClosedTab() || isAllTab() ? filteredClosedSummariesCount() : 0)) } }}
             </button>
           </div>
         }
@@ -117,7 +117,7 @@
         <polyline points="23 4 23 10 17 10"></polyline>
         <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
       </svg>
-      Refresh
+      {{ 'app.refreshShort' | t }}
     </button>
     <button class="btn btn-ghost" (click)="expandAll.emit()" id="expand-all-btn">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
@@ -126,7 +126,7 @@
         <line x1="21" y1="3" x2="14" y2="10"></line>
         <line x1="3" y1="21" x2="10" y2="14"></line>
       </svg>
-      Expand All
+      {{ 'common.expandAll' | t }}
     </button>
     <button class="btn btn-ghost" (click)="collapseAll.emit()" id="collapse-all-btn">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
@@ -135,7 +135,7 @@
         <line x1="14" y1="10" x2="21" y2="3"></line>
         <line x1="3" y1="21" x2="10" y2="14"></line>
       </svg>
-      Collapse All
+      {{ 'common.collapseAll' | t }}
     </button>
   </div>
 </div>

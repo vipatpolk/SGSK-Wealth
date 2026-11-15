@@ -994,6 +994,13 @@
   border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
+.pvd-policy-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
 .pvd-policy-name {
   margin: 0;
   font-size: 0.875rem;

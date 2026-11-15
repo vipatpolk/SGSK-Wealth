@@ -1,18 +1,22 @@
-import { Component, input, output, signal, computed, ChangeDetectionStrategy, HostListener } from '@angular/core';
+import { Component, input, output, signal, computed, inject, ChangeDetectionStrategy, HostListener } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { SheetResult } from '../../services/share-lot.service';
 import { PortfolioHoldingsResponse } from '../../models/portfolio.model';
 import { PortfolioDividendResponse } from '../../models/dividend.model';
 import { AppView } from '../../config/asset.constants';
+import { AppLang, I18nService } from '../../services/i18n.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-header',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, TranslatePipe],
   templateUrl: './header.component.html'
 })
 export class HeaderComponent {
+  protected readonly i18n = inject(I18nService);
+
   loading = input.required<boolean>();
   error = input.required<string | null>();
   result = input.required<SheetResult | null>();
@@ -24,11 +28,20 @@ export class HeaderComponent {
   displayCurrency = input.required<string>();
   theme = input.required<string>();
   privacyMode = input<boolean>(false);
+  lang = input<AppLang | undefined>(undefined);
+
+  readonly activeLang = computed<AppLang>(() => this.lang() ?? this.i18n.lang());
 
   viewChange = output<AppView>();
   currencyChange = output<'USD' | 'THB'>();
+  langChange = output<AppLang>();
   themeChange = output<void>();
   privacyChange = output<void>();
+
+  selectLang(nextLang: AppLang): void {
+    this.i18n.setLang(nextLang);
+    this.langChange.emit(nextLang);
+  }
 
   // Page-specific computed meta stats
   readonly openPositions = computed(() => this.portfolioData()?.openPositions || []);

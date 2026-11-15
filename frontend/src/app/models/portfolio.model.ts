@@ -20,6 +20,7 @@ export interface PortfolioPosition {
   symbol: string;
   displaySymbol: string;
   name: string;
+  nameTh?: string;
   assetType: string;
   assetTypeLabel: string;
   totalShares: number;
@@ -51,6 +52,7 @@ export interface ClosedPortfolioPosition {
   symbol: string;
   displaySymbol: string;
   name: string;
+  nameTh?: string;
   assetType: string;
   assetTypeLabel: string;
   totalShares: number;
@@ -108,6 +110,7 @@ export interface SymbolPerformance {
   symbol: string;
   displaySymbol: string;
   name: string;
+  nameTh?: string;
   assetType: string;
   assetTypeLabel: string;
   status: 'OPEN' | 'CLOSED' | 'BOTH';
@@ -157,6 +160,7 @@ export interface HoldingConcentration {
   symbol: string;
   displaySymbol: string;
   name: string;
+  nameTh?: string;
   assetType: string;
   value: number;
   portfolioPercent: number;

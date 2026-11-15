@@ -20,6 +20,7 @@ class SymbolPerformance(BaseModel):
     symbol: str
     displaySymbol: str
     name: str = ""
+    nameTh: str = ""
     assetType: str
     assetTypeLabel: str
     status: str  # 'OPEN' | 'CLOSED' | 'BOTH'

@@ -62,6 +62,17 @@ public class TransactionsPage {
         symbolDropdownMenu.waitFor();
     }
 
+    public void closeSymbolDropdown() {
+        for (Locator backdrop : page.locator(".desktop-symbol-backdrop, .symbol-dropdown-backdrop").all()) {
+            if (backdrop.isVisible()) {
+                backdrop.dispatchEvent("click");
+                break;
+            }
+        }
+        symbolDropdownMenu.waitFor(
+                new Locator.WaitForOptions().setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN));
+    }
+
     public void selectSymbolFilter(String symbol) {
         openSymbolDropdown();
         page.locator("[id='dropdown-item-" + symbol + "']").click();
@@ -69,5 +80,19 @@ public class TransactionsPage {
 
     public void clearSymbolSelection() {
         allSymbolsFeedBtn.click();
+    }
+
+    public Locator dropdownItemName(String symbol) {
+        return page.locator("[id='dropdown-item-" + symbol + "'] .dropdown-item-name");
+    }
+
+    public Locator heroSubtitle() {
+        return page.locator("#symbol-hero-card .symbol-hero-subtitle");
+    }
+
+    public Locator ledgerRowAssetName(String symbol) {
+        return com.sgsk.wealth.e2e.support.LocatorUtils
+                .filterBySymbolWord(page.locator("#tx-table .tx-row"), symbol)
+                .locator(".tx-symbol-name");
     }
 }

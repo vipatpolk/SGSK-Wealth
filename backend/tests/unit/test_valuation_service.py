@@ -456,3 +456,43 @@ def test_value_sheet_result_propagates_pvd_fund_name_and_sec_fallback():
     assert by_sym["PVDWEQ"].pvdFundName == "ไทยพาณิชย์ มาสเตอร์ฟันด์"
 
 
+@pytest.mark.unit
+def test_value_sheet_result_propagates_name_th_for_open_and_closed(mock_sheet_result):
+    service = ValuationService()
+    mock_sheet_result.summaries[0].symbol = "PTT.BK"
+    mock_sheet_result.summaries[0].assetType = "thai-stock"
+    mock_sheet_result.summaries[0].currency = "THB"
+    mock_sheet_result.closedSummaries[0].symbol = "SCBSFF.FUND"
+    mock_sheet_result.closedSummaries[0].assetType = "mutual-fund"
+    mock_sheet_result.closedSummaries[0].currency = "THB"
+
+    price_map = {
+        "PTT.BK": PriceData(
+            symbol="PTT.BK",
+            name="PTT Public Company Limited",
+            nameTh="บริษัท ปตท. จำกัด (มหาชน)",
+            price=35.0,
+            currency="THB",
+        ),
+        "SCBSFF.FUND": PriceData(
+            symbol="SCBSFF.FUND",
+            name="SCB Short Term Fixed Income Fund",
+            nameTh="กองทุนเปิดไทยพาณิชย์ตราสารหนี้ระยะสั้น",
+            price=12.0,
+            currency="THB",
+        ),
+    }
+
+    res = service.value_sheet_result(
+        sheet_result=mock_sheet_result,
+        price_data_map=price_map,
+        exchange_rate=35.0,
+        target_currency="THB",
+    )
+
+    assert res.openPositions[0].name == "PTT Public Company Limited"
+    assert res.openPositions[0].nameTh == "บริษัท ปตท. จำกัด (มหาชน)"
+    assert res.closedPositions[0].name == "SCB Short Term Fixed Income Fund"
+    assert res.closedPositions[0].nameTh == "กองทุนเปิดไทยพาณิชย์ตราสารหนี้ระยะสั้น"
+
+

@@ -82,6 +82,19 @@ describe('ToolsComponent', () => {
   });
 
 
+  it('should preserve active tool tab when switching language after initialToolId is set', () => {
+    fixture.componentRef.setInput('initialToolId', 'avg-cost-calculator');
+    fixture.detectChanges();
+
+    component.selectTool('rebalance-planner');
+    expect(component.activeToolId()).toBe('rebalance-planner');
+
+    component.i18n.setLang('th');
+    fixture.detectChanges();
+
+    expect(component.activeToolId()).toBe('rebalance-planner');
+  });
+
   it('should toggle and close mobile dropdown menu', () => {
     expect(component.isDropdownOpen()).toBe(false);
 

@@ -134,6 +134,7 @@ class PerformanceService:
                 "symbol": sym,
                 "displaySymbol": pos.displaySymbol,
                 "name": pos.name,
+                "nameTh": pos.nameTh,
                 "assetType": asset_type,
                 "assetTypeLabel": pos.assetTypeLabel,
                 "status": "OPEN",
@@ -184,6 +185,8 @@ class PerformanceService:
             if sym in symbol_map:
                 existing = symbol_map[sym]
                 existing["status"] = "BOTH"
+                if not existing.get("nameTh") and closed.nameTh:
+                    existing["nameTh"] = closed.nameTh
                 existing["investedCost"] += closed_invested
                 existing["currentValue"] += closed_proceeds
                 existing["realizedPL"] += realized_pl
@@ -192,6 +195,7 @@ class PerformanceService:
                     "symbol": sym,
                     "displaySymbol": closed.displaySymbol,
                     "name": closed.name,
+                    "nameTh": closed.nameTh,
                     "assetType": asset_type,
                     "assetTypeLabel": closed.assetTypeLabel,
                     "status": "CLOSED",
@@ -233,6 +237,7 @@ class PerformanceService:
                     symbol=s["symbol"],
                     displaySymbol=s["displaySymbol"],
                     name=s["name"],
+                    nameTh=s.get("nameTh", ""),
                     assetType=s["assetType"],
                     assetTypeLabel=s["assetTypeLabel"],
                     status=s["status"],

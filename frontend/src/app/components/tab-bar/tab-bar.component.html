@@ -81,7 +81,7 @@
     >
       <div style="display: flex; align-items: center; gap: 0.5rem;">
         <ng-container *ngTemplateOutlet="tabIconTpl; context: { $implicit: activeTab().icon }"></ng-container>
-        <span class="symbol-selector-text">{{ activeTab().label }}</span>
+        <span class="symbol-selector-text">{{ getTabLabel(activeTab()) }}</span>
       </div>
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="chevron-arrow" [class.chevron-open]="isTabDropdownOpen()">
         <polyline points="6 9 12 15 18 9"></polyline>
@@ -98,7 +98,7 @@
               type="button"
             >
               <ng-container *ngTemplateOutlet="tabIconTpl; context: { $implicit: tab.icon }"></ng-container>
-              <span>{{ tab.label }}</span>
+              <span>{{ getTabLabel(tab) }}</span>
               @if (tabCounts()[tab.id] !== undefined && tabCounts()[tab.id] > 0) {
                 <span class="tab-count-pill">{{ tabCounts()[tab.id] }}</span>
               }
@@ -118,7 +118,7 @@
         [id]="'tab-' + tab.id"
       >
         <ng-container *ngTemplateOutlet="tabIconTpl; context: { $implicit: tab.icon }"></ng-container>
-        <span class="tab-label">{{ tab.label }}</span>
+        <span class="tab-label">{{ getTabLabel(tab) }}</span>
         @if (tabCounts()[tab.id] !== undefined && tabCounts()[tab.id] > 0) {
           <span class="tab-count-pill">{{ tabCounts()[tab.id] }}</span>
         }

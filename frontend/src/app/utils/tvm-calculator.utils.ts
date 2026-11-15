@@ -159,7 +159,7 @@ export function calculatePeriodsInYears(
   annualRatePct: number,
   compounding: CompoundingFrequency = 'monthly',
   timing: PaymentTiming = 'end'
-): { years: number; periods: number; isValid: boolean; errorMessage?: string } {
+): { years: number; periods: number; isValid: boolean; errorMessage?: string; errorKey?: string } {
   const m = getCompoundingPeriodsPerYear(compounding);
   const i = (annualRatePct / 100) / m;
   const t = timing === 'beginning' ? 1 : 0;
@@ -175,6 +175,7 @@ export function calculatePeriodsInYears(
         periods: 0,
         isValid: false,
         errorMessage: 'With 0% return rate and 0 payment, target future value cannot be reached.',
+        errorKey: 'tools.tvm.errZeroRateZeroPmt',
       };
     }
     const n = (targetFv - pv) / pmt;
@@ -190,6 +191,7 @@ export function calculatePeriodsInYears(
         periods: 0,
         isValid: false,
         errorMessage: 'Both starting principal and periodic payment are zero.',
+        errorKey: 'tools.tvm.errPvPmtZero',
       };
     }
     const n = Math.log(targetFv / pv) / Math.log(1 + i);
@@ -199,6 +201,7 @@ export function calculatePeriodsInYears(
         periods: 0,
         isValid: false,
         errorMessage: 'Target value cannot be reached with the current parameters.',
+        errorKey: 'tools.tvm.errTargetUnreachable',
       };
     }
     return { years: n / m, periods: Math.ceil(n), isValid: true };
@@ -213,6 +216,7 @@ export function calculatePeriodsInYears(
       periods: 0,
       isValid: false,
       errorMessage: 'Cannot solve for time horizon with given inputs.',
+      errorKey: 'tools.tvm.errCannotSolveHorizon',
     };
   }
 
@@ -223,6 +227,7 @@ export function calculatePeriodsInYears(
       periods: 0,
       isValid: false,
       errorMessage: 'Cannot solve for time horizon with given inputs.',
+      errorKey: 'tools.tvm.errCannotSolveHorizon',
     };
   }
 
@@ -239,7 +244,7 @@ export function calculateAnnualRate(
   years: number,
   compounding: CompoundingFrequency = 'monthly',
   timing: PaymentTiming = 'end'
-): { annualRatePct: number; isValid: boolean; errorMessage?: string } {
+): { annualRatePct: number; isValid: boolean; errorMessage?: string; errorKey?: string } {
   const m = getCompoundingPeriodsPerYear(compounding);
   const n = Math.max(1, years * m);
   const t = timing === 'beginning' ? 1 : 0;
@@ -250,7 +255,12 @@ export function calculateAnnualRate(
       return { annualRatePct: 0, isValid: true };
     }
     if (targetFv <= 0) {
-      return { annualRatePct: 0, isValid: false, errorMessage: 'Target Future Value must be greater than 0.' };
+      return {
+        annualRatePct: 0,
+        isValid: false,
+        errorMessage: 'Target Future Value must be greater than 0.',
+        errorKey: 'tools.tvm.errTargetFvZero',
+      };
     }
   }
 
@@ -329,6 +339,7 @@ export function calculateAnnualRate(
       annualRatePct: 0,
       isValid: false,
       errorMessage: 'Could not find a feasible return rate within standard boundaries.',
+      errorKey: 'tools.tvm.errNoFeasibleRate',
     };
   }
 
@@ -432,6 +443,7 @@ export function calculateTVM(params: TvmInputParams): TvmCalculationResult {
   let fv = Math.max(0, params.targetFutureValue || 0);
   let isValid = true;
   let errorMessage: string | undefined;
+  let errorKey: string | undefined;
 
   // Solve for requested target variable
   switch (mode) {
@@ -443,6 +455,7 @@ export function calculateTVM(params: TvmInputParams): TvmCalculationResult {
       if (years <= 0) {
         isValid = false;
         errorMessage = 'Investment horizon must be greater than 0 years to calculate payment.';
+        errorKey = 'tools.tvm.errHorizonZeroPmt';
         pmt = 0;
       } else {
         pmt = calculatePayment(fv, pv, annualRatePct, years, compounding, timing);
@@ -461,6 +474,7 @@ export function calculateTVM(params: TvmInputParams): TvmCalculationResult {
       const resN = calculatePeriodsInYears(fv, pv, pmt, annualRatePct, compounding, timing);
       isValid = resN.isValid;
       errorMessage = resN.errorMessage;
+      errorKey = resN.errorKey;
       years = resN.years;
       break;
     }
@@ -468,11 +482,13 @@ export function calculateTVM(params: TvmInputParams): TvmCalculationResult {
       if (years <= 0) {
         isValid = false;
         errorMessage = 'Investment horizon must be greater than 0 years to calculate return rate.';
+        errorKey = 'tools.tvm.errHorizonZeroRate';
         annualRatePct = 0;
       } else {
         const resRate = calculateAnnualRate(fv, pv, pmt, years, compounding, timing);
         isValid = resRate.isValid;
         errorMessage = resRate.errorMessage;
+        errorKey = resRate.errorKey;
         annualRatePct = resRate.annualRatePct;
       }
       break;
@@ -514,5 +530,6 @@ export function calculateTVM(params: TvmInputParams): TvmCalculationResult {
     schedule,
     isValid,
     errorMessage,
+    errorKey,
   };
 }

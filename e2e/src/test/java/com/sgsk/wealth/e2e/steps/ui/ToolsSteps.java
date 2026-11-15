@@ -4,8 +4,10 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.sgsk.wealth.e2e.context.TestContext;
 import com.sgsk.wealth.e2e.pages.ToolsPage;
+import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import java.util.Map;
 
 import java.util.regex.Pattern;
 
@@ -279,5 +281,35 @@ public class ToolsSteps {
     @Then("the TVM hero title should display {string}")
     public void verifyTvmHeroTitle(String expectedTitle) {
         assertThat(toolsPage.tvmHeroTitle).containsText(expectedTitle);
+    }
+
+    @Then("the average cost calculator dropdown should display localized asset names:")
+    public void verifyAvgCostDropdownLocalizedNames(DataTable dataTable) {
+        toolsPage.openAvgCostSymbolDropdown();
+        for (Map<String, String> row : dataTable.asMaps()) {
+            String symbol = row.get("Symbol");
+            String expectedName = row.get("ExpectedName");
+            assertThat(toolsPage.avgCostDropdownOptionName(symbol)).containsText(expectedName);
+        }
+        toolsPage.closeAvgCostSymbolDropdown();
+    }
+
+    @When("I select portfolio symbol {string} in the average cost calculator")
+    public void selectPortfolioSymbolInAvgCost(String symbol) {
+        toolsPage.selectAvgCostSymbol(symbol);
+    }
+
+    @Then("the average cost calculator selected badge should display {string}")
+    public void verifyAvgCostSelectedBadge(String expectedName) {
+        assertThat(toolsPage.avgCostSelectedBadgeName()).containsText(expectedName);
+    }
+
+    @Then("the rebalance planner table should display localized asset names:")
+    public void verifyRebalancePlannerTableLocalizedNames(DataTable dataTable) {
+        for (Map<String, String> row : dataTable.asMaps()) {
+            String symbol = row.get("Symbol");
+            String expectedName = row.get("ExpectedName");
+            assertThat(toolsPage.rebalanceRowAssetName(symbol)).containsText(expectedName);
+        }
     }
 }

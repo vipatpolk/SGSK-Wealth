@@ -1,8 +1,9 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, forkJoin, map, of } from 'rxjs';
+import { Observable, forkJoin, map, of, tap } from 'rxjs';
 
 import { environment } from '../../environments/environment';
+import { FundFactsheetResponse } from '../models/factsheet.model';
 import { PriceData } from './price.service';
 
 @Injectable({
@@ -11,6 +12,7 @@ import { PriceData } from './price.service';
 export class NavService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = '/api/backend/nav';
+  private readonly factsheetCache = new Map<string, FundFactsheetResponse>();
 
   fetchFundNAVs(symbols: string[]): Observable<Map<string, PriceData>> {
     if (!symbols || symbols.length === 0) {
@@ -40,6 +42,38 @@ export class NavService {
         }
         return mergedMap;
       })
+    );
+  }
+
+  fetchFundFactsheet(
+    symbol: string,
+    assetType = 'mutual-fund',
+    fundName?: string,
+    forceRefresh = false,
+  ): Observable<FundFactsheetResponse> {
+    const cleanSymbol = (symbol || '').trim();
+    const cleanType = (assetType || 'mutual-fund').trim().toLowerCase();
+    const cleanFundName = (fundName || '').trim();
+    const cacheKey = `${cleanType}::${cleanSymbol.toUpperCase()}::${cleanFundName}`;
+
+    if (!forceRefresh) {
+      const cached = this.factsheetCache.get(cacheKey);
+      if (cached) {
+        return of(cached);
+      }
+    }
+
+    let params = new HttpParams().set('symbol', cleanSymbol).set('asset_type', cleanType);
+    if (cleanFundName) {
+      params = params.set('fund_name', cleanFundName);
+    }
+
+    return this.http.get<FundFactsheetResponse>(`${this.baseUrl}/factsheet`, { params }).pipe(
+      tap((res) => {
+        if (res) {
+          this.factsheetCache.set(cacheKey, res);
+        }
+      }),
     );
   }
 }

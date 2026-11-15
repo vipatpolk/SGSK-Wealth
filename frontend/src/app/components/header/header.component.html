@@ -20,22 +20,22 @@
         <div class="logo-title-row">
           <h1 class="logo-text">SGSK Wealth</h1>
         </div>
-        <p class="logo-subtitle">Investment Portfolio &amp; Wealth Analytics</p>
+        <p class="logo-subtitle">{{ 'app.tagline' | t }}</p>
       </div>
     </div>
 
     <!-- Main Navigation Bar (Desktop Header Capsule / Mobile & Tablet Native Bottom Nav) -->
     @if (!loading() && !error() && result()) {
       <div class="header-center">
-        <nav class="view-toggle" id="view-toggle" aria-label="Main Navigation">
+        <nav class="view-toggle" id="view-toggle" [attr.aria-label]="'header.mainNav' | t">
           <button
             class="view-toggle-btn"
             [class.view-toggle-btn-active]="currentView() === 'dashboard'"
             (click)="selectView('dashboard')"
             id="view-toggle-dashboard"
             type="button"
-            title="Executive Dashboard"
-            aria-label="Dashboard"
+            [title]="'nav.dashboard' | t"
+            [attr.aria-label]="'nav.dashboard' | t"
           >
             <span class="nav-btn-icon-wrapper">
               <svg
@@ -54,7 +54,7 @@
                 <rect x="3" y="16" width="7" height="5" rx="1.5"></rect>
               </svg>
             </span>
-            <span class="view-toggle-label">Dashboard</span>
+            <span class="view-toggle-label">{{ 'nav.dashboard' | t }}</span>
           </button>
 
           <button
@@ -63,8 +63,8 @@
             (click)="selectView('holdings')"
             id="view-toggle-holdings"
             type="button"
-            title="Holdings & Lots"
-            aria-label="Holdings"
+            [title]="'nav.holdings' | t"
+            [attr.aria-label]="'nav.holdings' | t"
           >
             <span class="nav-btn-icon-wrapper">
               <svg
@@ -82,7 +82,7 @@
                 <polyline points="2 12 12 17 22 12"></polyline>
               </svg>
             </span>
-            <span class="view-toggle-label">Holdings</span>
+            <span class="view-toggle-label">{{ 'nav.holdings' | t }}</span>
           </button>
 
           <button
@@ -95,8 +95,8 @@
             (click)="selectView('analytics')"
             id="view-toggle-analytics"
             type="button"
-            title="Portfolio Analytics (Allocation & Performance)"
-            aria-label="Analytics"
+            [title]="'nav.analytics' | t"
+            [attr.aria-label]="'nav.analytics' | t"
           >
             <span class="nav-btn-icon-wrapper">
               <svg
@@ -115,7 +115,7 @@
                 <path d="M21 12c0 4.97-4.03 9-9 9a9 9 0 0 1-8.5-6"></path>
               </svg>
             </span>
-            <span class="view-toggle-label">Analytics</span>
+            <span class="view-toggle-label">{{ 'nav.analytics' | t }}</span>
           </button>
 
           <button
@@ -124,8 +124,8 @@
             (click)="selectView('dividends')"
             id="view-toggle-dividends"
             type="button"
-            title="Dividends & Yield"
-            aria-label="Dividends"
+            [title]="'nav.dividends' | t"
+            [attr.aria-label]="'nav.dividends' | t"
           >
             <span class="nav-btn-icon-wrapper">
               <svg
@@ -143,7 +143,7 @@
                 />
               </svg>
             </span>
-            <span class="view-toggle-label">Dividends</span>
+            <span class="view-toggle-label">{{ 'nav.dividends' | t }}</span>
           </button>
 
           <button
@@ -152,8 +152,8 @@
             (click)="selectView('transactions')"
             id="view-toggle-transactions"
             type="button"
-            title="Transactions History"
-            aria-label="Transactions"
+            [title]="'nav.transactions' | t"
+            [attr.aria-label]="'nav.transactions' | t"
           >
             <span class="nav-btn-icon-wrapper">
               <svg
@@ -170,7 +170,7 @@
                 <polyline points="12 6 12 12 14 14"></polyline>
               </svg>
             </span>
-            <span class="view-toggle-label">Transactions</span>
+            <span class="view-toggle-label">{{ 'nav.transactions' | t }}</span>
           </button>
 
           <button
@@ -179,8 +179,8 @@
             (click)="selectView('tools')"
             id="view-toggle-tools"
             type="button"
-            title="Financial Tools & Simulators"
-            aria-label="Tools"
+            [title]="'nav.tools' | t"
+            [attr.aria-label]="'nav.tools' | t"
           >
             <span class="nav-btn-icon-wrapper">
               <svg
@@ -205,7 +205,7 @@
                 <path d="M8 18h.01"></path>
               </svg>
             </span>
-            <span class="view-toggle-label">Tools</span>
+            <span class="view-toggle-label">{{ 'nav.tools' | t }}</span>
           </button>
         </nav>
       </div>
@@ -242,14 +242,37 @@
           </button>
         </div>
       }
+
+      <div class="lang-toggle" id="lang-toggle" role="group" [attr.aria-label]="'header.language' | t">
+        <button
+          type="button"
+          class="lang-btn"
+          [class.lang-btn-active]="activeLang() === 'en'"
+          (click)="selectLang('en')"
+          id="lang-en"
+          [title]="'header.langEn' | t"
+        >
+          EN
+        </button>
+        <button
+          type="button"
+          class="lang-btn"
+          [class.lang-btn-active]="activeLang() === 'th'"
+          (click)="selectLang('th')"
+          id="lang-th"
+          [title]="'header.langTh' | t"
+        >
+          TH
+        </button>
+      </div>
       <button
         class="privacy-toggle-btn"
         [class.privacy-active]="privacyMode()"
         (click)="privacyChange.emit()"
         id="privacy-toggle-btn"
-        [title]="privacyMode() ? 'Show sensitive information' : 'Hide sensitive information'"
+        [title]="privacyMode() ? ('header.privacyShow' | t) : ('header.privacyHide' | t)"
         [attr.aria-label]="
-          privacyMode() ? 'Show sensitive information' : 'Hide sensitive information'
+          privacyMode() ? ('header.privacyShow' | t) : ('header.privacyHide' | t)
         "
         type="button"
       >
@@ -291,8 +314,8 @@
         class="theme-toggle-btn"
         (click)="themeChange.emit()"
         id="theme-toggle-btn"
-        [title]="theme() === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'"
-        [attr.aria-label]="theme() === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'"
+        [title]="theme() === 'dark' ? ('header.themeLight' | t) : ('header.themeDark' | t)"
+        [attr.aria-label]="theme() === 'dark' ? ('header.themeLight' | t) : ('header.themeDark' | t)"
         type="button"
       >
         @if (theme() === 'dark') {

@@ -5,6 +5,7 @@ import {
   signal,
   computed,
   effect,
+  inject,
   ChangeDetectionStrategy,
   OnInit,
 } from '@angular/core';
@@ -12,6 +13,8 @@ import { CommonModule, CurrencyPipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PortfolioPosition } from '../../../models/portfolio.model';
 import { PriceData } from '../../../services/price.service';
+import { I18nService } from '../../../services/i18n.service';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
 import {
   AssetClassRebalanceGroup,
   NoSellSubMode,
@@ -39,11 +42,12 @@ import {
   selector: 'app-rebalance-calculator',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, CurrencyPipe, DecimalPipe, FormsModule],
+  imports: [CommonModule, CurrencyPipe, DecimalPipe, FormsModule, TranslatePipe],
   templateUrl: './rebalance-calculator.component.html',
   styleUrls: ['./rebalance-calculator.component.css'],
 })
 export class RebalanceCalculatorComponent implements OnInit {
+  readonly i18n = inject(I18nService);
   portfolioPositions = input<PortfolioPosition[]>([]);
   pricesMap = input.required<Map<string, PriceData>>();
   displayCurrency = input.required<'USD' | 'THB'>();
@@ -150,19 +154,24 @@ export class RebalanceCalculatorComponent implements OnInit {
         selectedAssetClassFilter: this.selectedAssetClassFilter(),
       },
       this.displayCurrency(),
-      this.exchangeRate()
+      this.exchangeRate(),
+      this.i18n.lang()
     );
   });
 
   /** Available Asset Classes present in the portfolio */
   readonly availableAssetClasses = computed<{ id: string; label: string; count: number }[]>(() => {
     const plan = this.masterPlan();
+    this.i18n.lang();
     const list = plan.groups.map((g) => ({
       id: g.assetType,
       label: g.label,
       count: g.symbols.length,
     }));
-    return [{ id: 'all', label: 'All Classes', count: plan.groups.reduce((acc, g) => acc + g.symbols.length, 0) }, ...list];
+    return [
+      { id: 'all', label: this.i18n.t('asset.allClasses'), count: plan.groups.reduce((acc, g) => acc + g.symbols.length, 0) },
+      ...list,
+    ];
   });
 
   /** Filtered groups based on user asset class tab */
@@ -204,11 +213,17 @@ export class RebalanceCalculatorComponent implements OnInit {
   });
 
   readonly currentValueLabel = computed<string>(() => {
-    return this.selectedAssetClassFilter() === 'all' ? 'Current Portfolio Value' : 'Current Class Value';
+    this.i18n.lang();
+    return this.selectedAssetClassFilter() === 'all'
+      ? this.i18n.t('tools.reb.currentPortfolioVal')
+      : this.i18n.t('tools.reb.currentClassVal');
   });
 
   readonly targetValueLabel = computed<string>(() => {
-    return this.selectedAssetClassFilter() === 'all' ? 'Resulting Portfolio Value' : 'Resulting Class Value';
+    this.i18n.lang();
+    return this.selectedAssetClassFilter() === 'all'
+      ? this.i18n.t('tools.reb.resultingPortfolioVal')
+      : this.i18n.t('tools.reb.resultingClassVal');
   });
 
 
@@ -302,19 +317,32 @@ export class RebalanceCalculatorComponent implements OnInit {
     const orders = this.orders();
     if (!orders || orders.length === 0) return;
 
+    const dateStr = this.i18n.formatDate(new Date(), 'medium');
+    const modeStr = this.i18n.t(
+      this.mode() === 'standard' ? 'tools.reb.clipModeStandard' : 'tools.reb.clipModeNoSell'
+    );
     const lines = [
-      `SGSK Portfolio Rebalance Plan (${new Date().toLocaleDateString()})`,
-      `Mode: ${this.mode() === 'standard' ? 'Standard (Buy & Sell)' : 'No-Sell Contribution'}`,
-      `Currency: ${this.displayCurrency()}`,
+      this.i18n.t('tools.reb.clipHeader', { date: dateStr }),
+      this.i18n.t('tools.reb.clipMode', { mode: modeStr }),
+      this.i18n.t('tools.reb.clipCurrency', { currency: this.displayCurrency() }),
       '--------------------------------------------------',
       ...orders.map(
         (o, idx) =>
-          `${idx + 1}. ${o.action} ${o.shares.toFixed(4)} ${o.symbol} @ ${o.price.toFixed(2)} ${o.currency} (~${o.amount.toFixed(2)} ${o.currency})`
+          `${idx + 1}. ${this.i18n.t(o.action === 'BUY' ? 'common.buy' : 'common.sell')} ${o.shares.toFixed(4)} ${o.symbol} @ ${o.price.toFixed(2)} ${o.currency} (~${o.amount.toFixed(2)} ${o.currency})`
       ),
       '--------------------------------------------------',
-      `Total Buy: ${this.filteredBuyAmount().toFixed(2)} ${this.displayCurrency()}`,
-      `Total Sell: ${this.filteredSellAmount().toFixed(2)} ${this.displayCurrency()}`,
-      `Net Cash: ${(this.filteredBuyAmount() - this.filteredSellAmount()).toFixed(2)} ${this.displayCurrency()}`,
+      this.i18n.t('tools.reb.clipTotalBuy', {
+        amount: this.filteredBuyAmount().toFixed(2),
+        currency: this.displayCurrency(),
+      }),
+      this.i18n.t('tools.reb.clipTotalSell', {
+        amount: this.filteredSellAmount().toFixed(2),
+        currency: this.displayCurrency(),
+      }),
+      this.i18n.t('tools.reb.clipNetCash', {
+        amount: (this.filteredBuyAmount() - this.filteredSellAmount()).toFixed(2),
+        currency: this.displayCurrency(),
+      }),
     ];
 
 
@@ -329,7 +357,8 @@ export class RebalanceCalculatorComponent implements OnInit {
   getSymbolColor = getSymbolColor;
   getDisplaySymbol = displaySymbol;
   getAssetColor = getAssetColor;
-  getAssetTypeLabel = getAssetTypeLabel;
+  getAssetTypeLabel = (assetType?: string, symbol?: string): string =>
+    getAssetTypeLabel(assetType, symbol, this.i18n.lang());
 
   cx(amount: number, fromCurrency: string): number {
     return convertCurrency(amount, fromCurrency, this.displayCurrency(), this.exchangeRate());

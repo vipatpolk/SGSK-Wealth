@@ -5,11 +5,15 @@ import {
   signal,
   computed,
   effect,
+  inject,
+  untracked,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PortfolioPosition, PortfolioSummary } from '../../models/portfolio.model';
 import { PriceData } from '../../services/price.service';
+import { I18nService } from '../../services/i18n.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 import { AvgCostSimulationResult, ToolDefinition, ToolId } from '../../models/tools.model';
 import { AvgCostCalculatorComponent } from './avg-cost-calculator/avg-cost-calculator.component';
 import { TvmCalculatorComponent } from './tvm-calculator/tvm-calculator.component';
@@ -19,11 +23,18 @@ import { RebalanceCalculatorComponent } from './rebalance-calculator/rebalance-c
   selector: 'app-tools',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, AvgCostCalculatorComponent, TvmCalculatorComponent, RebalanceCalculatorComponent],
+  imports: [
+    CommonModule,
+    TranslatePipe,
+    AvgCostCalculatorComponent,
+    TvmCalculatorComponent,
+    RebalanceCalculatorComponent,
+  ],
   templateUrl: './tools.component.html',
   styleUrls: ['./tools.component.css'],
 })
 export class ToolsComponent {
+  readonly i18n = inject(I18nService);
   portfolioPositions = input.required<PortfolioPosition[]>();
   portfolioSummary = input<PortfolioSummary | null>(null);
   pricesMap = input.required<Map<string, PriceData>>();
@@ -43,44 +54,52 @@ export class ToolsComponent {
     effect(() => {
       const tool = this.initialToolId();
       if (tool) {
-        this.selectTool(tool);
+        // Run untracked so language switches do not re-trigger this effect via localizedToolsList().
+        untracked(() => this.selectTool(tool));
       }
     });
   }
 
-  readonly toolsList: ToolDefinition[] = [
-    {
-      id: 'avg-cost-calculator',
-      title: 'Average Cost Calculator',
-      shortTitle: 'Avg Cost',
-      description: 'Simulate Buy / Sell orders to project changes in average cost basis, breakeven, and P/L.',
-      icon: 'calculator',
-      badge: 'Active',
-      isReady: true,
-    },
-    {
-      id: 'tvm-calculator',
-      title: 'Time Value of Money (TVM) Calculator',
-      shortTitle: 'TVM Calculator',
-      description: 'Calculate Future Value, required contributions, target growth rates, and horizons with flexible compounding frequencies.',
-      icon: 'trending-up',
-      badge: 'Active',
-      isReady: true,
-    },
-    {
-      id: 'rebalance-planner',
-      title: 'Portfolio Rebalance Planner',
-      shortTitle: 'Rebalance',
-      description: 'Compute precise trade orders and cash adjustments to match your ideal target asset allocation.',
-      icon: 'pie-chart',
-      badge: 'Active',
-      isReady: true,
-    },
-  ];
+  private readonly localizedToolsList = computed<ToolDefinition[]>(() => {
+    this.i18n.lang();
+    return [
+      {
+        id: 'avg-cost-calculator',
+        title: this.i18n.t('tools.avgCost.title'),
+        shortTitle: this.i18n.t('tools.avgCost.short'),
+        description: this.i18n.t('tools.avgCost.desc'),
+        icon: 'calculator',
+        badge: this.i18n.t('tools.activeBadge'),
+        isReady: true,
+      },
+      {
+        id: 'tvm-calculator',
+        title: this.i18n.t('tools.tvm.title'),
+        shortTitle: this.i18n.t('tools.tvm.short'),
+        description: this.i18n.t('tools.tvm.desc'),
+        icon: 'trending-up',
+        badge: this.i18n.t('tools.activeBadge'),
+        isReady: true,
+      },
+      {
+        id: 'rebalance-planner',
+        title: this.i18n.t('tools.rebalance.title'),
+        shortTitle: this.i18n.t('tools.rebalance.short'),
+        description: this.i18n.t('tools.rebalance.desc'),
+        icon: 'pie-chart',
+        badge: this.i18n.t('tools.activeBadge'),
+        isReady: true,
+      },
+    ];
+  });
 
+  get toolsList(): ToolDefinition[] {
+    return this.localizedToolsList();
+  }
 
   readonly activeTool = computed(() => {
-    return this.toolsList.find((t) => t.id === this.activeToolId()) || this.toolsList[0];
+    const list = this.localizedToolsList();
+    return list.find((t) => t.id === this.activeToolId()) || list[0];
   });
 
   selectTool(toolId: ToolId): void {

@@ -377,6 +377,92 @@ describe('DashboardComponent', () => {
     ]);
   });
 
+  it('should render PVD sub-policy name in retirement mini-list and fall back to policyName only when name is empty', () => {
+    const pvdPositions: PortfolioPosition[] = [
+      {
+        symbol: 'PVDSP500',
+        displaySymbol: 'PVDSP500',
+        name: 'นโยบายกองทุนรวมต่างประเทศ หุ้นยูเอส',
+        policyName: 'ตราสารทุน',
+        pvdFundName: 'ไทยพาณิชย์ มาสเตอร์ฟันด์',
+        assetType: 'provident-fund',
+        assetTypeLabel: 'Provident Fund',
+        totalShares: 100,
+        totalCost: 10000,
+        averageCost: 100,
+        currentPrice: 110,
+        holdingValue: 11000,
+        unrealizedPL: 1000,
+        unrealizedPLPercent: 10,
+        currency: 'THB',
+        originalCurrency: 'THB',
+        hasPrice: true,
+        lots: [],
+      },
+      {
+        symbol: 'PVDMGLDH',
+        displaySymbol: 'PVDMGLDH',
+        name: 'นโยบายกองทุนรวมโกลด์ THB เฮดจ์',
+        policyName: 'ทรัพย์สินทางเลือก',
+        pvdFundName: 'ไทยพาณิชย์ มาสเตอร์ฟันด์',
+        assetType: 'provident-fund',
+        assetTypeLabel: 'Provident Fund',
+        totalShares: 50,
+        totalCost: 5000,
+        averageCost: 100,
+        currentPrice: 120,
+        holdingValue: 6000,
+        unrealizedPL: 1000,
+        unrealizedPLPercent: 20,
+        currency: 'THB',
+        originalCurrency: 'THB',
+        hasPrice: true,
+        lots: [],
+      },
+      {
+        symbol: 'PVDMPAEM',
+        displaySymbol: 'PVDMPAEM',
+        name: '',
+        policyName: 'ตราสารทุนต่างประเทศ',
+        pvdFundName: 'ไทยพาณิชย์ มาสเตอร์ฟันด์',
+        assetType: 'provident-fund',
+        assetTypeLabel: 'Provident Fund',
+        totalShares: 25,
+        totalCost: 2500,
+        averageCost: 100,
+        currentPrice: 104,
+        holdingValue: 2600,
+        unrealizedPL: 100,
+        unrealizedPLPercent: 4,
+        currency: 'THB',
+        originalCurrency: 'THB',
+        hasPrice: true,
+        lots: [],
+      },
+    ];
+
+    fixture.componentRef.setInput('portfolioData', {
+      currency: 'THB',
+      exchangeRate: 35.0,
+      tabId: 'all',
+      summary: { totalInvested: 17500, totalValue: 19600 } as any,
+      openPositions: pvdPositions,
+      closedPositions: [],
+    });
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const pvdCard = compiled.querySelector('#dashboard-retirement-card');
+    const rowNames = Array.from(pvdCard?.querySelectorAll('.pvd-mini-name') || []).map((el) =>
+      el.textContent?.trim(),
+    );
+    expect(rowNames).toEqual([
+      'นโยบายกองทุนรวมต่างประเทศ หุ้นยูเอส',
+      'นโยบายกองทุนรวมโกลด์ THB เฮดจ์',
+      'ตราสารทุนต่างประเทศ',
+    ]);
+  });
+
   it('should exclude provident-fund records from recentTransactions and only show real trades', () => {
     fixture.componentRef.setInput('portfolioData', {
       currency: 'USD',
@@ -481,5 +567,70 @@ describe('DashboardComponent', () => {
     expect(recent.length).toBe(1);
     expect(recent[0].symbol).toBe('SCB.BK');
     expect(recent[0].quantity).toBe(100);
+  });
+
+  it('should render factsheet icon beside dashboard PVD mini row name and emit openFactsheet on click', () => {
+    const spy = vi.fn();
+    component.openFactsheet.subscribe(spy);
+
+    fixture.componentRef.setInput('portfolioData', {
+      currency: 'THB',
+      exchangeRate: 35.0,
+      tabId: 'all',
+      summary: {
+        totalInvested: 100000,
+        totalValue: 120000,
+        openInvested: 100000,
+        closedInvested: 0,
+        totalUnrealizedPL: 20000,
+        totalUnrealizedPLPercent: 20,
+        totalRealizedPL: 0,
+        totalRealizedPLPercent: 0,
+        totalReturn: 20000,
+        totalReturnPercent: 20,
+      },
+      openPositions: [
+        {
+          symbol: 'PVDSP500',
+          displaySymbol: 'PVDSP500',
+          name: 'SCB US Equity PVD',
+          nameTh: 'นโยบายกองทุนรวมต่างประเทศ หุ้นยูเอส',
+          assetType: 'provident-fund',
+          assetTypeLabel: 'Provident Fund',
+          totalShares: 5000,
+          totalCost: 100000,
+          averageCost: 20,
+          currentPrice: 24,
+          holdingValue: 120000,
+          unrealizedPL: 20000,
+          unrealizedPLPercent: 20,
+          currency: 'THB',
+          originalCurrency: 'THB',
+          hasPrice: true,
+          pvdFundName: 'ไทยพาณิชย์ มาสเตอร์ฟันด์',
+          employeeContribution: 50000,
+          employerMatching: 50000,
+          lots: [],
+        },
+      ],
+      closedPositions: [],
+      transactionSummaries: [],
+      rawTransactions: [],
+      error: null,
+    });
+    fixture.detectChanges();
+
+    const hostEl = fixture.nativeElement as HTMLElement;
+    const btn = hostEl.querySelector('#btn-dash-pvd-factsheet-PVDSP500') as HTMLButtonElement;
+    expect(btn).toBeTruthy();
+    btn.click();
+
+    expect(spy).toHaveBeenCalledWith({
+      symbol: 'PVDSP500',
+      assetType: 'provident-fund',
+      fundName: 'ไทยพาณิชย์ มาสเตอร์ฟันด์',
+      displayName: 'SCB US Equity PVD',
+      displayNameTh: 'นโยบายกองทุนรวมต่างประเทศ หุ้นยูเอส',
+    });
   });
 });

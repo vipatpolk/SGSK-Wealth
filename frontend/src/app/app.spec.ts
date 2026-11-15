@@ -1,9 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { of } from 'rxjs';
 import { PortfolioService } from './services/portfolio.service';
 import { DividendService } from './services/dividend.service';
+import { I18nService } from './services/i18n.service';
 import { PortfolioDividendResponse } from './models/dividend.model';
 import { App } from './app';
 import { ASSET_TABS } from './config/asset.constants';
@@ -14,6 +15,10 @@ describe('App', () => {
       imports: [App],
       providers: [provideHttpClient()],
     }).compileComponents();
+  });
+
+  afterEach(() => {
+    TestBed.inject(I18nService).setLang('en');
   });
 
   it('should create the app', () => {
@@ -781,5 +786,65 @@ describe('App', () => {
     expect(app.holdingsSubTab()).toBe('pvd');
     expect(app.activeTab().id).toBe('provident-fund');
     expect(app.isPvdTab()).toBe(true);
+  });
+
+  it('should display Thai names for Thai stocks and mutual funds in TH mode while keeping non-Thai assets in English', () => {
+    const i18n = TestBed.inject(I18nService);
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    app.prices.set(
+      new Map([
+        ['PTT.BK', { symbol: 'PTT.BK', price: 32.5, currency: 'THB', source: 'SET', name: 'PTT Public Company Limited', nameTh: 'บริษัท ปตท. จำกัด (มหาชน)', isLoading: false, error: null }],
+        ['K-USA.FUND', { symbol: 'K-USA.FUND', price: 14.2, currency: 'THB', source: 'SEC', name: 'K USA Equity Fund', nameTh: 'กองทุนเปิดเค ยูเอสเอ หุ้นทุน', isLoading: false, error: null }],
+        ['AAPL', { symbol: 'AAPL', price: 210.0, currency: 'USD', source: 'Yahoo', name: 'Apple Inc.', isLoading: false, error: null }],
+      ]),
+    );
+
+    app.portfolioData.set({
+      currency: 'THB',
+      exchangeRate: 35,
+      tabId: 'all',
+      summary: {
+        totalInvested: 1000,
+        totalValue: 1200,
+        openInvested: 1000,
+        closedInvested: 0,
+        totalUnrealizedPL: 200,
+        totalUnrealizedPLPercent: 20,
+        totalRealizedPL: 0,
+        totalRealizedPLPercent: 0,
+        totalReturn: 200,
+        totalReturnPercent: 20,
+      },
+      openPositions: [
+        { symbol: 'PTT.BK', displaySymbol: 'PTT', name: 'PTT Public Company Limited', nameTh: 'บริษัท ปตท. จำกัด (มหาชน)', assetType: 'thai-stock', assetTypeLabel: 'Thai Stock', totalShares: 10, totalCost: 300, averageCost: 30, currentPrice: 32.5, holdingValue: 325, unrealizedPL: 25, unrealizedPLPercent: 8.33, currency: 'THB', originalCurrency: 'THB', hasPrice: true, lots: [] },
+        { symbol: 'K-USA.FUND', displaySymbol: 'K-USA', name: 'K USA Equity Fund', nameTh: 'กองทุนเปิดเค ยูเอสเอ หุ้นทุน', assetType: 'mutual-fund', assetTypeLabel: 'Mutual Fund', totalShares: 10, totalCost: 130, averageCost: 13, currentPrice: 14.2, holdingValue: 142, unrealizedPL: 12, unrealizedPLPercent: 9.23, currency: 'THB', originalCurrency: 'THB', hasPrice: true, lots: [] },
+        { symbol: 'AAPL', displaySymbol: 'AAPL', name: 'Apple Inc.', assetType: 'us-stock', assetTypeLabel: 'U.S. Stock', totalShares: 1, totalCost: 180, averageCost: 180, currentPrice: 210, holdingValue: 210, unrealizedPL: 30, unrealizedPLPercent: 16.67, currency: 'USD', originalCurrency: 'USD', hasPrice: true, lots: [] },
+        { symbol: 'BTC.CRYPTO', displaySymbol: 'BTC', name: 'Bitcoin', assetType: 'crypto', assetTypeLabel: 'Cryptocurrency', totalShares: 0.01, totalCost: 200, averageCost: 20000, currentPrice: 25000, holdingValue: 250, unrealizedPL: 50, unrealizedPLPercent: 25, currency: 'USD', originalCurrency: 'USD', hasPrice: true, lots: [] },
+        { symbol: 'US-BOND', displaySymbol: 'US-BOND', name: 'US Treasury Note', assetType: 'bond', assetTypeLabel: 'Bond', totalShares: 1, totalCost: 190, averageCost: 190, currentPrice: 195, holdingValue: 195, unrealizedPL: 5, unrealizedPLPercent: 2.63, currency: 'USD', originalCurrency: 'USD', hasPrice: true, lots: [] },
+      ],
+      closedPositions: [],
+      error: null,
+    });
+
+    // English default
+    const enPositions = app.localizedPortfolioData()!.openPositions;
+    expect(enPositions.find((p) => p.symbol === 'PTT.BK')?.name).toBe('PTT Public Company Limited');
+    expect(enPositions.find((p) => p.symbol === 'K-USA.FUND')?.name).toBe('K USA Equity Fund');
+    expect(enPositions.find((p) => p.symbol === 'AAPL')?.name).toBe('Apple Inc.');
+
+    // Switch to Thai
+    i18n.setLang('th');
+    const thPositions = app.localizedPortfolioData()!.openPositions;
+    expect(thPositions.find((p) => p.symbol === 'PTT.BK')?.name).toBe('บริษัท ปตท. จำกัด (มหาชน)');
+    expect(thPositions.find((p) => p.symbol === 'PTT.BK')?.assetTypeLabel).toBe('หุ้นไทย');
+    expect(thPositions.find((p) => p.symbol === 'K-USA.FUND')?.name).toBe('กองทุนเปิดเค ยูเอสเอ หุ้นทุน');
+    expect(thPositions.find((p) => p.symbol === 'K-USA.FUND')?.assetTypeLabel).toBe('กองทุนรวม');
+
+    // Non-Thai market assets keep English names
+    expect(thPositions.find((p) => p.symbol === 'AAPL')?.name).toBe('Apple Inc.');
+    expect(thPositions.find((p) => p.symbol === 'BTC.CRYPTO')?.name).toBe('Bitcoin');
+    expect(thPositions.find((p) => p.symbol === 'US-BOND')?.name).toBe('US Treasury Note');
   });
 });

@@ -2,6 +2,7 @@
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { StringDecoder } from 'node:string_decoder';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -9,6 +10,8 @@ const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 const backendDir = path.join(rootDir, 'backend');
 const frontendDir = path.join(rootDir, 'frontend');
+const e2eTargetDir = path.join(rootDir, 'e2e', 'target');
+const e2eLogPath = path.join(e2eTargetDir, 'e2e-live.log');
 
 const isWindows = process.platform === 'win32';
 const npmCmd = isWindows ? 'npm.cmd' : 'npm';
@@ -61,28 +64,106 @@ const onlyBackend = args.includes('--only=backend');
 const onlyFrontend = args.includes('--only=frontend');
 const lintBackend = args.includes('--lint-backend');
 const testBackend = args.includes('--test-backend');
+const runE2e = args.includes('--e2e');
+const noE2eLogs = args.includes('--no-e2e-logs');
 
-// Line-based stream prefixer
-function attachPrefixedStream(stream, prefix, colorCode) {
-  let buffer = '';
-  stream.on('data', (data) => {
-    buffer += data.toString();
-    const lines = buffer.split(/\r?\n/);
-    buffer = lines.pop() ?? '';
-    for (const line of lines) {
-      if (line.trim().length > 0) {
-        process.stdout.write(`\x1b[${colorCode}m[${prefix}]\x1b[0m ${line}\n`);
-      }
+function terminateProcessTree(child) {
+  if (!child || child.killed) return;
+  try {
+    if (isWindows && child.pid) {
+      spawn('taskkill', ['/pid', String(child.pid), '/T', '/F']);
+    } else {
+      child.kill('SIGINT');
     }
-  });
-  stream.on('end', () => {
-    if (buffer.trim().length > 0) {
-      process.stdout.write(`\x1b[${colorCode}m[${prefix}]\x1b[0m ${buffer}\n`);
-    }
-  });
+  } catch {
+    // Ignore termination errors on exit
+  }
 }
 
-// Backend QA commands: lint or test
+// Line-based prefixed writer shared by child process streams and log file tailer
+function createPrefixedLineWriter(prefix, colorCode) {
+  const decoder = new StringDecoder('utf8');
+  let buffer = '';
+  return {
+    push(data) {
+      buffer += typeof data === 'string' ? data : decoder.write(data);
+      const lines = buffer.split(/\r?\n/);
+      buffer = lines.pop() ?? '';
+      for (const line of lines) {
+        if (line.trim().length > 0) {
+          process.stdout.write(`\x1b[${colorCode}m[${prefix}]\x1b[0m ${line}\n`);
+        }
+      }
+    },
+    flush() {
+      buffer += decoder.end();
+      if (buffer.trim().length > 0) {
+        process.stdout.write(`\x1b[${colorCode}m[${prefix}]\x1b[0m ${buffer}\n`);
+      }
+      buffer = '';
+    },
+  };
+}
+
+function attachPrefixedStream(stream, prefix, colorCode) {
+  const writer = createPrefixedLineWriter(prefix, colorCode);
+  stream.on('data', (data) => writer.push(data));
+  stream.on('end', () => writer.flush());
+}
+
+function startE2eLogTailer(logFilePath) {
+  const writer = createPrefixedLineWriter('E2E', '33');
+  let offset = 0;
+  try {
+    if (fs.existsSync(logFilePath)) {
+      offset = fs.statSync(logFilePath).size;
+    }
+  } catch {
+    offset = 0;
+  }
+
+  const pollNewBytes = () => {
+    try {
+      if (!fs.existsSync(logFilePath)) {
+        offset = 0;
+        return;
+      }
+      const stats = fs.statSync(logFilePath);
+      if (stats.size < offset) {
+        writer.flush();
+        offset = 0;
+      }
+      if (stats.size === offset) return;
+
+      const fd = fs.openSync(logFilePath, 'r');
+      try {
+        const chunkSize = 65536;
+        while (offset < stats.size) {
+          const toRead = Math.min(chunkSize, stats.size - offset);
+          const buf = Buffer.allocUnsafe(toRead);
+          const bytesRead = fs.readSync(fd, buf, 0, toRead, offset);
+          if (bytesRead <= 0) break;
+          offset += bytesRead;
+          writer.push(bytesRead === toRead ? buf : buf.subarray(0, bytesRead));
+        }
+      } finally {
+        fs.closeSync(fd);
+      }
+    } catch {
+      // Ignore transient read errors while Maven/target directory is updating
+    }
+  };
+
+  const timer = setInterval(pollNewBytes, 250);
+  console.log(`\x1b[33m[E2E]\x1b[0m Streaming E2E logs from ${path.relative(rootDir, logFilePath)} (run "npm run test:e2e*" to trigger)`);
+  return () => {
+    clearInterval(timer);
+    pollNewBytes();
+    writer.flush();
+  };
+}
+
+// Backend QA commands: lint or test, or E2E runner with live log teeing
 if (lintBackend) {
   console.log(`\x1b[36m[LINT]\x1b[0m Running Ruff and Mypy on backend using ${pythonCmd}...`);
   const ruff = spawn(pythonCmd, ['-m', 'ruff', 'check', '.'], { cwd: backendDir, stdio: 'inherit' });
@@ -95,23 +176,56 @@ if (lintBackend) {
   console.log(`\x1b[36m[TEST]\x1b[0m Running Pytest on backend using ${pythonCmd}...`);
   const pytest = spawn(pythonCmd, ['-m', 'pytest', '-m', 'not live_e2e'], { cwd: backendDir, stdio: 'inherit' });
   pytest.on('close', (code) => process.exit(code ?? 0));
+} else if (runE2e) {
+  fs.mkdirSync(e2eTargetDir, { recursive: true });
+  fs.writeFileSync(e2eLogPath, '');
+  const logStream = fs.createWriteStream(e2eLogPath, { flags: 'a' });
+
+  const tagsFlag = args.find((a) => a.startsWith('--tags='));
+  const extraArgs = args.filter((a) => a !== '--e2e' && !a.startsWith('--tags='));
+  const mvnArgs = ['-f', 'e2e/pom.xml', 'test'];
+  if (tagsFlag) {
+    mvnArgs.push(`-Dcucumber.filter.tags=${tagsFlag.slice('--tags='.length)}`);
+  }
+  mvnArgs.push(...extraArgs);
+
+  const headerLine = `=== E2E Run Started (${new Date().toISOString()}): mvn ${mvnArgs.join(' ')} ===\n`;
+  logStream.write(headerLine);
+
+  const mvnChild = isWindows
+    ? spawn('cmd.exe', ['/d', '/s', '/c', 'mvn', ...mvnArgs], { cwd: rootDir })
+    : spawn('mvn', mvnArgs, { cwd: rootDir });
+
+  mvnChild.stdout.on('data', (chunk) => {
+    process.stdout.write(chunk);
+    logStream.write(chunk);
+  });
+  mvnChild.stderr.on('data', (chunk) => {
+    process.stderr.write(chunk);
+    logStream.write(chunk);
+  });
+
+  const handleAbort = (signal) => {
+    terminateProcessTree(mvnChild);
+    logStream.end(`\n=== E2E Run Aborted (${signal}) ===\n`, () => process.exit(1));
+  };
+  process.on('SIGINT', () => handleAbort('SIGINT'));
+  process.on('SIGTERM', () => handleAbort('SIGTERM'));
+
+  mvnChild.on('close', (code) => {
+    logStream.end(`\n=== E2E Run Finished (exit code ${code ?? 1}) ===\n`, () => {
+      process.exit(code ?? 1);
+    });
+  });
 } else {
   // Concurrent Dev Server
   const children = [];
+  let stopE2eTailer = () => {};
 
   function terminateChildren() {
+    stopE2eTailer();
     for (const child of children) {
-      if (!child.killed) {
-        try {
-          if (isWindows && child.pid) {
-            spawn('taskkill', ['/pid', String(child.pid), '/T', '/F']);
-          } else {
-            child.kill('SIGINT');
-          }
-        } catch {
-          // Ignore termination errors on exit
-        }
-      }
+      terminateProcessTree(child);
     }
   }
 
@@ -163,5 +277,9 @@ if (lintBackend) {
     attachPrefixedStream(frontendProc.stdout, 'FRONTEND', '35');
     attachPrefixedStream(frontendProc.stderr, 'FRONTEND', '35');
     children.push(frontendProc);
+  }
+
+  if (!noE2eLogs) {
+    stopE2eTailer = startE2eLogTailer(e2eLogPath);
   }
 }

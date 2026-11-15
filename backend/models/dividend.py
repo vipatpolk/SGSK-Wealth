@@ -71,6 +71,7 @@ class SymbolDividendSummary(BaseModel):
     symbol: str
     displaySymbol: str
     name: str = ""
+    nameTh: str = ""
     assetType: str
     assetTypeLabel: str
     currency: str

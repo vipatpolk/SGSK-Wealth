@@ -43,3 +43,54 @@ Feature: Investment Performance & Analytics Engine
       | open   |
       | closed |
       | all    |
+
+  @smoke @TC-PRF-06
+  Scenario: TC-PRF-06: Performance table and top movers localize Thai market names across TH and EN
+    When I switch language to TH
+    Then the performance table should display localized asset names:
+      | Symbol | ExpectedName                 |
+      | PTT.BK | บริษัท ปตท. จำกัด (มหาชน)   |
+      | K-USA  | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
+      | AAPL   | Apple Inc.                   |
+      | BTC    | Bitcoin                      |
+    And the performance top movers should display localized asset names:
+      | Symbol | ExpectedName                 |
+      | PTT.BK | บริษัท ปตท. จำกัด (มหาชน)   |
+      | K-USA  | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
+      | AAPL   | Apple Inc.                   |
+      | BTC    | Bitcoin                      |
+    When I switch language to EN
+    Then the performance table should display localized asset names:
+      | Symbol | ExpectedName               |
+      | PTT.BK | PTT Public Company Limited |
+      | K-USA  | Kasikorn US Equity Fund    |
+      | AAPL   | Apple Inc.                 |
+      | BTC    | Bitcoin                    |
+    And the performance top movers should display localized asset names:
+      | Symbol | ExpectedName               |
+      | PTT.BK | PTT Public Company Limited |
+      | K-USA  | Kasikorn US Equity Fund    |
+      | AAPL   | Apple Inc.                 |
+      | BTC    | Bitcoin                    |
+
+  @TC-PRF-07
+  Scenario: TC-PRF-07: Performance search autocomplete displays localized asset suggestions across TH and EN
+    When I switch language to TH
+    And I search performance autocomplete for "PTT"
+    Then the performance autocomplete should suggest "บริษัท ปตท. จำกัด (มหาชน)" for "PTT"
+    When I close the performance search autocomplete
+    And I search performance autocomplete for "K-USA"
+    Then the performance autocomplete should suggest "กองทุนเปิดเค ยูเอสเอ หุ้นทุน" for "K-USA"
+    When I close the performance search autocomplete
+    And I search performance autocomplete for "AAPL"
+    Then the performance autocomplete should suggest "Apple Inc." for "AAPL"
+    When I close the performance search autocomplete
+    And I switch language to EN
+    And I search performance autocomplete for "PTT"
+    Then the performance autocomplete should suggest "PTT Public Company Limited" for "PTT"
+    When I close the performance search autocomplete
+    And I search performance autocomplete for "K-USA"
+    Then the performance autocomplete should suggest "Kasikorn US Equity Fund" for "K-USA"
+    When I close the performance search autocomplete
+    And I search performance autocomplete for "AAPL"
+    Then the performance autocomplete should suggest "Apple Inc." for "AAPL"

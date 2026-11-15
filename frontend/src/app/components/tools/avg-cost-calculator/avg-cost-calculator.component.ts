@@ -5,12 +5,16 @@ import {
   signal,
   computed,
   effect,
+  inject,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule, CurrencyPipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PortfolioPosition } from '../../../models/portfolio.model';
 import { PriceData } from '../../../services/price.service';
+import { I18nService } from '../../../services/i18n.service';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
+import { TranslationKey } from '../../../i18n/en';
 import {
   AvgCostSimulationResult,
   PositionSnapshot,
@@ -31,6 +35,9 @@ import {
   getPriceFormat,
   getQuantityFormat,
   getSymbolColor,
+  getSymbolName,
+  getUnitLabel,
+  getUnitLabelSingular,
   normalizeAssetType,
   resolveSymbolName,
   convertCurrency,
@@ -40,6 +47,8 @@ export interface SymbolOption {
   symbol: string;
   displaySymbol: string;
   name: string;
+  nameEn?: string;
+  nameTh?: string;
   assetType: string;
   assetTypeLabel: string;
   currency: string;
@@ -56,11 +65,12 @@ import { SymbolIconComponent } from '../../symbol-icon/symbol-icon.component';
   selector: 'app-avg-cost-calculator',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, CurrencyPipe, DecimalPipe, FormsModule, SymbolIconComponent],
+  imports: [CommonModule, CurrencyPipe, DecimalPipe, FormsModule, SymbolIconComponent, TranslatePipe],
   templateUrl: './avg-cost-calculator.component.html',
   styleUrls: ['./avg-cost-calculator.component.css'],
 })
 export class AvgCostCalculatorComponent {
+  readonly i18n = inject(I18nService);
   portfolioPositions = input.required<PortfolioPosition[]>();
   pricesMap = input.required<Map<string, PriceData>>();
   displayCurrency = input.required<'USD' | 'THB'>();
@@ -175,17 +185,26 @@ export class AvgCostCalculatorComponent {
   readonly availableSymbols = computed<SymbolOption[]>(() => {
     const positions = this.portfolioPositions();
     const pm = this.pricesMap();
+    const lang = this.i18n.lang();
 
     return positions.map((p) => {
       const pd = pm.get(p.symbol);
       const mktPrice = pd && pd.price > 0 ? pd.price : p.currentPrice || 0;
       const mktCurr = pd?.currency || p.currency;
+      const nameEn =
+        getSymbolName(p.symbol, p.name || '', 'en', p.nameTh || '', p.assetType) ||
+        resolveSymbolName(p.symbol, pm, 'en', p.assetType);
+      const nameTh =
+        getSymbolName(p.symbol, p.name || '', 'th', p.nameTh || '', p.assetType) ||
+        resolveSymbolName(p.symbol, pm, 'th', p.assetType);
       return {
         symbol: p.symbol,
         displaySymbol: p.displaySymbol || displaySymbol(p.symbol),
-        name: p.name || resolveSymbolName(p.symbol, pm),
+        name: lang === 'th' ? nameTh : nameEn,
+        nameEn,
+        nameTh,
         assetType: p.assetType,
-        assetTypeLabel: p.assetTypeLabel || getAssetTypeLabel(p.assetType, p.symbol),
+        assetTypeLabel: getAssetTypeLabel(p.assetType, p.symbol, lang),
         currency: this.displayCurrency(),
         totalShares: p.totalShares,
         averageCost: this.toDisplayCurrency(p.averageCost, p.currency),
@@ -212,6 +231,8 @@ export class AvgCostCalculatorComponent {
         s.symbol.toUpperCase().includes(q) ||
         s.displaySymbol.toUpperCase().includes(q) ||
         s.name.toUpperCase().includes(q) ||
+        (s.nameEn?.toUpperCase().includes(q) ?? false) ||
+        (s.nameTh?.toUpperCase().includes(q) ?? false) ||
         s.assetTypeLabel.toUpperCase().includes(q)
     );
   });
@@ -245,6 +266,8 @@ export class AvgCostCalculatorComponent {
 
   /** Snapshot of current initial position */
   readonly positionSnapshot = computed<PositionSnapshot>(() => {
+    const lang = this.i18n.lang();
+
     if (this.isCustomMode()) {
       const shares = Math.max(0, this.customShares());
       const avgCost = Math.max(0, this.customAvgCost());
@@ -258,9 +281,9 @@ export class AvgCostCalculatorComponent {
       return {
         symbol: sym,
         displaySymbol: sym,
-        name: `Custom Simulation (${sym})`,
+        name: this.i18n.t('tools.avg.customSimName', { symbol: sym }),
         assetType: this.customAssetType(),
-        assetTypeLabel: getAssetTypeLabel(this.customAssetType()),
+        assetTypeLabel: getAssetTypeLabel(this.customAssetType(), undefined, lang),
         currency: this.customCurrency(),
         totalShares: shares,
         averageCost: avgCost,
@@ -277,10 +300,10 @@ export class AvgCostCalculatorComponent {
     if (!pos || !this.hasSelectedSymbol()) {
       return {
         symbol: 'NONE',
-        displaySymbol: 'Select symbol',
-        name: 'No position selected',
+        displaySymbol: this.i18n.t('tools.selectSymbol'),
+        name: this.i18n.t('tools.avg.noPosSelected'),
         assetType: 'us-stock',
-        assetTypeLabel: 'US Stock',
+        assetTypeLabel: getAssetTypeLabel('us-stock', undefined, lang),
         currency: this.displayCurrency(),
         totalShares: 0,
         averageCost: 0,
@@ -303,13 +326,16 @@ export class AvgCostCalculatorComponent {
     const holdingVal = pos.totalShares * convMktPrice;
     const unPL = holdingVal - convTotalCost;
     const unPLPct = convTotalCost > 0 ? (unPL / convTotalCost) * 100 : 0;
+    const localizedName =
+      getSymbolName(pos.symbol, pos.name || '', lang, pos.nameTh || '', pos.assetType) ||
+      resolveSymbolName(pos.symbol, pm, lang, pos.assetType);
 
     return {
       symbol: pos.symbol,
       displaySymbol: pos.displaySymbol || displaySymbol(pos.symbol),
-      name: pos.name || resolveSymbolName(pos.symbol, pm),
+      name: localizedName,
       assetType: pos.assetType,
-      assetTypeLabel: pos.assetTypeLabel || getAssetTypeLabel(pos.assetType, pos.symbol),
+      assetTypeLabel: getAssetTypeLabel(pos.assetType, pos.symbol, lang),
       currency: this.displayCurrency(),
       totalShares: pos.totalShares,
       averageCost: convAvgCost,
@@ -561,8 +587,9 @@ export class AvgCostCalculatorComponent {
 
     setTimeout(() => {
       this.isCalculating.set(false);
+      const locale = this.i18n.lang() === 'th' ? 'th-TH' : 'en-US';
       this.lastCalculatedTime.set(
-        new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        new Date().toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit' })
       );
       this.simulationChange.emit(this.simulationResult());
     }, 200);
@@ -584,9 +611,31 @@ export class AvgCostCalculatorComponent {
   getSymbolColor = getSymbolColor;
   getDisplaySymbol = displaySymbol;
   getAssetTypeClass = getAssetTypeClass;
-  getAssetTypeLabel = getAssetTypeLabel;
+  getAssetTypeLabel = (assetType?: string, symbol?: string): string =>
+    getAssetTypeLabel(assetType, symbol, this.i18n.lang());
   getQuantityFormat = getQuantityFormat;
   getPriceFormat = getPriceFormat;
+
+  unitLabel(symbol?: string, assetType?: string): string {
+    return getUnitLabel(symbol, assetType, this.i18n.lang());
+  }
+
+  unitLabelSingular(symbol?: string, assetType?: string): string {
+    return getUnitLabelSingular(symbol, assetType, this.i18n.lang());
+  }
+
+  actionVerb(): string {
+    return this.i18n.t(
+      this.currentAction() === 'BUY' ? 'tools.avg.actionBuyVerb' : 'tools.avg.actionSellVerb'
+    );
+  }
+
+  reverseGoalErrorMessage(res: TargetAvgCostGoalResult): string {
+    if (res.errorKey) {
+      return this.i18n.t(res.errorKey as TranslationKey, res.errorParams);
+    }
+    return res.errorMessage || '';
+  }
 
   cx(amount: number, currency: string): number {
     return convertCurrency(amount, currency, this.displayCurrency(), this.exchangeRate());

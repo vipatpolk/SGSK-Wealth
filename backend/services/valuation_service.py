@@ -20,52 +20,7 @@ from utils.format_utils import (
     get_asset_type,
     get_asset_type_label,
 )
-
-DEFAULT_PVD_NAMES: dict[str, str] = {
-    "PVDSP500": "นโยบายกองทุนรวมต่างประเทศ หุ้นยูเอส",
-    "PVDWEQ": "นโยบายกองทุนรวมต่างประเทศ World Equity",
-    "PVDMPAEM": "นโยบายกองทุนรวมตราสารทุน เอเชียน อีเมอร์จิ้ง",
-    "PVDMPINC": "นโยบายกองทุนรวมตราสารหนี้ต่างประเทศ อินคัม",
-    "PVDMGLDH": "นโยบายกองทุนรวมโกลด์ THB เฮดจ์",
-}
-
-DEFAULT_PVD_METADATA: dict[str, dict[str, str]] = {
-    "PVDSP500": {
-        "policyName": "ตราสารทุนต่างประเทศ",
-        "aimcType": "US Equity",
-        "aimcDescription": "กองทุนรวมตราสารทุนสหรัฐอเมริกา",
-        "riskLevel": "RS6",
-        "objective": "ลงทุนในกองทุนหลักต่างประเทศที่เน้นลงทุนในตราสารทุนสหรัฐอเมริกา (S&P 500)",
-    },
-    "PVDWEQ": {
-        "policyName": "ตราสารทุนต่างประเทศ",
-        "aimcType": "Global Equity",
-        "aimcDescription": "กองทุนรวมตราสารทุนโลก",
-        "riskLevel": "RS6",
-        "objective": "ลงทุนในกองทุนรวมตราสารทุนต่างประเทศทั่วโลก (World Equity)",
-    },
-    "PVDMPAEM": {
-        "policyName": "ตราสารทุนต่างประเทศ",
-        "aimcType": "Asia Pacific Ex Japan",
-        "aimcDescription": "กองทุนรวมตราสารทุนภูมิภาคเอเชียและตลาดเกิดใหม่",
-        "riskLevel": "RS6",
-        "objective": "ลงทุนในกองทุนรวมตราสารทุนภูมิภาคเอเชียและตลาดเกิดใหม่ (Asian Emerging Markets)",
-    },
-    "PVDMPINC": {
-        "policyName": "ตราสารหนี้ต่างประเทศ",
-        "aimcType": "Foreign Fixed Income",
-        "aimcDescription": "กองทุนรวมตราสารหนี้ต่างประเทศ",
-        "riskLevel": "RS4",
-        "objective": "ลงทุนในกองทุนรวมตราสารหนี้ต่างประเทศเพื่อสร้างผลตอบแทนและกระแสรายได้สม่ำเสมอ",
-    },
-    "PVDMGLDH": {
-        "policyName": "สินทรัพย์ทางเลือก",
-        "aimcType": "Commodities Precious Metals",
-        "aimcDescription": "กองทุนรวมทองคำ (ป้องกันความเสี่ยงอัตราแลกเปลี่ยน)",
-        "riskLevel": "RS8",
-        "objective": "ลงทุนในกองทุนรวมทองคำแท่งในต่างประเทศพร้อมป้องกันความเสี่ยงอัตราแลกเปลี่ยน (THB Hedged)",
-    },
-}
+from utils.pvd_constants import DEFAULT_PVD_METADATA, DEFAULT_PVD_NAMES
 
 
 class ValuationService:
@@ -297,8 +252,10 @@ class ValuationService:
                 )
 
             name = pd.name if (pd is not None and pd.name) else ""
+            name_th = (pd.nameTh or "") if pd is not None else ""
             if not name and is_pvd:
-                name = DEFAULT_PVD_NAMES.get(sym.upper(), "")
+                policy_entry = (pvd_policy_map or {}).get(sym.upper(), {})
+                name = str(policy_entry.get("name") or "").strip() or DEFAULT_PVD_NAMES.get(sym.upper(), "")
 
             pvd_fund_name: str | None = None
             policy_name: str | None = None
@@ -366,6 +323,7 @@ class ValuationService:
                     symbol=sym,
                     displaySymbol=display_symbol(sym),
                     name=name,
+                    nameTh=name_th,
                     assetType=get_asset_type(open_summary.assetType, sym),
                     assetTypeLabel=get_asset_type_label(open_summary.assetType, sym),
                     totalShares=open_summary.totalShares,
@@ -446,12 +404,14 @@ class ValuationService:
                 )
 
             name = pd.name if (pd is not None and pd.name) else ""
+            name_th = (pd.nameTh or "") if pd is not None else ""
 
             closed_positions.append(
                 ClosedPortfolioPosition(
                     symbol=sym,
                     displaySymbol=display_symbol(sym),
                     name=name,
+                    nameTh=name_th,
                     assetType=get_asset_type(closed_summary.assetType, sym),
                     assetTypeLabel=get_asset_type_label(closed_summary.assetType, sym),
                     totalShares=0.0,

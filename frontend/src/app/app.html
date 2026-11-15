@@ -2,16 +2,18 @@
   [loading]="loading()"
   [error]="error()"
   [result]="result()"
-  [portfolioData]="portfolioData()"
-  [dividendData]="dividendData()"
+  [portfolioData]="localizedPortfolioData()"
+  [dividendData]="localizedDividendData()"
   [hasRate]="hasRate()"
   [exchangeRate]="exchangeRate()"
   [currentView]="currentView()"
   [displayCurrency]="displayCurrency()"
+  [lang]="i18n.lang()"
   [theme]="theme()"
   [privacyMode]="privacyMode()"
   (viewChange)="setView($event)"
   (currencyChange)="displayCurrency.set($event)"
+  (langChange)="i18n.setLang($event)"
   (themeChange)="toggleTheme()"
   (privacyChange)="togglePrivacyMode()"
 ></app-header>
@@ -46,7 +48,7 @@
           <line x1="12" y1="16" x2="12.01" y2="16"></line>
         </svg>
       </div>
-      <p class="error-title">Unable to load data</p>
+      <p class="error-title">{{ 'app.error.unableData' | t }}</p>
       <p class="error-message">{{ error() }}</p>
       <button class="btn btn-primary" (click)="refresh()" id="retry-btn">
         <svg
@@ -62,7 +64,7 @@
           <polyline points="23 4 23 10 17 10"></polyline>
           <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
         </svg>
-        Retry
+        {{ 'common.retry' | t }}
       </button>
     </div>
   }
@@ -72,8 +74,8 @@
     @if (currentView() === 'dashboard') {
       @defer (on idle) {
         <app-dashboard
-          [portfolioData]="portfolioData()"
-          [dividendData]="dividendData()"
+          [portfolioData]="localizedPortfolioData()"
+          [dividendData]="localizedDividendData()"
           [pricesMap]="prices()"
           [displayCurrency]="displayCurrency()"
           [exchangeRate]="exchangeRate()"
@@ -83,13 +85,14 @@
           (openPvdHoldings)="openPvdHoldingsView()"
           (symbolSelected)="openTransactionHistory($event)"
           (toolSelected)="navigateToTool($event)"
+          (openFactsheet)="openFactsheetModal($event)"
         ></app-dashboard>
       } @placeholder {
         <app-loading-screen
           [variant]="'inline'"
-          [statusTag]="'Loading Module'"
-          [title]="'Preparing Dashboard'"
-          [subtitle]="'Rendering executive KPIs and portfolio insights…'"
+          [statusTag]="'loading.module' | t"
+          [title]="'loading.prepDashboard' | t"
+          [subtitle]="'loading.prepDashboardSub' | t"
         ></app-loading-screen>
       }
     } @else if (currentView() === 'transactions') {
@@ -107,9 +110,9 @@
       } @placeholder {
         <app-loading-screen
           [variant]="'inline'"
-          [statusTag]="'Loading Module'"
-          [title]="'Preparing Transaction History'"
-          [subtitle]="'Organizing executed orders and running balances…'"
+          [statusTag]="'loading.module' | t"
+          [title]="'loading.prepTx' | t"
+          [subtitle]="'loading.prepTxSub' | t"
         ></app-loading-screen>
       }
     } @else if (
@@ -133,15 +136,15 @@
       } @placeholder {
         <app-loading-screen
           [variant]="'inline'"
-          [statusTag]="'Loading Module'"
-          [title]="'Preparing Analytics'"
-          [subtitle]="'Building allocation charts and performance attribution…'"
+          [statusTag]="'loading.module' | t"
+          [title]="'loading.prepAnalytics' | t"
+          [subtitle]="'loading.prepAnalyticsSub' | t"
         ></app-loading-screen>
       }
     } @else if (currentView() === 'dividends') {
       @defer (on idle) {
         <app-dividend
-          [data]="dividendData()"
+          [data]="localizedDividendData()"
           [loading]="dividendLoading()"
           [error]="error()"
           [displayCurrency]="displayCurrency()"
@@ -157,16 +160,16 @@
       } @placeholder {
         <app-loading-screen
           [variant]="'inline'"
-          [statusTag]="'Loading Module'"
-          [title]="'Preparing Dividends'"
-          [subtitle]="'Compiling payout schedules and yield metrics…'"
+          [statusTag]="'loading.module' | t"
+          [title]="'loading.prepDividends' | t"
+          [subtitle]="'loading.prepDividendsSub' | t"
         ></app-loading-screen>
       }
     } @else if (currentView() === 'tools') {
       @defer (on idle) {
         <app-tools
-          [portfolioPositions]="portfolioData()?.openPositions || []"
-          [portfolioSummary]="portfolioData()?.summary || null"
+          [portfolioPositions]="localizedPortfolioData()?.openPositions || []"
+          [portfolioSummary]="localizedPortfolioData()?.summary || null"
           [pricesMap]="prices()"
           [displayCurrency]="displayCurrency()"
           [exchangeRate]="exchangeRate()"
@@ -177,9 +180,9 @@
       } @placeholder {
         <app-loading-screen
           [variant]="'inline'"
-          [statusTag]="'Loading Module'"
-          [title]="'Preparing Financial Tools'"
-          [subtitle]="'Initializing portfolio simulators and calculators…'"
+          [statusTag]="'loading.module' | t"
+          [title]="'loading.prepTools' | t"
+          [subtitle]="'loading.prepToolsSub' | t"
         ></app-loading-screen>
       }
     } @else {
@@ -187,18 +190,18 @@
       <div class="holdings-screen-header" id="holdings-screen-header">
         <div class="holdings-title-group">
           <h2 class="holdings-title">
-            {{ isPvdTab() ? 'Provident Fund (PVD)' : 'Holdings &amp; Positions' }}
+            {{ isPvdTab() ? ('holdings.subtabPvd' | t) : ('holdings.title' | t) }}
           </h2>
           <p class="holdings-subtitle">
             {{
               isPvdTab()
-                ? 'กองทุนสำรองเลี้ยงชีพ · สัดส่วนเงินสะสม/เงินสมทบ นโยบายการลงทุน และข้อมูล ก.ล.ต.'
-                : 'Open market lots, FIFO cost basis, and closed realized ledger'
+                ? ('holdings.subtitlePvd' | t)
+                : ('holdings.subtitleMarket' | t)
             }}
           </p>
         </div>
 
-        <div class="holdings-subnav" id="holdings-screen-toggle" role="tablist" aria-label="Holdings mode">
+        <div class="holdings-subnav" id="holdings-screen-toggle" role="tablist" [attr.aria-label]="'holdings.modeAria' | t">
           <button
             type="button"
             class="holdings-subtab-btn"
@@ -208,7 +211,7 @@
             [class.active]="!isPvdTab()"
             (click)="selectHoldingsSubTab('market')"
           >
-            <span>Market Holdings</span>
+            <span>{{ 'holdings.subtabMarket' | t }}</span>
           </button>
           <button
             type="button"
@@ -219,7 +222,7 @@
             [class.active]="isPvdTab()"
             (click)="selectHoldingsSubTab('pvd')"
           >
-            <span>Provident Fund (PVD)</span>
+            <span>{{ 'holdings.subtabPvd' | t }}</span>
             @if (tabCounts()['provident-fund']; as pvdCount) {
               <span class="holdings-subtab-badge">{{ pvdCount }}</span>
             }
@@ -247,13 +250,14 @@
           [privacyMode]="privacyMode()"
           [pricesLoading]="pricesLoading()"
           (refresh)="refresh()"
+          (openFactsheet)="openFactsheetModal($event)"
         ></app-pvd-holdings>
       } @else {
       <!-- Executive Portfolio Hero Dashboard Card -->
       <div class="portfolio-hero-card" id="portfolio-hero">
         <div class="hero-header">
           <div class="hero-badge">
-            <span>Portfolio Overview</span>
+            <span>{{ 'holdings.heroBadge' | t }}</span>
           </div>
           @if (hasRate()) {
             <div class="hero-rate-pill">
@@ -265,7 +269,7 @@
 
         <div class="hero-main-row">
           <div class="hero-value-group">
-            <span class="hero-label">Net Portfolio Value</span>
+            <span class="hero-label">{{ 'holdings.netValue' | t }}</span>
             <div class="hero-val-stack">
               <h2 class="hero-total-val privacy-mask font-mono">
                 {{
@@ -311,13 +315,13 @@
 
         <div class="hero-metrics-grid">
           <div class="hero-metric-item">
-            <span class="hero-metric-label">Total Invested</span>
+            <span class="hero-metric-label">{{ 'common.totalInvested' | t }}</span>
             <span class="hero-metric-val privacy-mask font-mono">{{
               totalCostConverted() | currency: dc() : 'symbol-narrow' : '1.2-2'
             }}</span>
           </div>
           <div class="hero-metric-item">
-            <span class="hero-metric-label">Realized Return</span>
+            <span class="hero-metric-label">{{ 'holdings.realizedReturn' | t }}</span>
             <span
               class="hero-metric-val font-mono"
               [class.pl-positive]="totalRealizedPLConverted() >= 0"
@@ -334,15 +338,15 @@
             </span>
           </div>
           <div class="hero-metric-item">
-            <span class="hero-metric-label">Open Positions</span>
+            <span class="hero-metric-label">{{ 'holdings.openPositions' | t }}</span>
             <span class="hero-metric-val"
               >{{ filteredSummaries().length }}
-              {{ filteredSummaries().length === 1 ? 'Symbol' : 'Symbols' }}</span
+              {{ (filteredSummaries().length === 1 ? 'holdings.symbolSingular' : 'holdings.symbolsPlural') | t }}</span
             >
           </div>
           <div class="hero-metric-item">
-            <span class="hero-metric-label">Total Lots</span>
-            <span class="hero-metric-val">{{ result()?.totalLots || 0 }} Lots</span>
+            <span class="hero-metric-label">{{ 'holdings.totalLots' | t }}</span>
+            <span class="hero-metric-val">{{ result()?.totalLots || 0 }} {{ 'holdings.lotsUnit' | t }}</span>
           </div>
         </div>
       </div>
@@ -413,11 +417,11 @@
                 <circle cx="12" cy="12" r="10"></circle>
                 <polyline points="12 6 12 12 16 14"></polyline>
               </svg>
-              <span>Open Positions</span>
+              <span>{{ 'holdings.openPositions' | t }}</span>
             </div>
             <span class="section-count"
               >{{ filteredSummaries().length }}
-              {{ filteredSummaries().length === 1 ? 'symbol' : 'symbols' }}</span
+              {{ (filteredSummaries().length === 1 ? 'holdings.symbolLowerSingular' : 'holdings.symbolsLowerPlural') | t }}</span
             >
           </div>
         </div>
@@ -428,7 +432,7 @@
           ></ng-container>
         } @empty {
           <div class="empty-state" style="padding: 2.5rem 1rem">
-            <p class="empty-text">No open positions match your search.</p>
+            <p class="empty-text">{{ 'holdings.emptyOpenSearch' | t }}</p>
           </div>
         }
 
@@ -449,16 +453,16 @@
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
               </svg>
-              <span>Closed Positions</span>
+              <span>{{ 'holdings.closedPositions' | t }}</span>
             </div>
             <span class="section-count"
               >{{ filteredClosedSummaries().length }}
-              {{ filteredClosedSummaries().length === 1 ? 'symbol' : 'symbols' }}</span
+              {{ (filteredClosedSummaries().length === 1 ? 'holdings.symbolLowerSingular' : 'holdings.symbolsLowerPlural') | t }}</span
             >
           </div>
           @if (filteredClosedSummaries().length > 0 && totalRealizedPLConverted() !== 0) {
             <div class="section-summary-stat">
-              <span class="section-stat-label">Realized P/L:</span>
+              <span class="section-stat-label">{{ 'holdings.realizedPlColon' | t }}</span>
               <span
                 class="section-stat-val"
                 [class.pl-positive]="totalRealizedPLConverted() >= 0"
@@ -479,7 +483,7 @@
           ></ng-container>
         } @empty {
           <div class="empty-state" style="padding: 2.5rem 1rem">
-            <p class="empty-text">No closed positions match your search.</p>
+            <p class="empty-text">{{ 'holdings.emptyClosedSearch' | t }}</p>
           </div>
         }
       } @else if (isClosedTab()) {
@@ -504,7 +508,7 @@
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               <line x1="8" y1="11" x2="14" y2="11"></line>
             </svg>
-            <p class="empty-text">No closed positions match your search.</p>
+            <p class="empty-text">{{ 'holdings.emptyClosedSearch' | t }}</p>
           </div>
         }
       } @else {
@@ -529,7 +533,7 @@
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               <line x1="8" y1="11" x2="14" y2="11"></line>
             </svg>
-            <p class="empty-text">No symbols match your search.</p>
+            <p class="empty-text">{{ 'holdings.emptySymbolSearch' | t }}</p>
           </div>
         }
       }
@@ -548,6 +552,7 @@
         [isExpanded]="isExpanded(summary.symbol)"
         (toggleExpand)="toggleExpand($event)"
         (openHistory)="openTransactionHistory($event)"
+        (openFactsheet)="openFactsheetModal($event)"
         [getSymbolColor]="getSymbolColorFn"
         [getDisplaySymbol]="getDisplaySymbolFn"
         [getSymbolName]="getSymbolNameFn"
@@ -578,6 +583,7 @@
         [isExpanded]="isExpanded(summary.symbol)"
         (toggleExpand)="toggleExpand($event)"
         (openHistory)="openTransactionHistory($event)"
+        (openFactsheet)="openFactsheetModal($event)"
         [getSymbolColor]="getSymbolColorFn"
         [getDisplaySymbol]="getDisplaySymbolFn"
         [getSymbolName]="getSymbolNameFn"
@@ -598,6 +604,11 @@
   }
 </main>
 
+<app-fund-factsheet-modal
+  [target]="activeFactsheetTarget()"
+  (closeModal)="closeFactsheetModal()"
+></app-fund-factsheet-modal>
+
 <footer class="footer">
-  <p>&copy; 2026 SGSK Wealth &mdash; Investment Portfolio &amp; Wealth Analytics System</p>
+  <p>{{ 'app.footer' | t }}</p>
 </footer>

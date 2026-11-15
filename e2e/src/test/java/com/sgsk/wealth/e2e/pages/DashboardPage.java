@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 
+import java.util.regex.Pattern;
+
 @Component
 @ScenarioScope(proxyMode = ScopedProxyMode.NO)
 public class DashboardPage {
@@ -79,5 +81,27 @@ public class DashboardPage {
             case "Avg Cost Calculator" -> launchAvgCostCalculatorCard.click();
             default -> throw new IllegalArgumentException("Unsupported Dashboard launchpad tool: " + toolName);
         }
+    }
+
+    public Locator moverNameBySymbol(String symbol) {
+        String normalized = symbol.replaceAll("\\.BK$", "");
+        return dashboardView
+                .locator(".mover-row:has(.mover-display-symbol:text-is(\"" + normalized + "\"))")
+                .first()
+                .locator(".mover-name");
+    }
+
+    public Locator pvdPositionsMiniList() {
+        return retirementCard.locator(".pvd-positions-mini-list");
+    }
+
+    public Locator pvdFactsheetButton(String symbol) {
+        return retirementCard.locator("#btn-dash-pvd-factsheet-" + symbol);
+    }
+
+    public void openPvdFactsheet(String symbol) {
+        Locator btn = pvdFactsheetButton(symbol);
+        btn.waitFor();
+        btn.click();
     }
 }

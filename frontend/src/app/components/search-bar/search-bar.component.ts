@@ -1,12 +1,13 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { SymbolAutocompleteItem } from '../../app';
 import { SymbolIconComponent } from '../symbol-icon/symbol-icon.component';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-search-bar',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SymbolIconComponent],
+  imports: [SymbolIconComponent, TranslatePipe],
   templateUrl: './search-bar.component.html'
 })
 export class SearchBarComponent {

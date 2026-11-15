@@ -50,3 +50,14 @@ Feature: Global Navigation & Header Controls
       | Transactions |
       | Tools        |
       | Dashboard    |
+
+  @smoke @TC-NAV-05
+  Scenario: TC-NAV-05: Language Switcher toggles display language between EN and TH
+    Then the EN language button should be active
+    When I switch language to TH
+    Then the TH language button should be active
+    And the document language attribute should be "th"
+    And the navigation dashboard button should display "ภาพรวม"
+    When I switch language to EN
+    Then the EN language button should be active
+    And the document language attribute should be "en"

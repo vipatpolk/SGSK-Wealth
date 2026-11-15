@@ -127,6 +127,7 @@ class AllocationService:
                         symbol=pos.symbol,
                         displaySymbol=pos.displaySymbol,
                         name=pos.name,
+                        nameTh=pos.nameTh,
                         assetType=pos.assetType,
                         value=pos.holdingValue,
                         portfolioPercent=port_pct,

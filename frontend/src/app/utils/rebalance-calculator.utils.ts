@@ -18,6 +18,7 @@ import {
   getAssetType,
   getAssetTypeLabel,
   getSymbolColor,
+  getSymbolName,
   resolveSymbolName,
 } from './format.utils';
 
@@ -62,7 +63,8 @@ export function extractRawPositions(
   positions: PortfolioPosition[],
   pricesMap: Map<string, PriceData>,
   displayCurrency: 'USD' | 'THB',
-  exchangeRate: number
+  exchangeRate: number,
+  lang: 'en' | 'th' = 'en'
 ): RawSymbolPosition[] {
   return positions.map((p) => {
     const pd = pricesMap.get(p.symbol);
@@ -71,13 +73,16 @@ export function extractRawPositions(
     const priceConverted = convertToDisplayCurrency(mktPrice, origCurrency, displayCurrency, exchangeRate);
     const rawVal = p.totalShares * mktPrice;
     const valueConverted = convertToDisplayCurrency(rawVal, origCurrency, displayCurrency, exchangeRate);
+    const name =
+      getSymbolName(p.symbol, p.name || '', lang, p.nameTh || '', p.assetType) ||
+      resolveSymbolName(p.symbol, pricesMap, lang, p.assetType);
 
     return {
       symbol: p.symbol,
       displaySymbol: p.displaySymbol || displaySymbol(p.symbol),
-      name: p.name || resolveSymbolName(p.symbol, pricesMap),
+      name,
       assetType: getAssetType(p.assetType, p.symbol),
-      assetTypeLabel: getAssetTypeLabel(p.assetType, p.symbol),
+      assetTypeLabel: getAssetTypeLabel(p.assetType, p.symbol, lang),
       currency: displayCurrency,
       totalShares: Math.max(0, p.totalShares || 0),
       currentPrice: priceConverted,
@@ -376,9 +381,10 @@ export function calculateRebalancePlan(
   pricesMap: Map<string, PriceData>,
   input: RebalanceSimulationInput,
   displayCurrency: 'USD' | 'THB',
-  exchangeRate: number
+  exchangeRate: number,
+  lang: 'en' | 'th' = 'en'
 ): RebalancePlanResult {
-  const rawPositions = extractRawPositions(positions, pricesMap, displayCurrency, exchangeRate);
+  const rawPositions = extractRawPositions(positions, pricesMap, displayCurrency, exchangeRate, lang);
   const totalPortfolioValue = rawPositions.reduce((sum, p) => sum + p.holdingValue, 0);
 
   // Group raw positions by asset class
@@ -495,7 +501,7 @@ export function calculateRebalancePlan(
 
     groups.push({
       assetType,
-      label: getAssetTypeLabel(assetType),
+      label: getAssetTypeLabel(assetType, undefined, lang),
       color: getAssetColor(assetType),
       currentValue: classTotalValue,
       currentPortfolioPercent: classPortfolioPct,

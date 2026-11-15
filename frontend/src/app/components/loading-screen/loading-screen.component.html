@@ -55,7 +55,7 @@
         <span class="loader-wordmark-accent">Wealth</span>
       </div>
       @if (variant() === 'fullscreen') {
-        <p class="loader-tagline">Investment Portfolio &amp; Wealth Analytics</p>
+        <p class="loader-tagline">{{ 'app.tagline' | t }}</p>
       }
     </div>
 
@@ -83,11 +83,11 @@
 
       @if (variant() === 'fullscreen') {
         <div class="loader-pipeline" aria-hidden="true">
-          <span class="loader-pipe-step loader-pipe-1">Sheet Sync</span>
+          <span class="loader-pipe-step loader-pipe-1">{{ 'loading.pipelineSync' | t }}</span>
           <span class="loader-pipe-sep">&bull;</span>
-          <span class="loader-pipe-step loader-pipe-2">FIFO Lots</span>
+          <span class="loader-pipe-step loader-pipe-2">{{ 'loading.pipelineFifo' | t }}</span>
           <span class="loader-pipe-sep">&bull;</span>
-          <span class="loader-pipe-step loader-pipe-3">Live Valuation</span>
+          <span class="loader-pipe-step loader-pipe-3">{{ 'loading.pipelineValuation' | t }}</span>
         </div>
       }
     </div>

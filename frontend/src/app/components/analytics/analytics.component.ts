@@ -21,6 +21,8 @@ import {
 } from '../../models/transaction.model';
 import { PriceData } from '../../services/price.service';
 import { PortfolioService } from '../../services/portfolio.service';
+import { I18nService } from '../../services/i18n.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 import {
   PortfolioAllocationResponse,
   PortfolioPerformanceResponse,
@@ -46,12 +48,14 @@ import {
     AssetAllocationComponent,
     PerformanceComponent,
     SymbolIconComponent,
+    TranslatePipe,
   ],
   templateUrl: './analytics.component.html',
   styleUrls: ['./analytics.component.css'],
 })
 export class AnalyticsComponent {
   private readonly portfolioService = inject(PortfolioService);
+  readonly i18n = inject(I18nService);
 
   summaries = input.required<SymbolSummary[]>();
   closedSummaries = input.required<ClosedSymbolSummary[]>();
@@ -209,10 +213,11 @@ export class AnalyticsComponent {
       color: string;
     }> = [];
 
+    const lang = this.i18n.lang();
     for (const [type, val] of typeMap.entries()) {
       list.push({
         type,
-        label: getAssetTypeLabel(type),
+        label: getAssetTypeLabel(type, undefined, lang),
         value: val,
         percentage: totalVal > 0 ? (val / totalVal) * 100 : 0,
         color: getAssetColor(type),
@@ -329,12 +334,13 @@ export class AnalyticsComponent {
       }
     }
 
+    const lang = this.i18n.lang();
     return Array.from(typeMap.entries()).map(([type, data]) => {
       const totalReturn = data.val - data.invested + data.realized;
       const totalReturnPercent = data.invested > 0 ? (totalReturn / data.invested) * 100 : 0;
       return {
         type,
-        label: getAssetTypeLabel(type),
+        label: getAssetTypeLabel(type, undefined, lang),
         totalReturnPercent,
         color: this.getAssetColor(type),
       };
@@ -376,18 +382,20 @@ export class AnalyticsComponent {
   // --- OVERVIEW: Top Movers ---
   readonly topMovers = computed(() => {
     const pm = this.pricesMap();
+    const lang = this.i18n.lang();
     const items = this.summaries().map((s) => {
       const pd = pm.get(s.symbol);
       const inv = this.cx(s.totalCost, s.currency);
       const curVal = pd && pd.price > 0 ? this.cx(s.totalShares * pd.price, pd.currency) : inv;
       const unPL = curVal - inv;
       const pct = inv > 0 ? (unPL / inv) * 100 : 0;
+      const assetType = getAssetType(s.assetType, s.symbol);
 
       return {
         symbol: s.symbol,
         displaySymbol: displaySymbol(s.symbol),
-        name: resolveSymbolName(s.symbol, pm),
-        assetType: getAssetType(s.assetType, s.symbol),
+        name: resolveSymbolName(s.symbol, pm, lang, assetType),
+        assetType,
         totalReturnPercent: pct,
         color: getSymbolColor(s.symbol),
       };

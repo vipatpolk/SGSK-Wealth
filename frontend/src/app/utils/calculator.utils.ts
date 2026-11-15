@@ -161,6 +161,7 @@ export function solveTargetAvgCostGoal(input: TargetAvgCostGoalInput): TargetAvg
     return {
       isValid: false,
       errorMessage: 'Please enter valid positive values for all inputs.',
+      errorKey: 'tools.avg.errInvalidInputs',
       requiredShares: 0,
       requiredCapital: 0,
       feeAmount: 0,
@@ -194,6 +195,13 @@ export function solveTargetAvgCostGoal(input: TargetAvgCostGoalInput): TargetAvg
       return {
         isValid: false,
         errorMessage: `Purchase price (${purchasePrice.toFixed(2)}) including fees (${feePct}%) is ${effectivePurchasePrice.toFixed(2)}, which is >= your target average cost (${targetAvgCost.toFixed(2)}). You cannot average down at or above your target.`,
+        errorKey: 'tools.avg.errAvgDownImpossible',
+        errorParams: {
+          purchasePrice: purchasePrice.toFixed(2),
+          feePct: String(feePct),
+          effectivePrice: effectivePurchasePrice.toFixed(2),
+          targetAvgCost: targetAvgCost.toFixed(2),
+        },
         requiredShares: 0,
         requiredCapital: 0,
         feeAmount: 0,
@@ -211,6 +219,11 @@ export function solveTargetAvgCostGoal(input: TargetAvgCostGoalInput): TargetAvg
       return {
         isValid: false,
         errorMessage: `Purchase price (${purchasePrice.toFixed(2)}) is <= your target average cost (${targetAvgCost.toFixed(2)}). You cannot average up at or below your target.`,
+        errorKey: 'tools.avg.errAvgUpImpossible',
+        errorParams: {
+          purchasePrice: purchasePrice.toFixed(2),
+          targetAvgCost: targetAvgCost.toFixed(2),
+        },
         requiredShares: 0,
         requiredCapital: 0,
         feeAmount: 0,
@@ -250,6 +263,7 @@ export function solveTargetAvgCostGoal(input: TargetAvgCostGoalInput): TargetAvg
     return {
       isValid: false,
       errorMessage: 'Cannot divide by zero. Please adjust your target average cost.',
+      errorKey: 'tools.avg.errDivideByZero',
       requiredShares: 0,
       requiredCapital: 0,
       feeAmount: 0,
@@ -266,6 +280,7 @@ export function solveTargetAvgCostGoal(input: TargetAvgCostGoalInput): TargetAvg
     return {
       isValid: false,
       errorMessage: 'No feasible solution found with the given parameters.',
+      errorKey: 'tools.avg.errNoFeasibleSolution',
       requiredShares: 0,
       requiredCapital: 0,
       feeAmount: 0,

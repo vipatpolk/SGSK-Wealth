@@ -40,6 +40,10 @@ import { SearchBarComponent } from './components/search-bar/search-bar.component
 import { FiltersComponent } from './components/filters/filters.component';
 import { SummaryCardComponent } from './components/summary-card/summary-card.component';
 import { LoadingScreenComponent } from './components/loading-screen/loading-screen.component';
+import { FundFactsheetModalComponent } from './components/fund-factsheet-modal/fund-factsheet-modal.component';
+import { FactsheetRequestTarget } from './models/factsheet.model';
+import { I18nService } from './services/i18n.service';
+import { TranslatePipe } from './pipes/translate.pipe';
 import {
   getQuantityFormat,
   displaySymbol,
@@ -93,6 +97,8 @@ export interface SymbolAutocompleteItem {
     AnalyticsComponent,
     PvdHoldingsComponent,
     LoadingScreenComponent,
+    FundFactsheetModalComponent,
+    TranslatePipe,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
@@ -132,6 +138,7 @@ export class App {
   private readonly portfolioService = inject(PortfolioService);
   private readonly priceService = inject(PriceService);
   private readonly dividendService = inject(DividendService);
+  readonly i18n = inject(I18nService);
 
   readonly tabs = ASSET_TABS;
   readonly activeTab = signal<AssetTab>(ASSET_TABS[0]);
@@ -143,6 +150,7 @@ export class App {
   readonly cachedPvdPositions = signal<PortfolioPosition[]>([]);
   readonly selectedToolId = signal<ToolId>('avg-cost-calculator');
   readonly selectedHistorySymbol = signal<string>('');
+  readonly activeFactsheetTarget = signal<FactsheetRequestTarget | null>(null);
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -221,33 +229,111 @@ export class App {
     }
   });
 
+  private getTabLabelText(tab: AssetTab): string {
+    switch (tab.id) {
+      case 'all':
+        return this.i18n.t('tab.allHoldings');
+      case 'us-stock':
+        return this.i18n.t('tab.usStock');
+      case 'thai-stock':
+        return this.i18n.t('tab.thaiStock');
+      case 'mutual-fund':
+        return this.i18n.t('tab.mutualFund');
+      case 'crypto':
+        return this.i18n.t('tab.crypto');
+      case 'bond':
+        return this.i18n.t('tab.bond');
+      case 'provident-fund':
+        return this.i18n.t('tab.pvd');
+      case 'closed-position':
+        return this.i18n.t('tab.closed');
+      default:
+        return tab.label;
+    }
+  }
+
+  readonly localizedPortfolioData = computed<PortfolioHoldingsResponse | null>(() => {
+    const data = this.portfolioData();
+    if (!data) return null;
+    const lang = this.i18n.lang();
+    const pricesMap = this.prices();
+    return {
+      ...data,
+      openPositions: (data.openPositions || []).map((p) => {
+        const nameTh = p.nameTh || pricesMap.get(p.symbol)?.nameTh || '';
+        return {
+          ...p,
+          nameTh,
+          name: getSymbolName(p.symbol, p.name || '', lang, nameTh, p.assetType),
+          assetTypeLabel: getAssetTypeLabel(p.assetType, p.symbol, lang),
+        };
+      }),
+      closedPositions: (data.closedPositions || []).map((c) => {
+        const nameTh = c.nameTh || pricesMap.get(c.symbol)?.nameTh || '';
+        return {
+          ...c,
+          nameTh,
+          name: getSymbolName(c.symbol, c.name || '', lang, nameTh, c.assetType),
+          assetTypeLabel: getAssetTypeLabel(c.assetType, c.symbol, lang),
+        };
+      }),
+    };
+  });
+
+  readonly localizedDividendData = computed<PortfolioDividendResponse | null>(() => {
+    const data = this.dividendData();
+    if (!data) return null;
+    const lang = this.i18n.lang();
+    const pricesMap = this.prices();
+    return {
+      ...data,
+      assetTypeSummaries: (data.assetTypeSummaries || []).map((a) => ({
+        ...a,
+        assetTypeLabel: getAssetTypeLabel(a.assetType, undefined, lang),
+      })),
+      symbolSummaries: (data.symbolSummaries || []).map((s) => {
+        const nameTh = s.nameTh || pricesMap.get(s.symbol)?.nameTh || '';
+        return {
+          ...s,
+          nameTh,
+          name: getSymbolName(s.symbol, s.name || '', lang, nameTh, s.assetType),
+          assetTypeLabel: getAssetTypeLabel(s.assetType, s.symbol, lang),
+        };
+      }),
+      records: (data.records || []).map((r) => ({
+        ...r,
+        assetTypeLabel: getAssetTypeLabel(r.assetType, r.symbol, lang),
+      })),
+    };
+  });
+
   readonly loaderState = computed(() => {
-    const tabLabel = this.activeTab().label;
+    const tabLabel = this.getTabLabelText(this.activeTab());
     if (this.pricesLoading()) {
       return {
-        tag: 'Market Sync',
-        title: `Loading ${tabLabel}`,
-        subtitle: 'Fetching real-time market prices and currency rates…',
+        tag: this.i18n.t('loading.tag.marketSync'),
+        title: this.i18n.t('loading.titleTab', { tab: tabLabel }),
+        subtitle: this.i18n.t('loading.sub.marketSync'),
       };
     }
     if (this.isAllTab()) {
       return {
-        tag: 'FIFO Engine',
-        title: `Loading ${tabLabel}`,
-        subtitle: 'Consolidating asset types and computing FIFO share lots…',
+        tag: this.i18n.t('loading.tag.fifoEngine'),
+        title: this.i18n.t('loading.titleTab', { tab: tabLabel }),
+        subtitle: this.i18n.t('loading.sub.allTab'),
       };
     }
     if (this.isClosedTab()) {
       return {
-        tag: 'Realized Ledger',
-        title: `Loading ${tabLabel}`,
-        subtitle: 'Calculating realized profits & losses across closed positions…',
+        tag: this.i18n.t('loading.tag.realizedLedger'),
+        title: this.i18n.t('loading.titleTab', { tab: tabLabel }),
+        subtitle: this.i18n.t('loading.sub.closedTab'),
       };
     }
     return {
-      tag: 'Portfolio Snapshot',
-      title: `Loading ${tabLabel}`,
-      subtitle: 'Fetching transaction history and calculating FIFO lots…',
+      tag: this.i18n.t('loading.tag.snapshot'),
+      title: this.i18n.t('loading.titleTab', { tab: tabLabel }),
+      subtitle: this.i18n.t('loading.sub.default'),
     };
   });
 
@@ -310,6 +396,14 @@ export class App {
     this.setView('tools');
   }
 
+  openFactsheetModal(target: FactsheetRequestTarget): void {
+    this.activeFactsheetTarget.set(target);
+  }
+
+  closeFactsheetModal(): void {
+    this.activeFactsheetTarget.set(null);
+  }
+
   setView(view: AppView, subTab?: AnalyticsSubTab): void {
     if (view === 'allocation') {
       this.currentView.set('analytics');
@@ -342,7 +436,7 @@ export class App {
 
   /** Adapter for result signal to maintain backward compatibility with components */
   readonly result = computed<SheetResult | null>(() => {
-    const data = this.portfolioData();
+    const data = this.localizedPortfolioData();
     if (!data) return null;
 
     const summaries: SymbolSummary[] = data.openPositions.map((p) => ({
@@ -402,28 +496,28 @@ export class App {
   readonly closedAssetTypeOptions = computed(() => {
     const data = this.portfolioData();
     const list = data?.closedPositions || [];
-    return generateAssetTypeOptions(list);
+    return generateAssetTypeOptions(list, this.i18n.lang());
   });
 
-  readonly openSortOptions = [
-    { field: 'symbol', label: 'Symbol' },
-    { field: 'totalCost', label: 'Total Cost' },
-    { field: 'avgCost', label: 'Avg Cost' },
-    { field: 'holdingValue', label: 'Holding Value' },
-    { field: 'pl', label: 'P/L %' },
-  ];
-
-  readonly closedSortOptions = [
-    { field: 'symbol', label: 'Symbol' },
-    { field: 'pl', label: 'Realized P/L %' },
-    { field: 'realizedPL', label: 'Realized P/L $' },
-    { field: 'totalCost', label: 'Total Cost' },
-    { field: 'totalProceeds', label: 'Total Proceeds' },
-    { field: 'closedShares', label: 'Closed Shares' },
-  ];
-
   readonly sortOptions = computed(() => {
-    return this.isClosedTab() ? this.closedSortOptions : this.openSortOptions;
+    this.i18n.lang();
+    if (this.isClosedTab()) {
+      return [
+        { field: 'symbol', label: this.i18n.t('common.symbol') },
+        { field: 'pl', label: this.i18n.t('holdings.sort.realizedPlPct') },
+        { field: 'realizedPL', label: this.i18n.t('holdings.sort.realizedPlAmt') },
+        { field: 'totalCost', label: this.i18n.t('common.totalCost') },
+        { field: 'totalProceeds', label: this.i18n.t('summary.totalProceeds') },
+        { field: 'closedShares', label: this.i18n.t('holdings.sort.closedShares') },
+      ];
+    }
+    return [
+      { field: 'symbol', label: this.i18n.t('common.symbol') },
+      { field: 'totalCost', label: this.i18n.t('common.totalCost') },
+      { field: 'avgCost', label: this.i18n.t('common.avgCost') },
+      { field: 'holdingValue', label: this.i18n.t('summary.holdingValue') },
+      { field: 'pl', label: this.i18n.t('holdings.sort.plPctShort') },
+    ];
   });
 
   readonly totalCostConverted = computed<number>(() => {
@@ -625,15 +719,19 @@ export class App {
   }
 
   readonly filteredSummaries = computed<PortfolioPosition[]>(() => {
-    const data = this.portfolioData();
+    const data = this.localizedPortfolioData();
     if (!data) return [];
+    const rawOpen = this.portfolioData()?.openPositions || [];
+    const rawNameBySymbol = new Map(rawOpen.map((p) => [p.symbol, p.name || '']));
     const query = this.searchQuery().trim().toUpperCase();
     let list = query
       ? data.openPositions.filter(
           (s) =>
             s.symbol.toUpperCase().includes(query) ||
             s.displaySymbol.toUpperCase().includes(query) ||
-            s.name.toUpperCase().includes(query),
+            s.name.toUpperCase().includes(query) ||
+            (s.nameTh || '').toUpperCase().includes(query) ||
+            (rawNameBySymbol.get(s.symbol) || '').toUpperCase().includes(query),
         )
       : [...data.openPositions];
 
@@ -678,8 +776,10 @@ export class App {
   });
 
   readonly filteredClosedSummaries = computed<ClosedPortfolioPosition[]>(() => {
-    const data = this.portfolioData();
+    const data = this.localizedPortfolioData();
     if (!data || !data.closedPositions) return [];
+    const rawClosed = this.portfolioData()?.closedPositions || [];
+    const rawNameBySymbol = new Map(rawClosed.map((c) => [c.symbol, c.name || '']));
 
     let list = [...data.closedPositions];
 
@@ -694,7 +794,9 @@ export class App {
         (s) =>
           s.symbol.toUpperCase().includes(query) ||
           s.displaySymbol.toUpperCase().includes(query) ||
-          s.name.toUpperCase().includes(query),
+          s.name.toUpperCase().includes(query) ||
+          (s.nameTh || '').toUpperCase().includes(query) ||
+          (rawNameBySymbol.get(s.symbol) || '').toUpperCase().includes(query),
       );
     }
 
@@ -749,8 +851,11 @@ export class App {
   });
 
   readonly autocompleteSuggestions = computed<SymbolAutocompleteItem[]>(() => {
-    const data = this.portfolioData();
+    const data = this.localizedPortfolioData();
     if (!data) return [];
+    const rawData = this.portfolioData();
+    const rawOpenName = new Map((rawData?.openPositions || []).map((p) => [p.symbol, p.name || '']));
+    const rawClosedName = new Map((rawData?.closedPositions || []).map((c) => [c.symbol, c.name || '']));
 
     const query = this.searchQuery().trim().toUpperCase();
     const isClosed = this.isClosedTab();
@@ -763,6 +868,7 @@ export class App {
       for (const s of data.openPositions || []) {
         const displaySym = s.displaySymbol || this.getDisplaySymbol(s.symbol);
         const name = s.name || this.getSymbolName(s.symbol);
+        const rawEnName = rawOpenName.get(s.symbol) || '';
         const type = s.assetType;
         const typeLabel = s.assetTypeLabel || this.getAssetTypeLabel(type, s.symbol) || '';
 
@@ -771,6 +877,8 @@ export class App {
           s.symbol.toUpperCase().includes(query) ||
           displaySym.toUpperCase().includes(query) ||
           name.toUpperCase().includes(query) ||
+          (s.nameTh || '').toUpperCase().includes(query) ||
+          rawEnName.toUpperCase().includes(query) ||
           typeLabel.toUpperCase().includes(query);
 
         if (matches) {
@@ -801,6 +909,7 @@ export class App {
 
         const displaySym = s.displaySymbol || this.getDisplaySymbol(s.symbol);
         const name = s.name || this.getSymbolName(s.symbol);
+        const rawEnName = rawClosedName.get(s.symbol) || '';
         const type = s.assetType;
         const typeLabel = s.assetTypeLabel || this.getAssetTypeLabel(type, s.symbol) || '';
 
@@ -809,6 +918,8 @@ export class App {
           s.symbol.toUpperCase().includes(query) ||
           displaySym.toUpperCase().includes(query) ||
           name.toUpperCase().includes(query) ||
+          (s.nameTh || '').toUpperCase().includes(query) ||
+          rawEnName.toUpperCase().includes(query) ||
           typeLabel.toUpperCase().includes(query);
 
         if (matches) {
@@ -1033,16 +1144,18 @@ export class App {
             pMap.set(pos.symbol, {
               symbol: pos.symbol,
               name: pos.name,
+              nameTh: pos.nameTh || '',
               price: pos.currentPrice,
               currency: pos.currency,
             });
           }
           for (const pos of res.closedPositions || []) {
-            if (!pMap.has(pos.symbol) || !pMap.get(pos.symbol)?.name) {
-              const existing = pMap.get(pos.symbol);
+            const existing = pMap.get(pos.symbol);
+            if (!existing || !existing.name || (!existing.nameTh && pos.nameTh)) {
               pMap.set(pos.symbol, {
                 symbol: pos.symbol,
                 name: pos.name || existing?.name || '',
+                nameTh: pos.nameTh || existing?.nameTh || '',
                 price: existing?.price ?? 0,
                 currency: pos.currency || existing?.currency || '',
               });
@@ -1061,7 +1174,7 @@ export class App {
         }
       },
       error: (err) => {
-        this.error.set(err?.message || 'Failed to load portfolio holdings');
+        this.error.set(err?.message || this.i18n.t('app.error.failedPortfolio'));
         this.loading.set(false);
       },
     });
@@ -1139,18 +1252,33 @@ export class App {
   }
 
   readonly symbolNameMap = computed<Map<string, string>>(() => {
+    const lang = this.i18n.lang();
     const map = new Map<string, string>();
     const prices = this.prices();
     for (const [sym, pd] of prices.entries()) {
-      if (pd.name) map.set(sym, pd.name);
+      const resolved = getSymbolName(sym, pd.name || '', lang, pd.nameTh || '');
+      if (resolved) map.set(sym, resolved);
     }
     const data = this.portfolioData();
     if (data) {
       for (const p of data.openPositions || []) {
-        if (p.name && !map.has(p.symbol)) map.set(p.symbol, getSymbolName(p.symbol, p.name));
+        const resolved = getSymbolName(p.symbol, p.name || '', lang, p.nameTh || '', p.assetType);
+        if (resolved) map.set(p.symbol, resolved);
       }
       for (const c of data.closedPositions || []) {
-        if (c.name && !map.has(c.symbol)) map.set(c.symbol, getSymbolName(c.symbol, c.name));
+        if (!map.has(c.symbol)) {
+          const resolved = getSymbolName(c.symbol, c.name || '', lang, c.nameTh || '', c.assetType);
+          if (resolved) map.set(c.symbol, resolved);
+        }
+      }
+    }
+    const divData = this.dividendData();
+    if (divData) {
+      for (const s of divData.symbolSummaries || []) {
+        if (!map.has(s.symbol)) {
+          const resolved = getSymbolName(s.symbol, s.name || '', lang, s.nameTh || '', s.assetType);
+          if (resolved) map.set(s.symbol, resolved);
+        }
       }
     }
     return map;
@@ -1161,10 +1289,16 @@ export class App {
   }
 
   getSymbolName(symbol: string, rawName?: string): string {
-    if (rawName) {
-      return getSymbolName(symbol, rawName);
+    const lang = this.i18n.lang();
+    const mapped = this.symbolNameMap().get(symbol);
+    const pd = this.prices().get(symbol);
+    if (lang === 'th' && mapped) {
+      return mapped;
     }
-    return this.symbolNameMap().get(symbol) || resolveSymbolName(symbol, this.prices());
+    if (rawName) {
+      return getSymbolName(symbol, rawName, lang, pd?.nameTh || '');
+    }
+    return mapped || resolveSymbolName(symbol, this.prices(), lang);
   }
 
   getHoldingValue(summary: PortfolioPosition | SymbolSummary): number {
@@ -1292,7 +1426,7 @@ export class App {
   }
 
   getAssetTypeLabel(assetType?: string, symbol?: string): string {
-    return getAssetTypeLabel(assetType, symbol);
+    return getAssetTypeLabel(assetType, symbol, this.i18n.lang());
   }
 
   getAssetTypeClass(assetType?: string, symbol?: string): string {

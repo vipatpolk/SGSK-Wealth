@@ -1,8 +1,10 @@
 package com.sgsk.wealth.e2e.steps.ui;
 
 import com.sgsk.wealth.e2e.pages.HoldingsPage;
+import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import java.util.Map;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -57,5 +59,34 @@ public class HoldingsSteps {
     public void verifyFirstMarketHoldingCard(String expectedSymbol) {
         String expectedId = "card-" + expectedSymbol;
         assertThat(holdingsPage.symbolCards.first()).hasAttribute("id", expectedId);
+    }
+
+    @Then("the card for {string} should contain {string}")
+    public void verifyCardContainsText(String symbol, String expectedText) {
+        assertThat(holdingsPage.getSymbolCard(symbol)).containsText(expectedText);
+    }
+
+    @Then("the holdings cards should display localized asset names:")
+    public void verifyHoldingsCardsLocalizedNames(DataTable dataTable) {
+        for (Map<String, String> row : dataTable.asMaps()) {
+            String symbol = row.get("Symbol");
+            String expectedName = row.get("ExpectedName");
+            assertThat(holdingsPage.symbolCardName(symbol)).containsText(expectedName);
+        }
+    }
+
+    @When("I search holdings autocomplete for {string}")
+    public void searchHoldingsAutocomplete(String query) {
+        holdingsPage.openSearchAutocomplete(query);
+    }
+
+    @Then("the holdings search autocomplete should suggest {string} for {string}")
+    public void verifyHoldingsAutocompleteSuggestion(String expectedName, String symbol) {
+        assertThat(holdingsPage.searchAutocompleteItemName(symbol)).containsText(expectedName);
+    }
+
+    @When("I close the holdings search autocomplete")
+    public void closeHoldingsAutocomplete() {
+        holdingsPage.closeSearchAutocomplete();
     }
 }

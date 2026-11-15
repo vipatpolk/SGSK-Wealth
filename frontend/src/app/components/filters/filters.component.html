@@ -16,9 +16,9 @@
           type="button"
         >
           @if (closedAssetTypeOptions().find(o => o.id === selectedClosedAssetType()); as selected) {
-            <span>Filter: {{ selected.label }} ({{ selected.count }})</span>
+            <span>{{ 'holdings.filterPrefix' | t:{ label: selected.label } }} ({{ selected.count }})</span>
           } @else {
-            <span>Filter: All</span>
+            <span>{{ 'holdings.filterPrefix' | t:{ label: ('common.all' | t) } }}</span>
           }
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="chevron-arrow-sm" [class.chevron-open]="isMobileFilterDropdownOpen()">
             <polyline points="6 9 12 15 18 9"></polyline>
@@ -34,7 +34,7 @@
                   (click)="setClosedAssetType.emit(opt.id)"
                   type="button"
                 >
-                  Filter: {{ opt.label }} ({{ opt.count }})
+                  {{ 'holdings.filterPrefix' | t:{ label: opt.label } }} ({{ opt.count }})
                 </button>
               }
             </div>
@@ -61,9 +61,9 @@
         type="button"
       >
         @if (sortOptions().find(o => o.field === sortField()); as selectedSort) {
-          <span>Sort: {{ selectedSort.label }}</span>
+          <span>{{ 'holdings.sortPrefix' | t:{ label: selectedSort.label } }}</span>
         } @else {
-          <span>Sort</span>
+          <span>{{ 'common.sort' | t }}</span>
         }
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="chevron-arrow-sm" [class.chevron-open]="isMobileSortDropdownOpen()">
           <polyline points="6 9 12 15 18 9"></polyline>
@@ -79,7 +79,7 @@
                 (click)="setSort.emit(opt.field)"
                 type="button"
               >
-                Sort: {{ opt.label }}
+                {{ 'holdings.sortPrefix' | t:{ label: opt.label } }}
               </button>
             }
           </div>
@@ -90,13 +90,13 @@
         class="mobile-sort-dir-btn"
         (click)="toggleSortDir.emit()"
         id="mobile-sort-dir-btn"
-        [title]="sortDirection() === 'asc' ? 'Sort Ascending' : 'Sort Descending'"
+        [title]="sortDirection() === 'asc' ? ('common.sortAscending' | t) : ('common.sortDescending' | t)"
         type="button"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="sort-arrow" [class.sort-arrow-up]="sortDirection() === 'asc'">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
-        <span class="mobile-sort-dir-text">{{ sortDirection() === 'asc' ? 'ASC' : 'DESC' }}</span>
+        <span class="mobile-sort-dir-text">{{ sortDirection() === 'asc' ? ('common.ascUpper' | t) : ('common.descUpper' | t) }}</span>
       </button>
     </div>
   </div>
@@ -105,7 +105,7 @@
 <!-- Desktop Asset Type Filter Bar (Closed Position Tab) -->
 @if (isClosedTab()) {
   <div class="asset-filter-bar desktop-asset-filter-bar" id="closed-asset-filter-bar">
-    <span class="asset-filter-label">Asset Type</span>
+    <span class="asset-filter-label">{{ 'holdings.filterType' | t }}</span>
     <div class="asset-filter-pills">
       @for (opt of closedAssetTypeOptions(); track opt.id) {
         <button
@@ -125,7 +125,7 @@
 
 <!-- Desktop Sort Bar -->
 <div class="sort-bar desktop-sort-bar" id="sort-bar">
-  <span class="sort-label">Sort by</span>
+  <span class="sort-label">{{ 'holdings.sortByLabel' | t }}</span>
   @for (opt of sortOptions(); track opt.field) {
     <button
       class="sort-pill"

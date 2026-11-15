@@ -82,3 +82,28 @@ def test_usd_thb_rate_endpoint_mocked(api_client, monkeypatch):
     assert res.status_code == 200
     data = res.json()
     assert data["rate"] == 35.75
+
+
+@pytest.mark.unit
+def test_nav_factsheet_endpoint_mocked(api_client, monkeypatch):
+    from models.factsheet import FundFactsheetResponse
+    from services.nav_service import NavService
+
+    async def mock_fetch_fund_factsheet(self, symbol: str, asset_type: str = "mutual-fund", fund_name=None):
+        return FundFactsheetResponse(
+            symbol=symbol.upper(),
+            displaySymbol=symbol.upper(),
+            assetType=asset_type,
+            fundName="Test Fund",
+            riskLevel="RS6",
+            pdfUrl="https://sec.example/factsheet.pdf",
+        )
+
+    monkeypatch.setattr(NavService, "fetch_fund_factsheet", mock_fetch_fund_factsheet)
+
+    res = api_client.get("/nav/factsheet?symbol=K-USA&asset_type=mutual-fund")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["symbol"] == "K-USA"
+    assert data["riskLevel"] == "RS6"
+    assert data["pdfUrl"] == "https://sec.example/factsheet.pdf"

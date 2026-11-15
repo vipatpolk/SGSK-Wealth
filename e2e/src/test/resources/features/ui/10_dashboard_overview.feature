@@ -61,3 +61,35 @@ Feature: Dashboard Landing Page & Executive Overview
     And the Dashboard retirement card should display "ไทยพาณิชย์ มาสเตอร์ฟันด์"
     When I navigate from the Dashboard retirement card to PVD Holdings
     Then the PVD holdings screen should be visible
+
+  @smoke @TC-DASH-08
+  Scenario: TC-DASH-08: Dashboard top movers and PVD summary card localize asset names cleanly across TH and EN
+    When I switch language to TH
+    Then the Dashboard top movers should display localized asset names:
+      | Symbol | ExpectedName                 |
+      | PTT.BK | บริษัท ปตท. จำกัด (มหาชน)   |
+      | K-USA  | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
+      | AAPL   | Apple Inc.                   |
+      | BTC    | Bitcoin                      |
+    And the Dashboard retirement card should display "นโยบายกองทุนรวมดัชนี S&P 500 THB"
+    And the Dashboard retirement card should display "นโยบายกองทุนรวมผสม THB เฮดจ์"
+    And the Dashboard retirement card should not display "SCB S&P 500 Index Policy"
+    And the Dashboard retirement card should not display "SCB Fixed Income Plus Policy"
+    When I switch language to EN
+    Then the Dashboard top movers should display localized asset names:
+      | Symbol | ExpectedName               |
+      | PTT.BK | PTT Public Company Limited |
+      | K-USA  | Kasikorn US Equity Fund    |
+      | AAPL   | Apple Inc.                 |
+      | BTC    | Bitcoin                    |
+    And the Dashboard retirement card should display "นโยบายกองทุนรวมดัชนี S&P 500 THB"
+    And the Dashboard retirement card should display "นโยบายกองทุนรวมผสม THB เฮดจ์"
+    And the Dashboard retirement card should not display "SCB S&P 500 Index Policy"
+    And the Dashboard retirement card should not display "SCB Fixed Income Plus Policy"
+
+  @TC-DASH-09
+  Scenario: View Provident Fund policy fact sheet modal from Dashboard retirement card
+    When I open the fund fact sheet for Dashboard PVD policy "PVDSP500"
+    Then the fund fact sheet modal should display "นโยบายกองทุนรวมดัชนี S&P 500 THB" with risk "RS6"
+    When I close the fund fact sheet modal
+    Then the fund fact sheet modal should be hidden

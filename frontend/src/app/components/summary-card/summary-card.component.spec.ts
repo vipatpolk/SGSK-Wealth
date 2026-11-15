@@ -345,4 +345,45 @@ describe('SummaryCardComponent', () => {
     );
     expect(footerBanner?.textContent).toContain('Fund Policy');
   });
+
+  it('should show factsheet icon button only for mutual-fund and provident-fund and emit openFactsheet without toggling accordion', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    // Default AAPL (us-stock) should not have factsheet icon button
+    expect(compiled.querySelector('#btn-factsheet-AAPL')).toBeNull();
+
+    const mockMutualFund = {
+      symbol: 'K-USA',
+      displaySymbol: 'K-USA',
+      name: 'K USA Equity Fund',
+      nameTh: 'กองทุนเปิดเค ยูเอสเอ หุ้นทุน',
+      assetType: 'mutual-fund',
+      totalShares: 100,
+      totalCost: 1200,
+      averageCost: 12,
+      currency: 'THB',
+      lots: [],
+    };
+
+    componentRef.setInput('summary', mockMutualFund);
+    componentRef.setInput('getSymbolName', (_sym: string, raw?: string) => raw || 'K USA Equity Fund');
+    fixture.detectChanges();
+
+    const expandSpy = vi.fn();
+    const factsheetSpy = vi.fn();
+    component.toggleExpand.subscribe(expandSpy);
+    component.openFactsheet.subscribe(factsheetSpy);
+
+    const btn = compiled.querySelector('#btn-factsheet-K-USA') as HTMLButtonElement;
+    expect(btn).toBeTruthy();
+    btn.click();
+
+    expect(expandSpy).not.toHaveBeenCalled();
+    expect(factsheetSpy).toHaveBeenCalledWith({
+      symbol: 'K-USA',
+      assetType: 'mutual-fund',
+      fundName: undefined,
+      displayName: 'K USA Equity Fund',
+      displayNameTh: 'กองทุนเปิดเค ยูเอสเอ หุ้นทุน',
+    });
+  });
 });

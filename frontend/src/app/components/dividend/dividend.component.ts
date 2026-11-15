@@ -1,4 +1,4 @@
-import { Component, input, output, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, output, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CurrencyPipe, DecimalPipe, NgClass } from '@angular/common';
 import { SymbolIconComponent } from '../symbol-icon/symbol-icon.component';
 import {
@@ -11,17 +11,25 @@ import {
   FundDividendDistribution,
 } from '../../models/dividend.model';
 import { DIVIDEND_ASSET_TYPES } from '../../config/asset.constants';
-import { convertCurrency, getAssetColor } from '../../utils/format.utils';
+import {
+  convertCurrency,
+  getAssetColor,
+  getSymbolName as resolveSymbolDisplayName,
+} from '../../utils/format.utils';
+import { I18nService } from '../../services/i18n.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
 
 @Component({
   selector: 'app-dividend',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe, NgClass, SymbolIconComponent],
+  imports: [CurrencyPipe, DecimalPipe, NgClass, SymbolIconComponent, TranslatePipe, LocalizedDatePipe],
   templateUrl: './dividend.component.html',
   styleUrl: './dividend.component.css'
 })
 export class DividendComponent {
+  readonly i18n = inject(I18nService);
   data = input<PortfolioDividendResponse | null>(null);
   loading = input<boolean>(false);
   error = input<string | null>(null);
@@ -48,13 +56,19 @@ export class DividendComponent {
   readonly sortDirection = signal<'asc' | 'desc'>('desc');
 
   // Drill-down Modal State for SEC Fund Distribution History
-  readonly selectedFundDistributions = signal<{ symbol: string; name: string; distributions: FundDividendDistribution[] } | null>(null);
+  readonly selectedFundDistributions = signal<{
+    symbol: string;
+    name: string;
+    nameTh?: string | null;
+    distributions: FundDividendDistribution[];
+  } | null>(null);
 
   // Drill-down Modal State for Related Holding Dividend Ledger
   readonly selectedHoldingLedger = signal<{
     symbol: string;
     displaySymbol: string;
     name: string;
+    nameTh?: string | null;
     assetType: string;
     assetTypeLabel: string;
     currency: string;
@@ -63,6 +77,47 @@ export class DividendComponent {
     totalNet: number;
     totalWht: number;
   } | null>(null);
+
+  resolveSummaryName(item: {
+    symbol: string;
+    name?: string | null;
+    nameTh?: string | null;
+    assetType?: string;
+  }): string {
+    const lang = this.i18n.lang();
+    const liveSummary = this.data()?.symbolSummaries?.find(s => s.symbol === item.symbol);
+    const nameEn = liveSummary?.name ?? item.name ?? '';
+    const nameTh = liveSummary?.nameTh ?? item.nameTh ?? '';
+    const assetType = liveSummary?.assetType ?? item.assetType;
+    return (
+      resolveSymbolDisplayName(item.symbol, nameEn, lang, nameTh, assetType) ||
+      this.getSymbolName()(item.symbol)
+    );
+  }
+
+  private matchesSearchQuery(
+    query: string,
+    symbol: string,
+    displaySymbol?: string | null,
+    name?: string | null,
+    nameTh?: string | null,
+    assetType?: string
+  ): boolean {
+    const sym = symbol.toLowerCase();
+    const disp = (displaySymbol || this.getDisplaySymbol()(symbol)).toLowerCase();
+    const resolvedCurrent = this.resolveSummaryName({ symbol, name, nameTh, assetType }).toLowerCase();
+    const nameEn = resolveSymbolDisplayName(symbol, name || '', 'en', nameTh || '', assetType).toLowerCase();
+    const nameThResolved = resolveSymbolDisplayName(symbol, name || '', 'th', nameTh || '', assetType).toLowerCase();
+    const fallbackName = this.getSymbolName()(symbol).toLowerCase();
+    return (
+      sym.includes(query) ||
+      disp.includes(query) ||
+      resolvedCurrent.includes(query) ||
+      nameEn.includes(query) ||
+      nameThResolved.includes(query) ||
+      fallbackName.includes(query)
+    );
+  }
 
   cx(amount: number, fromCurrency?: string): number {
     if (!amount || amount === 0) return 0;
@@ -98,11 +153,20 @@ export class DividendComponent {
       recs = recs.filter(r => r.assetType === at);
     }
     if (q) {
-      recs = recs.filter(r =>
-        r.symbol.toLowerCase().includes(q) ||
-        r.displaySymbol.toLowerCase().includes(q) ||
-        this.getSymbolName()(r.symbol).toLowerCase().includes(q)
+      const summaryBySymbol = new Map<string, SymbolDividendSummary>(
+        (d.symbolSummaries || []).map(s => [s.symbol, s])
       );
+      recs = recs.filter(r => {
+        const symSummary = summaryBySymbol.get(r.symbol);
+        return this.matchesSearchQuery(
+          q,
+          r.symbol,
+          r.displaySymbol,
+          symSummary?.name,
+          symSummary?.nameTh,
+          r.assetType
+        );
+      });
     }
 
     return recs.map(r => ({
@@ -140,11 +204,14 @@ export class DividendComponent {
         continue;
       }
       if (q) {
-        const matchesQuery =
-          s.symbol.toLowerCase().includes(q) ||
-          s.displaySymbol.toLowerCase().includes(q) ||
-          (s.name && s.name.toLowerCase().includes(q)) ||
-          this.getSymbolName()(s.symbol).toLowerCase().includes(q);
+        const matchesQuery = this.matchesSearchQuery(
+          q,
+          s.symbol,
+          s.displaySymbol,
+          s.name,
+          s.nameTh,
+          s.assetType
+        );
         if (!matchesQuery) continue;
       }
 
@@ -218,6 +285,7 @@ export class DividendComponent {
 
   // Dynamic Asset Type Summaries Filtered by Selected Year & Search
   readonly activeAssetTypeSummaries = computed<AssetTypeDividendSummary[]>(() => {
+    void this.i18n.lang();
     const d = this.data();
     const recs = this.filteredRecords();
     const totalNet = this.activeNetTotal();
@@ -464,11 +532,12 @@ export class DividendComponent {
       list = list.filter(s => s.assetType === at);
     }
 
+    void this.i18n.lang();
     if (!query) {
       return list.slice(0, 6).map(s => ({
         symbol: s.symbol,
         displaySymbol: s.displaySymbol || this.getDisplaySymbol()(s.symbol),
-        name: s.name || this.getSymbolName()(s.symbol),
+        name: this.resolveSummaryName(s),
         assetType: s.assetType,
         assetTypeLabel: this.getAssetTypeLabel()(s.assetType, s.symbol),
         trailingDPS: s.trailingAnnualDPS,
@@ -477,17 +546,12 @@ export class DividendComponent {
     }
 
     return list
-      .filter(s => {
-        const sym = s.symbol.toLowerCase();
-        const disp = (s.displaySymbol || this.getDisplaySymbol()(s.symbol)).toLowerCase();
-        const name = (s.name || this.getSymbolName()(s.symbol)).toLowerCase();
-        return sym.includes(query) || disp.includes(query) || name.includes(query);
-      })
+      .filter(s => this.matchesSearchQuery(query, s.symbol, s.displaySymbol, s.name, s.nameTh, s.assetType))
       .slice(0, 8)
       .map(s => ({
         symbol: s.symbol,
         displaySymbol: s.displaySymbol || this.getDisplaySymbol()(s.symbol),
-        name: s.name || this.getSymbolName()(s.symbol),
+        name: this.resolveSummaryName(s),
         assetType: s.assetType,
         assetTypeLabel: this.getAssetTypeLabel()(s.assetType, s.symbol),
         trailingDPS: s.trailingAnnualDPS,
@@ -623,7 +687,8 @@ export class DividendComponent {
   openFundDistributions(sym: SymbolDividendSummary) {
     this.selectedFundDistributions.set({
       symbol: sym.symbol,
-      name: sym.name || this.getSymbolName()(sym.symbol),
+      name: this.resolveSummaryName(sym),
+      nameTh: sym.nameTh,
       distributions: sym.recentDistributions || []
     });
   }
@@ -658,7 +723,8 @@ export class DividendComponent {
     this.selectedHoldingLedger.set({
       symbol: s.symbol,
       displaySymbol: s.displaySymbol || this.getDisplaySymbol()(s.symbol),
-      name: s.name || this.getSymbolName()(s.symbol),
+      name: this.resolveSummaryName(s),
+      nameTh: s.nameTh,
       assetType: s.assetType,
       assetTypeLabel: this.getAssetTypeLabel()(s.assetType, s.symbol),
       currency: s.currency,

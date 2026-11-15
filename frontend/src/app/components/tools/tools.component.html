@@ -17,9 +17,9 @@
         </svg>
       </div>
       <div>
-        <h2 class="tools-hero-title">Investor Tools & Simulators</h2>
+        <h2 class="tools-hero-title">{{ 'tools.heroTitle' | t }}</h2>
         <p class="tools-hero-subtext">
-          Interactive modeling engines to simulate cost basis averaging, calculate position breakevens, and stress-test trade scenarios.
+          {{ 'tools.heroSubtitle' | t }}
         </p>
       </div>
     </div>
@@ -34,7 +34,7 @@
           [class.active]="activeToolId() === tool.id"
           [class.disabled]="!tool.isReady"
           (click)="selectTool(tool.id)"
-          [title]="tool.isReady ? tool.title : tool.title + ' (Coming Soon)'"
+          [title]="tool.isReady ? tool.title : tool.title + ('tools.comingSoonSuffix' | t)"
         >
           @if (tool.id === 'avg-cost-calculator') {
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="tool-tab-icon"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>
@@ -63,7 +63,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="tool-trigger-icon"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
           }
           <div class="tool-trigger-info">
-            <span class="tool-trigger-label">Active Tool</span>
+            <span class="tool-trigger-label">{{ 'tools.activeToolLabel' | t }}</span>
             <span class="tool-trigger-title">{{ activeTool().title }}</span>
           </div>
         </div>

@@ -138,5 +138,6 @@ class SheetResult(BaseModel):
 class PriceData(BaseModel):
     symbol: str
     name: str | None = ""
+    nameTh: str | None = ""
     price: float
     currency: str
