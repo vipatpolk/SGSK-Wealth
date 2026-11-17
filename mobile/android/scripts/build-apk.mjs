@@ -40,8 +40,12 @@ const REPO_URLS = [
 ];
 
 function parseArgs() {
-  const opts = { compileSdk: '36', minSdk: '24', targetSdk: '36', buildType: 'debug' };
+  const opts = { compileSdk: '36', minSdk: '24', targetSdk: '36', buildType: 'debug', resolveOnly: false };
   for (const arg of process.argv.slice(2)) {
+    if (arg === '--resolve-only') {
+      opts.resolveOnly = true;
+      continue;
+    }
     const m = /^--([^=]+)=(.+)$/.exec(arg);
     if (m) opts[m[1]] = m[2];
   }
@@ -234,6 +238,11 @@ function extractAarArchives() {
 async function main() {
   const opts = parseArgs();
   await resolveTransitiveArtifacts();
+  if (opts.resolveOnly) {
+    const { jars, aarResDirs } = extractAarArchives();
+    console.log(`[Maven-Android] Resolved ${jars.length} jars and ${aarResDirs.length} AAR resource dirs.`);
+    return;
+  }
 
   const sdkDir = findAndroidSdk();
   const buildToolsDir = findLatestBuildTools(sdkDir);
@@ -297,7 +306,7 @@ async function main() {
     '--java', genJavaDir,
     '-A', path.join(appMainDir, 'assets'),
     '-o', unalignedApk,
-    '--extra-packages', 'com.getcapacitor.android:androidx.appcompat:androidx.core:androidx.core.splashscreen',
+    '--extra-packages', 'com.getcapacitor:com.getcapacitor.android:com.capacitorjs.plugins.splashscreen:androidx.appcompat:androidx.core:androidx.core.splashscreen',
     ...flatZipPaths,
   ];
   run(aapt2, linkArgs);
