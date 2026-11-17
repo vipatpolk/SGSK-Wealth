@@ -32,7 +32,13 @@ const ROOT_COORDS = [
   'androidx.webkit:webkit:1.14.0',
   'androidx.core:core-splashscreen:1.2.0',
   'org.apache.cordova:framework:14.0.1',
+  'org.jetbrains.kotlin:kotlin-stdlib:2.0.21',
 ];
+
+const IGNORED_ARTIFACTS = new Set([
+  'org.jetbrains.kotlin:kotlin-stdlib-jdk7',
+  'org.jetbrains.kotlin:kotlin-stdlib-jdk8',
+]);
 
 const REPO_URLS = [
   'https://dl.google.com/dl/android/maven2',
@@ -140,20 +146,21 @@ function parsePomDependencies(pomXml) {
   const packaging = pkgMatch ? pkgMatch[1].trim() : 'jar';
   const deps = [];
 
-  const depsSection = /<dependencies>([\s\S]*?)<\/dependencies>/.exec(pomXml);
+  const withoutMgmt = pomXml.replace(/<dependencyManagement>[\s\S]*?<\/dependencyManagement>/g, '');
+  const depsSection = /<dependencies>([\s\S]*?)<\/dependencies>/.exec(withoutMgmt);
   if (!depsSection) return { packaging, deps };
 
   const depRegex = /<dependency>([\s\S]*?)<\/dependency>/g;
   let match;
   while ((match = depRegex.exec(depsSection[1])) !== null) {
-    const block = match[1];
+    const block = match[1].replace(/<exclusions>[\s\S]*?<\/exclusions>/g, '');
     const g = /<groupId>([^<]+)<\/groupId>/.exec(block)?.[1]?.trim();
     const a = /<artifactId>([^<]+)<\/artifactId>/.exec(block)?.[1]?.trim();
     const v = /<version>([^<]+)<\/version>/.exec(block)?.[1]?.trim();
     const scope = /<scope>([^<]+)<\/scope>/.exec(block)?.[1]?.trim() || 'compile';
     const optional = /<optional>([^<]+)<\/optional>/.exec(block)?.[1]?.trim() === 'true';
     const type = /<type>([^<]+)<\/type>/.exec(block)?.[1]?.trim();
-    if (!g || !a || !v || optional) continue;
+    if (!g || !a || !v || v.includes('${') || optional) continue;
     if (scope !== 'compile' && scope !== 'runtime') continue;
     deps.push({ groupId: g, artifactId: a, version: cleanVersionRange(v), type });
   }
@@ -171,7 +178,7 @@ async function resolveTransitiveArtifacts() {
   while (queue.length > 0) {
     const cur = queue.shift();
     const key = `${cur.groupId}:${cur.artifactId}`;
-    if (visited.has(key)) continue;
+    if (IGNORED_ARTIFACTS.has(key) || visited.has(key)) continue;
 
     const groupPath = cur.groupId.replace(/\./g, '/');
     const pomRel = `${groupPath}/${cur.artifactId}/${cur.version}/${cur.artifactId}-${cur.version}.pom`;
@@ -291,7 +298,13 @@ async function main() {
   });
 
   const rawManifest = fs.readFileSync(path.join(appMainDir, 'AndroidManifest.xml'), 'utf8');
-  const resolvedManifest = rawManifest.replace(/\$\{applicationId\}/g, 'com.sgsk.wealth.mobile');
+  let resolvedManifest = rawManifest.replace(/\$\{applicationId\}/g, 'com.sgsk.wealth.mobile');
+  if (!/\bpackage=/.test(resolvedManifest)) {
+    resolvedManifest = resolvedManifest.replace(
+      /<manifest\b/,
+      '<manifest package="com.sgsk.wealth.mobile" android:versionCode="1" android:versionName="1.0"'
+    );
+  }
   const manifestPath = path.join(targetDir, 'AndroidManifest.xml');
   fs.writeFileSync(manifestPath, resolvedManifest, 'utf8');
 
@@ -306,7 +319,20 @@ async function main() {
     '--java', genJavaDir,
     '-A', path.join(appMainDir, 'assets'),
     '-o', unalignedApk,
-    '--extra-packages', 'com.getcapacitor:com.getcapacitor.android:com.capacitorjs.plugins.splashscreen:androidx.appcompat:androidx.core:androidx.core.splashscreen',
+    '--extra-packages',
+    [
+      'com.getcapacitor',
+      'com.getcapacitor.android',
+      'com.capacitorjs.plugins.splashscreen',
+      'androidx.appcompat',
+      'androidx.appcompat.resources',
+      'androidx.core',
+      'androidx.core.splashscreen',
+      'androidx.coordinatorlayout',
+      'androidx.fragment',
+      'androidx.activity',
+      'androidx.webkit',
+    ].join(':'),
     ...flatZipPaths,
   ];
   run(aapt2, linkArgs);
@@ -323,24 +349,34 @@ async function main() {
 
   const classpath = [platformJar, ...jars].join(path.delimiter);
   run('javac', [
-    '--release', '17',
+    '--release', '21',
     '-encoding', 'UTF-8',
     '-cp', classpath,
     '-d', classesDir,
     `@${sourceListPath}`,
   ]);
 
-  const classFiles = walkFiles(classesDir, (f) => f.endsWith('.class'));
+  const appClassesJar = path.join(targetDir, 'app-classes.jar');
+  run('jar', ['cf', appClassesJar, '-C', classesDir, '.']);
+
   const d8Args = [
     '--min-api', opts.minSdk,
     '--lib', platformJar,
     '--output', dexDir,
-    ...classFiles,
+    appClassesJar,
     ...jars,
   ];
   run(d8, d8Args, { shell: isWin });
 
-  run('jar', ['uf', unalignedApk, '-C', dexDir, 'classes.dex']);
+  const dexFiles = fs.readdirSync(dexDir).filter((f) => f.endsWith('.dex'));
+  if (dexFiles.length === 0) {
+    throw new Error(`No .dex files produced in ${dexDir}`);
+  }
+  const jarAddArgs = ['uf', unalignedApk];
+  for (const dexFile of dexFiles) {
+    jarAddArgs.push('-C', dexDir, dexFile);
+  }
+  run('jar', jarAddArgs);
 
   const alignedApk = path.join(targetDir, 'sgsk-wealth-aligned.apk');
   run(zipalign, ['-f', '4', unalignedApk, alignedApk]);
