@@ -12,6 +12,7 @@ BLOCKED_KEY_HASHES: set[str] = {
     # SHA-256 hashes of retired / compromised keys
     "497ffb45f54901336b84e6d9a3ef1d6b063c94db66e790adcec6c2811518da3d",
     "83bfda08b5ebeb7128efa25b8739774ba251e1e3bba12e3344030544c5205f9e",
+    "def635122f7fe058c3ceeb6e67dfa728e5818e1889204bc91dcccc3fae597897",
 }
 
 INSECURE_NAMED_KEYS: set[str] = {

@@ -3,6 +3,6 @@ export const environment = {
   apiBaseUrl: '/api/backend',
   nativeAndroidApiBaseUrl: 'http://10.0.2.2:8000/api/backend',
   nativeIosApiBaseUrl: 'http://127.0.0.1:8000/api/backend',
-  apiKey: 'ee44731089f43c7f1a9ba7171eb57ccd34177932483ec29fa59ddcffae64133c',
+  apiKey: 'dev_secret_key_change_in_prod',
   maxBatchSize: 50,
 };
