@@ -1,0 +1,15 @@
+{
+  "/api/backend": {
+    "target": "http://127.0.0.1:8000",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api/backend": ""
+    },
+    "headers": {
+      "X-API-Key": "ee44731089f43c7f1a9ba7171eb57ccd34177932483ec29fa59ddcffae64133c",
+      "X-App-Source": "SGSK-Wealth",
+      "X-Requested-With": "SGSK-Wealth-Client"
+    }
+  }
+}

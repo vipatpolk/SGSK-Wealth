@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 const backendDir = path.join(rootDir, 'backend');
-const frontendDir = path.join(rootDir, 'frontend');
+const webDir = path.join(rootDir, 'web');
 const e2eTargetDir = path.join(rootDir, 'e2e', 'target');
 const e2eLogPath = path.join(e2eTargetDir, 'e2e-live.log');
 
@@ -61,7 +61,8 @@ const pythonCmd = getPythonCommand();
 // Parse CLI flags
 const args = process.argv.slice(2);
 const onlyBackend = args.includes('--only=backend');
-const onlyFrontend = args.includes('--only=frontend');
+const onlyFrontend = args.includes('--only=frontend') || args.includes('--only=web');
+const withMobile = args.includes('--mobile');
 const lintBackend = args.includes('--lint-backend');
 const testBackend = args.includes('--test-backend');
 const runE2e = args.includes('--e2e');
@@ -264,19 +265,35 @@ if (lintBackend) {
   }
 
   if (!onlyBackend) {
-    console.log(`\x1b[35m[FRONTEND]\x1b[0m Angular starting on http://localhost:4200 (Proxying /api/backend -> :8000)`);
+    console.log(`\x1b[35m[WEB]\x1b[0m Angular starting on http://localhost:4200 (Proxying /api/backend -> :8000)`);
     const frontendProc = spawn(
       npmCmd,
-      ['--prefix', 'frontend', 'start'],
+      ['--prefix', 'web', 'start'],
       {
         cwd: rootDir,
         env: { ...process.env, FORCE_COLOR: '1' },
         shell: isWindows,
       }
     );
-    attachPrefixedStream(frontendProc.stdout, 'FRONTEND', '35');
-    attachPrefixedStream(frontendProc.stderr, 'FRONTEND', '35');
+    attachPrefixedStream(frontendProc.stdout, 'WEB', '35');
+    attachPrefixedStream(frontendProc.stderr, 'WEB', '35');
     children.push(frontendProc);
+
+    if (withMobile) {
+      console.log(`\x1b[32m[MOBILE]\x1b[0m Ionic Capacitor starting on http://localhost:4201 (Proxying /api/backend -> :8000)`);
+      const mobileProc = spawn(
+        npmCmd,
+        ['--prefix', 'mobile', 'start'],
+        {
+          cwd: rootDir,
+          env: { ...process.env, FORCE_COLOR: '1' },
+          shell: isWindows,
+        }
+      );
+      attachPrefixedStream(mobileProc.stdout, 'MOBILE', '32');
+      attachPrefixedStream(mobileProc.stderr, 'MOBILE', '32');
+      children.push(mobileProc);
+    }
   }
 
   if (!noE2eLogs) {

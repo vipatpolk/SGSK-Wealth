@@ -15,12 +15,15 @@ public class ServerManager {
     private final E2eProperties properties;
     private MockBackendServer mockBackendServer;
     private Process frontendProcess;
+    private Process mobileProcess;
     private String backendBaseUrl;
     private String frontendBaseUrl;
+    private String mobileBaseUrl;
 
     public ServerManager(E2eProperties properties) {
         this.properties = properties;
         this.frontendBaseUrl = properties.frontend().baseUrl();
+        this.mobileBaseUrl = properties.mobile().baseUrl();
         Runtime.getRuntime().addShutdownHook(new Thread(this::stopServers));
     }
 
@@ -61,36 +64,62 @@ public class ServerManager {
             return frontendBaseUrl;
         }
 
-        File frontendDir = new File("../frontend");
-        if (!frontendDir.exists()) {
-            frontendDir = new File("frontend");
+        File webDir = resolveWorkspaceDir("web", "frontend");
+        if (webDir != null) {
+            frontendProcess = startAngularServer(webDir, "4200", frontendBaseUrl, "http://localhost:4200");
+        }
+        return frontendBaseUrl;
+    }
+
+    public synchronized String ensureMobileServer() {
+        mobileBaseUrl = properties.mobile().baseUrl();
+
+        if (isHttpEndpointAvailable(mobileBaseUrl) || isHttpEndpointAvailable("http://localhost:4201")) {
+            return mobileBaseUrl;
         }
 
-        if (frontendDir.exists()) {
-            try {
-                boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
-                ProcessBuilder pb;
-                if (isWindows) {
-                    pb = new ProcessBuilder("cmd.exe", "/c", "npx", "ng", "serve", "--host", "127.0.0.1", "--port", "4200");
-                } else {
-                    pb = new ProcessBuilder("npx", "ng", "serve", "--host", "127.0.0.1", "--port", "4200");
-                }
-                pb.directory(frontendDir);
-                pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
-                pb.redirectError(ProcessBuilder.Redirect.DISCARD);
-                frontendProcess = pb.start();
+        File mobileDir = resolveWorkspaceDir("mobile");
+        if (mobileDir != null) {
+            mobileProcess = startAngularServer(mobileDir, "4201", mobileBaseUrl, "http://localhost:4201");
+        }
+        return mobileBaseUrl;
+    }
 
-                for (int i = 0; i < 60; i++) {
-                    Thread.sleep(1000);
-                    if (isHttpEndpointAvailable(frontendBaseUrl) || isHttpEndpointAvailable("http://localhost:4200")) {
-                        break;
-                    }
-                }
-            } catch (Exception ignored) {
+    private File resolveWorkspaceDir(String... candidates) {
+        for (String name : candidates) {
+            File parentRelative = new File("../" + name);
+            if (parentRelative.exists() && new File(parentRelative, "angular.json").exists()) {
+                return parentRelative;
+            }
+            File direct = new File(name);
+            if (direct.exists() && new File(direct, "angular.json").exists()) {
+                return direct;
             }
         }
+        return null;
+    }
 
-        return frontendBaseUrl;
+    private Process startAngularServer(File dir, String port, String primaryUrl, String fallbackUrl) {
+        try {
+            boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
+            ProcessBuilder pb = isWindows
+                    ? new ProcessBuilder("cmd.exe", "/c", "npx", "ng", "serve", "--host", "127.0.0.1", "--port", port)
+                    : new ProcessBuilder("npx", "ng", "serve", "--host", "127.0.0.1", "--port", port);
+            pb.directory(dir);
+            pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+            pb.redirectError(ProcessBuilder.Redirect.DISCARD);
+            Process process = pb.start();
+
+            for (int i = 0; i < 60; i++) {
+                Thread.sleep(1000);
+                if (isHttpEndpointAvailable(primaryUrl) || isHttpEndpointAvailable(fallbackUrl)) {
+                    break;
+                }
+            }
+            return process;
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     public boolean isHttpEndpointAvailable(String urlString) {
@@ -113,17 +142,22 @@ public class ServerManager {
             mockBackendServer.stop();
             mockBackendServer = null;
         }
-        if (frontendProcess != null) {
-            try {
-                boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
-                if (isWindows) {
-                    new ProcessBuilder("taskkill", "/pid", String.valueOf(frontendProcess.pid()), "/T", "/F").start().waitFor();
-                } else {
-                    frontendProcess.destroyForcibly();
-                }
-            } catch (Exception ignored) {
+        terminateProcess(frontendProcess);
+        frontendProcess = null;
+        terminateProcess(mobileProcess);
+        mobileProcess = null;
+    }
+
+    private void terminateProcess(Process process) {
+        if (process == null) return;
+        try {
+            boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
+            if (isWindows) {
+                new ProcessBuilder("taskkill", "/pid", String.valueOf(process.pid()), "/T", "/F").start().waitFor();
+            } else {
+                process.destroyForcibly();
             }
-            frontendProcess = null;
+        } catch (Exception ignored) {
         }
     }
 }

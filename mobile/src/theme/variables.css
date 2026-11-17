@@ -1,0 +1,62 @@
+:root {
+  --ion-color-primary: #3b82f6;
+  --ion-color-primary-rgb: 59, 130, 246;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #3472d8;
+  --ion-color-primary-tint: #4f8ff7;
+
+  --ion-color-success: #4cc38a;
+  --ion-color-success-rgb: 76, 195, 138;
+  --ion-color-success-contrast: #071912;
+  --ion-color-danger: #e5484d;
+  --ion-color-danger-rgb: 229, 72, 77;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-warning: #f59e0b;
+
+  --sgsk-surface: #0b0d14;
+  --sgsk-surface-raised: #11141c;
+  --sgsk-surface-overlay: #1a1e28;
+  --sgsk-border: rgba(255, 255, 255, 0.08);
+  --sgsk-text-primary: #eef0f6;
+  --sgsk-text-secondary: #8b92a5;
+  --sgsk-text-muted: #64748b;
+  --sgsk-accent: #3b82f6;
+  --sgsk-positive: #4cc38a;
+  --sgsk-negative: #e5484d;
+
+  --ion-background-color: var(--sgsk-surface);
+  --ion-text-color: var(--sgsk-text-primary);
+  --ion-toolbar-background: var(--sgsk-surface-raised);
+  --ion-toolbar-color: var(--sgsk-text-primary);
+  --ion-tab-bar-background: var(--sgsk-surface-raised);
+  --ion-tab-bar-color: var(--sgsk-text-secondary);
+  --ion-tab-bar-color-selected: var(--sgsk-accent);
+  --ion-card-background: var(--sgsk-surface-raised);
+  --ion-item-background: var(--sgsk-surface-raised);
+  --ion-border-color: var(--sgsk-border);
+}
+
+:root[data-theme="light"] {
+  --sgsk-surface: #f5f7fa;
+  --sgsk-surface-raised: #ffffff;
+  --sgsk-surface-overlay: #eceff4;
+  --sgsk-border: rgba(15, 23, 42, 0.08);
+  --sgsk-text-primary: #0f172a;
+  --sgsk-text-secondary: #475569;
+  --sgsk-text-muted: #94a3b8;
+  --sgsk-accent: #2563eb;
+  --sgsk-positive: #16a34a;
+  --sgsk-negative: #dc2626;
+
+  --ion-background-color: var(--sgsk-surface);
+  --ion-text-color: var(--sgsk-text-primary);
+  --ion-toolbar-background: var(--sgsk-surface-raised);
+  --ion-toolbar-color: var(--sgsk-text-primary);
+  --ion-tab-bar-background: var(--sgsk-surface-raised);
+  --ion-tab-bar-color: var(--sgsk-text-secondary);
+  --ion-tab-bar-color-selected: var(--sgsk-accent);
+  --ion-card-background: var(--sgsk-surface-raised);
+  --ion-item-background: var(--sgsk-surface-raised);
+  --ion-border-color: var(--sgsk-border);
+}

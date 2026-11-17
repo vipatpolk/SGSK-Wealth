@@ -2,8 +2,10 @@
 
 This repository is a monorepo consisting of:
 - **`backend/`**: Python FastAPI backend service
-- **`frontend/`**: Angular 22 Single Page Application
-- **`e2e/`**: Standalone Spring Boot E2E test suite (Spring Boot, Playwright, Rest Assured, Cucumber-JVM, JUnit 5 & Allure)
+- **`shared/`**: Shared Angular core models, HTTP services, pipes, i18n dictionaries, and calculation utilities (`@shared/*`)
+- **`web/`**: Angular 22 Web Single Page Application
+- **`mobile/`**: Angular 22 + Ionic + Capacitor Native iOS (`mobile/ios/`) and Android (`mobile/android/` via Maven) mobile application
+- **`e2e/`**: Standalone Spring Boot E2E test suite (Spring Boot, Playwright, Appium, Rest Assured, Cucumber-JVM, JUnit 5 & Allure)
 - **`.agent/skills/`**: Single source of truth for shared agent skills and domain guidelines
 
 ---
@@ -36,13 +38,21 @@ All agents (Antigravity, OpenAI Codex, and Claude Code via `.claude/skills/`) sh
   ```bash
   npm run check
   ```
-  Executes Gherkin strict linting, backend linting, backend tests, frontend unit tests, and production frontend build.
+  Executes Gherkin strict linting, backend linting, backend tests, web unit tests, web production build, mobile unit tests, and mobile production build.
 
-- **Frontend Only**:
+- **Web Frontend Only**:
   ```bash
-  npm run dev:frontend
-  npm run test:frontend
-  npm run build
+  npm run dev:web
+  npm run test:web
+  npm run build:web
+  ```
+
+- **Mobile App (Ionic + Capacitor) Only**:
+  ```bash
+  npm run dev:mobile
+  npm run test:mobile
+  npm run build:mobile
+  npm run cap:sync
   ```
 
 - **Backend Only**:
@@ -58,6 +68,7 @@ All agents (Antigravity, OpenAI Codex, and Claude Code via `.claude/skills/`) sh
   npm run test:e2e:smoke
   npm run test:e2e:api
   npm run test:e2e:ui
+  npm run test:e2e:mobile
   npm run test:e2e
   ```
 
@@ -76,12 +87,13 @@ Strict backend guidelines:
 - Never redeclare variable type annotations inside separate conditional branches (causes mypy `[no-redef]`). Declare types before `if/else` blocks.
 - Maintain test coverage (enforced at $\ge 80\%$).
 
-### 2. Frontend Verification (`frontend/`)
+### 2. Web & Mobile Verification (`web/` & `mobile/`)
 From root:
-- `npm run test:frontend` (Runs Vitest / `ng test --watch=false`)
-- `npm run build` (Ensures zero compilation errors and budget compliance)
+- `npm run test:web` / `npm run test:mobile` (Runs Vitest / `ng test --watch=false`)
+- `npm run build:web` / `npm run build:mobile` (Ensures zero compilation errors and budget compliance)
 
 ### 3. E2E & BDD Verification (`e2e/`)
 From root:
 - `npm run lint:gherkin` (Runs `validate_gherkin.py --strict` across all `.feature` files)
-- `npm run test:e2e:smoke` (Runs `@smoke`-tagged API and Playwright UI scenarios)
+- `npm run test:e2e:smoke` (Runs `@smoke`-tagged scenarios)
+- `npm run test:e2e:mobile` (Runs `@mobile`-tagged Appium + Cucumber scenarios)

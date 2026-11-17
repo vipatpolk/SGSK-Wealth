@@ -1,0 +1,128 @@
+name: Mobile Native Build (.apk & .ipa)
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Target mobile platform to build'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - android
+          - ios
+      build_type:
+        description: 'Build configuration (debug or release)'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+          - debug
+          - release
+
+permissions:
+  contents: read
+
+jobs:
+  build-android-apk:
+    name: Build Android APK (Capacitor + Maven)
+    if: ${{ inputs.platform == 'all' || inputs.platform == 'android' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 26 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android Platform 36 & Build Tools
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Install Workspace Dependencies
+        run: npm ci
+
+      - name: Build Ionic Mobile Bundle & Sync Capacitor Android Assets
+        run: |
+          npm run build:mobile
+          npx --prefix mobile cap copy android
+
+      - name: Package Android APK via Maven
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ secrets.ANDROID_KEYSTORE_PATH }}
+          ANDROID_KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASS: ${{ secrets.ANDROID_KEY_PASS }}
+        run: mvn -f mobile/android/pom.xml clean package -Dandroid.buildType=${{ inputs.build_type }}
+
+      - name: Upload Android APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sgsk-wealth-android-${{ inputs.build_type }}-apk
+          path: mobile/android/target/sgsk-wealth-${{ inputs.build_type }}.apk
+          retention-days: 30
+
+  build-ios-ipa:
+    name: Build iOS IPA (Capacitor + Xcode)
+    if: ${{ inputs.platform == 'all' || inputs.platform == 'ios' }}
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 26 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install Workspace Dependencies
+        run: npm ci
+
+      - name: Build Ionic Mobile Bundle & Sync Capacitor iOS
+        run: |
+          npm run build:mobile
+          npx --prefix mobile cap sync ios
+
+      - name: Archive & Package iOS IPA
+        working-directory: mobile/ios/App
+        run: |
+          CONFIG=$([ "${{ inputs.build_type }}" = "release" ] && echo "Release" || echo "Debug")
+          xcodebuild \
+            -project App.xcodeproj \
+            -scheme App \
+            -configuration "$CONFIG" \
+            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
+            -archivePath build/App.xcarchive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            clean archive
+
+          mkdir -p build/ipa/Payload
+          cp -R build/App.xcarchive/Products/Applications/App.app build/ipa/Payload/
+          cd build/ipa
+          zip -qry ../sgsk-wealth-${{ inputs.build_type }}.ipa Payload
+
+      - name: Upload iOS IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sgsk-wealth-ios-${{ inputs.build_type }}-ipa
+          path: mobile/ios/App/build/sgsk-wealth-${{ inputs.build_type }}.ipa
+          retention-days: 30

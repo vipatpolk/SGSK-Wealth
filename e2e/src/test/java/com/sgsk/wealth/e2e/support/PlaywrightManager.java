@@ -27,6 +27,20 @@ public class PlaywrightManager {
         return browser.newContext(new Browser.NewContextOptions().setBaseURL(baseUrl));
     }
 
+    public synchronized BrowserContext newMobileBrowserContext(String baseUrl) {
+        if (playwright == null) {
+            playwright = Playwright.create();
+            boolean headless = properties.playwright().headless();
+            browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(headless));
+        }
+        return browser.newContext(new Browser.NewContextOptions()
+                .setBaseURL(baseUrl)
+                .setViewportSize(390, 844)
+                .setHasTouch(true)
+                .setIsMobile(true)
+                .setDeviceScaleFactor(3.0));
+    }
+
     @PreDestroy
     public synchronized void close() {
         if (browser != null) {

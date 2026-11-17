@@ -17,6 +17,7 @@
         <maven.compiler.release>25</maven.compiler.release>
         <spring-boot.version>4.1.0</spring-boot.version>
         <playwright.version>1.64.0</playwright.version>
+        <appium.version>11.0.0</appium.version>
         <rest-assured.version>6.3.0</rest-assured.version>
         <cucumber.version>8.0.4</cucumber.version>
         <junit.jupiter.version>6.1.3</junit.jupiter.version>
@@ -25,7 +26,7 @@
         <allure-maven.version>3.1.0</allure-maven.version>
         <aspectj.version>1.9.27</aspectj.version>
         <jackson.version>2.23.0</jackson.version>
-        <cucumber.filter.tags></cucumber.filter.tags>
+        <cucumber.filter.tags>not @mobile</cucumber.filter.tags>
     </properties>
 
     <dependencyManagement>
@@ -67,6 +68,19 @@
             <groupId>com.microsoft.playwright</groupId>
             <artifactId>playwright</artifactId>
             <version>${playwright.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Appium Java Client for Native iOS & Android Automation -->
+        <dependency>
+            <groupId>io.appium</groupId>
+            <artifactId>java-client</artifactId>
+            <version>${appium.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-support</artifactId>
             <scope>test</scope>
         </dependency>
 

@@ -1,8 +1,13 @@
 {
   "name": "sgsk-wealth",
   "version": "1.0.0",
-  "description": "SGSK-Wealth Monorepo - FastAPI Backend & Angular Frontend",
+  "description": "SGSK-Wealth Monorepo - FastAPI Backend, Shared Core, Angular Web SPA & Ionic Capacitor Mobile App",
   "private": true,
+  "workspaces": [
+    "shared",
+    "web",
+    "mobile"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/vipatpolk/SGSK-Wealth.git"
@@ -11,14 +16,24 @@
     "start": "node scripts/dev.mjs",
     "dev": "node scripts/dev.mjs",
     "dev:backend": "node scripts/dev.mjs --only=backend",
-    "dev:frontend": "npm --prefix frontend start",
-    "build": "npm --prefix frontend run build",
-    "build:frontend": "npm --prefix frontend run build",
-    "test": "npm run test:frontend && npm run test:backend",
-    "test:frontend": "npm --prefix frontend run test -- --watch=false",
+    "dev:web": "npm --prefix web start",
+    "dev:frontend": "npm --prefix web start",
+    "dev:mobile": "npm --prefix mobile start",
+    "build": "npm --prefix web run build",
+    "build:web": "npm --prefix web run build",
+    "build:frontend": "npm --prefix web run build",
+    "build:mobile": "npm --prefix mobile run build",
+    "cap:sync": "npm --prefix mobile run cap:sync",
+    "test": "npm run test:web && npm run test:mobile && npm run test:backend",
+    "test:web": "npm --prefix web run test -- --watch=false",
+    "test:frontend": "npm --prefix web run test -- --watch=false",
+    "test:mobile": "npm --prefix mobile run test -- --watch=false",
     "test:e2e": "node scripts/dev.mjs --e2e",
     "test:e2e:ui": "node scripts/dev.mjs --e2e --tags=@ui",
     "test:e2e:api": "node scripts/dev.mjs --e2e --tags=@api",
+    "test:e2e:mobile": "node scripts/dev.mjs --e2e --tags=@mobile",
+    "test:e2e:android": "node scripts/dev.mjs --e2e --tags=@android",
+    "test:e2e:ios": "node scripts/dev.mjs --e2e --tags=@ios",
     "test:e2e:smoke": "node scripts/dev.mjs --e2e --tags=@smoke",
     "test:e2e:report": "mvn -f e2e/pom.xml allure:serve",
     "test:e2e:report:build": "mvn -f e2e/pom.xml allure:report",
@@ -27,7 +42,7 @@
     "lint:gherkin": "py .agent/skills/cucumber-bdd-best-practices/scripts/validate_gherkin.py --strict e2e/src/test/resources/features",
     "setup:agents": "node scripts/setup-agents.mjs",
     "prepare": "node scripts/setup-agents.mjs",
-    "check": "npm run lint:gherkin && npm run lint:backend && npm run test:backend && npm run test:frontend && npm run build"
+    "check": "npm run lint:gherkin && npm run lint:backend && npm run test:backend && npm run test:web && npm run build:web && npm run test:mobile && npm run build:mobile"
   },
   "packageManager": "npm@11.10.1"
 }

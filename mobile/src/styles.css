@@ -1,0 +1,95 @@
+html,
+body {
+  font-family: 'Inter', 'Noto Sans Thai', system-ui, -apple-system, sans-serif;
+  background: var(--sgsk-surface);
+  color: var(--sgsk-text-primary);
+}
+
+.font-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.pl-positive {
+  color: var(--sgsk-positive) !important;
+}
+
+.pl-negative {
+  color: var(--sgsk-negative) !important;
+}
+
+:root[data-privacy="true"] .privacy-mask {
+  filter: blur(7px);
+  user-select: none;
+}
+
+.mobile-card {
+  margin: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--sgsk-border);
+  background: var(--sgsk-surface-raised);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+}
+
+.hero-gradient-card {
+  background: linear-gradient(145deg, rgba(59, 130, 246, 0.16), rgba(17, 20, 28, 0.96));
+  border: 1px solid rgba(59, 130, 246, 0.28);
+}
+
+:root[data-theme="light"] .hero-gradient-card {
+  background: linear-gradient(145deg, rgba(37, 99, 235, 0.1), #ffffff);
+  border: 1px solid rgba(37, 99, 235, 0.22);
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.metric-box {
+  background: var(--sgsk-surface-overlay);
+  border: 1px solid var(--sgsk-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.metric-label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sgsk-text-secondary);
+}
+
+.metric-value {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  margin-top: 3px;
+  color: var(--sgsk-text-primary);
+}
+
+.chip-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 14px;
+  scrollbar-width: none;
+}
+
+.chip-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 4px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sgsk-text-secondary);
+}

@@ -65,11 +65,8 @@ jobs:
           retention-days: 7
 
   frontend-qa:
-    name: Frontend QA (Vitest & Build)
+    name: Web Frontend QA (Vitest & Build)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -79,20 +76,43 @@ jobs:
         with:
           node-version: 26
           cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: package-lock.json
 
-      - name: Install Dependencies
+      - name: Install Workspace Dependencies
         run: npm ci
 
-      - name: Run Unit Tests
-        run: npm test
+      - name: Run Web Unit Tests
+        run: npm run test:web
 
-      - name: Build Production Bundle
-        run: npm run build
+      - name: Build Web Production Bundle
+        run: npm run build:web
+
+  mobile-qa:
+    name: Mobile App QA (Ionic Vitest & Build)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 26 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install Workspace Dependencies
+        run: npm ci
+
+      - name: Run Mobile Unit Tests
+        run: npm run test:mobile
+
+      - name: Build Mobile Production Bundle
+        run: npm run build:mobile
 
   e2e-automation:
-    name: End-to-End Automation (Java, Playwright, Rest Assured & Allure)
-    needs: [backend-qa, frontend-qa]
+    name: End-to-End Automation (Java, Playwright, Appium, Rest Assured & Allure)
+    needs: [backend-qa, frontend-qa, mobile-qa]
     runs-on: ubuntu-latest
     outputs:
       report_generated: ${{ steps.allure_gen.outputs.generated }}
@@ -100,15 +120,15 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 26 LTS (for Frontend Dev Server)
+      - name: Setup Node.js 26 LTS (for Web & Mobile Dev Servers)
         uses: actions/setup-node@v4
         with:
           node-version: 26
           cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: package-lock.json
 
-      - name: Install Frontend Dependencies
-        run: npm --prefix frontend ci
+      - name: Install Workspace Dependencies
+        run: npm ci
 
       - name: Set up JDK 25
         uses: actions/setup-java@v4

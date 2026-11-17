@@ -1,4 +1,4 @@
-@ui @mobile
+@ui @responsive
 Feature: Mobile Responsiveness & Touch Layouts
   As an investor on a mobile device
   I want responsive cards and native bottom navigation dock

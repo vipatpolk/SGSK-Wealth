@@ -2,6 +2,7 @@ package com.sgsk.wealth.e2e.context;
 
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Page;
+import io.appium.java_client.AppiumDriver;
 import io.cucumber.spring.ScenarioScope;
 import io.restassured.response.Response;
 import org.springframework.stereotype.Component;
@@ -13,6 +14,7 @@ import java.util.Map;
 public class TestContext {
     private BrowserContext browserContext;
     private Page page;
+    private AppiumDriver appiumDriver;
     private Response lastApiResponse;
     private String downloadedFileName;
     private Map<String, Object> simulationInitialPosition;
@@ -31,6 +33,14 @@ public class TestContext {
 
     public void setPage(Page page) {
         this.page = page;
+    }
+
+    public AppiumDriver getAppiumDriver() {
+        return appiumDriver;
+    }
+
+    public void setAppiumDriver(AppiumDriver appiumDriver) {
+        this.appiumDriver = appiumDriver;
     }
 
     public Response getLastApiResponse() {

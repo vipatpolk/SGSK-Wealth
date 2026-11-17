@@ -13,3 +13,15 @@ e2e:
     api-key: ${E2E_API_KEY:dev_secret_key_change_in_prod}
   playwright:
     headless: ${HEADLESS:true}
+  mobile:
+    appium-url: ${E2E_APPIUM_URL:http://127.0.0.1:4723}
+    platform: ${E2E_MOBILE_PLATFORM:ANDROID}
+    device-name: ${E2E_MOBILE_DEVICE:Pixel_8_API_35}
+    platform-version: ${E2E_MOBILE_OS_VERSION:15}
+    app-path: ${E2E_MOBILE_APP_PATH:}
+    app-package: ${E2E_MOBILE_APP_PACKAGE:com.sgsk.wealth.mobile}
+    app-activity: ${E2E_MOBILE_APP_ACTIVITY:.MainActivity}
+    bundle-id: ${E2E_MOBILE_BUNDLE_ID:com.sgsk.wealth.mobile}
+    base-url: ${E2E_MOBILE_BASE_URL:http://127.0.0.1:4201}
+    auto-webview: ${E2E_MOBILE_AUTO_WEBVIEW:true}
+    fallback-to-local-webview: ${E2E_MOBILE_FALLBACK_WEBVIEW:true}

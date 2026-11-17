@@ -119,12 +119,12 @@ def lint_feature_file(file_path: str) -> List[Issue]:
             feature_tags = list(pending_tags)
             pending_tags.clear()
 
-            # Check if feature has layer tag (@ui or @api)
-            has_layer_tag = any(t in ['@ui', '@api', '@e2e', '@integration'] for t in feature_tags)
+            # Check if feature has layer tag (@ui, @api, or @mobile)
+            has_layer_tag = any(t in ['@ui', '@api', '@mobile', '@e2e', '@integration'] for t in feature_tags)
             if not has_layer_tag:
                 issues.append(Issue(
                     file_path, i, 'TAG-01',
-                    'Feature missing layer tag (e.g. @ui, @api, @integration)',
+                    'Feature missing layer tag (e.g. @ui, @api, @mobile, @integration)',
                     'WARNING', raw_line
                 ))
             continue
