@@ -309,6 +309,8 @@ async function main() {
   fs.writeFileSync(manifestPath, resolvedManifest, 'utf8');
 
   const unalignedApk = path.join(targetDir, 'sgsk-wealth-unaligned.apk');
+  const [baseResZip, ...overlayResZips] = flatZipPaths;
+  const overlayArgs = overlayResZips.flatMap((z) => ['-R', z]);
   const linkArgs = [
     'link',
     '--auto-add-overlay',
@@ -333,7 +335,8 @@ async function main() {
       'androidx.activity',
       'androidx.webkit',
     ].join(':'),
-    ...flatZipPaths,
+    baseResZip,
+    ...overlayArgs,
   ];
   run(aapt2, linkArgs);
 
