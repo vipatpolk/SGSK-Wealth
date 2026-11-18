@@ -6,11 +6,14 @@ const config: CapacitorConfig = {
   webDir: 'dist/sgsk-wealth-mobile/browser',
   server: {
     androidScheme: 'http',
-    iosScheme: 'http',
+    iosScheme: 'capacitor',
     cleartext: true,
     allowNavigation: ['10.0.2.2', '127.0.0.1', 'localhost'],
   },
   plugins: {
+    CapacitorHttp: {
+      enabled: true,
+    },
     SplashScreen: {
       launchShowDuration: 1200,
       launchAutoHide: true,

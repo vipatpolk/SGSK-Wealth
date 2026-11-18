@@ -26,7 +26,13 @@ class Settings(BaseSettings):
     environment: str = "development"
     backend_api_key: str = "dev_secret_key_change_in_prod"
     backend_api_key_previous: str = ""
-    allowed_origins: list[str] = ["http://localhost:4200"]
+    allowed_origins: list[str] = [
+        "http://localhost:4200",
+        "http://localhost:4201",
+        "http://localhost",
+        "https://localhost",
+        "capacitor://localhost",
+    ]
     sec_subscription_key: str = ""
     google_spreadsheet_id: str = "sample_spreadsheet_id"
     google_pvd_spreadsheet_id: str = "sample_pvd_spreadsheet_id"

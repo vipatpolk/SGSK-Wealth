@@ -1,4 +1,32 @@
+const ALLOWED_CORS_ORIGINS = new Set([
+  'http://localhost',
+  'https://localhost',
+  'capacitor://localhost',
+  'http://localhost:4200',
+  'http://localhost:4201',
+  'https://sgsk-wealth.vercel.app',
+]);
+
+function applyCorsHeaders(req, res) {
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_CORS_ORIGINS.has(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Content-Type, X-API-Key, X-App-Source, X-Requested-With',
+    );
+  }
+}
+
 export default async function handler(req, res) {
+  applyCorsHeaders(req, res);
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+
   const backendOrigin = (process.env.BACKEND_ORIGIN_URL || 'https://api-sgsk-wealth.vercel.app').replace(/\/+$/, '');
   const apiKey = process.env.BACKEND_API_KEY || '';
 

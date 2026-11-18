@@ -112,6 +112,10 @@ jobs:
           xcodebuild \
             -project App.xcodeproj \
             -scheme App \
+            -resolvePackageDependencies
+          xcodebuild \
+            -project App.xcodeproj \
+            -scheme App \
             -configuration "$CONFIG" \
             -sdk iphoneos \
             -destination "generic/platform=iOS" \

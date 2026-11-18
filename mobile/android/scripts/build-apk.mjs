@@ -146,6 +146,22 @@ function parsePomDependencies(pomXml) {
   const packaging = pkgMatch ? pkgMatch[1].trim() : 'jar';
   const deps = [];
 
+  const mgmtVersions = new Map();
+  const mgmtSection = /<dependencyManagement>([\s\S]*?)<\/dependencyManagement>/.exec(pomXml);
+  if (mgmtSection) {
+    const mgmtDepRegex = /<dependency>([\s\S]*?)<\/dependency>/g;
+    let mgmtMatch;
+    while ((mgmtMatch = mgmtDepRegex.exec(mgmtSection[1])) !== null) {
+      const block = mgmtMatch[1];
+      const g = /<groupId>([^<]+)<\/groupId>/.exec(block)?.[1]?.trim();
+      const a = /<artifactId>([^<]+)<\/artifactId>/.exec(block)?.[1]?.trim();
+      const v = /<version>([^<]+)<\/version>/.exec(block)?.[1]?.trim();
+      if (g && a && v && !v.includes('${')) {
+        mgmtVersions.set(`${g}:${a}`, cleanVersionRange(v));
+      }
+    }
+  }
+
   const withoutMgmt = pomXml.replace(/<dependencyManagement>[\s\S]*?<\/dependencyManagement>/g, '');
   const depsSection = /<dependencies>([\s\S]*?)<\/dependencies>/.exec(withoutMgmt);
   if (!depsSection) return { packaging, deps };
@@ -156,20 +172,42 @@ function parsePomDependencies(pomXml) {
     const block = match[1].replace(/<exclusions>[\s\S]*?<\/exclusions>/g, '');
     const g = /<groupId>([^<]+)<\/groupId>/.exec(block)?.[1]?.trim();
     const a = /<artifactId>([^<]+)<\/artifactId>/.exec(block)?.[1]?.trim();
-    const v = /<version>([^<]+)<\/version>/.exec(block)?.[1]?.trim();
+    let v = /<version>([^<]+)<\/version>/.exec(block)?.[1]?.trim();
     const scope = /<scope>([^<]+)<\/scope>/.exec(block)?.[1]?.trim() || 'compile';
     const optional = /<optional>([^<]+)<\/optional>/.exec(block)?.[1]?.trim() === 'true';
     const type = /<type>([^<]+)<\/type>/.exec(block)?.[1]?.trim();
-    if (!g || !a || !v || v.includes('${') || optional) continue;
+    if (!g || !a || optional) continue;
     if (scope !== 'compile' && scope !== 'runtime') continue;
+    if (!v) {
+      v = mgmtVersions.get(`${g}:${a}`);
+    }
+    if (!v || v.includes('${')) continue;
     deps.push({ groupId: g, artifactId: a, version: cleanVersionRange(v), type });
   }
   return { packaging, deps };
 }
 
+function compareVersions(a, b) {
+  const pa = a.split(/[.-]/).map((s) => (/^\d+$/.test(s) ? Number(s) : s));
+  const pb = b.split(/[.-]/).map((s) => (/^\d+$/.test(s) ? Number(s) : s));
+  const len = Math.max(pa.length, pb.length);
+  for (let i = 0; i < len; i++) {
+    const va = pa[i] ?? 0;
+    const vb = pb[i] ?? 0;
+    if (typeof va === 'number' && typeof vb === 'number') {
+      if (va !== vb) return va - vb;
+    } else {
+      const sa = String(va);
+      const sb = String(vb);
+      if (sa !== sb) return sa.localeCompare(sb);
+    }
+  }
+  return 0;
+}
+
 async function resolveTransitiveArtifacts() {
   fs.mkdirSync(depsDir, { recursive: true });
-  const visited = new Map(); // groupId:artifactId -> { version, file }
+  const resolved = new Map(); // groupId:artifactId -> { version, file, ext }
   const queue = ROOT_COORDS.map((c) => {
     const [groupId, artifactId, version] = c.split(':');
     return { groupId, artifactId, version };
@@ -178,7 +216,10 @@ async function resolveTransitiveArtifacts() {
   while (queue.length > 0) {
     const cur = queue.shift();
     const key = `${cur.groupId}:${cur.artifactId}`;
-    if (IGNORED_ARTIFACTS.has(key) || visited.has(key)) continue;
+    if (IGNORED_ARTIFACTS.has(key)) continue;
+
+    const existing = resolved.get(key);
+    if (existing && compareVersions(existing.version, cur.version) >= 0) continue;
 
     const groupPath = cur.groupId.replace(/\./g, '/');
     const pomRel = `${groupPath}/${cur.artifactId}/${cur.version}/${cur.artifactId}-${cur.version}.pom`;
@@ -193,32 +234,52 @@ async function resolveTransitiveArtifacts() {
       const artRel = `${groupPath}/${cur.artifactId}/${cur.version}/${cur.artifactId}-${cur.version}.${ext}`;
       const artPath = await fetchToLocalM2(artRel);
       if (artPath) {
+        if (existing?.file && fs.existsSync(existing.file)) {
+          fs.rmSync(existing.file, { force: true });
+        }
         const destPath = path.join(depsDir, `${cur.artifactId}-${cur.version}.${ext}`);
         if (!fs.existsSync(destPath)) {
           fs.copyFileSync(artPath, destPath);
         }
-        visited.set(key, { version: cur.version, file: destPath });
+        resolved.set(key, { version: cur.version, file: destPath, ext });
       }
     } else {
-      visited.set(key, { version: cur.version, file: null });
+      resolved.set(key, { version: cur.version, file: null, ext: null });
     }
 
     for (const d of deps) {
-      if (!visited.has(`${d.groupId}:${d.artifactId}`)) {
+      const depKey = `${d.groupId}:${d.artifactId}`;
+      const depExisting = resolved.get(depKey);
+      if (!depExisting || compareVersions(depExisting.version, d.version) < 0) {
         queue.push(d);
       }
+    }
+  }
+
+  // Remove any stale artifact files in depsDir not matching the winning version
+  const winningFiles = new Set(
+    [...resolved.values()].map((r) => r.file).filter(Boolean).map((f) => path.basename(f))
+  );
+  for (const file of fs.readdirSync(depsDir)) {
+    if (!winningFiles.has(file)) {
+      fs.rmSync(path.join(depsDir, file), { force: true });
     }
   }
 }
 
 function extractAarArchives() {
+  fs.rmSync(unpackedDir, { recursive: true, force: true });
   fs.mkdirSync(unpackedDir, { recursive: true });
   const jars = [];
   const aarResDirs = [];
+  const aarManifests = [];
+  const aarRPackages = new Set();
 
-  if (!fs.existsSync(depsDir)) return { jars, aarResDirs };
+  if (!fs.existsSync(depsDir)) {
+    return { jars, aarResDirs, aarManifests, aarRPackages };
+  }
 
-  for (const file of fs.readdirSync(depsDir)) {
+  for (const file of fs.readdirSync(depsDir).sort()) {
     const full = path.join(depsDir, file);
     if (file.endsWith('.jar')) {
       jars.push(full);
@@ -227,19 +288,179 @@ function extractAarArchives() {
       const out = path.join(unpackedDir, name);
       fs.mkdirSync(out, { recursive: true });
       run('jar', ['xf', full], { cwd: out });
+
       const classesJar = path.join(out, 'classes.jar');
       if (fs.existsSync(classesJar)) {
         const renamedJar = path.join(out, `${name}.jar`);
         fs.copyFileSync(classesJar, renamedJar);
         jars.push(renamedJar);
       }
+
+      const libsDir = path.join(out, 'libs');
+      if (fs.existsSync(libsDir)) {
+        for (const libFile of fs.readdirSync(libsDir).sort()) {
+          if (libFile.endsWith('.jar')) {
+            const renamedLib = path.join(out, `${name}-${libFile}`);
+            fs.copyFileSync(path.join(libsDir, libFile), renamedLib);
+            jars.push(renamedLib);
+          }
+        }
+      }
+
       const resDir = path.join(out, 'res');
-      if (fs.existsSync(resDir) && fs.readdirSync(resDir).length > 0) {
+      const hasRes = fs.existsSync(resDir) && fs.readdirSync(resDir).length > 0;
+      if (hasRes) {
         aarResDirs.push({ name, resDir });
+      }
+
+      const rTxtPath = path.join(out, 'R.txt');
+      const hasRTxt = fs.existsSync(rTxtPath) && fs.readFileSync(rTxtPath, 'utf8').trim().length > 0;
+
+      const manifestFile = path.join(out, 'AndroidManifest.xml');
+      if (fs.existsSync(manifestFile)) {
+        const manifestXml = fs.readFileSync(manifestFile, 'utf8');
+        aarManifests.push({ name, xml: manifestXml });
+        const pkgMatch = /\bpackage="([^"]+)"/.exec(manifestXml);
+        if (pkgMatch && (hasRes || hasRTxt)) {
+          aarRPackages.add(pkgMatch[1]);
+        }
       }
     }
   }
-  return { jars, aarResDirs };
+  return { jars, aarResDirs, aarManifests, aarRPackages };
+}
+
+function getAttr(tagStr, attrName) {
+  const m = new RegExp(`\\b${attrName}="([^"]+)"`).exec(tagStr);
+  return m ? m[1] : null;
+}
+
+function stripToolsAttrs(xml) {
+  return xml.replace(/\s+tools:[A-Za-z0-9_.-]+="[^"]*"/g, '');
+}
+
+function mergeAndroidManifests(appManifestXml, libraryManifests, appId) {
+  const replaceAppId = (s) => s.replace(/\$\{applicationId\}/g, appId);
+  let merged = replaceAppId(appManifestXml);
+
+  if (!/\bpackage=/.test(merged)) {
+    merged = merged.replace(
+      /<manifest\b/,
+      `<manifest package="${appId}" android:versionCode="1" android:versionName="1.0"`
+    );
+  }
+
+  const seenTopTags = new Set();
+  const seenComponents = new Set();
+  const extraTopBlocks = [];
+  const extraAppBlocks = [];
+  const startupMetaData = new Map();
+  let startupProviderOpenTag = null;
+  let appComponentFactory = null;
+
+  const trackExisting = (xml) => {
+    for (const m of xml.matchAll(/<(permission|uses-permission|uses-feature)\b[^>]*>/g)) {
+      const name = getAttr(m[0], 'android:name');
+      if (name) seenTopTags.add(`${m[1]}:${name}`);
+    }
+    for (const m of xml.matchAll(/<(provider|receiver|service|activity)\b[^>]*>/g)) {
+      const name = getAttr(m[0], 'android:name');
+      if (name) seenComponents.add(`${m[1]}:${name}`);
+    }
+  };
+  trackExisting(merged);
+
+  for (const lib of libraryManifests) {
+    const xml = replaceAppId(lib.xml);
+
+    // Capture application-level android:appComponentFactory
+    const appOpenMatch = /<application\b([^>]*)>/.exec(xml);
+    if (appOpenMatch && !appComponentFactory) {
+      const factory = getAttr(appOpenMatch[1], 'android:appComponentFactory');
+      if (factory) appComponentFactory = factory;
+    }
+
+    // Top-level permissions & features
+    for (const m of xml.matchAll(/<(permission|uses-permission|uses-feature)\b[^>]*\/?>/g)) {
+      const tag = m[1];
+      const name = getAttr(m[0], 'android:name');
+      if (!name) continue;
+      const key = `${tag}:${name}`;
+      if (!seenTopTags.has(key)) {
+        seenTopTags.add(key);
+        const selfClosing = m[0].endsWith('/>') ? m[0] : `${m[0]}</${tag}>`;
+        extraTopBlocks.push(stripToolsAttrs(selfClosing));
+      }
+    }
+
+    // Extract <application> inner components (<provider>, <receiver>, <service>, <activity>)
+    const appBodyMatch = /<application\b[^>]*>([\s\S]*?)<\/application>/.exec(xml);
+    if (!appBodyMatch) continue;
+    const appBody = appBodyMatch[1];
+
+    for (const tag of ['provider', 'receiver', 'service', 'activity']) {
+      const regex = new RegExp(`<${tag}\\b([\\s\\S]*?)(?:/>|>[\\s\\S]*?</${tag}>)`, 'g');
+      for (const m of appBody.matchAll(regex)) {
+        const block = m[0];
+        const compName = getAttr(block, 'android:name');
+        if (!compName) continue;
+
+        if (tag === 'provider' && compName === 'androidx.startup.InitializationProvider') {
+          if (!startupProviderOpenTag) {
+            const openMatch = /<provider\b([^>]*?)(\/?)>/.exec(block);
+            if (openMatch) {
+              startupProviderOpenTag = stripToolsAttrs(`<provider${openMatch[1]}>`);
+            }
+          }
+          for (const md of block.matchAll(/<meta-data\b[^>]*\/?>/g)) {
+            const mdName = getAttr(md[0], 'android:name');
+            if (mdName && !startupMetaData.has(mdName)) {
+              const mdTag = md[0].endsWith('/>') ? md[0] : `${md[0]}</meta-data>`;
+              startupMetaData.set(mdName, stripToolsAttrs(mdTag));
+            }
+          }
+          continue;
+        }
+
+        const key = `${tag}:${compName}`;
+        if (!seenComponents.has(key)) {
+          seenComponents.add(key);
+          extraAppBlocks.push(stripToolsAttrs(block));
+        }
+      }
+    }
+  }
+
+  if (startupProviderOpenTag && !seenComponents.has('provider:androidx.startup.InitializationProvider')) {
+    const metaLines = [...startupMetaData.values()].map((m) => `            ${m}`).join('\n');
+    const providerBlock = metaLines
+      ? `${startupProviderOpenTag}\n${metaLines}\n        </provider>`
+      : `${startupProviderOpenTag}</provider>`;
+    extraAppBlocks.push(providerBlock);
+  }
+
+  if (appComponentFactory && !/\bandroid:appComponentFactory=/.test(merged)) {
+    merged = merged.replace(
+      /<application\b/,
+      `<application\n        android:appComponentFactory="${appComponentFactory}"`
+    );
+  }
+
+  if (extraAppBlocks.length > 0) {
+    merged = merged.replace(
+      /<\/application>/,
+      `    ${extraAppBlocks.join('\n\n        ')}\n    </application>`
+    );
+  }
+
+  if (extraTopBlocks.length > 0) {
+    merged = merged.replace(
+      /<\/manifest>/,
+      `\n    ${extraTopBlocks.join('\n    ')}\n</manifest>`
+    );
+  }
+
+  return merged;
 }
 
 async function main() {
@@ -255,7 +476,9 @@ async function main() {
   const buildToolsDir = findLatestBuildTools(sdkDir);
   const platformJar = path.join(sdkDir, 'platforms', `android-${opts.compileSdk}`, 'android.jar');
   if (!fs.existsSync(platformJar)) {
-    throw new Error(`Android platform jar not found at ${platformJar}`);
+    const platformsDir = path.join(sdkDir, 'platforms');
+    const available = fs.existsSync(platformsDir) ? fs.readdirSync(platformsDir).join(', ') : 'none';
+    throw new Error(`Android platform jar not found at ${platformJar} (installed platforms: ${available})`);
   }
 
   const aapt2 = path.join(buildToolsDir, exe('aapt2'));
@@ -266,21 +489,56 @@ async function main() {
   console.log(`[Maven-Android] Using SDK: ${sdkDir}`);
   console.log(`[Maven-Android] Using build-tools: ${buildToolsDir}`);
 
-  fs.mkdirSync(compiledResDir, { recursive: true });
-  fs.mkdirSync(genJavaDir, { recursive: true });
-  fs.mkdirSync(classesDir, { recursive: true });
-  fs.mkdirSync(dexDir, { recursive: true });
+  for (const dir of [compiledResDir, genJavaDir, classesDir, dexDir]) {
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.mkdirSync(dir, { recursive: true });
+  }
 
-  const { jars, aarResDirs } = extractAarArchives();
+  const { jars, aarResDirs, aarManifests, aarRPackages } = extractAarArchives();
 
-  const capacitorAndroidDir = path.join(findPackageInNodeModules('@capacitor/android'), 'capacitor', 'src', 'main');
-  const capacitorPlugins = [
+  const capacitorAndroidRoot = path.join(findPackageInNodeModules('@capacitor/android'), 'capacitor');
+  const capacitorAndroidDir = path.join(capacitorAndroidRoot, 'src', 'main');
+  const capacitorPluginRoots = [
     '@capacitor/app',
     '@capacitor/haptics',
     '@capacitor/preferences',
     '@capacitor/splash-screen',
     '@capacitor/status-bar',
-  ].map((pkg) => path.join(findPackageInNodeModules(pkg), 'android', 'src', 'main'));
+  ].map((pkg) => ({
+    pkg,
+    androidRoot: path.join(findPackageInNodeModules(pkg), 'android'),
+    mainDir: path.join(findPackageInNodeModules(pkg), 'android', 'src', 'main'),
+  }));
+  const capacitorPlugins = capacitorPluginRoots.map((p) => p.mainDir);
+
+  const libraryManifests = [...aarManifests];
+  const capManifestPath = path.join(capacitorAndroidDir, 'AndroidManifest.xml');
+  if (fs.existsSync(capManifestPath)) {
+    libraryManifests.push({ name: '@capacitor/android', xml: fs.readFileSync(capManifestPath, 'utf8') });
+  }
+
+  const extraPackages = new Set([
+    'com.getcapacitor',
+    'com.getcapacitor.android',
+    'org.apache.cordova',
+    ...aarRPackages,
+  ]);
+
+  for (const plugin of capacitorPluginRoots) {
+    const manifestPath = path.join(plugin.mainDir, 'AndroidManifest.xml');
+    if (fs.existsSync(manifestPath)) {
+      const xml = fs.readFileSync(manifestPath, 'utf8');
+      libraryManifests.push({ name: plugin.pkg, xml });
+      const pkgMatch = /\bpackage="([^"]+)"/.exec(xml);
+      if (pkgMatch) extraPackages.add(pkgMatch[1]);
+    }
+    const gradlePath = path.join(plugin.androidRoot, 'build.gradle');
+    if (fs.existsSync(gradlePath)) {
+      const gradleTxt = fs.readFileSync(gradlePath, 'utf8');
+      const nsMatch = /\bnamespace\s*=?\s*["']([^"']+)["']/.exec(gradleTxt);
+      if (nsMatch) extraPackages.add(nsMatch[1]);
+    }
+  }
 
   const appMainDir = path.join(androidDir, 'app', 'src', 'main');
   const resDirs = [
@@ -298,13 +556,7 @@ async function main() {
   });
 
   const rawManifest = fs.readFileSync(path.join(appMainDir, 'AndroidManifest.xml'), 'utf8');
-  let resolvedManifest = rawManifest.replace(/\$\{applicationId\}/g, 'com.sgsk.wealth.mobile');
-  if (!/\bpackage=/.test(resolvedManifest)) {
-    resolvedManifest = resolvedManifest.replace(
-      /<manifest\b/,
-      '<manifest package="com.sgsk.wealth.mobile" android:versionCode="1" android:versionName="1.0"'
-    );
-  }
+  const resolvedManifest = mergeAndroidManifests(rawManifest, libraryManifests, 'com.sgsk.wealth.mobile');
   const manifestPath = path.join(targetDir, 'AndroidManifest.xml');
   fs.writeFileSync(manifestPath, resolvedManifest, 'utf8');
 
@@ -314,31 +566,35 @@ async function main() {
   const linkArgs = [
     'link',
     '--auto-add-overlay',
+    ...(opts.buildType === 'debug' ? ['--debug-mode'] : []),
     '-I', platformJar,
     '--manifest', manifestPath,
     '--min-sdk-version', opts.minSdk,
     '--target-sdk-version', opts.targetSdk,
     '--java', genJavaDir,
-    '-A', path.join(appMainDir, 'assets'),
     '-o', unalignedApk,
     '--extra-packages',
-    [
-      'com.getcapacitor',
-      'com.getcapacitor.android',
-      'com.capacitorjs.plugins.splashscreen',
-      'androidx.appcompat',
-      'androidx.appcompat.resources',
-      'androidx.core',
-      'androidx.core.splashscreen',
-      'androidx.coordinatorlayout',
-      'androidx.fragment',
-      'androidx.activity',
-      'androidx.webkit',
-    ].join(':'),
+    [...extraPackages].sort().join(':'),
     baseResZip,
     ...overlayArgs,
   ];
   run(aapt2, linkArgs);
+
+  // Stage assets from @capacitor/android, plugins, and app into target/staged-assets/assets
+  // and add via `jar uf` so ZIP entry paths always use `/` (aapt2 -A emits `\` on Windows).
+  const stagedRoot = path.join(targetDir, 'staged-assets');
+  const stagedAssetsDir = path.join(stagedRoot, 'assets');
+  fs.rmSync(stagedRoot, { recursive: true, force: true });
+  fs.mkdirSync(stagedAssetsDir, { recursive: true });
+  const assetDirs = [
+    path.join(capacitorAndroidDir, 'assets'),
+    ...capacitorPlugins.map((p) => path.join(p, 'assets')),
+    path.join(appMainDir, 'assets'),
+  ].filter((d) => fs.existsSync(d));
+  for (const dir of assetDirs) {
+    fs.cpSync(dir, stagedAssetsDir, { recursive: true, force: true });
+  }
+  run('jar', ['uf', unalignedApk, '-C', stagedRoot, 'assets']);
 
   const javaSources = [
     ...walkFiles(genJavaDir, (f) => f.endsWith('.java')),
