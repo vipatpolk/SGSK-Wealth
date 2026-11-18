@@ -1,20 +1,20 @@
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import {
-  IonBadge,
-  IonCard,
-  IonCardContent,
-  IonCardHeader,
-  IonCardTitle,
-  IonChip,
   IonContent,
   IonItem,
   IonLabel,
-  IonList,
+  IonRefresher,
+  IonRefresherContent,
+  IonSearchbar,
   IonSegment,
   IonSegmentButton,
+  IonSelect,
+  IonSelectOption,
   IonSpinner,
 } from '@ionic/angular';
+import { DateRange, DateRangePickerComponent } from '@shared/components/date-range-picker/date-range-picker.component';
+import { SymbolIconComponent } from '@shared/components/symbol-icon/symbol-icon.component';
 import { AnalyticsSubTab } from '@shared/config/asset.constants';
 import {
   PortfolioAllocationResponse,
@@ -22,6 +22,15 @@ import {
 } from '@shared/models/portfolio.model';
 import { TranslatePipe } from '@shared/pipes/translate.pipe';
 import { PortfolioService } from '@shared/services/portfolio.service';
+import {
+  convertCurrency,
+  displaySymbol,
+  getAssetColor,
+  getAssetType,
+  getAssetTypeLabel,
+  getSymbolColor,
+  resolveSymbolName,
+} from '@shared/utils/format.utils';
 import { MobileStateService } from '../../services/mobile-state.service';
 
 @Component({
@@ -32,170 +41,22 @@ import { MobileStateService } from '../../services/mobile-state.service';
     CurrencyPipe,
     DecimalPipe,
     TranslatePipe,
+    SymbolIconComponent,
+    DateRangePickerComponent,
     IonContent,
+    IonRefresher,
+    IonRefresherContent,
     IonSegment,
     IonSegmentButton,
     IonLabel,
-    IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardContent,
-    IonList,
+    IonSearchbar,
     IonItem,
-    IonBadge,
-    IonChip,
+    IonSelect,
+    IonSelectOption,
     IonSpinner,
   ],
-  template: `
-    <ion-content>
-      <div style="padding:10px 14px 4px;">
-        <ion-segment
-          id="mobile-analytics-segment"
-          [value]="state.analyticsSubTab()"
-          (ionChange)="onSegmentChange($event)"
-        >
-          <ion-segment-button value="overview" id="mobile-analytics-overview">
-            <ion-label>{{ 'analytics.tab.overview' | t }}</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="allocation" id="mobile-analytics-allocation">
-            <ion-label>{{ 'analytics.tab.allocation' | t }}</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="performance" id="mobile-analytics-performance">
-            <ion-label>{{ 'analytics.tab.performance' | t }}</ion-label>
-          </ion-segment-button>
-        </ion-segment>
-      </div>
-
-      @if (loading()) {
-        <div class="ion-text-center ion-padding" style="margin-top:32px;">
-          <ion-spinner name="crescent"></ion-spinner>
-        </div>
-      } @else if (state.analyticsSubTab() === 'allocation' && allocation(); as alloc) {
-        <ion-card class="mobile-card" id="mobile-currency-exposure">
-          <ion-card-header>
-            <ion-card-title>{{ 'allocation.currencyExposure' | t }}</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <div class="metric-grid">
-              <div class="metric-box">
-                <span class="metric-label">USD ({{ alloc.currencyExposure.usdPercent | number: '1.1-1' }}%)</span>
-                <span class="metric-value font-mono privacy-mask">
-                  {{ alloc.currencyExposure.usd | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
-                </span>
-              </div>
-              <div class="metric-box">
-                <span class="metric-label">THB ({{ alloc.currencyExposure.thbPercent | number: '1.1-1' }}%)</span>
-                <span class="metric-value font-mono privacy-mask">
-                  {{ alloc.currencyExposure.thb | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
-                </span>
-              </div>
-            </div>
-          </ion-card-content>
-        </ion-card>
-
-        <ion-card class="mobile-card" id="mobile-rebalance-recommendations">
-          <ion-card-header>
-            <ion-card-title>{{ 'allocation.rebalancePlan' | t }}</ion-card-title>
-          </ion-card-header>
-          <ion-list lines="full">
-            @for (rec of alloc.recommendations; track rec.assetType) {
-              <ion-item>
-                <ion-label>
-                  <h3>{{ rec.label }}</h3>
-                  <p class="font-mono">
-                    {{ rec.actualPercent | number: '1.1-1' }}% â†’ {{ rec.targetPercent | number: '1.1-1' }}%
-                  </p>
-                </ion-label>
-                <ion-badge
-                  slot="end"
-                  [color]="rec.action === 'BUY' ? 'success' : rec.action === 'SELL' ? 'danger' : 'medium'"
-                >
-                  {{ rec.action }}
-                </ion-badge>
-              </ion-item>
-            }
-          </ion-list>
-        </ion-card>
-      } @else if (performance(); as perf) {
-        @if (state.analyticsSubTab() === 'performance') {
-          <div class="chip-scroll" id="mobile-timeframe-chips">
-            @for (tf of timeframes; track tf) {
-              <ion-chip
-                [color]="timeframe() === tf ? 'primary' : 'medium'"
-                [outline]="timeframe() !== tf"
-                (click)="setTimeframe(tf)"
-              >
-                {{ tf }}
-              </ion-chip>
-            }
-          </div>
-        }
-
-        <ion-card class="mobile-card" id="mobile-performance-summary">
-          <ion-card-header>
-            <ion-card-title>{{ 'performance.title' | t }}</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <div class="metric-grid">
-              <div class="metric-box">
-                <span class="metric-label">{{ 'common.totalInvested' | t }}</span>
-                <span class="metric-value font-mono privacy-mask">
-                  {{ perf.summary.totalInvested | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
-                </span>
-              </div>
-              <div class="metric-box">
-                <span class="metric-label">{{ 'summary.holdingValue' | t }}</span>
-                <span class="metric-value font-mono privacy-mask">
-                  {{ perf.summary.totalValue | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
-                </span>
-              </div>
-              <div class="metric-box">
-                <span class="metric-label">{{ 'performance.totalReturn' | t }}</span>
-                <span
-                  class="metric-value font-mono privacy-mask"
-                  [class.pl-positive]="perf.summary.totalReturn >= 0"
-                  [class.pl-negative]="perf.summary.totalReturn < 0"
-                >
-                  {{ perf.summary.totalReturn >= 0 ? '+' : ''
-                  }}{{ perf.summary.totalReturn | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
-                </span>
-              </div>
-              <div class="metric-box">
-                <span class="metric-label">{{ 'performance.returnPct' | t }}</span>
-                <span
-                  class="metric-value font-mono"
-                  [class.pl-positive]="perf.summary.totalReturnPercent >= 0"
-                  [class.pl-negative]="perf.summary.totalReturnPercent < 0"
-                >
-                  {{ perf.summary.totalReturnPercent >= 0 ? '+' : ''
-                  }}{{ perf.summary.totalReturnPercent | number: '1.2-2' }}%
-                </span>
-              </div>
-            </div>
-          </ion-card-content>
-        </ion-card>
-
-        <ion-card class="mobile-card">
-          <ion-card-header>
-            <ion-card-title>{{ 'performance.topGainers' | t }}</ion-card-title>
-          </ion-card-header>
-          <ion-list lines="full">
-            @for (item of perf.topGainers.slice(0, 5); track item.symbol) {
-              <ion-item>
-                <ion-label>
-                  <h3>{{ item.displaySymbol }}</h3>
-                  <p>{{ item.name }}</p>
-                </ion-label>
-                <span slot="end" class="font-mono pl-positive">
-                  +{{ item.totalReturnPercent | number: '1.2-2' }}%
-                </span>
-              </ion-item>
-            }
-          </ion-list>
-        </ion-card>
-      }
-    </ion-content>
-  `,
+  templateUrl: './mobile-analytics.page.html',
+  styleUrl: './mobile-analytics.page.css',
 })
 export class MobileAnalyticsPage {
   readonly state = inject(MobileStateService);
@@ -203,32 +64,434 @@ export class MobileAnalyticsPage {
 
   readonly timeframes = ['1M', '3M', '6M', 'YTD', '1Y', 'ALL'] as const;
   readonly timeframe = signal<string>('ALL');
+  readonly startDate = signal<string>('');
+  readonly endDate = signal<string>('');
   readonly loading = signal<boolean>(false);
+
   readonly performance = signal<PortfolioPerformanceResponse | null>(null);
   readonly allocation = signal<PortfolioAllocationResponse | null>(null);
+
+  // Allocation drilldown state
+  readonly selectedAssetType = signal<string | null>(null);
+  readonly showAllHoldings = signal<boolean>(false);
+
+  // Performance filter/sort state
+  readonly perfSearchQuery = signal<string>('');
+  readonly perfAssetFilter = signal<string>('all');
+  readonly perfStatusFilter = signal<string>('all');
+  readonly perfSortField = signal<string>('totalReturn');
+  readonly perfSortDir = signal<'asc' | 'desc'>('desc');
+  readonly showAllPerfSymbols = signal<boolean>(false);
+
+  readonly getAssetColorFn = getAssetColor;
 
   constructor() {
     effect(() => {
       const currency = this.state.displayCurrency();
       const tf = this.timeframe();
-      this.loadAnalytics(currency, tf);
+      const s = this.startDate();
+      const e = this.endDate();
+      const effectiveTf = s || e ? 'CUSTOM' : tf;
+      this.loadAnalytics(currency, effectiveTf, s, e);
     });
+  }
+
+  private cx(value: number, fromCurrency: string): number {
+    if (!this.state.hasRate()) return value;
+    return convertCurrency(
+      value,
+      fromCurrency,
+      this.state.displayCurrency(),
+      this.state.exchangeRate()
+    );
+  }
+
+  readonly summaryKPIs = computed(() => {
+    const perf = this.performance();
+    if (perf?.summary && (perf.summary.totalInvested > 0 || perf.summary.totalValue > 0)) {
+      return {
+        totalInvested: this.cx(perf.summary.totalInvested, perf.currency),
+        totalCurrentValue: this.cx(perf.summary.totalValue, perf.currency),
+        totalUnrealizedPL: this.cx(perf.summary.totalUnrealizedPL, perf.currency),
+        totalUnrealizedPLPercent: perf.summary.totalUnrealizedPLPercent,
+        totalRealizedPL: this.cx(perf.summary.totalRealizedPL, perf.currency),
+        totalRealizedPLPercent: perf.summary.totalRealizedPLPercent,
+        totalReturn: this.cx(perf.summary.totalReturn, perf.currency),
+        totalReturnPercent: perf.summary.totalReturnPercent,
+      };
+    }
+
+    let openInvested = 0;
+    let openValue = 0;
+    let closedInvested = 0;
+    let closedRealized = 0;
+    const pm = this.state.prices();
+
+    for (const s of this.state.openSummaries()) {
+      const pd = pm.get(s.symbol);
+      openInvested += this.cx(s.totalCost, s.currency);
+      openValue +=
+        pd && pd.price > 0
+          ? this.cx(s.totalShares * pd.price, pd.currency)
+          : this.cx(s.totalShares * s.averageCost, s.currency);
+    }
+
+    for (const c of this.state.closedSummaries()) {
+      for (const lot of c.lots) {
+        const cur = lot.currency || c.currency;
+        closedInvested += this.cx(lot.totalCost, cur);
+        closedRealized += this.cx(lot.realizedPL, cur);
+      }
+    }
+
+    const totalInvested = openInvested + closedInvested;
+    const totalUnrealizedPL = openValue - openInvested;
+    const totalUnrealizedPLPercent = openInvested > 0 ? (totalUnrealizedPL / openInvested) * 100 : 0;
+    const totalRealizedPL = closedRealized;
+    const totalRealizedPLPercent = closedInvested > 0 ? (totalRealizedPL / closedInvested) * 100 : 0;
+    const totalReturn = totalRealizedPL + totalUnrealizedPL;
+    const totalReturnPercent = totalInvested > 0 ? (totalReturn / totalInvested) * 100 : 0;
+
+    return {
+      totalInvested,
+      totalCurrentValue: openValue,
+      totalUnrealizedPL,
+      totalUnrealizedPLPercent,
+      totalRealizedPL,
+      totalRealizedPLPercent,
+      totalReturn,
+      totalReturnPercent,
+    };
+  });
+
+  // --- Allocation & Overview Donut ---
+  readonly assetClassDistribution = computed(() => {
+    const pm = this.state.prices();
+    const typeMap = new Map<string, number>();
+    const lang = this.state.i18n.lang();
+
+    for (const s of this.state.openSummaries()) {
+      const pd = pm.get(s.symbol);
+      const val =
+        pd && pd.price > 0
+          ? this.cx(s.totalShares * pd.price, pd.currency)
+          : this.cx(s.totalCost, s.currency);
+      if (val > 0) {
+        const type = getAssetType(s.assetType, s.symbol);
+        typeMap.set(type, (typeMap.get(type) ?? 0) + val);
+      }
+    }
+
+    const totalVal = Array.from(typeMap.values()).reduce((a, b) => a + b, 0);
+    return Array.from(typeMap.entries())
+      .map(([type, value]) => ({
+        type,
+        label: getAssetTypeLabel(type, undefined, lang),
+        value,
+        percentage: totalVal > 0 ? (value / totalVal) * 100 : 0,
+        color: getAssetColor(type),
+      }))
+      .sort((a, b) => b.value - a.value);
+  });
+
+  readonly totalPortfolioValue = computed(() =>
+    this.assetClassDistribution().reduce((acc, item) => acc + item.value, 0)
+  );
+
+  readonly selectedAssetLabel = computed(() => {
+    const t = this.selectedAssetType();
+    return t ? getAssetTypeLabel(t, undefined, this.state.i18n.lang()) : this.state.i18n.t('asset.allClasses');
+  });
+
+  readonly classHoldings = computed(() => {
+    const selectedType = this.selectedAssetType();
+    if (!selectedType) return [];
+    const pm = this.state.prices();
+    const lang = this.state.i18n.lang();
+    const list = this.state
+      .openSummaries()
+      .filter((s) => getAssetType(s.assetType, s.symbol) === selectedType)
+      .map((s) => {
+        const pd = pm.get(s.symbol);
+        const val =
+          pd && pd.price > 0
+            ? this.cx(s.totalShares * pd.price, pd.currency)
+            : this.cx(s.totalCost, s.currency);
+        const assetType = getAssetType(s.assetType, s.symbol);
+        return {
+          symbol: s.symbol,
+          displaySymbol: displaySymbol(s.symbol),
+          assetType,
+          pvdFundName: s.pvdFundName,
+          name: resolveSymbolName(s.symbol, pm, lang, assetType),
+          shares: s.totalShares,
+          value: val,
+          color: getSymbolColor(s.symbol),
+        };
+      })
+      .filter((h) => h.value > 0 || h.shares > 0)
+      .sort((a, b) => b.value - a.value);
+
+    const classTot = list.reduce((acc, h) => acc + h.value, 0);
+    const portTot = this.totalPortfolioValue();
+    return list.map((h) => ({
+      ...h,
+      classPercent: classTot > 0 ? (h.value / classTot) * 100 : 0,
+      portfolioPercent: portTot > 0 ? (h.value / portTot) * 100 : 0,
+    }));
+  });
+
+  readonly classTotalValue = computed(() =>
+    this.classHoldings().reduce((sum, h) => sum + h.value, 0)
+  );
+
+  readonly donutSegments = computed(() => {
+    const isAllocDrilldown = this.state.analyticsSubTab() === 'allocation' && !!this.selectedAssetType();
+    let cumulative = 0;
+
+    if (!isAllocDrilldown) {
+      return this.assetClassDistribution().map((c) => {
+        const pct = c.percentage;
+        const offset = 100 - cumulative;
+        cumulative += pct;
+        return {
+          key: c.type,
+          label: c.label,
+          actualPercent: pct,
+          dashArray: `${Math.max(pct, 0.001)} ${100 - Math.max(pct, 0.001)}`,
+          dashOffset: offset,
+          color: c.color,
+        };
+      });
+    }
+
+    return this.classHoldings().map((h) => {
+      const pct = h.classPercent;
+      const offset = 100 - cumulative;
+      cumulative += pct;
+      return {
+        key: h.symbol,
+        label: h.displaySymbol,
+        actualPercent: pct,
+        dashArray: `${Math.max(pct, 0.001)} ${100 - Math.max(pct, 0.001)}`,
+        dashOffset: offset,
+        color: h.color,
+      };
+    });
+  });
+
+  readonly currencyExposure = computed(() => {
+    const alloc = this.allocation();
+    if (alloc?.currencyExposure && (alloc.currencyExposure.usd > 0 || alloc.currencyExposure.thb > 0)) {
+      return {
+        usd: this.cx(alloc.currencyExposure.usd, alloc.currency),
+        thb: this.cx(alloc.currencyExposure.thb, alloc.currency),
+        usdPercent: alloc.currencyExposure.usdPercent,
+        thbPercent: alloc.currencyExposure.thbPercent,
+      };
+    }
+
+    let usdVal = 0;
+    let thbVal = 0;
+    const pm = this.state.prices();
+    for (const s of this.state.openSummaries()) {
+      const pd = pm.get(s.symbol);
+      const val =
+        pd && pd.price > 0
+          ? this.cx(s.totalShares * pd.price, pd.currency)
+          : this.cx(s.totalCost, s.currency);
+      const orig = (pd?.currency || s.currency) === 'USDT' ? 'USD' : pd?.currency || s.currency;
+      if (orig === 'USD') usdVal += val;
+      else if (orig === 'THB') thbVal += val;
+    }
+    const tot = usdVal + thbVal;
+    return {
+      usd: usdVal,
+      thb: thbVal,
+      usdPercent: tot > 0 ? (usdVal / tot) * 100 : 0,
+      thbPercent: tot > 0 ? (thbVal / tot) * 100 : 0,
+    };
+  });
+
+  readonly allConcentrationHoldings = computed(() => {
+    const pm = this.state.prices();
+    const tot = this.totalPortfolioValue();
+    return this.state
+      .openSummaries()
+      .map((s) => {
+        const pd = pm.get(s.symbol);
+        const val =
+          pd && pd.price > 0
+            ? this.cx(s.totalShares * pd.price, pd.currency)
+            : this.cx(s.totalCost, s.currency);
+        return {
+          symbol: s.symbol,
+          displaySymbol: displaySymbol(s.symbol),
+          assetType: getAssetType(s.assetType, s.symbol),
+          pvdFundName: s.pvdFundName,
+          value: val,
+          percent: tot > 0 ? (val / tot) * 100 : 0,
+          color: getSymbolColor(s.symbol),
+        };
+      })
+      .filter((h) => h.value > 0)
+      .sort((a, b) => b.value - a.value);
+  });
+
+  readonly displayedConcentration = computed(() => {
+    const all = this.allConcentrationHoldings();
+    return this.showAllHoldings() ? all : all.slice(0, 5);
+  });
+
+  // --- Performance Attribution ---
+  readonly assetTypePerformance = computed(() => {
+    const perf = this.performance();
+    const lang = this.state.i18n.lang();
+    if (perf?.assetTypePerformance?.length) {
+      return perf.assetTypePerformance.map((t) => ({
+        type: t.assetType,
+        label: getAssetTypeLabel(t.assetType, undefined, lang),
+        totalReturnPercent: t.totalReturnPercent,
+        color: getAssetColor(t.assetType),
+      }));
+    }
+    return [];
+  });
+
+  readonly maxAbsReturnPercent = computed(() => {
+    let max = 0;
+    for (const t of this.assetTypePerformance()) {
+      max = Math.max(max, Math.abs(t.totalReturnPercent));
+    }
+    return max === 0 ? 1 : max;
+  });
+
+  readonly symbolPerformanceList = computed(() => {
+    const perf = this.performance();
+    const lang = this.state.i18n.lang();
+    const pm = this.state.prices();
+    if (perf?.symbolPerformance?.length) {
+      return perf.symbolPerformance.map((item) => {
+        const assetType = getAssetType(item.assetType, item.symbol);
+        const pd = pm.get(item.symbol);
+        return {
+          symbol: item.symbol,
+          displaySymbol: item.displaySymbol || displaySymbol(item.symbol),
+          name: resolveSymbolName(item.symbol, pm, lang, assetType) || item.name || item.symbol,
+          assetType,
+          assetTypeLabel: getAssetTypeLabel(assetType, item.symbol, lang),
+          status: item.status,
+          investedCost: this.cx(item.investedCost, perf.currency),
+          currentValue: this.cx(item.currentValue, perf.currency),
+          realizedPL: this.cx(item.realizedPL, perf.currency),
+          unrealizedPL: this.cx(item.unrealizedPL, perf.currency),
+          totalReturn: this.cx(item.totalReturn, perf.currency),
+          totalReturnPercent: item.totalReturnPercent,
+          color: getSymbolColor(item.symbol),
+          pvdFundName: pd?.name ? undefined : undefined,
+        };
+      });
+    }
+    return [];
+  });
+
+  readonly topGainers = computed(() =>
+    [...this.symbolPerformanceList()]
+      .filter((i) => i.totalReturnPercent > 0)
+      .sort((a, b) => b.totalReturnPercent - a.totalReturnPercent)
+      .slice(0, 4)
+  );
+
+  readonly topLosers = computed(() =>
+    [...this.symbolPerformanceList()]
+      .filter((i) => i.totalReturnPercent < 0)
+      .sort((a, b) => a.totalReturnPercent - b.totalReturnPercent)
+      .slice(0, 4)
+  );
+
+  readonly perfAssetOptions = computed(() => {
+    const lang = this.state.i18n.lang();
+    const types = new Set(this.symbolPerformanceList().map((s) => s.assetType));
+    return [
+      { value: 'all', label: this.state.i18n.t('asset.all') },
+      ...Array.from(types)
+        .sort()
+        .map((t) => ({ value: t, label: getAssetTypeLabel(t, undefined, lang) })),
+    ];
+  });
+
+  readonly filteredSymbolPerformance = computed(() => {
+    const q = this.perfSearchQuery().trim().toLowerCase();
+    const typeF = this.perfAssetFilter();
+    const statusF = this.perfStatusFilter();
+    const field = this.perfSortField();
+    const dir = this.perfSortDir() === 'asc' ? 1 : -1;
+
+    const filtered = this.symbolPerformanceList().filter((item) => {
+      if (typeF !== 'all' && item.assetType !== typeF) return false;
+      if (statusF !== 'all' && item.status.toLowerCase() !== statusF) return false;
+      if (q) {
+        return (
+          item.symbol.toLowerCase().includes(q) ||
+          item.displaySymbol.toLowerCase().includes(q) ||
+          item.name.toLowerCase().includes(q)
+        );
+      }
+      return true;
+    });
+
+    filtered.sort((a, b) => {
+      if (field === 'symbol') return dir * a.symbol.localeCompare(b.symbol);
+      if (field === 'totalReturnAmount') return dir * (a.totalReturn - b.totalReturn);
+      if (field === 'investedCost') return dir * (a.investedCost - b.investedCost);
+      if (field === 'currentValue') return dir * (a.currentValue - b.currentValue);
+      if (field === 'realizedPL') return dir * (a.realizedPL - b.realizedPL);
+      if (field === 'unrealizedPL') return dir * (a.unrealizedPL - b.unrealizedPL);
+      return dir * (a.totalReturnPercent - b.totalReturnPercent);
+    });
+
+    return this.showAllPerfSymbols() ? filtered : filtered.slice(0, 10);
+  });
+
+  onRefresh(event: CustomEvent): void {
+    const curr = this.state.displayCurrency();
+    const s = this.startDate();
+    const e = this.endDate();
+    this.loadAnalytics(curr, s || e ? 'CUSTOM' : this.timeframe(), s, e);
+    setTimeout(() => (event.target as HTMLIonRefresherElement).complete(), 450);
   }
 
   onSegmentChange(event: CustomEvent): void {
     const next = (event.detail.value as AnalyticsSubTab) || 'overview';
-    void this.state.nativePlatform.triggerHapticImpact('light');
+    void this.state.nativePlatform.triggerHapticSelection();
     this.state.analyticsSubTab.set(next);
   }
 
+  selectAssetType(type: string | null): void {
+    void this.state.nativePlatform.triggerHapticSelection();
+    this.selectedAssetType.update((curr) => (curr === type ? null : type));
+  }
+
   setTimeframe(tf: string): void {
-    void this.state.nativePlatform.triggerHapticImpact('light');
+    void this.state.nativePlatform.triggerHapticSelection();
+    this.startDate.set('');
+    this.endDate.set('');
     this.timeframe.set(tf);
   }
 
-  private loadAnalytics(currency: 'USD' | 'THB', tf: string): void {
+  onDateRangeChange(range: DateRange): void {
+    this.startDate.set(range.startDate);
+    this.endDate.set(range.endDate);
+  }
+
+  togglePerfSortDir(): void {
+    void this.state.nativePlatform.triggerHapticSelection();
+    this.perfSortDir.update((d) => (d === 'asc' ? 'desc' : 'asc'));
+  }
+
+  private loadAnalytics(currency: 'USD' | 'THB', tf: string, start: string, end: string): void {
     this.loading.set(true);
-    this.portfolioService.fetchPerformance(tf, '', '', currency).subscribe({
+    this.portfolioService.fetchPerformance(tf, start, end, currency).subscribe({
       next: (perf) => {
         this.performance.set(perf);
         this.loading.set(false);

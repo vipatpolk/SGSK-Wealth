@@ -12,6 +12,9 @@ import static io.cucumber.junit.platform.engine.Constants.PLUGIN_PROPERTY_NAME;
 @IncludeEngines("cucumber")
 @SelectClasspathResource("features")
 @ConfigurationParameter(key = GLUE_PROPERTY_NAME, value = "com.sgsk.wealth.e2e")
-@ConfigurationParameter(key = PLUGIN_PROPERTY_NAME, value = "pretty, io.qameta.allure.cucumber8jvm.AllureCucumber8Jvm")
+@ConfigurationParameter(
+        key = PLUGIN_PROPERTY_NAME,
+        value = "pretty, com.sgsk.wealth.e2e.hooks.AllureStepEvidencePlugin, io.qameta.allure.cucumber8jvm.AllureCucumber8Jvm"
+)
 public class CucumberTestRunner {
 }

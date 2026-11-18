@@ -641,6 +641,21 @@ public class ApiRouteMocker {
                 fulfillJson(route, 200, mfJson);
             }
         });
+
+        // Mock /api/backend/icon/meta/* and /api/backend/icon/*
+        page.route("**/api/backend/icon/**", route -> {
+            String url = route.request().url();
+            if (url.contains("/icon/meta/")) {
+                fulfillJson(route, 200,
+                        "{\"symbol\":\"MOCK\",\"asset_type\":\"us-stock\",\"clean_ticker\":\"MOCK\",\"monogram\":\"MO\",\"brand_color\":\"#38bdf8\",\"is_mutual_fund\":false,\"icon_url\":\"/api/backend/icon/MOCK\"}");
+            } else {
+                String svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"10\" fill=\"#38bdf8\"/></svg>";
+                route.fulfill(new Route.FulfillOptions()
+                        .setStatus(200)
+                        .setContentType("image/svg+xml")
+                        .setBody(svg));
+            }
+        });
     }
 
     public void mockPortfolioAPIError(Page page, int statusCode) {

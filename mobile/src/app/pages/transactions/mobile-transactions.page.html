@@ -1,0 +1,299 @@
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="sgsk-page-pad">
+    <!-- Top Symbol Selector Bar -->
+    <div class="tx-top-bar">
+      <button type="button" id="mobile-tx-selector-btn" class="tx-selector-btn" (click)="openSymbolSheet()">
+        @if (activeSummary(); as active) {
+          <div class="tx-sel-left">
+            <app-symbol-icon [symbol]="active.symbol" [assetType]="active.assetType" size="sm"></app-symbol-icon>
+            <span class="font-mono" style="font-weight: 700;">{{ displaySymbolFn(active.symbol) }}</span>
+            <span class="tx-sel-name">{{ getResolvedSymbolName(active.symbol, active.assetType) }}</span>
+          </div>
+          <span class="tx-sel-count font-mono">{{ active.totalTransactions }} {{ 'tx.tradesLower' | t }}</span>
+        } @else {
+          <div class="tx-sel-left">
+            <span class="tx-sel-name" style="font-weight: 700; color: var(--color-text-primary);">
+              {{ 'tx.allSymbolsFeed' | t }}
+            </span>
+          </div>
+          <span class="tx-sel-count font-mono">{{ totalTxCount() }} {{ 'tx.tradesLower' | t }}</span>
+        }
+      </button>
+
+      @if (activeSummary()) {
+        <button type="button" id="mobile-tx-clear-sym" class="tx-clear-sym-btn" (click)="clearSymbol()">
+          {{ 'tx.allSymbols' | t }}
+        </button>
+      }
+    </div>
+
+    <!-- Deep-Dive Hero Card (Selected Symbol vs Unified Feed) -->
+    @if (activeSummary(); as sym) {
+      <section class="sgsk-hero-card">
+        <div class="tx-hero-id">
+          <app-symbol-icon [symbol]="sym.symbol" [assetType]="sym.assetType" size="md"></app-symbol-icon>
+          <div style="min-width: 0; flex: 1;">
+            <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+              <h2 class="tx-hero-title font-mono">{{ displaySymbolFn(sym.symbol) }}</h2>
+              <span [class]="getAssetTypeClassFn(sym.assetType, sym.symbol)">
+                {{ getAssetLabel(sym.assetType, sym.symbol) }}
+              </span>
+              <span class="asset-badge">{{ sym.currentStatus === 'OPEN' ? ('common.open' | t) : ('common.closed' | t) }}</span>
+            </div>
+            <p class="tx-hero-sub">{{ getResolvedSymbolName(sym.symbol, sym.assetType) }}</p>
+          </div>
+        </div>
+
+        <div class="sgsk-kpi-grid" style="margin-top: 0.75rem;">
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'common.shares' | t }}</span>
+            <span class="sgsk-kpi-val privacy-mask">{{ sym.netShares | number: getQuantityFormatFn(sym.symbol, sym.assetType) }}</span>
+          </div>
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'common.avgCost' | t }}</span>
+            <span class="sgsk-kpi-val">
+              {{ state.cx(sym.averageBuyPrice, sym.currency) | currency: state.dc() : 'symbol-narrow' : getPriceFormatFn(sym.symbol, sym.assetType) }}
+            </span>
+          </div>
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'summary.holdingValue' | t }}</span>
+            <span class="sgsk-kpi-val privacy-mask">
+              {{ activeHoldingValueConverted() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+            </span>
+          </div>
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'common.realizedPL' | t }}</span>
+            <span
+              class="sgsk-kpi-val privacy-mask"
+              [class.pl-positive]="sym.realizedPL >= 0"
+              [class.pl-negative]="sym.realizedPL < 0"
+            >
+              {{ sym.realizedPL >= 0 ? '+' : '' }}{{ state.cx(sym.realizedPL, sym.currency) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+            </span>
+          </div>
+        </div>
+      </section>
+    } @else {
+      <section class="sgsk-hero-card">
+        <div class="sgsk-kpi-grid">
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'tx.allSymbolsFeed' | t }}</span>
+            <span class="sgsk-kpi-val font-mono">{{ totalTxCount() }} {{ 'tx.tradesLower' | t }}</span>
+          </div>
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'common.realizedPL' | t }}</span>
+            <span
+              class="sgsk-kpi-val privacy-mask"
+              [class.pl-positive]="allSymbolsRealizedPL() >= 0"
+              [class.pl-negative]="allSymbolsRealizedPL() < 0"
+            >
+              {{ allSymbolsRealizedPL() >= 0 ? '+' : '' }}{{ allSymbolsRealizedPL() | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+            </span>
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- Search + Type Filter + DateRange + Sort -->
+    <div class="tx-toolbar">
+      <ion-searchbar
+        id="mobile-tx-search"
+        class="sgsk-searchbar"
+        [value]="query()"
+        (ionInput)="onSearch($event)"
+        [placeholder]="'common.searchPlaceholder' | t"
+        debounce="150"
+      ></ion-searchbar>
+
+      <div class="chip-scroll" id="mobile-tx-type-chips">
+        <button type="button" id="mobile-tx-type-all" class="sgsk-pill-chip" [class.active]="typeFilter() === 'all'" (click)="setTypeFilter('all')">
+          {{ 'common.all' | t }} <span class="sgsk-pill-count font-mono">{{ baseTransactions().length }}</span>
+        </button>
+        <button type="button" id="mobile-tx-type-buy" class="sgsk-pill-chip" [class.active]="typeFilter() === 'buy'" (click)="setTypeFilter('buy')">
+          {{ 'common.buy' | t }} <span class="sgsk-pill-count font-mono">{{ buyCount() }}</span>
+        </button>
+        <button type="button" id="mobile-tx-type-sell" class="sgsk-pill-chip" [class.active]="typeFilter() === 'sell'" (click)="setTypeFilter('sell')">
+          {{ 'common.sell' | t }} <span class="sgsk-pill-count font-mono">{{ sellCount() }}</span>
+        </button>
+        @if (exchangeCount() > 0) {
+          <button type="button" id="mobile-tx-type-exchange" class="sgsk-pill-chip" [class.active]="typeFilter() === 'exchange'" (click)="setTypeFilter('exchange')">
+            {{ 'common.exchange' | t }} <span class="sgsk-pill-count font-mono">{{ exchangeCount() }}</span>
+          </button>
+        }
+      </div>
+
+      <div class="tx-date-sort-row">
+        <div style="flex: 1; min-width: 0;">
+          <app-date-range-picker
+            [startDate]="startDate()"
+            [endDate]="endDate()"
+            (rangeChange)="onDateRangeChange($event)"
+          ></app-date-range-picker>
+        </div>
+        <button type="button" id="mobile-tx-sort-btn" class="tx-sort-btn font-mono" (click)="toggleSortOrder()">
+          {{ sortOrder() === 'desc' ? '↓ ' + ('tx.newest' | t) : '↑ ' + ('tx.oldest' | t) }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Transactions List -->
+    <div id="mobile-tx-list" class="tx-cards-list">
+      @for (tx of visibleTransactions(); track tx.id) {
+        <article class="sgsk-card tx-card">
+          <div class="tx-card-top">
+            <div class="tx-card-id">
+              <span
+                class="tx-type-badge font-mono"
+                [class.tx-buy]="tx.type === 'BUY'"
+                [class.tx-sell]="tx.type === 'SELL'"
+                [class.tx-ex]="tx.type !== 'BUY' && tx.type !== 'SELL'"
+              >
+                {{ tx.type }}
+              </span>
+              <app-symbol-icon [symbol]="tx.symbol" [assetType]="tx.assetType" size="xs"></app-symbol-icon>
+              <strong class="font-mono">{{ displaySymbolFn(tx.symbol) }}</strong>
+              <span class="font-mono text-muted" style="font-size: 0.7rem;">{{ tx.date | ldate: 'medium' }}</span>
+            </div>
+
+            <div class="tx-card-amt font-mono">
+              <span class="privacy-mask" style="font-weight: 700;">
+                {{ state.cx(tx.totalAmount, tx.currency) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="tx-card-mid font-mono">
+            <span class="privacy-mask">
+              {{ tx.quantity | number: getQuantityFormatFn(tx.symbol, tx.assetType) }} @
+              {{ state.cx(tx.price, tx.currency) | currency: state.dc() : 'symbol-narrow' : getPriceFormatFn(tx.symbol, tx.assetType) }}
+            </span>
+            @if (tx.realizedPL != null && tx.realizedPL !== 0) {
+              <span
+                class="privacy-mask"
+                [class.pl-positive]="tx.realizedPL >= 0"
+                [class.pl-negative]="tx.realizedPL < 0"
+                style="font-weight: 700;"
+              >
+                {{ tx.realizedPL >= 0 ? '+' : '' }}{{ state.cx(tx.realizedPL, tx.currency) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+              </span>
+            }
+          </div>
+
+          <div class="tx-card-foot font-mono">
+            <span class="text-muted">
+              {{ 'tx.runningBal' | t }}:
+              <strong class="privacy-mask">{{ tx.runningShares | number: getQuantityFormatFn(tx.symbol, tx.assetType) }}</strong>
+            </span>
+            <span class="text-muted">
+              {{ 'common.avgCost' | t }}:
+              <strong class="privacy-mask">{{ state.cx(tx.runningAverageCost, tx.currency) | currency: state.dc() : 'symbol-narrow' : getPriceFormatFn(tx.symbol, tx.assetType) }}</strong>
+            </span>
+          </div>
+        </article>
+      } @empty {
+        <div class="sgsk-card" style="text-align: center; color: var(--color-text-muted); padding: 1.75rem;">
+          {{ 'tx.emptyFeed' | t }}
+        </div>
+      }
+    </div>
+
+    @if (filteredTransactions().length > visibleTransactions().length) {
+      <ion-button expand="block" fill="outline" (click)="loadMore()">
+        {{ 'common.showAll' | t }} (+30)
+      </ion-button>
+    }
+  </div>
+
+  <!-- Native Symbol Selector Sheet Modal -->
+  <ion-modal
+    id="mobile-tx-sheet-modal"
+    class="sgsk-sheet-modal"
+    [isOpen]="isSymbolSheetOpen()"
+    [initialBreakpoint]="0.82"
+    [breakpoints]="[0, 0.5, 0.82, 1]"
+    (didDismiss)="closeSymbolSheet()"
+  >
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>{{ 'tx.selectSymbol' | t }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeSymbolSheet()">{{ 'common.close' | t }}</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content>
+        <div class="sgsk-page-pad">
+          <ion-searchbar
+            class="sgsk-searchbar"
+            [value]="sheetSearchQuery()"
+            (ionInput)="sheetSearchQuery.set($event.detail.value ?? '')"
+            [placeholder]="'tx.searchSymbolsPlaceholder' | t"
+            debounce="120"
+          ></ion-searchbar>
+
+          <div class="chip-scroll">
+            @for (opt of assetTypeOptions(); track opt.id) {
+              <button
+                type="button"
+                class="sgsk-pill-chip"
+                [class.active]="assetFilter() === opt.id"
+                (click)="assetFilter.set(opt.id)"
+              >
+                {{ opt.label }}
+              </button>
+            }
+          </div>
+
+          <button
+            type="button"
+            class="sheet-sym-row"
+            [class.active]="!state.selectedHistorySymbol()"
+            (click)="clearSymbol()"
+          >
+            <div>
+              <div style="font-weight: 700; font-size: 0.84rem;">{{ 'tx.allSymbolsFeed' | t }}</div>
+              <div class="text-muted" style="font-size: 0.72rem;">{{ 'tx.unifiedLog' | t }}</div>
+            </div>
+            <span class="font-mono text-muted" style="font-size: 0.74rem;">
+              {{ totalTxCount() }} {{ 'tx.tradesLower' | t }}
+            </span>
+          </button>
+
+          @for (item of availableSymbols(); track item.symbol) {
+            <button
+              type="button"
+              class="sheet-sym-row"
+              [attr.data-tx-sheet-symbol]="item.symbol"
+              [class.active]="state.selectedHistorySymbol() === item.symbol"
+              (click)="selectSymbol(item.symbol)"
+            >
+              <div style="display: flex; align-items: center; gap: 0.55rem; min-width: 0;">
+                <app-symbol-icon [symbol]="item.symbol" [assetType]="item.assetType" size="sm"></app-symbol-icon>
+                <div style="min-width: 0;">
+                  <div style="display: flex; align-items: center; gap: 0.35rem;">
+                    <span class="font-mono" style="font-weight: 700; font-size: 0.82rem;">{{ displaySymbolFn(item.symbol) }}</span>
+                    <span [class]="getAssetTypeClassFn(item.assetType, item.symbol)">
+                      {{ getAssetLabel(item.assetType, item.symbol) }}
+                    </span>
+                  </div>
+                  <div class="text-muted" style="font-size: 0.7rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    {{ getResolvedSymbolName(item.symbol, item.assetType) }}
+                  </div>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.15rem; flex-shrink: 0;">
+                <span class="asset-badge">{{ item.currentStatus === 'OPEN' ? ('common.open' | t) : ('common.closed' | t) }}</span>
+                <span class="font-mono text-muted" style="font-size: 0.7rem;">{{ item.totalTransactions }} {{ 'tx.tradesLower' | t }}</span>
+              </div>
+            </button>
+          }
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>

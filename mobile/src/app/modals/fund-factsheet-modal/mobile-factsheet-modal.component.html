@@ -1,0 +1,401 @@
+<ion-modal
+  id="mobile-factsheet-modal"
+  class="sgsk-sheet-modal"
+  [isOpen]="target() !== null"
+  [initialBreakpoint]="0.92"
+  [breakpoints]="[0, 0.5, 0.92, 1]"
+  (didDismiss)="closeModal.emit()"
+>
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>
+          <span class="font-mono">{{ headerSymbol() }}</span> · {{ 'factsheet.modalTitle' | t }}
+        </ion-title>
+        <ion-buttons slot="end">
+          <ion-button id="mobile-factsheet-close" (click)="closeModal.emit()">
+            {{ 'common.close' | t }}
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <div class="fs-sheet-body">
+        @if (target(); as tgt) {
+          <!-- Identity Header Card -->
+          <div class="sgsk-card fs-identity-card">
+            <div class="fs-identity-row">
+              <app-symbol-icon
+                [symbol]="tgt.symbol"
+                [assetType]="tgt.assetType"
+                [fundName]="tgt.fundName"
+                size="md"
+              ></app-symbol-icon>
+              <div class="fs-identity-titles">
+                <div class="fs-badge-row">
+                  <span class="fs-symbol-pill font-mono">{{ headerSymbol() }}</span>
+                  @if (factsheet()?.riskLevel; as riskLvl) {
+                    <span class="fs-risk-pill font-mono" [attr.data-tier]="riskTierClass()">
+                      {{ riskLvl }}
+                    </span>
+                  }
+                  @if (factsheet()?.aimcType; as aimc) {
+                    <span class="fs-meta-pill">AIMC: {{ aimc }}</span>
+                  }
+                  @if (factsheet()?.taxIncentiveType; as taxType) {
+                    <span class="fs-tax-pill">{{ taxType }}</span>
+                  }
+                </div>
+                <h3 class="fs-fund-title">{{ displayFundTitle() }}</h3>
+                @if (displayAmcTitle()) {
+                  <p class="fs-amc-name">{{ displayAmcTitle() }}</p>
+                }
+              </div>
+            </div>
+
+            @if (safePdfUrl() || safeAmcUrl()) {
+              <div class="fs-links-row">
+                @if (safePdfUrl(); as pdfHref) {
+                  <a
+                    class="fs-link-btn fs-pdf-btn"
+                    [href]="pdfHref"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {{ 'factsheet.openPdf' | t }}
+                  </a>
+                }
+                @if (safeAmcUrl(); as amcHref) {
+                  <a
+                    class="fs-link-btn"
+                    [href]="amcHref"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {{ 'factsheet.openAmc' | t }}
+                  </a>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        @if (loading()) {
+          <div class="fs-state-box">
+            <ion-spinner name="crescent"></ion-spinner>
+            <p>{{ 'factsheet.loading' | t }}</p>
+          </div>
+        } @else if (error()) {
+          <div class="sgsk-card fs-error-card">
+            <p class="pl-negative">{{ 'factsheet.error' | t }}</p>
+            <ion-button expand="block" fill="outline" (click)="reload()">
+              {{ 'factsheet.retry' | t }}
+            </ion-button>
+          </div>
+        } @else if (factsheet(); as fs) {
+          @if (fs.asOfDate) {
+            <div class="fs-asof-bar">
+              <span>{{ 'factsheet.asOfDate' | t: { date: fs.asOfDate } }}</span>
+              @if (fs.projId) {
+                <span class="font-mono">SEC ID: {{ fs.projId }}</span>
+              }
+            </div>
+          }
+
+          <!-- 1. Policy & Overview -->
+          <section class="sgsk-card fs-section">
+            <h4 class="fs-section-title">{{ 'factsheet.overviewSection' | t }}</h4>
+            <div class="fs-kv-grid">
+              @if (fs.policyDesc) {
+                <div class="fs-kv">
+                  <span class="fs-k">{{ 'factsheet.policyDesc' | t }}</span>
+                  <span class="fs-v">{{ fs.policyDesc }}</span>
+                </div>
+              }
+              @if (fs.managementStyle) {
+                <div class="fs-kv">
+                  <span class="fs-k">{{ 'factsheet.managementStyle' | t }}</span>
+                  <span class="fs-v">{{ fs.managementStyle }}</span>
+                </div>
+              }
+              @if (fs.riskLevel || fs.riskDescription) {
+                <div class="fs-kv">
+                  <span class="fs-k">{{ 'factsheet.riskLevel' | t }}</span>
+                  <span class="fs-v">
+                    {{ fs.riskLevel }}{{ fs.riskDescription ? ' — ' + fs.riskDescription : '' }}
+                  </span>
+                </div>
+              }
+              @if (fs.aimcDescription || fs.aimcType) {
+                <div class="fs-kv">
+                  <span class="fs-k">{{ 'factsheet.aimcCategory' | t }}</span>
+                  <span class="fs-v">{{ fs.aimcDescription || fs.aimcType }}</span>
+                </div>
+              }
+              @if (fs.benchmark) {
+                <div class="fs-kv fs-kv-wide">
+                  <span class="fs-k">{{ 'factsheet.benchmark' | t }}</span>
+                  <span class="fs-v">
+                    {{ fs.benchmark }}
+                    @if (fs.benchmarkRemark) {
+                      <span class="text-muted"> ({{ fs.benchmarkRemark }})</span>
+                    }
+                  </span>
+                </div>
+              }
+              @if (formattedDividendPolicy(); as divPol) {
+                <div class="fs-kv">
+                  <span class="fs-k">{{ 'factsheet.dividendPolicy' | t }}</span>
+                  <span class="fs-v">{{ divPol }}</span>
+                </div>
+              }
+              @if (fs.fxHedgingPolicy) {
+                <div class="fs-kv">
+                  <span class="fs-k">{{ 'factsheet.fxHedgingPolicy' | t }}</span>
+                  <span class="fs-v">{{ fs.fxHedgingPolicy }}</span>
+                </div>
+              }
+              @if (fs.feederMasterFund) {
+                <div class="fs-kv fs-kv-wide">
+                  <span class="fs-k">{{ 'factsheet.feederFund' | t }}</span>
+                  <span class="fs-v">
+                    {{ fs.feederMasterFund }}{{ fs.feederCountry ? ' (' + fs.feederCountry + ')' : '' }}
+                  </span>
+                </div>
+              }
+              @if (fs.inceptionDate) {
+                <div class="fs-kv">
+                  <span class="fs-k">{{ 'factsheet.inceptionDate' | t }}</span>
+                  <span class="fs-v font-mono">{{ fs.inceptionDate }}</span>
+                </div>
+              }
+              @if (fs.isinCode) {
+                <div class="fs-kv">
+                  <span class="fs-k">{{ 'factsheet.isinCode' | t }}</span>
+                  <span class="fs-v font-mono">{{ fs.isinCode }}</span>
+                </div>
+              }
+            </div>
+
+            @if (fs.objective || fs.investmentPolicyDesc) {
+              <div class="fs-policy-text">
+                <span class="fs-k">{{ 'factsheet.objective' | t }}</span>
+                <p>{{ fs.objective || fs.investmentPolicyDesc }}</p>
+              </div>
+            }
+          </section>
+
+          <!-- 2. Performance & Returns -->
+          @if (fs.performance.length > 0) {
+            <section class="sgsk-card fs-section">
+              <h4 class="fs-section-title">{{ 'factsheet.performanceSection' | t }}</h4>
+              <div class="fs-list-rows">
+                @for (item of fs.performance; track $index) {
+                  <div class="fs-row-item">
+                    <div class="fs-row-left">
+                      <span class="fs-row-main">{{ item.category }}</span>
+                      <span class="fs-row-sub font-mono">{{ item.period }}</span>
+                    </div>
+                    <span
+                      class="fs-row-val font-mono"
+                      [class.pl-positive]="(item.value ?? 0) > 0"
+                      [class.pl-negative]="(item.value ?? 0) < 0"
+                    >
+                      @if (item.value !== null && item.value !== undefined) {
+                        {{ item.value > 0 ? '+' : '' }}{{ item.value | number: '1.2-2' }}%
+                      } @else {
+                        —
+                      }
+                    </span>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+
+          <!-- 3. Asset Allocation -->
+          @if (fs.assetAllocation.length > 0) {
+            <section class="sgsk-card fs-section">
+              <h4 class="fs-section-title">{{ 'factsheet.allocationSection' | t }}</h4>
+              <div class="fs-bars-list">
+                @for (alloc of fs.assetAllocation; track $index) {
+                  <div class="fs-bar-row">
+                    <div class="fs-bar-labels">
+                      <span>{{ alloc.name }}</span>
+                      <span class="font-mono">{{ alloc.ratio | number: '1.2-2' }}%</span>
+                    </div>
+                    <div class="fs-bar-track">
+                      <div
+                        class="fs-bar-fill alloc-fill"
+                        [style.width.%]="alloc.ratio > 100 ? 100 : alloc.ratio < 0 ? 0 : alloc.ratio"
+                      ></div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+
+          <!-- 4. Top Holdings -->
+          @if (fs.topHoldings.length > 0) {
+            <section class="sgsk-card fs-section">
+              <h4 class="fs-section-title">{{ 'factsheet.topHoldingsSection' | t }}</h4>
+              <div class="fs-bars-list">
+                @for (holding of fs.topHoldings; track $index) {
+                  <div class="fs-bar-row">
+                    <div class="fs-bar-labels">
+                      <span>
+                        {{ holding.seq }}. {{ holding.name }}
+                        @if (holding.creditRating) {
+                          <span class="fs-inline-tag font-mono">{{ holding.creditRating }}</span>
+                        }
+                      </span>
+                      <span class="font-mono">{{ holding.ratio | number: '1.2-2' }}%</span>
+                    </div>
+                    <div class="fs-bar-track">
+                      <div
+                        class="fs-bar-fill holding-fill"
+                        [style.width.%]="holding.ratio > 100 ? 100 : holding.ratio < 0 ? 0 : holding.ratio"
+                      ></div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+
+          <!-- 5. Key Risk Statistics -->
+          @if (hasStatistics() && fs.statistics; as stats) {
+            <section class="sgsk-card fs-section">
+              <h4 class="fs-section-title">{{ 'factsheet.statisticsSection' | t }}</h4>
+              <div class="sgsk-kpi-grid">
+                @if (stats.maxDrawdown != null) {
+                  <div class="sgsk-kpi-box">
+                    <span class="sgsk-kpi-label">{{ 'factsheet.maxDrawdown' | t }}</span>
+                    <span class="sgsk-kpi-val pl-negative">{{ stats.maxDrawdown | number: '1.2-2' }}%</span>
+                  </div>
+                }
+                @if (stats.sharpeRatio != null) {
+                  <div class="sgsk-kpi-box">
+                    <span class="sgsk-kpi-label">{{ 'factsheet.sharpeRatio' | t }}</span>
+                    <span class="sgsk-kpi-val">{{ stats.sharpeRatio | number: '1.2-2' }}</span>
+                  </div>
+                }
+                @if (stats.trackingError != null) {
+                  <div class="sgsk-kpi-box">
+                    <span class="sgsk-kpi-label">{{ 'factsheet.trackingError' | t }}</span>
+                    <span class="sgsk-kpi-val">{{ stats.trackingError | number: '1.2-2' }}%</span>
+                  </div>
+                }
+                @if (stats.fxHedging) {
+                  <div class="sgsk-kpi-box">
+                    <span class="sgsk-kpi-label">{{ 'factsheet.fxHedging' | t }}</span>
+                    <span class="sgsk-kpi-val">{{ stats.fxHedging }}</span>
+                  </div>
+                }
+                @if (stats.turnoverRatio != null) {
+                  <div class="sgsk-kpi-box">
+                    <span class="sgsk-kpi-label">{{ 'factsheet.turnoverRatio' | t }}</span>
+                    <span class="sgsk-kpi-val">{{ stats.turnoverRatio | number: '1.2-2' }}%</span>
+                  </div>
+                }
+                @if (stats.beta != null) {
+                  <div class="sgsk-kpi-box">
+                    <span class="sgsk-kpi-label">{{ 'factsheet.beta' | t }}</span>
+                    <span class="sgsk-kpi-val">{{ stats.beta | number: '1.2-2' }}</span>
+                  </div>
+                }
+                @if (stats.alpha != null) {
+                  <div class="sgsk-kpi-box">
+                    <span class="sgsk-kpi-label">{{ 'factsheet.alpha' | t }}</span>
+                    <span class="sgsk-kpi-val">{{ stats.alpha | number: '1.2-2' }}%</span>
+                  </div>
+                }
+                @if (stats.yieldToMaturity != null) {
+                  <div class="sgsk-kpi-box">
+                    <span class="sgsk-kpi-label">{{ 'factsheet.yieldToMaturity' | t }}</span>
+                    <span class="sgsk-kpi-val">{{ stats.yieldToMaturity | number: '1.2-2' }}%</span>
+                  </div>
+                }
+                @if (stats.portfolioDuration) {
+                  <div class="sgsk-kpi-box">
+                    <span class="sgsk-kpi-label">{{ 'factsheet.portfolioDuration' | t }}</span>
+                    <span class="sgsk-kpi-val">{{ stats.portfolioDuration }}</span>
+                  </div>
+                }
+                @if (stats.recoveringPeriod) {
+                  <div class="sgsk-kpi-box">
+                    <span class="sgsk-kpi-label">{{ 'factsheet.recoveringPeriod' | t }}</span>
+                    <span class="sgsk-kpi-val">{{ stats.recoveringPeriod }}</span>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+
+          <!-- 6. Fees & Dealing Conditions -->
+          @if (fs.fees.length > 0 || hasTradeConditions()) {
+            <section class="sgsk-card fs-section">
+              <h4 class="fs-section-title">{{ 'factsheet.feesSection' | t }}</h4>
+              @if (fs.fees.length > 0) {
+                <div class="fs-list-rows">
+                  @for (fee of fs.fees; track $index) {
+                    <div class="fs-row-item">
+                      <span class="fs-row-main">{{ fee.description }}</span>
+                      <div class="fs-fee-rates font-mono">
+                        <span>{{ 'factsheet.actualRate' | t }}: <strong>{{ fee.actualRate || '—' }}</strong></span>
+                        <span class="text-muted">{{ 'factsheet.ceilingRate' | t }}: {{ fee.ceilingRate || '—' }}</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+
+              @if (hasTradeConditions() && fs.tradeConditions; as tc) {
+                <div class="fs-kv-grid fs-trade-grid">
+                  @if (tc.minimumInitialSub != null) {
+                    <div class="fs-kv">
+                      <span class="fs-k">{{ 'factsheet.minInitialSub' | t }}</span>
+                      <span class="fs-v font-mono">{{ tc.minimumInitialSub | number: '1.0-2' }} {{ tc.currency || '' }}</span>
+                    </div>
+                  }
+                  @if (tc.minimumNextSub != null) {
+                    <div class="fs-kv">
+                      <span class="fs-k">{{ 'factsheet.minNextSub' | t }}</span>
+                      <span class="fs-v font-mono">{{ tc.minimumNextSub | number: '1.0-2' }} {{ tc.currency || '' }}</span>
+                    </div>
+                  }
+                  @if (tc.minimumRedempt != null) {
+                    <div class="fs-kv">
+                      <span class="fs-k">{{ 'factsheet.minRedempt' | t }}</span>
+                      <span class="fs-v font-mono">{{ tc.minimumRedempt | number: '1.0-2' }} {{ tc.currency || '' }}</span>
+                    </div>
+                  }
+                  @if (tc.subscriptionPeriod) {
+                    <div class="fs-kv">
+                      <span class="fs-k">{{ 'factsheet.subPeriod' | t }}</span>
+                      <span class="fs-v font-mono">{{ tc.subscriptionPeriod }}</span>
+                    </div>
+                  }
+                  @if (tc.redemptionPeriod) {
+                    <div class="fs-kv">
+                      <span class="fs-k">{{ 'factsheet.redemptPeriod' | t }}</span>
+                      <span class="fs-v font-mono">{{ tc.redemptionPeriod }}</span>
+                    </div>
+                  }
+                  @if (tc.settlementPeriod) {
+                    <div class="fs-kv">
+                      <span class="fs-k">{{ 'factsheet.settlementPeriod' | t }}</span>
+                      <span class="fs-v font-mono">{{ tc.settlementPeriod }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </section>
+          }
+        }
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>

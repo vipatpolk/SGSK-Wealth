@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
+import { Capacitor, PluginListenerHandle } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { Preferences } from '@capacitor/preferences';
 import { SplashScreen } from '@capacitor/splash-screen';
@@ -11,7 +12,7 @@ export type NativePlatform = 'ios' | 'android' | 'web';
 export function resolveMobileApiBaseUrl(
   platform: NativePlatform,
   isProduction: boolean,
-  endpoints: typeof environment = environment,
+  endpoints: typeof environment = environment
 ): string {
   if (platform !== 'web' && isProduction) {
     return endpoints.nativeApiBaseUrl;
@@ -62,7 +63,7 @@ export class NativePlatformService {
       });
       if (this.getPlatform() === 'android') {
         await StatusBar.setBackgroundColor({
-          color: theme === 'dark' ? '#0b0d14' : '#f5f7fa',
+          color: theme === 'dark' ? '#0b0d14' : '#ffffff',
         });
       }
     } catch {
@@ -81,6 +82,34 @@ export class NativePlatformService {
       await Haptics.impact({ style: impactMap[style] });
     } catch {
       // Ignore haptics errors on unsupported devices
+    }
+  }
+
+  async triggerHapticSelection(): Promise<void> {
+    if (!this.isNative()) return;
+    try {
+      await Haptics.selectionChanged();
+    } catch {
+      // Ignore haptics errors on unsupported devices
+    }
+  }
+
+  async registerBackButtonHandler(onBack: () => boolean | Promise<boolean>): Promise<PluginListenerHandle | null> {
+    if (!this.isNative() || this.getPlatform() !== 'android') {
+      return null;
+    }
+    try {
+      return await App.addListener('backButton', async ({ canGoBack }) => {
+        const handled = await onBack();
+        if (handled) return;
+        if (canGoBack) {
+          window.history.back();
+        } else {
+          await App.minimizeApp();
+        }
+      });
+    } catch {
+      return null;
     }
   }
 

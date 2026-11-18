@@ -1,0 +1,256 @@
+<div id="mobile-rebalance-card" class="sgsk-card">
+  <!-- Mode Selector -->
+  <div class="reb-mode-row">
+    <button
+      type="button"
+      id="mobile-reb-mode-standard"
+      class="reb-mode-btn"
+      [class.active]="mode() === 'standard'"
+      (click)="setMode('standard')"
+    >
+      {{ 'tools.reb.modeStandardMobile' | t }}
+    </button>
+    <button
+      type="button"
+      id="mobile-reb-mode-nosell"
+      class="reb-mode-btn"
+      [class.active]="mode() === 'no-sell'"
+      (click)="setMode('no-sell')"
+    >
+      {{ 'tools.reb.modeNoSellMobile' | t }}
+    </button>
+  </div>
+
+  <!-- No-Sell SubMode & Cash Deposit -->
+  @if (mode() === 'no-sell') {
+    <div class="reb-nosell-box">
+      <div class="reb-submode-row">
+        <button
+          type="button"
+          class="sgsk-pill-chip"
+          [class.active]="noSellSubMode() === 'min-inflow'"
+          (click)="setNoSellSubMode('min-inflow')"
+        >
+          {{ 'tools.reb.minInflowReq' | t }}
+        </button>
+        <button
+          type="button"
+          class="sgsk-pill-chip"
+          [class.active]="noSellSubMode() === 'custom-deposit'"
+          (click)="setNoSellSubMode('custom-deposit')"
+        >
+          {{ 'tools.reb.customDepositTitle' | t }}
+        </button>
+      </div>
+
+      @if (noSellSubMode() === 'custom-deposit') {
+        <div class="reb-deposit-box">
+          <label class="reb-deposit-label">
+            <span>{{ 'tools.reb.availableCash' | t }}</span>
+            <span class="font-mono" style="color: var(--color-text-muted);">{{ state.dc() }}</span>
+          </label>
+          <input
+            type="number"
+            min="0"
+            step="any"
+            class="reb-input font-mono"
+            [ngModel]="customCashDeposit()"
+            (ngModelChange)="setCustomCashDeposit($event)"
+          />
+          <div class="chip-scroll">
+            <button type="button" class="sgsk-pill-chip" (click)="adjustCashDeposit(state.dc() === 'THB' ? 10000 : 500)">
+              +{{ state.dc() === 'THB' ? '10k' : '500' }}
+            </button>
+            <button type="button" class="sgsk-pill-chip" (click)="adjustCashDeposit(state.dc() === 'THB' ? 50000 : 2000)">
+              +{{ state.dc() === 'THB' ? '50k' : '2k' }}
+            </button>
+            <button type="button" class="sgsk-pill-chip" (click)="setCustomCashDeposit(state.dc() === 'THB' ? 100000 : 5000)">
+              {{ state.dc() === 'THB' ? '100k' : '5k' }}
+            </button>
+          </div>
+        </div>
+      } @else {
+        <p class="reb-hint-text">{{ 'tools.reb.minInflowDesc' | t }}</p>
+      }
+    </div>
+  }
+
+  <!-- Asset Class Filter Chips -->
+  <div class="chip-scroll" style="margin-bottom: 0.75rem;">
+    @for (cls of availableAssetClasses(); track cls.id) {
+      <button
+        type="button"
+        class="sgsk-pill-chip"
+        [class.active]="selectedAssetClassFilter() === cls.id"
+        (click)="setAssetClassFilter(cls.id)"
+      >
+        {{ cls.label }} ({{ cls.count }})
+      </button>
+    }
+  </div>
+
+  <!-- Master KPI Summary -->
+  <div id="mobile-rebalance-result" class="sgsk-kpi-grid" style="margin-bottom: 0.85rem;">
+    <div class="sgsk-kpi-box">
+      <span class="sgsk-kpi-label">{{ currentValueLabel() }}</span>
+      <span class="sgsk-kpi-val privacy-mask">
+        {{ filteredCurrentValue() | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+      </span>
+    </div>
+    <div class="sgsk-kpi-box">
+      <span class="sgsk-kpi-label">{{ targetValueLabel() }}</span>
+      <span class="sgsk-kpi-val privacy-mask">
+        {{ filteredTargetValue() | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+      </span>
+    </div>
+    <div class="sgsk-kpi-box">
+      <span class="sgsk-kpi-label">{{ 'tools.reb.totalBuyOrders' | t }}</span>
+      <span class="sgsk-kpi-val pl-positive privacy-mask">
+        +{{ filteredBuyAmount() | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+      </span>
+    </div>
+    <div class="sgsk-kpi-box">
+      <span class="sgsk-kpi-label">
+        {{ mode() === 'standard' ? ('tools.reb.totalSellOrders' | t) : ('tools.reb.cashContribution' | t) }}
+      </span>
+      <span class="sgsk-kpi-val privacy-mask" [class.pl-negative]="mode() === 'standard' && filteredSellAmount() > 0">
+        @if (mode() === 'standard') {
+          -{{ filteredSellAmount() | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+        } @else {
+          +{{ filteredCashContribution() | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+        }
+      </span>
+    </div>
+  </div>
+
+  <!-- Asset Class Groups & Symbol Allocation Steppers -->
+  @if (displayedGroups().length > 0) {
+    <div class="reb-groups-stack">
+      @for (grp of displayedGroups(); track grp.assetType) {
+        <div class="reb-group-card">
+          <div class="reb-group-header">
+            <div style="display: flex; align-items: center; gap: 0.45rem;">
+              <span class="color-dot" [style.background]="grp.color"></span>
+              <strong style="font-size: 0.85rem;">{{ grp.label }}</strong>
+            </div>
+            <span
+              class="font-mono reb-sum-pill"
+              [class.invalid]="!grp.isValid"
+            >
+              {{ grp.targetTotalPercent | number: '1.0-1' }}% / 100%
+            </span>
+          </div>
+
+          <div class="reb-preset-row">
+            <button type="button" class="sgsk-pill-chip" (click)="applyEqualWeight(grp)">
+              {{ 'tools.reb.equalWeight' | t }}
+            </button>
+            <button type="button" class="sgsk-pill-chip" (click)="applyCurrentWeight(grp)">
+              {{ 'tools.reb.setCurrent' | t }}
+            </button>
+            <button type="button" class="sgsk-pill-chip" (click)="applyNormalize(grp)">
+              {{ 'tools.reb.normalize' | t }}
+            </button>
+          </div>
+
+          @if (!grp.isValid) {
+            <p class="reb-warn-banner">
+              {{ 'tools.reb.sumWarningBefore' | t }} {{ grp.targetTotalPercent | number: '1.0-1' }}%{{ 'tools.reb.sumWarningMiddle' | t }}
+              {{ 'tools.reb.normalize' | t }}.
+            </p>
+          }
+
+          <div class="reb-symbol-list">
+            @for (sym of grp.symbols; track sym.symbol) {
+              <div class="reb-symbol-row">
+                <div class="reb-sym-top">
+                  <div style="display: flex; align-items: center; gap: 0.45rem; min-width: 0;">
+                    <app-symbol-icon [symbol]="sym.symbol" [assetType]="sym.assetType" size="xs"></app-symbol-icon>
+                    <div style="min-width: 0;">
+                      <strong class="font-mono" style="font-size: 0.8rem;">{{ sym.displaySymbol }}</strong>
+                      <span class="reb-sym-val privacy-mask font-mono">
+                        {{ sym.currentValue | currency: state.dc() : 'symbol-narrow' : '1.0-0' }} ({{ sym.currentClassPercent | number: '1.1-1' }}%)
+                      </span>
+                    </div>
+                  </div>
+                  <span
+                    class="badge font-mono"
+                    [class.badge-positive]="sym.action === 'BUY'"
+                    [class.badge-negative]="sym.action === 'SELL'"
+                  >
+                    @if (sym.action === 'BALANCED') {
+                      {{ 'tools.reb.balanced' | t }}
+                    } @else {
+                      {{ sym.action }} {{ (sym.deltaValue < 0 ? -sym.deltaValue : sym.deltaValue) | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+                    }
+                  </span>
+                </div>
+
+                <div class="reb-stepper-row">
+                  <button type="button" class="reb-step-btn" (click)="adjustTarget(sym.symbol, -5)">-5%</button>
+                  <button type="button" class="reb-step-btn" (click)="adjustTarget(sym.symbol, -1)">-1%</button>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.5"
+                    class="reb-pct-input font-mono"
+                    [ngModel]="sym.targetPercent"
+                    (ngModelChange)="updateTarget(sym.symbol, $event)"
+                  />
+                  <button type="button" class="reb-step-btn" (click)="adjustTarget(sym.symbol, 1)">+1%</button>
+                  <button type="button" class="reb-step-btn" data-step="inc-5" (click)="adjustTarget(sym.symbol, 5)">+5%</button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="reb-empty">
+      <strong>{{ 'tools.reb.emptyTitle' | t }}</strong>
+      <p>{{ 'tools.reb.emptyDesc' | t }}</p>
+    </div>
+  }
+
+  <!-- Trade Execution Orders Drawer -->
+  @if (filteredOrders().length > 0) {
+    <div class="reb-orders-card">
+      <div class="reb-orders-head">
+        <button type="button" class="reb-orders-toggle" (click)="toggleOrdersExpanded()">
+          <strong>{{ 'tools.reb.drawerTitle' | t }}</strong>
+          <span class="font-mono">({{ filteredOrders().length }})</span>
+        </button>
+        <button type="button" class="sgsk-pill-chip active" (click)="copyTradePlan()">
+          {{ isCopiedOrders() ? ('tools.reb.copied' | t) : ('tools.reb.copyPlan' | t) }}
+        </button>
+      </div>
+
+      @if (isOrdersExpanded()) {
+        <div class="reb-orders-list">
+          @for (order of filteredOrders(); track order.id) {
+            <div class="reb-order-row">
+              <span
+                class="badge"
+                [class.badge-positive]="order.action === 'BUY'"
+                [class.badge-negative]="order.action === 'SELL'"
+              >
+                {{ order.action }}
+              </span>
+              <div style="flex: 1; min-width: 0;">
+                <strong class="font-mono" style="font-size: 0.8rem;">{{ order.displaySymbol }}</strong>
+                <p class="reb-order-sub font-mono">
+                  {{ order.shares | number: '1.2-2' }} @ {{ order.price | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+                </p>
+              </div>
+              <strong class="font-mono privacy-mask" style="font-size: 0.82rem;">
+                {{ order.amount | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+              </strong>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

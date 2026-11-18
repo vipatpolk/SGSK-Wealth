@@ -4,6 +4,7 @@ import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Page;
 import com.sgsk.wealth.e2e.config.E2eProperties;
 import com.sgsk.wealth.e2e.context.TestContext;
+import com.sgsk.wealth.e2e.context.TestContextHolder;
 import com.sgsk.wealth.e2e.support.ApiRouteMocker;
 import com.sgsk.wealth.e2e.support.AppiumManager;
 import com.sgsk.wealth.e2e.support.PlaywrightManager;
@@ -43,6 +44,17 @@ public class TestHooks {
         this.properties = properties;
     }
 
+    @Before(order = 0)
+    public void bindScenarioContext(Scenario scenario) {
+        testContext.setScenarioTags(scenario.getSourceTagNames());
+        TestContextHolder.set(testContext);
+    }
+
+    @After(order = 0)
+    public void clearScenarioContext() {
+        TestContextHolder.clear();
+    }
+
     @Before("@ui")
     public void setupUiScenario() {
         serverManager.ensureBackendServer();
@@ -71,10 +83,13 @@ public class TestHooks {
     }
 
     @Before("@mobile and not @ui")
-    public void setupMobileScenario() {
+    public void setupMobileScenario(Scenario scenario) {
         serverManager.ensureBackendServer();
+        String resolvedPlatform = resolveMobilePlatform(scenario);
+        testContext.setMobilePlatform(resolvedPlatform);
+
         if (appiumManager.isAppiumServerAvailable()) {
-            AppiumDriver driver = appiumManager.createMobileDriver();
+            AppiumDriver driver = appiumManager.createMobileDriver(resolvedPlatform);
             testContext.setAppiumDriver(driver);
             return;
         }
@@ -87,12 +102,32 @@ public class TestHooks {
         }
 
         String mobileUrl = serverManager.ensureMobileServer();
-        BrowserContext context = playwrightManager.newMobileBrowserContext(mobileUrl);
+        BrowserContext context = playwrightManager.newMobileBrowserContext(mobileUrl, resolvedPlatform);
         Page page = context.newPage();
         apiRouteMocker.mockPortfolioAPIs(page);
 
         testContext.setBrowserContext(context);
         testContext.setPage(page);
+    }
+
+    private String resolveMobilePlatform(Scenario scenario) {
+        java.util.Collection<String> tags = scenario != null ? scenario.getSourceTagNames() : java.util.List.of();
+        boolean hasAndroidTag = tags.contains("@android");
+        boolean hasIosTag = tags.contains("@ios");
+        if (hasAndroidTag && !hasIosTag) {
+            return "ANDROID";
+        }
+        if (hasIosTag && !hasAndroidTag) {
+            return "IOS";
+        }
+        String filterTags = System.getProperty("cucumber.filter.tags", "");
+        if (filterTags.contains("@ios") && !filterTags.contains("@android")) {
+            return "IOS";
+        }
+        if (filterTags.contains("@android") && !filterTags.contains("@ios")) {
+            return "ANDROID";
+        }
+        return properties.mobile().platform();
     }
 
     @After("@mobile and not @ui")

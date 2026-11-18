@@ -53,6 +53,7 @@ All agents (Antigravity, OpenAI Codex, and Claude Code via `.claude/skills/`) sh
   npm run test:mobile
   npm run build:mobile
   npm run cap:sync
+  mvn -f mobile/android/pom.xml package
   ```
 
 - **Backend Only**:
@@ -92,7 +93,13 @@ From root:
 - `npm run test:web` / `npm run test:mobile` (Runs Vitest / `ng test --watch=false`)
 - `npm run build:web` / `npm run build:mobile` (Ensures zero compilation errors and budget compliance)
 
-### 3. E2E & BDD Verification (`e2e/`)
+### 3. Cross-Platform Mobile Standards (iOS & Android)
+Whenever implementing or enhancing features, UI flows, APIs, or shared utilities, explicitly evaluate and maintain parity across **Web (`web/`)**, **iOS (`mobile/ios/`)**, and **Android (`mobile/android/`)**:
+- **Shared-First Architecture**: Keep business logic, models, pipes, i18n keys (`en.ts`/`th.ts`), and shared components inside `shared/` (`@shared/*`). Never hardcode relative `/api/backend/...` paths inside `@shared/*` UI components or utilities—inject `API_BASE_URL` so Capacitor iOS (`capacitor://`) and Android (`http://10.0.2.2:8000`) resolve endpoints cleanly.
+- **Native UX & Adaptive Behavior**: Preserve platform-adaptive Ionic `mode` (`'md'` on Android, `'ios'` on iOS/Web), shared dark/light theme tokens, safe-area insets (`env(safe-area-inset-*)`), `@capacitor/status-bar` theme syncing, `@capacitor/haptics` feedback, `@capacitor/preferences` persistence, Android hardware `backButton` handling, and native controls (`ion-header`, `ion-tabs`, `ion-modal` sheets, `ion-refresher`, `ion-segment`).
+- **Native Packaging & Selectors**: When shipping mobile UI changes, keep `e2e/` selectors (`#mobile-*`, `[data-symbol-lots]`), sync the built bundle to native assets (`npm run cap:sync`, or copy `mobile/dist/sgsk-wealth-mobile/browser` into `mobile/android/app/src/main/assets/public` for the Maven Android project), and verify Android APK compilation (`mvn -f mobile/android/pom.xml package`, overriding `-Dandroid.compileSdk=<installed-sdk>` if needed) alongside iOS sync.
+
+### 4. E2E & BDD Verification (`e2e/`)
 From root:
 - `npm run lint:gherkin` (Runs `validate_gherkin.py --strict` across all `.feature` files)
 - `npm run test:e2e:smoke` (Runs `@smoke`-tagged scenarios)

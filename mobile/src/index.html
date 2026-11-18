@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark" class="ion-palette-dark">
   <head>
     <meta charset="utf-8" />
-    <title>SGSK Wealth Mobile</title>
+    <title>SGSK Wealth</title>
     <base href="/" />
     <meta
       name="viewport"
@@ -11,8 +11,27 @@
     <meta name="format-detection" content="telephone=no" />
     <meta name="msapplication-tap-highlight" content="no" />
     <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#0b0d14" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f5f7fa" media="(prefers-color-scheme: light)" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        try {
+          var theme = localStorage.getItem('sgsk_wealth_theme') || 'dark';
+          document.documentElement.setAttribute('data-theme', theme);
+          document.documentElement.classList.toggle('ion-palette-dark', theme === 'dark');
+          var lang = localStorage.getItem('sgsk_wealth_lang');
+          document.documentElement.setAttribute('lang', lang === 'th' ? 'th' : 'en');
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <app-root></app-root>

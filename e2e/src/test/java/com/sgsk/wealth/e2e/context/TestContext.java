@@ -7,7 +7,10 @@ import io.cucumber.spring.ScenarioScope;
 import io.restassured.response.Response;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Component
 @ScenarioScope
@@ -17,6 +20,8 @@ public class TestContext {
     private AppiumDriver appiumDriver;
     private Response lastApiResponse;
     private String downloadedFileName;
+    private String mobilePlatform = "ANDROID";
+    private Set<String> scenarioTags = Set.of();
     private Map<String, Object> simulationInitialPosition;
 
     public BrowserContext getBrowserContext() {
@@ -57,6 +62,22 @@ public class TestContext {
 
     public void setDownloadedFileName(String downloadedFileName) {
         this.downloadedFileName = downloadedFileName;
+    }
+
+    public String getMobilePlatform() {
+        return mobilePlatform;
+    }
+
+    public void setMobilePlatform(String mobilePlatform) {
+        this.mobilePlatform = mobilePlatform != null ? mobilePlatform : "ANDROID";
+    }
+
+    public Set<String> getScenarioTags() {
+        return scenarioTags;
+    }
+
+    public void setScenarioTags(Collection<String> scenarioTags) {
+        this.scenarioTags = scenarioTags != null ? Set.copyOf(new LinkedHashSet<>(scenarioTags)) : Set.of();
     }
 
     public Map<String, Object> getSimulationInitialPosition() {

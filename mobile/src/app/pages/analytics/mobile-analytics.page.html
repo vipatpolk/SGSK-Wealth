@@ -1,0 +1,585 @@
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="sgsk-page-pad">
+    <!-- Sub-Tab Segment Header -->
+    <div class="anal-header">
+      <div>
+        <h2 class="anal-title">{{ 'analytics.title' | t }}</h2>
+        <p class="anal-subtitle">{{ 'analytics.subtitle' | t }}</p>
+      </div>
+
+      <ion-segment
+        id="mobile-analytics-segment"
+        [value]="state.analyticsSubTab()"
+        (ionChange)="onSegmentChange($event)"
+      >
+        <ion-segment-button value="overview" id="mobile-analytics-overview">
+          <ion-label>{{ 'analytics.overview' | t }}</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="allocation" id="mobile-analytics-allocation">
+          <ion-label>{{ 'dash.allocationBtn' | t }}</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="performance" id="mobile-analytics-performance">
+          <ion-label>{{ 'analytics.performance' | t }}</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    @if (loading() && !performance()) {
+      <div class="anal-loading-box">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>{{ 'loading.prepAnalytics' | t }}</p>
+      </div>
+    } @else if (state.analyticsSubTab() === 'overview') {
+      <!-- ================= OVERVIEW SUB-TAB ================= -->
+      @let kpi = summaryKPIs();
+      <div class="anal-kpi-grid">
+        <div class="sgsk-kpi-box">
+          <span class="sgsk-kpi-label">{{ 'common.totalInvested' | t }}</span>
+          <span class="sgsk-kpi-val privacy-mask">
+            {{ kpi.totalInvested | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+          </span>
+        </div>
+        <div class="sgsk-kpi-box">
+          <span class="sgsk-kpi-label">{{ 'common.totalValue' | t }}</span>
+          <span class="sgsk-kpi-val privacy-mask">
+            {{ kpi.totalCurrentValue | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+          </span>
+        </div>
+        <div class="sgsk-kpi-box">
+          <span class="sgsk-kpi-label">{{ 'common.unrealizedPL' | t }}</span>
+          <span
+            class="sgsk-kpi-val privacy-mask"
+            [class.pl-positive]="kpi.totalUnrealizedPL >= 0"
+            [class.pl-negative]="kpi.totalUnrealizedPL < 0"
+          >
+            {{ kpi.totalUnrealizedPL >= 0 ? '+' : '' }}{{ kpi.totalUnrealizedPL | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+          </span>
+          <span class="sgsk-kpi-sub font-mono" [class.pl-positive]="kpi.totalUnrealizedPLPercent >= 0" [class.pl-negative]="kpi.totalUnrealizedPLPercent < 0">
+            {{ kpi.totalUnrealizedPLPercent >= 0 ? '+' : '' }}{{ kpi.totalUnrealizedPLPercent | number: '1.2-2' }}%
+          </span>
+        </div>
+        <div class="sgsk-kpi-box">
+          <span class="sgsk-kpi-label">{{ 'common.realizedPL' | t }}</span>
+          <span
+            class="sgsk-kpi-val privacy-mask"
+            [class.pl-positive]="kpi.totalRealizedPL >= 0"
+            [class.pl-negative]="kpi.totalRealizedPL < 0"
+          >
+            {{ kpi.totalRealizedPL >= 0 ? '+' : '' }}{{ kpi.totalRealizedPL | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+          </span>
+          <span class="sgsk-kpi-sub font-mono" [class.pl-positive]="kpi.totalRealizedPLPercent >= 0" [class.pl-negative]="kpi.totalRealizedPLPercent < 0">
+            {{ kpi.totalRealizedPLPercent >= 0 ? '+' : '' }}{{ kpi.totalRealizedPLPercent | number: '1.2-2' }}%
+          </span>
+        </div>
+        <div class="sgsk-kpi-box anal-kpi-highlight">
+          <span class="sgsk-kpi-label">{{ 'common.totalReturn' | t }}</span>
+          <span
+            class="sgsk-kpi-val privacy-mask"
+            [class.pl-positive]="kpi.totalReturn >= 0"
+            [class.pl-negative]="kpi.totalReturn < 0"
+          >
+            {{ kpi.totalReturn >= 0 ? '+' : '' }}{{ kpi.totalReturn | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+          </span>
+          <span class="sgsk-kpi-sub font-mono" [class.pl-positive]="kpi.totalReturnPercent >= 0" [class.pl-negative]="kpi.totalReturnPercent < 0">
+            {{ kpi.totalReturnPercent >= 0 ? '+' : '' }}{{ kpi.totalReturnPercent | number: '1.2-2' }}%
+          </span>
+        </div>
+      </div>
+
+      <!-- Asset Distribution Donut -->
+      <section class="sgsk-card">
+        <div class="sgsk-card-header">
+          <h3 class="sgsk-card-heading">{{ 'alloc.assetDistribution' | t }}</h3>
+          <button type="button" class="sgsk-header-action-btn" (click)="state.analyticsSubTab.set('allocation')">
+            <span>{{ 'analytics.viewAllocation' | t }}</span>
+          </button>
+        </div>
+
+        <div class="anal-donut-wrap">
+          <svg viewBox="0 0 42 42" class="anal-donut-svg">
+            <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--color-surface-overlay)" stroke-width="5.5" />
+            @for (seg of donutSegments(); track seg.key) {
+              <circle
+                cx="21"
+                cy="21"
+                r="15.91549430918954"
+                fill="transparent"
+                [attr.stroke]="seg.color"
+                stroke-width="5"
+                [attr.stroke-dasharray]="seg.dashArray"
+                [attr.stroke-dashoffset]="seg.dashOffset"
+              />
+            }
+          </svg>
+          <div class="anal-donut-center">
+            <span class="anal-donut-val font-mono privacy-mask">
+              {{ totalPortfolioValue() | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+            </span>
+            <span class="anal-donut-lbl">{{ 'common.totalValue' | t }}</span>
+          </div>
+        </div>
+
+        <div class="anal-legend-pills">
+          @for (item of assetClassDistribution(); track item.type) {
+            <div class="anal-legend-pill">
+              <span class="color-dot" [style.background-color]="item.color"></span>
+              <span>{{ item.label }}</span>
+              <strong class="font-mono">{{ item.percentage | number: '1.1-1' }}%</strong>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Returns by Class & Currency Exposure -->
+      <section class="sgsk-card">
+        <div class="sgsk-card-header">
+          <h3 class="sgsk-card-heading">{{ 'analytics.returnsByClass' | t }}</h3>
+          <button type="button" class="sgsk-header-action-btn" (click)="state.analyticsSubTab.set('performance')">
+            <span>{{ 'analytics.viewPerformance' | t }}</span>
+          </button>
+        </div>
+
+        <div class="anal-bars-list">
+          @for (asset of assetTypePerformance(); track asset.type) {
+            <div class="anal-bar-row">
+              <div class="anal-bar-lbl">
+                <span class="color-dot" [style.backgroundColor]="asset.color"></span>
+                <span>{{ asset.label }}</span>
+              </div>
+              <div class="anal-bar-track">
+                <div
+                  class="anal-bar-fill"
+                  [style.width.%]="(asset.totalReturnPercent < 0 ? -asset.totalReturnPercent : asset.totalReturnPercent) / maxAbsReturnPercent() * 100"
+                  [style.backgroundColor]="asset.totalReturnPercent >= 0 ? 'var(--color-pl-positive)' : 'var(--color-pl-negative)'"
+                ></div>
+              </div>
+              <span class="anal-bar-val font-mono" [class.pl-positive]="asset.totalReturnPercent >= 0" [class.pl-negative]="asset.totalReturnPercent < 0">
+                {{ asset.totalReturnPercent >= 0 ? '+' : '' }}{{ asset.totalReturnPercent | number: '1.2-2' }}%
+              </span>
+            </div>
+          }
+        </div>
+
+        @let curr = currencyExposure();
+        <div class="anal-curr-section">
+          <div class="anal-curr-title">{{ 'analytics.currencyExposure' | t }}</div>
+          <div class="anal-curr-labels font-mono">
+            <span>USD ({{ curr.usdPercent | number: '1.1-1' }}%)</span>
+            <span>THB ({{ curr.thbPercent | number: '1.1-1' }}%)</span>
+          </div>
+          <div class="anal-curr-bar">
+            <div class="usd-seg" [style.width.%]="curr.usdPercent"></div>
+            <div class="thb-seg" [style.width.%]="curr.thbPercent"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Top Concentration & Top Movers -->
+      <section class="sgsk-card">
+        <div class="sgsk-card-header">
+          <h3 class="sgsk-card-heading">{{ 'analytics.topConcentration' | t }}</h3>
+        </div>
+        <div class="conc-list">
+          @for (h of allConcentrationHoldings().slice(0, 5); track h.symbol) {
+            <div class="conc-item">
+              <div class="conc-head">
+                <div class="conc-sym">
+                  <app-symbol-icon [symbol]="h.symbol" [assetType]="h.assetType" [fundName]="h.pvdFundName" size="sm"></app-symbol-icon>
+                  <span class="font-mono" style="font-weight: 700; font-size: 0.78rem;">{{ h.displaySymbol }}</span>
+                </div>
+                <div class="conc-stats font-mono">
+                  <span class="privacy-mask text-muted">{{ h.value | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+                  <strong>{{ h.percent | number: '1.1-1' }}%</strong>
+                </div>
+              </div>
+              <div class="conc-bar-track">
+                <div class="conc-bar-fill" [style.width.%]="h.percent" [style.background-color]="h.color"></div>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+      <section class="sgsk-card">
+        <div class="sgsk-card-header">
+          <h3 class="sgsk-card-heading">{{ 'perf.topMovers' | t }}</h3>
+        </div>
+        <div class="movers-split">
+          <div>
+            <div class="movers-subhead pl-positive">{{ 'analytics.gainers' | t }}</div>
+            @for (g of topGainers().slice(0, 3); track g.symbol) {
+              <div class="mover-mini-row">
+                <app-symbol-icon [symbol]="g.symbol" [assetType]="g.assetType" size="xs"></app-symbol-icon>
+                <span class="mover-mini-sym">{{ g.displaySymbol }}</span>
+                <span class="font-mono pl-positive">+{{ g.totalReturnPercent | number: '1.2-2' }}%</span>
+              </div>
+            } @empty {
+              <p class="text-muted" style="font-size: 0.72rem;">{{ 'analytics.noGainers' | t }}</p>
+            }
+          </div>
+          <div>
+            <div class="movers-subhead pl-negative">{{ 'analytics.losers' | t }}</div>
+            @for (l of topLosers().slice(0, 3); track l.symbol) {
+              <div class="mover-mini-row">
+                <app-symbol-icon [symbol]="l.symbol" [assetType]="l.assetType" size="xs"></app-symbol-icon>
+                <span class="mover-mini-sym">{{ l.displaySymbol }}</span>
+                <span class="font-mono pl-negative">{{ l.totalReturnPercent | number: '1.2-2' }}%</span>
+              </div>
+            } @empty {
+              <p class="text-muted" style="font-size: 0.72rem;">{{ 'analytics.noLosers' | t }}</p>
+            }
+          </div>
+        </div>
+      </section>
+    } @else if (state.analyticsSubTab() === 'allocation') {
+      <!-- ================= ALLOCATION SUB-TAB (WITH DRILLDOWN) ================= -->
+      <section class="sgsk-card">
+        <div class="sgsk-card-header">
+          <h3 class="sgsk-card-heading">
+            {{ 'alloc.assetDistribution' | t }}{{ selectedAssetType() ? ' (' + selectedAssetLabel() + ')' : '' }}
+          </h3>
+          @if (selectedAssetType()) {
+            <button type="button" id="mobile-alloc-reset-btn" class="sgsk-header-action-btn" (click)="selectAssetType(null)">
+              {{ 'alloc.allAssetClasses' | t }}
+            </button>
+          }
+        </div>
+
+        <div class="anal-donut-wrap">
+          <svg viewBox="0 0 42 42" class="anal-donut-svg">
+            <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--color-surface-overlay)" stroke-width="5.5" />
+            @for (seg of donutSegments(); track seg.key) {
+              <circle
+                cx="21"
+                cy="21"
+                r="15.91549430918954"
+                fill="transparent"
+                [attr.stroke]="seg.color"
+                stroke-width="5"
+                [attr.stroke-dasharray]="seg.dashArray"
+                [attr.stroke-dashoffset]="seg.dashOffset"
+                (click)="!selectedAssetType() && selectAssetType(seg.key)"
+              />
+            }
+          </svg>
+          <div class="anal-donut-center">
+            <span class="anal-donut-val font-mono privacy-mask">
+              {{ (selectedAssetType() ? classTotalValue() : totalPortfolioValue()) | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+            </span>
+            <span class="anal-donut-lbl">
+              {{ selectedAssetType() ? selectedAssetLabel() : ('common.totalValue' | t) }}
+            </span>
+          </div>
+        </div>
+
+        @if (!selectedAssetType()) {
+          <div id="mobile-alloc-classes" class="alloc-rows-list">
+            @for (c of assetClassDistribution(); track c.type) {
+              <button type="button" class="alloc-class-row" [attr.data-alloc-class]="c.type" (click)="selectAssetType(c.type)">
+                <div class="alloc-row-left">
+                  <span class="color-dot" [style.background-color]="c.color"></span>
+                  <span class="alloc-row-name">{{ c.label }}</span>
+                </div>
+                <div class="alloc-row-right font-mono">
+                  <span class="privacy-mask">{{ c.value | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+                  <strong>{{ c.percentage | number: '1.1-1' }}%</strong>
+                </div>
+              </button>
+            }
+          </div>
+        } @else {
+          <div class="alloc-rows-list">
+            @for (h of classHoldings(); track h.symbol) {
+              <div class="alloc-class-row">
+                <div class="alloc-row-left">
+                  <app-symbol-icon [symbol]="h.symbol" [assetType]="h.assetType" [fundName]="h.pvdFundName" size="sm"></app-symbol-icon>
+                  <div style="min-width: 0;">
+                    <div class="font-mono" style="font-weight: 700; font-size: 0.78rem;">{{ h.displaySymbol }}</div>
+                    <div class="text-muted" style="font-size: 0.68rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ h.name }}</div>
+                  </div>
+                </div>
+                <div class="alloc-row-right font-mono">
+                  <span class="privacy-mask">{{ h.value | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+                  <strong>{{ h.classPercent | number: '1.1-1' }}% ({{ h.portfolioPercent | number: '1.1-1' }}%)</strong>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      @if (!selectedAssetType()) {
+        @let curr = currencyExposure();
+        <section class="sgsk-card" id="mobile-currency-exposure">
+          <div class="sgsk-card-header">
+            <h3 class="sgsk-card-heading">{{ 'analytics.currencyExposure' | t }}</h3>
+          </div>
+          <div class="anal-curr-labels font-mono">
+            <span>USD ({{ curr.usdPercent | number: '1.1-1' }}%)</span>
+            <span>THB ({{ curr.thbPercent | number: '1.1-1' }}%)</span>
+          </div>
+          <div class="anal-curr-bar">
+            <div class="usd-seg" [style.width.%]="curr.usdPercent"></div>
+            <div class="thb-seg" [style.width.%]="curr.thbPercent"></div>
+          </div>
+          <div class="sgsk-kpi-grid" style="margin-top: 0.75rem;">
+            <div class="sgsk-kpi-box">
+              <span class="sgsk-kpi-label">USD</span>
+              <span class="sgsk-kpi-val privacy-mask">{{ curr.usd | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+            </div>
+            <div class="sgsk-kpi-box">
+              <span class="sgsk-kpi-label">THB</span>
+              <span class="sgsk-kpi-val privacy-mask">{{ curr.thb | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="sgsk-card">
+          <div class="sgsk-card-header">
+            <h3 class="sgsk-card-heading">{{ 'analytics.topConcentration' | t }}</h3>
+            @if (allConcentrationHoldings().length > 5) {
+              <button type="button" class="sgsk-header-action-btn" (click)="showAllHoldings.set(!showAllHoldings())">
+                {{ (showAllHoldings() ? 'common.showTop5' : 'common.showAll') | t }}
+              </button>
+            }
+          </div>
+          <div class="conc-list">
+            @for (h of displayedConcentration(); track h.symbol) {
+              <div class="conc-item">
+                <div class="conc-head">
+                  <div class="conc-sym">
+                    <app-symbol-icon [symbol]="h.symbol" [assetType]="h.assetType" [fundName]="h.pvdFundName" size="sm"></app-symbol-icon>
+                    <span class="font-mono" style="font-weight: 700; font-size: 0.78rem;">{{ h.displaySymbol }}</span>
+                  </div>
+                  <div class="conc-stats font-mono">
+                    <span class="privacy-mask text-muted">{{ h.value | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+                    <strong [class.pl-negative]="h.percent > 15">{{ h.percent | number: '1.1-1' }}%</strong>
+                  </div>
+                </div>
+                <div class="conc-bar-track">
+                  <div class="conc-bar-fill" [style.width.%]="h.percent" [style.background-color]="h.color"></div>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      }
+    } @else {
+      <!-- ================= PERFORMANCE SUB-TAB ================= -->
+      <div class="perf-filters-bar">
+        <div class="chip-scroll" id="mobile-timeframe-chips">
+          @for (tf of timeframes; track tf) {
+            <button
+              type="button"
+              class="sgsk-pill-chip"
+              [attr.data-timeframe]="tf"
+              [class.active]="!startDate() && !endDate() && timeframe() === tf"
+              (click)="setTimeframe(tf)"
+            >
+              {{ tf }}
+            </button>
+          }
+        </div>
+        <app-date-range-picker
+          [startDate]="startDate()"
+          [endDate]="endDate()"
+          (rangeChange)="onDateRangeChange($event)"
+        ></app-date-range-picker>
+      </div>
+
+      @let pkpi = summaryKPIs();
+      <section class="sgsk-card" id="mobile-performance-summary">
+        <div class="sgsk-card-header">
+          <h3 class="sgsk-card-heading">{{ 'perf.title' | t }}</h3>
+        </div>
+        <div class="anal-kpi-grid">
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'common.totalInvested' | t }}</span>
+            <span class="sgsk-kpi-val privacy-mask">{{ pkpi.totalInvested | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+          </div>
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'common.totalValue' | t }}</span>
+            <span class="sgsk-kpi-val privacy-mask">{{ pkpi.totalCurrentValue | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+          </div>
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'common.unrealizedPL' | t }}</span>
+            <span class="sgsk-kpi-val privacy-mask" [class.pl-positive]="pkpi.totalUnrealizedPL >= 0" [class.pl-negative]="pkpi.totalUnrealizedPL < 0">
+              {{ pkpi.totalUnrealizedPL >= 0 ? '+' : '' }}{{ pkpi.totalUnrealizedPL | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+            </span>
+          </div>
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'common.realizedPL' | t }}</span>
+            <span class="sgsk-kpi-val privacy-mask" [class.pl-positive]="pkpi.totalRealizedPL >= 0" [class.pl-negative]="pkpi.totalRealizedPL < 0">
+              {{ pkpi.totalRealizedPL >= 0 ? '+' : '' }}{{ pkpi.totalRealizedPL | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+            </span>
+          </div>
+          <div class="sgsk-kpi-box anal-kpi-highlight">
+            <span class="sgsk-kpi-label">{{ 'common.totalReturn' | t }}</span>
+            <span class="sgsk-kpi-val privacy-mask" [class.pl-positive]="pkpi.totalReturn >= 0" [class.pl-negative]="pkpi.totalReturn < 0">
+              {{ pkpi.totalReturn >= 0 ? '+' : '' }}{{ pkpi.totalReturn | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+            </span>
+            <span class="sgsk-kpi-sub font-mono" [class.pl-positive]="pkpi.totalReturnPercent >= 0" [class.pl-negative]="pkpi.totalReturnPercent < 0">
+              {{ pkpi.totalReturnPercent >= 0 ? '+' : '' }}{{ pkpi.totalReturnPercent | number: '1.2-2' }}%
+            </span>
+          </div>
+        </div>
+      </section>
+
+      @if (assetTypePerformance().length > 0) {
+        <section class="sgsk-card">
+          <div class="sgsk-card-header">
+            <h3 class="sgsk-card-heading">{{ 'perf.assetTypeReturn' | t }}</h3>
+          </div>
+          <div class="anal-bars-list">
+            @for (asset of assetTypePerformance(); track asset.type) {
+              <div class="anal-bar-row">
+                <div class="anal-bar-lbl">
+                  <span class="color-dot" [style.backgroundColor]="asset.color"></span>
+                  <span>{{ asset.label }}</span>
+                </div>
+                <div class="anal-bar-track">
+                  <div
+                    class="anal-bar-fill"
+                    [style.width.%]="(asset.totalReturnPercent < 0 ? -asset.totalReturnPercent : asset.totalReturnPercent) / maxAbsReturnPercent() * 100"
+                    [style.backgroundColor]="asset.totalReturnPercent >= 0 ? 'var(--color-pl-positive)' : 'var(--color-pl-negative)'"
+                  ></div>
+                </div>
+                <span class="anal-bar-val font-mono" [class.pl-positive]="asset.totalReturnPercent >= 0" [class.pl-negative]="asset.totalReturnPercent < 0">
+                  {{ asset.totalReturnPercent >= 0 ? '+' : '' }}{{ asset.totalReturnPercent | number: '1.2-2' }}%
+                </span>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <section class="sgsk-card">
+        <div class="sgsk-card-header">
+          <h3 class="sgsk-card-heading">{{ 'perf.topMovers' | t }}</h3>
+        </div>
+        <div class="movers-split">
+          <div>
+            <div class="movers-subhead pl-positive">{{ 'perf.topGainers' | t }}</div>
+            @for (g of topGainers(); track g.symbol) {
+              <div class="mover-mini-row">
+                <app-symbol-icon [symbol]="g.symbol" [assetType]="g.assetType" size="xs"></app-symbol-icon>
+                <span class="mover-mini-sym">{{ g.displaySymbol }}</span>
+                <span class="font-mono pl-positive">+{{ g.totalReturnPercent | number: '1.2-2' }}%</span>
+              </div>
+            } @empty {
+              <p class="text-muted" style="font-size: 0.72rem;">{{ 'analytics.noGainers' | t }}</p>
+            }
+          </div>
+          <div>
+            <div class="movers-subhead pl-negative">{{ 'perf.topLosers' | t }}</div>
+            @for (l of topLosers(); track l.symbol) {
+              <div class="mover-mini-row">
+                <app-symbol-icon [symbol]="l.symbol" [assetType]="l.assetType" size="xs"></app-symbol-icon>
+                <span class="mover-mini-sym">{{ l.displaySymbol }}</span>
+                <span class="font-mono pl-negative">{{ l.totalReturnPercent | number: '1.2-2' }}%</span>
+              </div>
+            } @empty {
+              <p class="text-muted" style="font-size: 0.72rem;">{{ 'analytics.noLosers' | t }}</p>
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- Symbol Performance Cards -->
+      <div class="perf-toolbar">
+        <ion-searchbar
+          class="sgsk-searchbar"
+          [value]="perfSearchQuery()"
+          (ionInput)="perfSearchQuery.set($event.detail.value ?? '')"
+          [placeholder]="'common.searchPlaceholder' | t"
+          debounce="150"
+        ></ion-searchbar>
+
+        <div class="perf-ctrl-row">
+          <ion-item lines="none" class="perf-select-item">
+            <ion-select interface="popover" [value]="perfAssetFilter()" (ionChange)="perfAssetFilter.set($event.detail.value)">
+              @for (opt of perfAssetOptions(); track opt.value) {
+                <ion-select-option [value]="opt.value">{{ opt.label }}</ion-select-option>
+              }
+            </ion-select>
+          </ion-item>
+
+          <ion-item lines="none" class="perf-select-item">
+            <ion-select interface="popover" [value]="perfStatusFilter()" (ionChange)="perfStatusFilter.set($event.detail.value)">
+              <ion-select-option value="all">{{ 'perf.allStatus' | t }}</ion-select-option>
+              <ion-select-option value="open">{{ 'common.open' | t }}</ion-select-option>
+              <ion-select-option value="closed">{{ 'common.closed' | t }}</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <button type="button" class="perf-dir-btn font-mono" (click)="togglePerfSortDir()">
+            {{ perfSortDir() === 'asc' ? '↑' : '↓' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="perf-cards-list">
+        @for (sym of filteredSymbolPerformance(); track sym.symbol) {
+          <article class="sgsk-card perf-sym-card">
+            <div class="perf-sym-head">
+              <div class="perf-sym-id">
+                <app-symbol-icon [symbol]="sym.symbol" [assetType]="sym.assetType" size="sm"></app-symbol-icon>
+                <div style="min-width: 0;">
+                  <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
+                    <span class="font-mono" style="font-weight: 700; font-size: 0.82rem;">{{ sym.displaySymbol }}</span>
+                    <span class="asset-badge">{{ sym.assetTypeLabel }}</span>
+                    <span class="asset-badge">{{ sym.status === 'OPEN' ? ('common.open' | t) : ('common.closed' | t) }}</span>
+                  </div>
+                  <div class="text-muted" style="font-size: 0.7rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    {{ sym.name }}
+                  </div>
+                </div>
+              </div>
+              <div class="perf-sym-ret font-mono" [class.pl-positive]="sym.totalReturn >= 0" [class.pl-negative]="sym.totalReturn < 0">
+                <span class="privacy-mask">{{ sym.totalReturn >= 0 ? '+' : '' }}{{ sym.totalReturn | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+                <span class="perf-return-pct">({{ sym.totalReturnPercent >= 0 ? '+' : '' }}{{ sym.totalReturnPercent | number: '1.2-2' }}%)</span>
+              </div>
+            </div>
+
+            <div class="sgsk-kpi-grid" style="margin-top: 0.55rem;">
+              <div class="sgsk-kpi-box">
+                <span class="sgsk-kpi-label">{{ 'common.invested' | t }}</span>
+                <span class="sgsk-kpi-val privacy-mask">{{ sym.investedCost | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+              </div>
+              <div class="sgsk-kpi-box">
+                <span class="sgsk-kpi-label">{{ 'common.currentValue' | t }}</span>
+                <span class="sgsk-kpi-val privacy-mask">{{ sym.currentValue | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+              </div>
+              <div class="sgsk-kpi-box">
+                <span class="sgsk-kpi-label">{{ 'common.realizedPL' | t }}</span>
+                <span class="sgsk-kpi-val privacy-mask" [class.pl-positive]="sym.realizedPL > 0" [class.pl-negative]="sym.realizedPL < 0">
+                  {{ sym.realizedPL > 0 ? '+' : '' }}{{ sym.realizedPL | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+                </span>
+              </div>
+              <div class="sgsk-kpi-box">
+                <span class="sgsk-kpi-label">{{ 'common.unrealizedPL' | t }}</span>
+                <span class="sgsk-kpi-val privacy-mask" [class.pl-positive]="sym.unrealizedPL > 0" [class.pl-negative]="sym.unrealizedPL < 0">
+                  {{ sym.unrealizedPL > 0 ? '+' : '' }}{{ sym.unrealizedPL | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+                </span>
+              </div>
+            </div>
+          </article>
+        } @empty {
+          <div class="sgsk-card" style="text-align: center; color: var(--color-text-muted); padding: 1.5rem;">
+            {{ 'common.noResults' | t }}
+          </div>
+        }
+      </div>
+
+      @if (symbolPerformanceList().length > 10) {
+        <button type="button" class="sgsk-header-action-btn" style="align-self: center;" (click)="showAllPerfSymbols.set(!showAllPerfSymbols())">
+          {{ showAllPerfSymbols() ? ('common.showTop10' | t) : ('perf.showAllSymbols' | t: { count: symbolPerformanceList().length }) }}
+        </button>
+      }
+    }
+  </div>
+</ion-content>

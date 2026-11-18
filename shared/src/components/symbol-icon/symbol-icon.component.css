@@ -10,8 +10,8 @@
   justify-content: center;
   position: relative;
   flex-shrink: 0;
-  background-color: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
+  background-color: var(--color-surface-raised, var(--sgsk-surface-raised, #11141c));
+  border: 1px solid var(--color-border, var(--sgsk-border, rgba(255, 255, 255, 0.08)));
   overflow: hidden;
   box-sizing: border-box;
   user-select: none;
@@ -36,7 +36,7 @@
   z-index: 2;
   opacity: 0;
   transition: opacity 0.15s ease-in;
-  background-color: var(--color-surface-raised);
+  background-color: var(--color-surface-raised, var(--sgsk-surface-raised, #11141c));
   box-sizing: border-box;
 }
 

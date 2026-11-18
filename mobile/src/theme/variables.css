@@ -1,4 +1,51 @@
 :root {
+  /* Web-unified design tokens (Dark Mode Default) */
+  --color-surface: #0b0d14;
+  --color-surface-raised: #11141c;
+  --color-surface-overlay: #1a1e28;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-subtle: rgba(255, 255, 255, 0.05);
+  --color-border-hover: rgba(255, 255, 255, 0.16);
+  --color-text-primary: #eef0f6;
+  --color-text-secondary: #8b92a5;
+  --color-text-muted: #64748b;
+  --color-accent: #3b82f6;
+  --color-accent-soft: rgba(59, 130, 246, 0.14);
+  --color-cyan-glow: #38bdf8;
+  --color-card-hover: rgba(255, 255, 255, 0.02);
+  --color-row-hover: rgba(255, 255, 255, 0.03);
+  --color-shadow: rgba(0, 0, 0, 0.45);
+  --color-shadow-sm: rgba(0, 0, 0, 0.22);
+  --color-pl-positive: #4cc38a;
+  --color-pl-negative: #e5484d;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --bg-main: var(--color-surface);
+  --bg-card: var(--color-surface-raised);
+  --bg-hover: var(--color-surface-overlay);
+  --border-color: var(--color-border);
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-muted: var(--color-text-muted);
+
+  /* Mobile alias tokens */
+  --sgsk-surface: var(--color-surface);
+  --sgsk-surface-raised: var(--color-surface-raised);
+  --sgsk-surface-overlay: var(--color-surface-overlay);
+  --sgsk-border: var(--color-border);
+  --sgsk-text-primary: var(--color-text-primary);
+  --sgsk-text-secondary: var(--color-text-secondary);
+  --sgsk-text-muted: var(--color-text-muted);
+  --sgsk-accent: var(--color-accent);
+  --sgsk-positive: var(--color-pl-positive);
+  --sgsk-negative: var(--color-pl-negative);
+
+  --font-sans: 'Inter', 'Noto Sans Thai', system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+  color-scheme: dark;
+
+  /* Ionic Color Tokens */
+  --ion-font-family: var(--font-sans);
   --ion-color-primary: #3b82f6;
   --ion-color-primary-rgb: 59, 130, 246;
   --ion-color-primary-contrast: #ffffff;
@@ -13,50 +60,78 @@
   --ion-color-danger-rgb: 229, 72, 77;
   --ion-color-danger-contrast: #ffffff;
   --ion-color-warning: #f59e0b;
+  --ion-color-warning-rgb: 245, 158, 11;
 
-  --sgsk-surface: #0b0d14;
-  --sgsk-surface-raised: #11141c;
-  --sgsk-surface-overlay: #1a1e28;
-  --sgsk-border: rgba(255, 255, 255, 0.08);
-  --sgsk-text-primary: #eef0f6;
-  --sgsk-text-secondary: #8b92a5;
-  --sgsk-text-muted: #64748b;
-  --sgsk-accent: #3b82f6;
-  --sgsk-positive: #4cc38a;
-  --sgsk-negative: #e5484d;
-
-  --ion-background-color: var(--sgsk-surface);
-  --ion-text-color: var(--sgsk-text-primary);
-  --ion-toolbar-background: var(--sgsk-surface-raised);
-  --ion-toolbar-color: var(--sgsk-text-primary);
-  --ion-tab-bar-background: var(--sgsk-surface-raised);
-  --ion-tab-bar-color: var(--sgsk-text-secondary);
-  --ion-tab-bar-color-selected: var(--sgsk-accent);
-  --ion-card-background: var(--sgsk-surface-raised);
-  --ion-item-background: var(--sgsk-surface-raised);
-  --ion-border-color: var(--sgsk-border);
+  --ion-background-color: var(--color-surface);
+  --ion-text-color: var(--color-text-primary);
+  --ion-toolbar-background: rgba(11, 13, 20, 0.9);
+  --ion-toolbar-color: var(--color-text-primary);
+  --ion-toolbar-border-color: var(--color-border);
+  --ion-tab-bar-background: rgba(10, 16, 29, 0.92);
+  --ion-tab-bar-color: var(--color-text-muted);
+  --ion-tab-bar-color-selected: var(--color-accent);
+  --ion-tab-bar-border-color: var(--color-border);
+  --ion-card-background: var(--color-surface-raised);
+  --ion-item-background: var(--color-surface-raised);
+  --ion-border-color: var(--color-border);
 }
 
-:root[data-theme="light"] {
-  --sgsk-surface: #f5f7fa;
-  --sgsk-surface-raised: #ffffff;
-  --sgsk-surface-overlay: #eceff4;
-  --sgsk-border: rgba(15, 23, 42, 0.08);
-  --sgsk-text-primary: #0f172a;
-  --sgsk-text-secondary: #475569;
-  --sgsk-text-muted: #94a3b8;
-  --sgsk-accent: #2563eb;
-  --sgsk-positive: #16a34a;
-  --sgsk-negative: #dc2626;
+:root[data-theme='light'] {
+  --color-surface: #f5f7fa;
+  --color-surface-raised: #ffffff;
+  --color-surface-overlay: #eceff4;
+  --color-border: rgba(15, 23, 42, 0.08);
+  --color-border-subtle: rgba(15, 23, 42, 0.05);
+  --color-border-hover: rgba(15, 23, 42, 0.16);
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94a3b8;
+  --color-accent: #2563eb;
+  --color-accent-soft: rgba(37, 99, 235, 0.09);
+  --color-cyan-glow: #0284c7;
+  --color-card-hover: rgba(15, 23, 42, 0.015);
+  --color-row-hover: rgba(15, 23, 42, 0.02);
+  --color-shadow: rgba(15, 23, 42, 0.08);
+  --color-shadow-sm: rgba(15, 23, 42, 0.04);
+  --color-pl-positive: #16a34a;
+  --color-pl-negative: #dc2626;
 
-  --ion-background-color: var(--sgsk-surface);
-  --ion-text-color: var(--sgsk-text-primary);
-  --ion-toolbar-background: var(--sgsk-surface-raised);
-  --ion-toolbar-color: var(--sgsk-text-primary);
-  --ion-tab-bar-background: var(--sgsk-surface-raised);
-  --ion-tab-bar-color: var(--sgsk-text-secondary);
-  --ion-tab-bar-color-selected: var(--sgsk-accent);
-  --ion-card-background: var(--sgsk-surface-raised);
-  --ion-item-background: var(--sgsk-surface-raised);
-  --ion-border-color: var(--sgsk-border);
+  --bg-main: var(--color-surface);
+  --bg-card: var(--color-surface-raised);
+  --bg-hover: var(--color-surface-overlay);
+  --border-color: var(--color-border);
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-muted: var(--color-text-muted);
+
+  --sgsk-surface: var(--color-surface);
+  --sgsk-surface-raised: var(--color-surface-raised);
+  --sgsk-surface-overlay: var(--color-surface-overlay);
+  --sgsk-border: var(--color-border);
+  --sgsk-text-primary: var(--color-text-primary);
+  --sgsk-text-secondary: var(--color-text-secondary);
+  --sgsk-text-muted: var(--color-text-muted);
+  --sgsk-accent: var(--color-accent);
+  --sgsk-positive: var(--color-pl-positive);
+  --sgsk-negative: var(--color-pl-negative);
+
+  color-scheme: light;
+
+  --ion-color-primary: #2563eb;
+  --ion-color-primary-rgb: 37, 99, 235;
+  --ion-color-success: #16a34a;
+  --ion-color-danger: #dc2626;
+
+  --ion-background-color: var(--color-surface);
+  --ion-text-color: var(--color-text-primary);
+  --ion-toolbar-background: rgba(255, 255, 255, 0.92);
+  --ion-toolbar-color: var(--color-text-primary);
+  --ion-toolbar-border-color: var(--color-border);
+  --ion-tab-bar-background: rgba(255, 255, 255, 0.94);
+  --ion-tab-bar-color: var(--color-text-muted);
+  --ion-tab-bar-color-selected: var(--color-accent);
+  --ion-tab-bar-border-color: var(--color-border);
+  --ion-card-background: var(--color-surface-raised);
+  --ion-item-background: var(--color-surface-raised);
+  --ion-border-color: var(--color-border);
 }

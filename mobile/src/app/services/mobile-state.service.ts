@@ -1,4 +1,5 @@
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Router } from '@angular/router';
 import {
   ASSET_TABS,
   AnalyticsSubTab,
@@ -13,6 +14,12 @@ import {
   PortfolioPosition,
 } from '@shared/models/portfolio.model';
 import { ToolId } from '@shared/models/tools.model';
+import {
+  ClosedSymbolSummary,
+  SymbolSummary,
+  SymbolTransactionSummary,
+  Transaction,
+} from '@shared/models/transaction.model';
 import { DividendService } from '@shared/services/dividend.service';
 import { I18nService } from '@shared/services/i18n.service';
 import { PortfolioService } from '@shared/services/portfolio.service';
@@ -27,6 +34,7 @@ export class MobileStateService {
   private readonly portfolioService = inject(PortfolioService);
   private readonly priceService = inject(PriceService);
   private readonly dividendService = inject(DividendService);
+  private readonly router = inject(Router);
   readonly i18n = inject(I18nService);
   readonly nativePlatform = inject(NativePlatformService);
 
@@ -59,16 +67,27 @@ export class MobileStateService {
   >();
 
   readonly isClosedTab = computed(() => this.activeTab().id === 'closed-position');
+  readonly isAllTab = computed(() => this.activeTab().id === 'all');
   readonly isPvdTab = computed(
     () => this.holdingsSubTab() === 'pvd' || this.activeTab().id === 'provident-fund'
   );
   readonly hasRate = computed(() => this.exchangeRate() > 0);
 
   readonly pvdPositions = computed<PortfolioPosition[]>(() => {
-    const live = this.portfolioData()?.openPositions ?? [];
+    const live = this.localizedPortfolioData()?.openPositions ?? [];
     const livePvd = live.filter((p) => p.assetType === 'provident-fund');
     if (livePvd.length > 0) return livePvd;
-    return this.cachedPvdPositions();
+    const lang = this.i18n.lang();
+    const pricesMap = this.prices();
+    return this.cachedPvdPositions().map((p) => {
+      const nameTh = p.nameTh || pricesMap.get(p.symbol)?.nameTh || '';
+      return {
+        ...p,
+        nameTh,
+        name: getSymbolName(p.symbol, p.name || '', lang, nameTh, p.assetType),
+        assetTypeLabel: getAssetTypeLabel(p.assetType, p.symbol, lang),
+      };
+    });
   });
 
   readonly localizedPortfolioData = computed<PortfolioHoldingsResponse | null>(() => {
@@ -126,6 +145,66 @@ export class MobileStateService {
     };
   });
 
+  readonly openSummaries = computed<SymbolSummary[]>(() => {
+    const data = this.localizedPortfolioData();
+    if (!data) return [];
+    return data.openPositions.map((p) => ({
+      symbol: p.symbol,
+      displaySymbol: p.displaySymbol,
+      name: p.name,
+      totalShares: p.totalShares,
+      totalCost: p.totalCost,
+      averageCost: p.averageCost,
+      currency: p.currency,
+      assetType: p.assetType,
+      employeeShares: p.employeeShares,
+      employerShares: p.employerShares,
+      pvdFundName: p.pvdFundName,
+      lots: p.lots.map((l) => ({
+        symbol: p.symbol,
+        purchaseDate: l.purchaseDate,
+        quantity: l.quantity,
+        costBasis: l.costBasis,
+        totalCost: l.totalCost,
+        assetType: l.assetType,
+      })),
+    }));
+  });
+
+  readonly closedSummaries = computed<ClosedSymbolSummary[]>(() => {
+    const data = this.localizedPortfolioData();
+    if (!data) return [];
+    return data.closedPositions.map((c) => ({
+      symbol: c.symbol,
+      displaySymbol: c.displaySymbol,
+      name: c.name,
+      totalShares: 0,
+      closedShares: c.closedShares,
+      totalCost: c.totalCost,
+      totalProceeds: c.totalProceeds,
+      realizedPL: c.realizedPL,
+      realizedPLPercent: c.realizedPLPercent,
+      averageBuyPrice: c.averageBuyPrice,
+      averageSellPrice: c.averageSellPrice,
+      currency: c.currency,
+      assetType: c.assetType,
+      lots: c.lots,
+    }));
+  });
+
+  readonly transactionSummaries = computed<SymbolTransactionSummary[]>(
+    () => this.portfolioData()?.transactionSummaries ?? []
+  );
+
+  readonly rawTransactions = computed<Transaction[]>(
+    () => this.portfolioData()?.rawTransactions ?? []
+  );
+
+  readonly totalLots = computed<number>(() => {
+    const open = this.portfolioData()?.openPositions ?? [];
+    return open.reduce((acc, p) => acc + (p.lots?.length ?? 0), 0);
+  });
+
   readonly tabCounts = computed<Record<string, number>>(() => {
     const data = this.portfolioData();
     if (!data) return {};
@@ -164,21 +243,78 @@ export class MobileStateService {
     );
   });
 
-  readonly totalPL = computed<number>(() => {
+  readonly totalRealizedPLConverted = computed<number>(() => {
     const data = this.portfolioData();
     if (!data) return 0;
-    const raw = this.isClosedTab()
-      ? data.summary.totalRealizedPL || 0
-      : data.summary.totalUnrealizedPL || 0;
-    return convertCurrency(raw, data.currency, this.displayCurrency(), this.exchangeRate());
+    return convertCurrency(
+      data.summary.totalRealizedPL || 0,
+      data.currency,
+      this.displayCurrency(),
+      this.exchangeRate()
+    );
+  });
+
+  readonly totalRealizedPLPercent = computed<number>(
+    () => this.portfolioData()?.summary.totalRealizedPLPercent ?? 0
+  );
+
+  readonly totalPL = computed<number>(() => {
+    if (this.isClosedTab()) return this.totalRealizedPLConverted();
+    const data = this.portfolioData();
+    if (!data) return 0;
+    return convertCurrency(
+      data.summary.totalUnrealizedPL || 0,
+      data.currency,
+      this.displayCurrency(),
+      this.exchangeRate()
+    );
   });
 
   readonly totalPLPercent = computed<number>(() => {
-    const data = this.portfolioData();
-    if (!data) return 0;
-    return this.isClosedTab()
-      ? data.summary.totalRealizedPLPercent || 0
-      : data.summary.totalUnrealizedPLPercent || 0;
+    if (this.isClosedTab()) return this.totalRealizedPLPercent();
+    return this.portfolioData()?.summary.totalUnrealizedPLPercent ?? 0;
+  });
+
+  readonly secondaryCurrencyLabel = computed<'USD' | 'THB'>(() =>
+    this.displayCurrency() === 'THB' ? 'USD' : 'THB'
+  );
+
+  readonly secondaryNetValue = computed<number | null>(() => {
+    const rate = this.exchangeRate();
+    if (!this.hasRate() || rate <= 0) return null;
+    const primary =
+      this.totalHoldingConverted() > 0 ? this.totalHoldingConverted() : this.totalCostConverted();
+    return this.displayCurrency() === 'THB' ? primary / rate : primary * rate;
+  });
+
+  readonly loaderState = computed(() => {
+    const tabLabel = this.getTabLabelText(this.activeTab());
+    if (this.pricesLoading()) {
+      return {
+        tag: this.i18n.t('loading.tag.marketSync'),
+        title: this.i18n.t('loading.titleTab', { tab: tabLabel }),
+        subtitle: this.i18n.t('loading.sub.marketSync'),
+      };
+    }
+    if (this.isAllTab()) {
+      return {
+        tag: this.i18n.t('loading.tag.fifoEngine'),
+        title: this.i18n.t('loading.titleTab', { tab: tabLabel }),
+        subtitle: this.i18n.t('loading.sub.allTab'),
+      };
+    }
+    if (this.isClosedTab()) {
+      return {
+        tag: this.i18n.t('loading.tag.realizedLedger'),
+        title: this.i18n.t('loading.titleTab', { tab: tabLabel }),
+        subtitle: this.i18n.t('loading.sub.closedTab'),
+      };
+    }
+    return {
+      tag: this.i18n.t('loading.tag.snapshot'),
+      title: this.i18n.t('loading.titleTab', { tab: tabLabel }),
+      subtitle: this.i18n.t('loading.sub.default'),
+    };
   });
 
   constructor() {
@@ -205,12 +341,40 @@ export class MobileStateService {
     });
   }
 
+  private getTabLabelText(tab: AssetTab): string {
+    switch (tab.id) {
+      case 'all':
+        return this.i18n.t('tab.allHoldings');
+      case 'us-stock':
+        return this.i18n.t('tab.usStock');
+      case 'thai-stock':
+        return this.i18n.t('tab.thaiStock');
+      case 'mutual-fund':
+        return this.i18n.t('tab.mutualFund');
+      case 'crypto':
+        return this.i18n.t('tab.crypto');
+      case 'bond':
+        return this.i18n.t('tab.bond');
+      case 'provident-fund':
+        return this.i18n.t('tab.pvd');
+      case 'closed-position':
+        return this.i18n.t('tab.closed');
+      default:
+        return tab.label;
+    }
+  }
+
   private async initPreferences(): Promise<void> {
     const savedTheme = await this.nativePlatform.getPreference('sgsk_wealth_theme');
     this.setTheme(savedTheme === 'light' ? 'light' : 'dark');
 
     const savedPrivacy = await this.nativePlatform.getPreference('sgsk_wealth_privacy_mode');
     this.setPrivacyMode(savedPrivacy === 'true');
+
+    const savedLang = await this.nativePlatform.getPreference('sgsk_wealth_lang');
+    if (savedLang === 'en' || savedLang === 'th') {
+      this.i18n.setLang(savedLang);
+    }
 
     await this.nativePlatform.hideSplashScreen();
   }
@@ -250,7 +414,9 @@ export class MobileStateService {
 
   toggleLang(): void {
     void this.nativePlatform.triggerHapticImpact('light');
-    this.i18n.setLang(this.i18n.lang() === 'en' ? 'th' : 'en');
+    const next = this.i18n.lang() === 'en' ? 'th' : 'en';
+    this.i18n.setLang(next);
+    void this.nativePlatform.setPreference('sgsk_wealth_lang', next);
   }
 
   selectTab(tab: AssetTab): void {
@@ -271,7 +437,32 @@ export class MobileStateService {
     }
   }
 
+  navigateToHoldings(pvd = false): void {
+    void this.nativePlatform.triggerHapticSelection();
+    this.selectHoldingsSubTab(pvd ? 'pvd' : 'market');
+    void this.router.navigateByUrl('/holdings');
+  }
+
+  navigateToAnalytics(subTab: AnalyticsSubTab = 'overview'): void {
+    void this.nativePlatform.triggerHapticSelection();
+    this.analyticsSubTab.set(subTab);
+    void this.router.navigateByUrl('/analytics');
+  }
+
+  navigateToTransactions(symbol = ''): void {
+    void this.nativePlatform.triggerHapticSelection();
+    this.selectedHistorySymbol.set(symbol);
+    void this.router.navigateByUrl('/transactions');
+  }
+
+  navigateToTool(toolId: ToolId): void {
+    void this.nativePlatform.triggerHapticSelection();
+    this.selectedToolId.set(toolId);
+    void this.router.navigateByUrl('/tools');
+  }
+
   refresh(): void {
+    void this.nativePlatform.triggerHapticImpact('light');
     this.tabCache.delete(`${this.activeTab().id}::${this.displayCurrency()}`);
     this.loadTab(this.activeTab(), this.displayCurrency(), true);
     this.loadDividendData(this.displayCurrency());

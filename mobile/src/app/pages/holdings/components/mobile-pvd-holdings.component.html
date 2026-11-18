@@ -1,0 +1,464 @@
+<div id="mobile-pvd-list" class="pvd-wrap">
+  @if (policies().length === 0) {
+    <div class="sgsk-card pvd-empty">
+      <h3>{{ 'pvd.emptyTitle' | t }}</h3>
+      <p class="text-muted">{{ 'pvd.emptyDesc' | t }}</p>
+    </div>
+  } @else {
+    @let m = summary();
+
+    <!-- 1. Executive PVD Hero -->
+    <section class="sgsk-hero-card">
+      <div class="pvd-hero-top">
+        <div>
+          <span class="pvd-eyebrow">{{ 'pvd.eyebrow' | t }}</span>
+          <div class="pvd-master-pills">
+            @for (fund of m.masterFundNames; track fund) {
+              <span class="pvd-master-pill">{{ fund }}</span>
+            }
+          </div>
+        </div>
+        <button
+          type="button"
+          class="sgsk-header-action-btn"
+          (click)="refresh.emit()"
+          [disabled]="pricesLoading()"
+        >
+          <span>{{ (pricesLoading() ? 'pvd.syncingNav' : 'pvd.refreshNav') | t }}</span>
+        </button>
+      </div>
+
+      <div class="pvd-balance-block">
+        <span class="pvd-balance-val font-mono privacy-mask">{{ formatMoney(m.totalBalance) }}</span>
+        <span
+          class="pvd-return-pill font-mono"
+          [class.badge-positive]="m.totalEarnings >= 0"
+          [class.badge-negative]="m.totalEarnings < 0"
+        >
+          <span class="privacy-mask">{{ formatMoney(m.totalEarnings, true) }}</span>
+          ({{ formatSignedPct(m.returnPct) }})
+        </span>
+      </div>
+      <p class="pvd-sub-line">
+        {{
+          'pvd.activePolicies' | t: {
+            count: m.policyCount,
+            unit: (m.policyCount === 1 ? 'pvd.policySingular' : 'pvd.policiesPlural') | t,
+            currency: displayCurrency(),
+          }
+        }}
+      </p>
+
+      <!-- 4 KPI Tiles -->
+      <div class="sgsk-kpi-grid" style="margin-top: 0.8rem;">
+        <div class="sgsk-kpi-box">
+          <span class="sgsk-kpi-label">{{ 'pvd.totalPrincipal' | t }}</span>
+          <span class="sgsk-kpi-val privacy-mask">{{ formatMoney(m.totalPrincipal) }}</span>
+          <span class="sgsk-kpi-sub">{{ 'pvd.totalPrincipalHint' | t }}</span>
+        </div>
+
+        <div class="sgsk-kpi-box">
+          <span class="sgsk-kpi-label">{{ 'pvd.totalEarnings' | t }}</span>
+          <span
+            class="sgsk-kpi-val privacy-mask"
+            [class.pl-positive]="m.totalEarnings >= 0"
+            [class.pl-negative]="m.totalEarnings < 0"
+          >
+            {{ formatMoney(m.totalEarnings, true) }}
+          </span>
+          <span class="sgsk-kpi-sub font-mono" [class.pl-positive]="m.returnPct >= 0" [class.pl-negative]="m.returnPct < 0">
+            {{ 'pvd.returnOnCost' | t: { pct: formatSignedPct(m.returnPct) } }}
+          </span>
+        </div>
+
+        <div class="sgsk-kpi-box pvd-emp-tile">
+          <span class="sgsk-kpi-label">
+            {{ 'pvd.empPoolLabel' | t: { pct: (m.employeeSharePct | number: '1.1-1') || '0.0' } }}
+          </span>
+          <span class="sgsk-kpi-val privacy-mask">{{ formatMoney(m.totalEmployeeValue) }}</span>
+          <span class="sgsk-kpi-sub font-mono privacy-mask">
+            {{ 'pvd.principalShort' | t }} {{ formatMoney(m.totalEmployeePrincipal) }}
+          </span>
+        </div>
+
+        <div class="sgsk-kpi-box pvd-empr-tile">
+          <span class="sgsk-kpi-label">
+            {{ 'pvd.emprPoolLabel' | t: { pct: (m.employerSharePct | number: '1.1-1') || '0.0' } }}
+          </span>
+          <span class="sgsk-kpi-val privacy-mask">{{ formatMoney(m.totalEmployerValue) }}</span>
+          <span class="sgsk-kpi-sub font-mono privacy-mask">
+            {{ 'pvd.principalShort' | t }} {{ formatMoney(m.totalEmployerPrincipal) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- 4-Segment Overall Split Bar -->
+      <div id="mobile-pvd-split-bar" class="pvd-split-box">
+        <div class="pvd-split-head">
+          <span>{{ 'pvd.splitBarTitle' | t }}</span>
+          <span class="font-mono">
+            {{
+              'pvd.splitRatioVs' | t: {
+                empPct: (m.employeeSharePct | number: '1.1-1') || '0.0',
+                emprPct: (m.employerSharePct | number: '1.1-1') || '0.0',
+              }
+            }}
+          </span>
+        </div>
+        <div class="pvd-split-track">
+          @if (m.splitBarPct.empPrincipal > 0) {
+            <div class="pvd-seg seg-emp-p" [style.width.%]="m.splitBarPct.empPrincipal"></div>
+          }
+          @if (m.splitBarPct.empEarnings > 0) {
+            <div class="pvd-seg seg-emp-e" [style.width.%]="m.splitBarPct.empEarnings"></div>
+          }
+          @if (m.splitBarPct.emprPrincipal > 0) {
+            <div class="pvd-seg seg-empr-p" [style.width.%]="m.splitBarPct.emprPrincipal"></div>
+          }
+          @if (m.splitBarPct.emprEarnings > 0) {
+            <div class="pvd-seg seg-empr-e" [style.width.%]="m.splitBarPct.emprEarnings"></div>
+          }
+        </div>
+        <div class="pvd-split-legend">
+          <div class="pvd-leg-item">
+            <span class="color-dot seg-emp-p"></span>
+            <span>{{ 'pvd.empContrib' | t }}</span>
+            <strong class="font-mono">{{ m.splitBarPct.empPrincipal | number: '1.1-1' }}%</strong>
+          </div>
+          <div class="pvd-leg-item">
+            <span class="color-dot seg-emp-e"></span>
+            <span>{{ 'pvd.empEarningsShort' | t }}</span>
+            <strong class="font-mono">{{ m.splitBarPct.empEarnings | number: '1.1-1' }}%</strong>
+          </div>
+          <div class="pvd-leg-item">
+            <span class="color-dot seg-empr-p"></span>
+            <span>{{ 'pvd.emprContrib' | t }}</span>
+            <strong class="font-mono">{{ m.splitBarPct.emprPrincipal | number: '1.1-1' }}%</strong>
+          </div>
+          <div class="pvd-leg-item">
+            <span class="color-dot seg-empr-e"></span>
+            <span>{{ 'pvd.emprEarningsShort' | t }}</span>
+            <strong class="font-mono">{{ m.splitBarPct.emprEarnings | number: '1.1-1' }}%</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Policy Allocation Donut -->
+    <section class="sgsk-card">
+      <div class="sgsk-card-header">
+        <div>
+          <h3 class="sgsk-card-heading">{{ 'pvd.policyWeightTitle' | t }}</h3>
+          <p class="sgsk-card-subheading">{{ 'pvd.policyWeightSub' | t }}</p>
+        </div>
+        <span class="asset-badge font-mono">{{ 'pvd.policiesCount' | t: { count: m.policyCount } }}</span>
+      </div>
+
+      <div class="pvd-donut-layout">
+        <div class="pvd-donut-wrap">
+          <svg viewBox="0 0 220 220" class="pvd-donut-svg">
+            <circle cx="110" cy="110" r="82" fill="none" stroke="var(--color-border)" stroke-width="26" opacity="0.35" />
+            <g transform="rotate(-90 110 110)">
+              @for (slice of donutSlices(); track slice.symbol) {
+                <circle
+                  cx="110"
+                  cy="110"
+                  r="82"
+                  fill="none"
+                  [attr.stroke]="slice.color"
+                  stroke-width="26"
+                  [attr.stroke-dasharray]="slice.dashArray"
+                  [attr.stroke-dashoffset]="slice.dashOffset"
+                  [attr.opacity]="selectedSliceSymbol() && selectedSliceSymbol() !== slice.symbol ? 0.35 : 1"
+                  (click)="toggleSlice(slice.symbol)"
+                />
+              }
+            </g>
+          </svg>
+          <div class="pvd-donut-center">
+            @if (activeSlice(); as active) {
+              <span class="pvd-center-code font-mono">{{ active.displaySymbol }}</span>
+              <span class="pvd-center-pct font-mono">{{ active.weightPct | number: '1.1-1' }}%</span>
+              <span class="pvd-center-val font-mono privacy-mask">{{ formatMoney(active.holdingValue) }}</span>
+            } @else {
+              <span class="pvd-center-code">{{ 'pvd.totalPvdCenter' | t }}</span>
+              <span class="pvd-center-pct font-mono">{{ 'pvd.fundsCount' | t: { count: m.policyCount } }}</span>
+              <span class="pvd-center-val font-mono privacy-mask">{{ formatMoney(m.totalBalance) }}</span>
+            }
+          </div>
+        </div>
+
+        <div class="pvd-alloc-list">
+          @for (slice of donutSlices(); track slice.symbol) {
+            <button
+              type="button"
+              class="pvd-alloc-row"
+              [class.selected]="selectedSliceSymbol() === slice.symbol"
+              (click)="toggleSlice(slice.symbol)"
+            >
+              <div class="pvd-alloc-left">
+                <span class="color-dot" [style.background]="slice.color"></span>
+                <div class="pvd-alloc-text">
+                  <span class="font-mono pvd-alloc-sym">{{ slice.displaySymbol }}</span>
+                  <span class="pvd-alloc-name">{{ slice.name }}</span>
+                </div>
+              </div>
+              <div class="pvd-alloc-right font-mono">
+                <span>{{ slice.weightPct | number: '1.1-1' }}%</span>
+                <span class="text-muted privacy-mask">{{ formatMoney(slice.holdingValue) }}</span>
+              </div>
+            </button>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. SEC Risk Spectrum -->
+    <section id="mobile-pvd-risk-spectrum" class="sgsk-card">
+      <div class="sgsk-card-header">
+        <div>
+          <h3 class="sgsk-card-heading">{{ 'pvd.secRiskTitle' | t }}</h3>
+          <p class="sgsk-card-subheading">{{ 'pvd.secRiskSub' | t }}</p>
+        </div>
+        @if (m.weightedRiskScore !== null) {
+          <span class="pvd-risk-pill font-mono" [attr.data-tier]="m.weightedRiskInfo.tier">
+            {{ m.weightedRiskScore | number: '1.1-1' }} / 8 · {{ m.weightedRiskInfo.code }}
+          </span>
+        }
+      </div>
+
+      <div class="pvd-risk-meter">
+        <div class="pvd-risk-caption-row">
+          <span class="text-muted">{{ 'pvd.weightedRiskCaption' | t }}</span>
+          <strong>
+            {{ m.weightedRiskScore !== null ? getRiskLabel(m.weightedRiskInfo) : ('pvd.riskUnknown' | t) }}
+          </strong>
+        </div>
+        <div class="pvd-rs-scale">
+          @for (lvl of riskLevelsScale; track lvl) {
+            <div
+              class="pvd-rs-step font-mono"
+              [class.step-low]="lvl <= 2"
+              [class.step-mod]="lvl >= 3 && lvl <= 5"
+              [class.step-high]="lvl === 6"
+              [class.step-vhigh]="lvl >= 7"
+              [class.covered]="isRiskLevelCovered(lvl)"
+              [class.active-weighted]="isWeightedRiskLevel(lvl)"
+            >
+              {{ lvl }}
+            </div>
+          }
+        </div>
+        <div class="pvd-rs-endpoints">
+          <span>{{ 'pvd.rs1Label' | t }}</span>
+          <span>{{ 'pvd.rs4Label' | t }}</span>
+          <span>{{ 'pvd.rs8Label' | t }}</span>
+        </div>
+      </div>
+
+      @if (m.riskBuckets.length > 0) {
+        <div class="pvd-risk-buckets">
+          @for (bucket of m.riskBuckets; track bucket.score) {
+            <div class="pvd-bucket-row">
+              <div class="pvd-bucket-head">
+                <span class="pvd-risk-pill font-mono" [attr.data-tier]="bucket.tier">{{ bucket.code }}</span>
+                <span class="text-muted" style="font-size: 0.72rem;">
+                  {{ bucket.policyCount }} {{ (bucket.policyCount === 1 ? 'pvd.policyLower' : 'pvd.policiesLower') | t }}
+                </span>
+                <span class="font-mono" style="margin-left: auto; font-weight: 700; font-size: 0.78rem;">
+                  {{ bucket.weightPct | number: '1.1-1' }}%
+                </span>
+              </div>
+              <div class="pvd-bucket-track">
+                <div class="pvd-bucket-fill" [attr.data-tier]="bucket.tier" [style.width.%]="bucket.weightPct"></div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- 4. Sub-Policy Toolbar & Cards -->
+    <div class="pvd-toolbar">
+      <div class="pvd-toolbar-head">
+        <h3 class="sgsk-card-heading">{{ 'pvd.subPolicyHeading' | t }}</h3>
+        <span class="asset-badge font-mono">{{ filteredPolicies().length }} / {{ m.policyCount }}</span>
+      </div>
+
+      <ion-searchbar
+        class="sgsk-searchbar"
+        [value]="searchQuery()"
+        (ionInput)="searchQuery.set($event.detail.value ?? '')"
+        [placeholder]="'pvd.searchPolicyPlaceholder' | t"
+        debounce="150"
+      ></ion-searchbar>
+
+      <div class="chip-scroll">
+        <button type="button" class="sgsk-pill-chip" [class.active]="sortBy() === 'value'" (click)="setSort('value')">
+          {{ 'pvd.sortByValue' | t }} {{ sortBy() === 'value' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}
+        </button>
+        <button type="button" class="sgsk-pill-chip" [class.active]="sortBy() === 'return'" (click)="setSort('return')">
+          {{ 'pvd.sortReturnShort' | t }} {{ sortBy() === 'return' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}
+        </button>
+        <button type="button" class="sgsk-pill-chip" [class.active]="sortBy() === 'principal'" (click)="setSort('principal')">
+          {{ 'pvd.sortByPrincipal' | t }} {{ sortBy() === 'principal' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}
+        </button>
+        <button type="button" class="sgsk-pill-chip" [class.active]="sortBy() === 'units'" (click)="setSort('units')">
+          {{ 'pvd.sortByUnits' | t }} {{ sortBy() === 'units' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}
+        </button>
+        <button type="button" class="sgsk-pill-chip" [class.active]="sortBy() === 'risk'" (click)="setSort('risk')">
+          {{ 'pvd.sortByRisk' | t }} {{ sortBy() === 'risk' ? (sortDir() === 'asc' ? '↑' : '↓') : '' }}
+        </button>
+      </div>
+    </div>
+
+    @for (policy of filteredPolicies(); track policy.symbol) {
+      <article class="sgsk-card pvd-policy-card" [id]="'pvd-policy-' + policy.symbol">
+        <div class="pvd-policy-head">
+          <div class="pvd-policy-id">
+            <app-symbol-icon
+              [symbol]="policy.symbol"
+              [assetType]="policy.assetType"
+              [fundName]="policy.pvdFundName"
+              size="md"
+            ></app-symbol-icon>
+            <div class="pvd-policy-titles">
+              <div class="pvd-sym-row">
+                <span class="font-mono pvd-sym-code">{{ policy.displaySymbol }}</span>
+                <span class="pvd-weight-pill font-mono">
+                  {{ 'pvd.weightPctLabel' | t: { pct: (policy.weightPct | number: '1.1-1') || '0.0' } }}
+                </span>
+                <button
+                  type="button"
+                  class="factsheet-icon-btn"
+                  (click)="onOpenFactsheet($event, policy)"
+                  [attr.aria-label]="'factsheet.viewBtn' | t"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="factsheet-icon-svg">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                  </svg>
+                </button>
+              </div>
+              <h4 class="pvd-policy-name">{{ policy.name }}</h4>
+              @if (policy.pvdFundName) {
+                <span class="pvd-master-sub">{{ policy.pvdFundName }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="pvd-policy-val-col font-mono">
+            <span class="pvd-policy-val privacy-mask">{{ formatMoney(policy.holdingValue) }}</span>
+            <span
+              class="pvd-policy-ret"
+              [class.pl-positive]="policy.earnings >= 0"
+              [class.pl-negative]="policy.earnings < 0"
+            >
+              <span class="privacy-mask">{{ formatMoney(policy.earnings, true) }}</span>
+              ({{ formatSignedPct(policy.returnPct) }})
+            </span>
+          </div>
+        </div>
+
+        <div class="pvd-sec-badges">
+          @if (policy.risk.score > 0) {
+            <span class="pvd-risk-pill font-mono" [attr.data-tier]="policy.risk.tier">
+              {{ policy.risk.code }} · {{ getRiskLabel(policy.risk) }}
+            </span>
+          }
+          @if (policy.policyName) {
+            <span class="asset-badge">{{ policy.policyName }}</span>
+          }
+          @if (policy.aimcType) {
+            <span class="asset-badge">AIMC: {{ policy.aimcType }}</span>
+          }
+        </div>
+
+        <div class="sgsk-kpi-grid" style="margin-top: 0.65rem;">
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'summary.totalUnits' | t }}</span>
+            <span class="sgsk-kpi-val privacy-mask">{{ policy.totalShares | number: getUnitFormat() }}</span>
+          </div>
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'pvd.currentNav' | t }}</span>
+            <span class="sgsk-kpi-val">{{ currencySymbol() }}{{ policy.currentPrice | number: getNavFormat() }}</span>
+          </div>
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'pvd.principalCost' | t }}</span>
+            <span class="sgsk-kpi-val privacy-mask">{{ formatMoney(policy.principal) }}</span>
+          </div>
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'pvd.avgUnitCost' | t }}</span>
+            <span class="sgsk-kpi-val">{{ currencySymbol() }}{{ policy.averageCost | number: getNavFormat() }}</span>
+          </div>
+        </div>
+
+        <!-- Employee vs Employer Pool Breakdown -->
+        <div class="pvd-pools-grid">
+          <div class="pvd-pool-box emp">
+            <div class="pvd-pool-head">
+              <span>{{ 'pvd.empPoolTitle' | t }}</span>
+              <strong class="font-mono privacy-mask">{{ formatMoney(policy.employeeTotal) }}</strong>
+            </div>
+            <div class="pvd-pool-row">
+              <span>{{ 'pvd.empContribPrincipal' | t }}</span>
+              <span class="font-mono privacy-mask">{{ formatMoney(policy.employeePrincipal) }}</span>
+            </div>
+            <div class="pvd-pool-row">
+              <span>{{ 'pvd.empContribEarnings' | t }}</span>
+              <span
+                class="font-mono privacy-mask"
+                [class.pl-positive]="policy.employeeEarnings >= 0"
+                [class.pl-negative]="policy.employeeEarnings < 0"
+              >
+                {{ formatMoney(policy.employeeEarnings, true) }}
+              </span>
+            </div>
+            <div class="pvd-pool-row">
+              <span>{{ 'pvd.unitsLabel' | t }}</span>
+              <span class="font-mono privacy-mask">{{ policy.employeeShares | number: getUnitFormat() }}</span>
+            </div>
+          </div>
+
+          <div class="pvd-pool-box empr">
+            <div class="pvd-pool-head">
+              <span>{{ 'pvd.emprPoolTitle' | t }}</span>
+              <strong class="font-mono privacy-mask">{{ formatMoney(policy.employerTotal) }}</strong>
+            </div>
+            <div class="pvd-pool-row">
+              <span>{{ 'pvd.emprMatchPrincipal' | t }}</span>
+              <span class="font-mono privacy-mask">{{ formatMoney(policy.employerPrincipal) }}</span>
+            </div>
+            <div class="pvd-pool-row">
+              <span>{{ 'pvd.emprMatchEarnings' | t }}</span>
+              <span
+                class="font-mono privacy-mask"
+                [class.pl-positive]="policy.employerEarnings >= 0"
+                [class.pl-negative]="policy.employerEarnings < 0"
+              >
+                {{ formatMoney(policy.employerEarnings, true) }}
+              </span>
+            </div>
+            <div class="pvd-pool-row">
+              <span>{{ 'pvd.unitsLabel' | t }}</span>
+              <span class="font-mono privacy-mask">{{ policy.employerShares | number: getUnitFormat() }}</span>
+            </div>
+          </div>
+        </div>
+
+        @if (policy.objective) {
+          <div class="pvd-obj-box">
+            <span class="pvd-obj-label">{{ 'pvd.secObjective' | t }}:</span>
+            <span>{{ policy.objective }}</span>
+          </div>
+        }
+      </article>
+    } @empty {
+      <div class="sgsk-card pvd-empty">
+        <p>{{ 'pvd.noMatchPolicy' | t: { query: searchQuery() } }}</p>
+      </div>
+    }
+  }
+</div>

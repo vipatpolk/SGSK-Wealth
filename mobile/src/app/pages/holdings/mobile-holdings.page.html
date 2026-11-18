@@ -1,0 +1,457 @@
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="sgsk-page-pad">
+    <!-- Holdings Screen Header & Market vs PVD Segment -->
+    <div class="holdings-top-header">
+      <div>
+        <h2 class="holdings-title">
+          {{ state.isPvdTab() ? ('holdings.subtabPvd' | t) : ('holdings.title' | t) }}
+        </h2>
+        <p class="holdings-subtitle">
+          {{ state.isPvdTab() ? ('holdings.subtitlePvd' | t) : ('holdings.subtitleMarket' | t) }}
+        </p>
+      </div>
+
+      <ion-segment
+        id="mobile-holdings-segment"
+        [value]="state.isPvdTab() ? 'pvd' : 'market'"
+        (ionChange)="onSubTabChange($event)"
+      >
+        <ion-segment-button value="market" id="mobile-segment-market">
+          <ion-label>{{ 'holdings.subtabMarket' | t }}</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="pvd" id="mobile-segment-pvd">
+          <ion-label>
+            {{ 'holdings.subtabPvd' | t }}
+            @if (state.tabCounts()['provident-fund']; as pvdCount) {
+              <span class="seg-count-pill font-mono">{{ pvdCount }}</span>
+            }
+          </ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    @if (state.isPvdTab()) {
+      <!-- Full Executive Provident Fund Sub-View -->
+      <app-mobile-pvd-holdings
+        [positions]="state.pvdPositions()"
+        [displayCurrency]="state.displayCurrency()"
+        [exchangeRate]="state.exchangeRate()"
+        [hasRate]="state.hasRate()"
+        [pricesLoading]="state.pricesLoading()"
+        (refresh)="state.refresh()"
+        (openFactsheet)="state.openFactsheetModal($event)"
+      ></app-mobile-pvd-holdings>
+    } @else {
+      <!-- Asset Filter Chips -->
+      <div class="chip-scroll" id="mobile-asset-chips">
+        @for (tab of marketTabs(); track tab.id) {
+          <button
+            type="button"
+            class="sgsk-pill-chip"
+            [id]="'mobile-chip-' + tab.id"
+            [class.active]="state.activeTab().id === tab.id"
+            (click)="selectAssetTab(tab)"
+          >
+            <span>{{ getTabLabel(tab) }}</span>
+            @if ((state.tabCounts()[tab.id] ?? 0) > 0) {
+              <span class="sgsk-pill-count font-mono">{{ state.tabCounts()[tab.id] }}</span>
+            }
+          </button>
+        }
+      </div>
+
+      <!-- Tab-Filtered Executive Portfolio Hero Card -->
+      <section class="sgsk-hero-card" id="mobile-holdings-hero">
+        <div class="hold-hero-top">
+          <span class="hold-hero-badge">{{ 'holdings.heroBadge' | t }}</span>
+          @if (state.hasRate()) {
+            <span class="hold-rate-pill font-mono">USD/THB {{ state.exchangeRate() | number: '1.2-2' }}</span>
+          }
+        </div>
+
+        <span class="hold-net-label">{{ 'holdings.netValue' | t }}</span>
+        <div class="hold-net-row">
+          <span class="hold-net-val font-mono privacy-mask">
+            {{
+              (state.totalHoldingConverted() > 0 ? state.totalHoldingConverted() : state.totalCostConverted())
+                | currency: state.dc() : 'symbol-narrow' : '1.2-2'
+            }}
+          </span>
+          @if (state.secondaryNetValue() !== null) {
+            <span class="hold-sub-curr font-mono privacy-mask">
+              ≈ {{ state.secondaryNetValue() | currency: state.secondaryCurrencyLabel() : 'symbol-narrow' : '1.2-2' }}
+            </span>
+          }
+        </div>
+
+        @if (state.totalPL() !== 0) {
+          <div
+            class="hold-return-pill font-mono"
+            [class.badge-positive]="state.totalPL() >= 0"
+            [class.badge-negative]="state.totalPL() < 0"
+          >
+            <span>{{ state.totalPL() >= 0 ? '+' : '' }}{{ state.totalPLPercent() | number: '1.2-2' }}%</span>
+            <span class="privacy-mask">
+              ({{ state.totalPL() >= 0 ? '+' : '' }}{{ state.totalPL() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }})
+            </span>
+          </div>
+        }
+
+        <div class="sgsk-kpi-grid" style="margin-top: 0.75rem;">
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'common.totalInvested' | t }}</span>
+            <span class="sgsk-kpi-val privacy-mask">
+              {{ state.totalCostConverted() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+            </span>
+          </div>
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'holdings.realizedReturn' | t }}</span>
+            <span
+              class="sgsk-kpi-val privacy-mask"
+              [class.pl-positive]="state.totalRealizedPLConverted() >= 0"
+              [class.pl-negative]="state.totalRealizedPLConverted() < 0"
+            >
+              {{ state.totalRealizedPLConverted() >= 0 ? '+' : ''
+              }}{{ state.totalRealizedPLConverted() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+            </span>
+          </div>
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'holdings.openPositions' | t }}</span>
+            <span class="sgsk-kpi-val font-mono">
+              {{ filteredOpen().length }}
+              {{ (filteredOpen().length === 1 ? 'holdings.symbolSingular' : 'holdings.symbolsPlural') | t }}
+            </span>
+          </div>
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'holdings.totalLots' | t }}</span>
+            <span class="sgsk-kpi-val font-mono">{{ state.totalLots() }} {{ 'holdings.lotsUnit' | t }}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Search + Sort + Expand Controls -->
+      <div class="holdings-toolbar">
+        <ion-searchbar
+          id="mobile-holdings-search"
+          class="sgsk-searchbar"
+          [value]="searchQuery()"
+          (ionInput)="searchQuery.set($event.detail.value ?? '')"
+          [placeholder]="'common.searchPlaceholder' | t"
+          debounce="150"
+        ></ion-searchbar>
+
+        <div class="holdings-controls-row">
+          <div class="sort-select-wrap">
+            <ion-item lines="none" class="sort-ion-item">
+              <ion-select
+                id="mobile-holdings-sort"
+                [label]="'holdings.sortBy' | t"
+                interface="popover"
+                [value]="sortField()"
+                (ionChange)="sortField.set($event.detail.value)"
+              >
+                @for (opt of sortOptions(); track opt.field) {
+                  <ion-select-option [value]="opt.field">{{ opt.label }}</ion-select-option>
+                }
+              </ion-select>
+            </ion-item>
+          </div>
+
+          <button type="button" id="mobile-holdings-sort-dir" class="ctrl-icon-btn font-mono" (click)="toggleSortDirection()">
+            {{ sortDirection() === 'asc' ? '↑ ' + ('common.asc' | t) : '↓ ' + ('common.desc' | t) }}
+          </button>
+
+          @if (!state.isClosedTab() && filteredOpen().length > 0) {
+            <button type="button" id="mobile-holdings-expand-all" class="ctrl-icon-btn" (click)="toggleExpandAll()">
+              {{ allExpanded() ? ('common.collapseAll' | t) : ('common.expandAll' | t) }}
+            </button>
+          }
+        </div>
+
+        @if (state.isClosedTab() && closedAssetTypeOptions().length > 1) {
+          <div class="chip-scroll">
+            @for (opt of closedAssetTypeOptions(); track opt.id) {
+              <button
+                type="button"
+                class="sgsk-pill-chip"
+                [class.active]="selectedClosedAssetType() === opt.id"
+                (click)="selectedClosedAssetType.set(opt.id)"
+              >
+                {{ opt.label }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Positions Lists -->
+      @if (state.isAllTab()) {
+        <div class="section-divider">
+          <span class="section-pill open-pill">{{ 'holdings.openPositions' | t }}</span>
+          <span class="section-count font-mono">{{ filteredOpen().length }}</span>
+        </div>
+
+        <div id="mobile-position-cards" class="positions-list">
+          @for (pos of filteredOpen(); track pos.symbol) {
+            <ng-container *ngTemplateOutlet="openCardTpl; context: { $implicit: pos }"></ng-container>
+          } @empty {
+            <div class="sgsk-card empty-card">{{ 'holdings.emptyOpenSearch' | t }}</div>
+          }
+        </div>
+
+        <div class="section-divider" style="margin-top: 0.4rem;">
+          <span class="section-pill closed-pill">{{ 'holdings.closedPositions' | t }}</span>
+          <span class="section-count font-mono">{{ filteredClosed().length }}</span>
+        </div>
+
+        <div id="mobile-closed-list" class="positions-list">
+          @for (pos of filteredClosed(); track pos.symbol) {
+            <ng-container *ngTemplateOutlet="closedCardTpl; context: { $implicit: pos }"></ng-container>
+          } @empty {
+            <div class="sgsk-card empty-card">{{ 'holdings.emptyClosedSearch' | t }}</div>
+          }
+        </div>
+      } @else if (state.isClosedTab()) {
+        <div id="mobile-closed-list" class="positions-list">
+          @for (pos of filteredClosed(); track pos.symbol) {
+            <ng-container *ngTemplateOutlet="closedCardTpl; context: { $implicit: pos }"></ng-container>
+          } @empty {
+            <div class="sgsk-card empty-card">{{ 'holdings.emptyClosedSearch' | t }}</div>
+          }
+        </div>
+      } @else {
+        <div id="mobile-position-cards" class="positions-list">
+          @for (pos of filteredOpen(); track pos.symbol) {
+            <ng-container *ngTemplateOutlet="openCardTpl; context: { $implicit: pos }"></ng-container>
+          } @empty {
+            <div class="sgsk-card empty-card">{{ 'holdings.emptySymbolSearch' | t }}</div>
+          }
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Open Position Card Template -->
+  <ng-template #openCardTpl let-pos>
+    <article class="sgsk-card pos-card" [id]="'card-' + pos.symbol">
+      <div class="pos-head" (click)="toggleExpand(pos.symbol)">
+        <div class="pos-id-left">
+          <app-symbol-icon
+            [symbol]="pos.symbol"
+            [assetType]="pos.assetType"
+            [fundName]="pos.pvdFundName"
+            size="md"
+          ></app-symbol-icon>
+          <div class="pos-id-text">
+            <div class="pos-sym-row">
+              <span
+                class="symbol-badge"
+                [style.background-color]="getSymbolColorFn(pos.symbol) + '18'"
+                [style.color]="getSymbolColorFn(pos.symbol)"
+                [style.border-color]="getSymbolColorFn(pos.symbol) + '30'"
+              >
+                {{ pos.displaySymbol }}
+              </span>
+              @if (state.isAllTab()) {
+                <span [class]="getAssetTypeClassFn(pos.assetType, pos.symbol)">
+                  {{ pos.assetTypeLabel }}
+                </span>
+              }
+              @if (canViewFactsheet(pos)) {
+                <button
+                  type="button"
+                  class="factsheet-icon-btn"
+                  [attr.data-factsheet-symbol]="pos.symbol"
+                  (click)="openFactsheet($event, pos)"
+                  [attr.aria-label]="'factsheet.viewBtn' | t"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="factsheet-icon-svg">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                  </svg>
+                </button>
+              }
+            </div>
+            <div class="pos-name">{{ pos.name }}</div>
+            <div class="pos-shares font-mono privacy-mask">
+              {{ pos.totalShares | number: qtyFmt(pos.symbol, pos.assetType) }} {{ getUnitText(pos.symbol, pos.assetType) }}
+              · {{ pos.lots.length }} {{ (pos.lots.length === 1 ? 'common.lot' : 'common.lots') | t }}
+            </div>
+          </div>
+        </div>
+
+        <div class="pos-val-right font-mono">
+          <span class="pos-holding-val privacy-mask">
+            {{ state.cx(pos.holdingValue || pos.totalCost, pos.currency) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+          </span>
+          <span
+            class="pos-pl-badge"
+            [class.badge-positive]="pos.unrealizedPL >= 0"
+            [class.badge-negative]="pos.unrealizedPL < 0"
+          >
+            {{ pos.unrealizedPL >= 0 ? '+' : '' }}{{ pos.unrealizedPLPercent | number: '1.2-2' }}%
+          </span>
+        </div>
+      </div>
+
+      <div class="pos-metrics-strip">
+        <div class="pos-m-cell">
+          <span class="pos-m-lbl">{{ 'common.avgCost' | t }}</span>
+          <span class="pos-m-val font-mono">
+            {{ state.cx(pos.averageCost, pos.currency) | currency: state.dc() : 'symbol-narrow' : priceFmt(pos.symbol, pos.assetType) }}
+          </span>
+        </div>
+        <div class="pos-m-cell">
+          <span class="pos-m-lbl">{{ 'common.totalCost' | t }}</span>
+          <span class="pos-m-val font-mono privacy-mask">
+            {{ state.cx(pos.totalCost, pos.currency) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+          </span>
+        </div>
+        <div class="pos-m-cell">
+          <span class="pos-m-lbl">
+            {{ pos.assetType === 'mutual-fund' || pos.assetType === 'provident-fund' ? ('summary.nav' | t) : ('summary.mktPrice' | t) }}
+          </span>
+          <span class="pos-m-val font-mono">
+            {{ state.cx(pos.currentPrice, pos.currency) | currency: state.dc() : 'symbol-narrow' : priceFmt(pos.symbol, pos.assetType) }}
+          </span>
+        </div>
+        <div class="pos-m-cell">
+          <span class="pos-m-lbl">{{ 'common.pl' | t }}</span>
+          <span
+            class="pos-m-val font-mono privacy-mask"
+            [class.pl-positive]="pos.unrealizedPL >= 0"
+            [class.pl-negative]="pos.unrealizedPL < 0"
+          >
+            {{ pos.unrealizedPL >= 0 ? '+' : ''
+            }}{{ state.cx(pos.unrealizedPL, pos.currency) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="pos-actions-row">
+        <ion-button
+          size="small"
+          fill="outline"
+          (click)="toggleExpand(pos.symbol)"
+          [attr.data-symbol-lots]="pos.symbol"
+        >
+          {{ isExpanded(pos.symbol) ? ('common.collapseAll' | t) : ('summary.fifoLots' | t) }}
+          ({{ pos.lots.length }})
+        </ion-button>
+        <ion-button size="small" fill="clear" (click)="openHistory($event, pos.symbol)">
+          {{ 'nav.transactions' | t }}
+        </ion-button>
+      </div>
+
+      @if (isExpanded(pos.symbol)) {
+        <div class="lots-list">
+          @for (lot of pos.lots; track $index) {
+            <div class="lot-row">
+              <div class="lot-left">
+                <span class="lot-date font-mono">{{ lot.purchaseDate | ldate }}</span>
+                <span class="lot-qty font-mono privacy-mask">
+                  {{ lot.quantity | number: qtyFmt(pos.symbol, pos.assetType) }} @
+                  {{ state.cx(lot.costBasis, lot.currency) | currency: state.dc() : 'symbol-narrow' : priceFmt(pos.symbol, pos.assetType) }}
+                </span>
+              </div>
+              <div class="lot-right font-mono">
+                <span class="lot-cost privacy-mask">
+                  {{ state.cx(lot.holdingValue || lot.totalCost, lot.currency) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+                </span>
+                <span
+                  class="lot-pl"
+                  [class.pl-positive]="lot.unrealizedPL >= 0"
+                  [class.pl-negative]="lot.unrealizedPL < 0"
+                >
+                  {{ lot.unrealizedPL >= 0 ? '+' : '' }}{{ lot.unrealizedPLPercent | number: '1.2-2' }}%
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </article>
+  </ng-template>
+
+  <!-- Closed Position Card Template -->
+  <ng-template #closedCardTpl let-pos>
+    <article class="sgsk-card pos-card">
+      <div class="pos-head">
+        <div class="pos-id-left">
+          <app-symbol-icon [symbol]="pos.symbol" [assetType]="pos.assetType" size="md"></app-symbol-icon>
+          <div class="pos-id-text">
+            <div class="pos-sym-row">
+              <span
+                class="symbol-badge"
+                [style.background-color]="getSymbolColorFn(pos.symbol) + '18'"
+                [style.color]="getSymbolColorFn(pos.symbol)"
+                [style.border-color]="getSymbolColorFn(pos.symbol) + '30'"
+              >
+                {{ pos.displaySymbol }}
+              </span>
+              <span [class]="getAssetTypeClassFn(pos.assetType, pos.symbol)">
+                {{ pos.assetTypeLabel }}
+              </span>
+            </div>
+            <div class="pos-name">{{ pos.name }}</div>
+          </div>
+        </div>
+
+        <div class="pos-val-right font-mono">
+          <span
+            class="pos-holding-val privacy-mask"
+            [class.pl-positive]="pos.realizedPL >= 0"
+            [class.pl-negative]="pos.realizedPL < 0"
+          >
+            {{ pos.realizedPL >= 0 ? '+' : ''
+            }}{{ state.cx(pos.realizedPL, pos.currency) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+          </span>
+          <span
+            class="pos-pl-badge"
+            [class.badge-positive]="pos.realizedPL >= 0"
+            [class.badge-negative]="pos.realizedPL < 0"
+          >
+            {{ pos.realizedPL >= 0 ? '+' : '' }}{{ pos.realizedPLPercent | number: '1.2-2' }}%
+          </span>
+        </div>
+      </div>
+
+      <div class="pos-metrics-strip">
+        <div class="pos-m-cell">
+          <span class="pos-m-lbl">{{ 'summary.totalProceeds' | t }}</span>
+          <span class="pos-m-val font-mono privacy-mask">
+            {{ state.cx(pos.totalProceeds, pos.currency) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+          </span>
+        </div>
+        <div class="pos-m-cell">
+          <span class="pos-m-lbl">{{ 'common.totalCost' | t }}</span>
+          <span class="pos-m-val font-mono privacy-mask">
+            {{ state.cx(pos.totalCost, pos.currency) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+          </span>
+        </div>
+        <div class="pos-m-cell">
+          <span class="pos-m-lbl">{{ 'holdings.sort.closedShares' | t }}</span>
+          <span class="pos-m-val font-mono privacy-mask">
+            {{ pos.closedShares | number: qtyFmt(pos.symbol, pos.assetType) }}
+          </span>
+        </div>
+        <div class="pos-m-cell">
+          <span class="pos-m-lbl">{{ 'holdings.realizedReturn' | t }}</span>
+          <span
+            class="pos-m-val font-mono"
+            [class.pl-positive]="pos.realizedPL >= 0"
+            [class.pl-negative]="pos.realizedPL < 0"
+          >
+            {{ pos.realizedPL >= 0 ? '+' : '' }}{{ pos.realizedPLPercent | number: '1.2-2' }}%
+          </span>
+        </div>
+      </div>
+    </article>
+  </ng-template>
+</ion-content>

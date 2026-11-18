@@ -1,3 +1,6 @@
+export * from './components/date-range-picker/date-range-picker.component';
+export * from './components/loading-screen/loading-screen.component';
+export * from './components/symbol-icon/symbol-icon.component';
 export * from './config/api-config.token';
 export * from './config/asset.constants';
 export * from './i18n/en';

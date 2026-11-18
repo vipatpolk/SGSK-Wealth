@@ -3,6 +3,8 @@ package com.sgsk.wealth.e2e.support;
 import com.sgsk.wealth.e2e.config.E2eProperties;
 import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.android.nativekey.AndroidKey;
+import io.appium.java_client.android.nativekey.KeyEvent;
 import io.appium.java_client.android.options.UiAutomator2Options;
 import io.appium.java_client.ios.IOSDriver;
 import io.appium.java_client.ios.options.XCUITestOptions;
@@ -39,12 +41,17 @@ public class AppiumManager {
     }
 
     public AppiumDriver createMobileDriver() {
+        return createMobileDriver(properties.mobile().platform());
+    }
+
+    public AppiumDriver createMobileDriver(String targetPlatform) {
         E2eProperties.MobileConfig mobile = properties.mobile();
+        String platform = (targetPlatform != null && !targetPlatform.isBlank()) ? targetPlatform : mobile.platform();
         try {
             URL serverUrl = URI.create(mobile.appiumUrl()).toURL();
             AppiumDriver driver;
 
-            if ("IOS".equalsIgnoreCase(mobile.platform())) {
+            if ("IOS".equalsIgnoreCase(platform)) {
                 XCUITestOptions options = new XCUITestOptions()
                         .setDeviceName(mobile.deviceName())
                         .setPlatformVersion(mobile.platformVersion())
@@ -83,7 +90,7 @@ public class AppiumManager {
             }
             return driver;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to initialize AppiumDriver for platform " + mobile.platform(), e);
+            throw new RuntimeException("Failed to initialize AppiumDriver for platform " + platform, e);
         }
     }
 
@@ -91,12 +98,27 @@ public class AppiumManager {
         if (!(driver instanceof SupportsContextSwitching contextDriver)) {
             return;
         }
-        Set<String> contexts = contextDriver.getContextHandles();
-        for (String ctx : contexts) {
-            if (ctx.contains("WEBVIEW")) {
-                contextDriver.context(ctx);
+        long deadline = System.currentTimeMillis() + 15000L;
+        while (System.currentTimeMillis() < deadline) {
+            Set<String> contexts = contextDriver.getContextHandles();
+            for (String ctx : contexts) {
+                if (ctx.contains("WEBVIEW")) {
+                    contextDriver.context(ctx);
+                    return;
+                }
+            }
+            try {
+                Thread.sleep(500L);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
                 return;
             }
+        }
+    }
+
+    public void pressAndroidBack(AppiumDriver driver) {
+        if (driver instanceof AndroidDriver androidDriver) {
+            androidDriver.pressKey(new KeyEvent(AndroidKey.BACK));
         }
     }
 }

@@ -1,0 +1,387 @@
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="sgsk-page-pad">
+    @if (state.dividendLoading() && !state.localizedDividendData()) {
+      <div class="div-loading-box">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>{{ 'loading.prepDividends' | t }}</p>
+      </div>
+    } @else if (state.localizedDividendData()) {
+      <!-- Header & Asset Type / Year Filters -->
+      <div class="div-head">
+        <h2 class="div-title">{{ 'div.title' | t }}</h2>
+        <p class="div-subtitle">{{ 'div.subtitle' | t }}</p>
+      </div>
+
+      <div id="mobile-div-asset-chips" class="chip-scroll">
+        <button type="button" class="sgsk-pill-chip" data-div-asset="all" [class.active]="selectedAssetType() === 'all'" (click)="setAssetType('all')">
+          {{ 'div.allAssets' | t }}
+        </button>
+        @for (at of assetFilterTypes; track at) {
+          <button type="button" class="sgsk-pill-chip" [attr.data-div-asset]="at" [class.active]="selectedAssetType() === at" (click)="setAssetType(at)">
+            <span class="color-dot" [style.background-color]="getAssetColorFn(at)"></span>
+            <span>{{ getAssetLabel(at) }}</span>
+          </button>
+        }
+      </div>
+
+      <div class="chip-scroll">
+        <button type="button" class="sgsk-pill-chip" [class.active]="selectedYear() === 'all'" (click)="setYear('all')">
+          {{ 'div.allTime' | t }}
+        </button>
+        @for (yr of availableYears(); track yr) {
+          <button type="button" class="sgsk-pill-chip" [class.active]="selectedYear() === yr" (click)="setYear(yr)">
+            {{ yr }}
+          </button>
+        }
+      </div>
+
+      <!-- 5-KPI Executive Dividend Summary -->
+      <section class="sgsk-hero-card" id="mobile-dividends-hero">
+        <span class="div-kpi-eyebrow">{{ 'div.netDividends' | t }}</span>
+        <div class="div-hero-val font-mono pl-positive privacy-mask">
+          {{ activeNetTotal() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+        </div>
+        <div class="div-hero-sub font-mono privacy-mask">
+          {{ 'div.grossShort' | t }}: {{ activeGrossTotal() | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+          · {{ 'div.whtShort' | t }}: {{ activeWhtTotal() | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+        </div>
+
+        <div class="sgsk-kpi-grid" style="margin-top: 0.75rem;">
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'div.annualProjected' | t }}</span>
+            <span class="sgsk-kpi-val text-accent privacy-mask">
+              {{ activeProjectedAnnualDividends() | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+            </span>
+            <span class="sgsk-kpi-sub font-mono privacy-mask">
+              ~{{ (activeProjectedAnnualDividends() / 12) | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}{{ 'div.perMoEstimated' | t }}
+            </span>
+          </div>
+
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'div.yocTitle' | t }}</span>
+            <span class="sgsk-kpi-val text-accent">{{ activeYieldOnCost() | number: '1.2-2' }}%</span>
+            <span class="sgsk-kpi-sub font-mono">
+              {{ 'div.marketYield' | t }}: {{ activeMarketYield() | number: '1.2-2' }}%
+            </span>
+          </div>
+
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'div.withholdingTax' | t }}</span>
+            <span class="sgsk-kpi-val pl-negative privacy-mask">
+              {{ activeWhtTotal() | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+            </span>
+            <span class="sgsk-kpi-sub font-mono">
+              {{ 'div.effectiveRateShort' | t }} {{ activeEffectiveTaxRate() | number: '1.1-1' }}%
+            </span>
+          </div>
+
+          <div class="sgsk-kpi-box">
+            <span class="sgsk-kpi-label">{{ 'div.payingAssets' | t }}</span>
+            <span class="sgsk-kpi-val font-mono">{{ filteredSymbolSummaries().length }}</span>
+            <span class="sgsk-kpi-sub font-mono">{{ filteredRecords().length }} {{ 'div.distributionsUnit' | t }}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Monthly Cashflow Stacked Bar Chart -->
+      <section id="mobile-div-monthly-chart" class="sgsk-card">
+        <div class="sgsk-card-header">
+          <div>
+            <h3 class="sgsk-card-heading">{{ 'div.monthlyTrend' | t }}</h3>
+            <p class="sgsk-card-subheading">{{ 'div.monthlyTrendSub' | t }}</p>
+          </div>
+        </div>
+
+        @if (selectedMonthData(); as activeM) {
+          <div class="div-selected-month-bar">
+            <div class="div-sm-head">
+              <strong>{{ activeM.yearMonth | ldate: 'monthYear' }}</strong>
+              <span class="font-mono pl-positive privacy-mask" style="font-weight: 700;">
+                {{ activeM.netAmount | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+              </span>
+            </div>
+            <div class="div-sm-pills font-mono privacy-mask">
+              @if (activeM.usAmount > 0) {
+                <span style="color: #3b82f6;">{{ 'asset.short.usStock' | t }}: {{ activeM.usAmount | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+              }
+              @if (activeM.thaiAmount > 0) {
+                <span style="color: #10b981;">{{ 'asset.short.thaiStock' | t }}: {{ activeM.thaiAmount | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+              }
+              @if (activeM.fundAmount > 0) {
+                <span style="color: #f59e0b;">{{ 'asset.short.mutualFund' | t }}: {{ activeM.fundAmount | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+              }
+              @if (activeM.bondAmount > 0) {
+                <span style="color: #06b6d4;">{{ 'asset.short.bond' | t }}: {{ activeM.bondAmount | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+              }
+            </div>
+          </div>
+        }
+
+        @if (monthlyChartData().length > 0) {
+          <div class="div-bars-scroll">
+            @for (m of monthlyChartData(); track m.yearMonth) {
+              <button
+                type="button"
+                class="div-bar-col"
+                [class.selected]="selectedMonthData()?.yearMonth === m.yearMonth"
+                (click)="selectMonth(m.yearMonth)"
+              >
+                <div class="div-bar-track-wrap">
+                  <div class="div-bar-track" [style.height.%]="m.percentHeight">
+                    @if (m.thaiAmount > 0) {
+                      <div style="background: #10b981;" [style.height.%]="m.thaiPercent"></div>
+                    }
+                    @if (m.usAmount > 0) {
+                      <div style="background: #3b82f6;" [style.height.%]="m.usPercent"></div>
+                    }
+                    @if (m.fundAmount > 0) {
+                      <div style="background: #f59e0b;" [style.height.%]="m.fundPercent"></div>
+                    }
+                    @if (m.bondAmount > 0) {
+                      <div style="background: #06b6d4;" [style.height.%]="m.bondPercent"></div>
+                    }
+                  </div>
+                </div>
+                <span class="div-bar-lbl font-mono">{{ m.yearMonth.slice(2) }}</span>
+              </button>
+            }
+          </div>
+        } @else {
+          <p class="text-muted" style="text-align: center; font-size: 0.78rem; margin: 1rem 0;">
+            {{ 'div.emptyMonthlyChart' | t }}
+          </p>
+        }
+      </section>
+
+      <!-- Asset Type Breakdown Cards -->
+      <div class="div-asset-grid">
+        @for (at of activeAssetTypeSummaries(); track at.assetType) {
+          <button
+            type="button"
+            class="sgsk-card div-asset-card"
+            [class.active]="selectedAssetType() === at.assetType"
+            (click)="setAssetType(selectedAssetType() === at.assetType ? 'all' : at.assetType)"
+          >
+            <div class="div-at-top">
+              <span class="div-at-title">
+                <span class="color-dot" [style.background-color]="getAssetColorFn(at.assetType)"></span>
+                {{ at.assetTypeLabel }}
+              </span>
+              <span class="asset-badge font-mono">{{ at.percentageOfTotal | number: '1.1-1' }}%</span>
+            </div>
+            <div class="div-at-val font-mono privacy-mask">
+              {{ at.totalNetDividends | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+            </div>
+            <div class="div-at-meta font-mono">
+              <span>YoC {{ (at.yieldOnCostPercent || 0) | number: '1.2-2' }}%</span>
+              <span>{{ 'div.symbolsCount' | t: { count: at.symbolCount } }}</span>
+            </div>
+          </button>
+        }
+      </div>
+
+      <!-- Symbol Income & Yield Cards -->
+      <div class="div-sym-toolbar">
+        <h3 class="sgsk-card-heading">{{ 'div.yieldBreakdownTitle' | t }}</h3>
+        <ion-searchbar
+          class="sgsk-searchbar"
+          [value]="searchQuery()"
+          (ionInput)="searchQuery.set($event.detail.value ?? '')"
+          [placeholder]="'div.filterSymbolsPlaceholder' | t"
+          debounce="150"
+        ></ion-searchbar>
+
+        <div class="chip-scroll">
+          <button type="button" class="sgsk-pill-chip" [class.active]="sortField() === 'netDividends'" (click)="setSort('netDividends')">
+            {{ 'div.netReceived' | t }}
+          </button>
+          <button type="button" class="sgsk-pill-chip" [class.active]="sortField() === 'yoc'" (click)="setSort('yoc')">
+            {{ 'div.yieldOnCost' | t }}
+          </button>
+          <button type="button" class="sgsk-pill-chip" [class.active]="sortField() === 'currentYield'" (click)="setSort('currentYield')">
+            {{ 'div.marketYield' | t }}
+          </button>
+          <button type="button" class="sgsk-pill-chip" [class.active]="sortField() === 'projected'" (click)="setSort('projected')">
+            {{ 'div.projected12m' | t }}
+          </button>
+        </div>
+      </div>
+
+      <div id="mobile-dividend-symbols" class="div-cards-list">
+        @for (sym of filteredSymbolSummaries(); track sym.symbol) {
+          <article class="sgsk-card div-sym-card">
+            <div class="div-sym-head">
+              <div class="div-sym-id">
+                <app-symbol-icon [symbol]="sym.symbol" [assetType]="sym.assetType" size="sm"></app-symbol-icon>
+                <div style="min-width: 0;">
+                  <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
+                    <span class="font-mono" style="font-weight: 700; font-size: 0.84rem;">
+                      {{ sym.displaySymbol || getDisplaySymbol(sym.symbol) }}
+                    </span>
+                    <span class="asset-badge" [ngClass]="getAssetTypeClassFn(sym.assetType, sym.symbol)">
+                      {{ sym.assetTypeLabel }}
+                    </span>
+                  </div>
+                  <div class="text-muted" style="font-size: 0.7rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    {{ sym.name }}
+                  </div>
+                </div>
+              </div>
+              <div class="font-mono pl-positive privacy-mask" style="font-weight: 700; font-size: 0.9rem; flex-shrink: 0;">
+                {{ sym.convertedNetDividends | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+              </div>
+            </div>
+
+            <div class="sgsk-kpi-grid" style="margin-top: 0.55rem;">
+              <div class="sgsk-kpi-box">
+                <span class="sgsk-kpi-label">{{ 'div.yieldOnCost' | t }}</span>
+                <span class="sgsk-kpi-val yoc-pill text-accent">
+                  {{ sym.yieldOnCostPercent > 0 ? (sym.yieldOnCostPercent | number: '1.2-2') + '%' : '—' }}
+                </span>
+              </div>
+              <div class="sgsk-kpi-box">
+                <span class="sgsk-kpi-label">{{ 'div.marketYield' | t }}</span>
+                <span class="sgsk-kpi-val">
+                  {{ sym.currentYieldPercent > 0 ? (sym.currentYieldPercent | number: '1.2-2') + '%' : '—' }}
+                </span>
+              </div>
+              <div class="sgsk-kpi-box">
+                <span class="sgsk-kpi-label">{{ 'div.trailingDps' | t }}</span>
+                <span class="sgsk-kpi-val">
+                  {{ sym.trailingAnnualDPS > 0 ? (sym.trailingAnnualDPS | number: '1.2-4') + ' ' + sym.currency : '—' }}
+                </span>
+              </div>
+              <div class="sgsk-kpi-box">
+                <span class="sgsk-kpi-label">{{ 'div.projected12m' | t }}</span>
+                <span class="sgsk-kpi-val text-accent privacy-mask">
+                  {{ sym.projectedAnnualIncome > 0 ? (sym.projectedAnnualIncome | currency: state.dc() : 'symbol-narrow' : '1.2-2') : '—' }}
+                </span>
+              </div>
+            </div>
+
+            <button type="button" class="div-ledger-btn font-mono" [attr.data-div-ledger-symbol]="sym.symbol" (click)="openHoldingLedger(sym)">
+              {{ 'div.viewLedgerRecords' | t: { count: getHoldingRecordsCount(sym.symbol) } }}
+            </button>
+          </article>
+        } @empty {
+          <div class="sgsk-card" style="text-align: center; color: var(--color-text-muted); padding: 1.5rem;">
+            {{ 'div.emptySymbols' | t }}
+          </div>
+        }
+      </div>
+
+      <!-- Historical Dividend Payout Ledger -->
+      <div class="div-ledger-header">
+        <h3 class="sgsk-card-heading">{{ 'div.distLedgerTitle' | t }}</h3>
+        <span class="asset-badge font-mono">{{ 'div.recordsCount' | t: { count: filteredRecords().length } }}</span>
+      </div>
+
+      <div id="mobile-dividend-ledger" class="div-cards-list">
+        @for (rec of visibleRecords(); track rec.id) {
+          <article class="sgsk-card div-rec-card">
+            <div class="div-rec-top">
+              <div style="display: flex; align-items: center; gap: 0.45rem;">
+                <span class="font-mono text-muted" style="font-size: 0.72rem;">{{ rec.date | ldate: 'medium' }}</span>
+                <strong class="font-mono" style="font-size: 0.84rem;">{{ rec.displaySymbol || getDisplaySymbol(rec.symbol) }}</strong>
+                <span class="asset-badge" [ngClass]="getAssetTypeClassFn(rec.assetType, rec.symbol)">
+                  {{ rec.assetTypeLabel }}
+                </span>
+              </div>
+              <span class="font-mono pl-positive privacy-mask" style="font-weight: 700;">
+                +{{ rec.convertedNetAmount | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+              </span>
+            </div>
+
+            <div class="div-rec-meta font-mono">
+              <span class="privacy-mask">{{ 'div.sharesHeld' | t }}: {{ rec.shares | number: '1.0-4' }}</span>
+              <span>{{ 'div.dps' | t }}: {{ rec.dividendPerShare | number: '1.2-4' }} {{ rec.currency }}</span>
+              <span class="pl-negative privacy-mask">
+                {{ 'div.whtShort' | t }}: -{{ rec.withholdingTax | currency: rec.currency : 'symbol-narrow' : '1.2-2' }} ({{ rec.withholdingTaxRate | number: '1.0-1' }}%)
+              </span>
+            </div>
+          </article>
+        } @empty {
+          <div class="sgsk-card" style="text-align: center; color: var(--color-text-muted); padding: 1.5rem;">
+            {{ 'div.emptyLedger' | t }}
+          </div>
+        }
+      </div>
+
+      @if (filteredRecords().length > visibleRecords().length) {
+        <ion-button expand="block" fill="outline" (click)="loadMoreRecords()">
+          {{ 'common.showAll' | t }} (+20)
+        </ion-button>
+      }
+    }
+  </div>
+
+  <!-- Native Sheet Modal: Holding Dividend Ledger -->
+  <ion-modal
+    id="mobile-div-ledger-modal"
+    class="sgsk-sheet-modal"
+    [isOpen]="selectedHoldingLedger() !== null"
+    [initialBreakpoint]="0.82"
+    [breakpoints]="[0, 0.5, 0.82, 1]"
+    (didDismiss)="closeHoldingLedger()"
+  >
+    <ng-template>
+      @if (selectedHoldingLedger(); as holding) {
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>{{ holding.displaySymbol }} · {{ 'div.ledger' | t }}</ion-title>
+            <ion-buttons slot="end">
+              <ion-button id="mobile-div-ledger-close" (click)="closeHoldingLedger()">{{ 'common.close' | t }}</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content>
+          <div class="sgsk-page-pad">
+            <div class="sgsk-card">
+              <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem;">
+                <app-symbol-icon [symbol]="holding.symbol" [assetType]="holding.assetType" size="md"></app-symbol-icon>
+                <div>
+                  <div class="font-mono" style="font-weight: 700;">{{ holding.displaySymbol }}</div>
+                  <div class="text-muted" style="font-size: 0.76rem;">{{ holding.name }}</div>
+                </div>
+              </div>
+              <div class="sgsk-kpi-grid">
+                <div class="sgsk-kpi-box">
+                  <span class="sgsk-kpi-label">{{ 'div.netReceived' | t }}</span>
+                  <span class="sgsk-kpi-val pl-positive privacy-mask">
+                    {{ holding.totalNet | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+                  </span>
+                </div>
+                <div class="sgsk-kpi-box">
+                  <span class="sgsk-kpi-label">{{ 'div.grossWht' | t }}</span>
+                  <span class="sgsk-kpi-val privacy-mask">
+                    {{ holding.totalGross | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+                    <span class="pl-negative">(-{{ holding.totalWht | currency: state.dc() : 'symbol-narrow' : '1.0-0' }})</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            @for (rec of holding.records; track rec.id) {
+              <div class="sgsk-card div-rec-card">
+                <div class="div-rec-top">
+                  <span class="font-mono" style="font-size: 0.76rem;">{{ rec.date | ldate: 'medium' }}</span>
+                  <span class="font-mono pl-positive privacy-mask" style="font-weight: 700;">
+                    +{{ rec.convertedNetAmount | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+                  </span>
+                </div>
+                <div class="div-rec-meta font-mono">
+                  <span class="privacy-mask">{{ rec.shares | number: '1.0-4' }} @ {{ rec.dividendPerShare | number: '1.2-4' }} {{ rec.currency }}</span>
+                  <span class="pl-negative">{{ 'div.whtShort' | t }} {{ rec.withholdingTaxRate | number: '1.0-1' }}%</span>
+                </div>
+              </div>
+            }
+          </div>
+        </ion-content>
+      }
+    </ng-template>
+  </ion-modal>
+</ion-content>

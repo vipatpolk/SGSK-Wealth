@@ -1,0 +1,155 @@
+<ion-app class="sgsk-mobile-app">
+  <!-- Web-Aligned Native Header -->
+  <ion-header id="mobile-header" class="sgsk-mobile-header">
+    <ion-toolbar class="sgsk-mobile-toolbar">
+      <div slot="start" class="mobile-brand-left">
+        <div class="mobile-logo-mark" aria-hidden="true">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.85"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" />
+            <path d="M8 12.5l2.8 2.8 5.2-5.3" />
+          </svg>
+        </div>
+        <div class="mobile-brand-text">
+          <div class="mobile-brand-row">
+            <span class="mobile-brand-name">SGSK Wealth</span>
+            <span class="mobile-platform-pill">{{ platformBadge() }}</span>
+          </div>
+          @if (state.hasRate()) {
+            <span class="mobile-rate-sub font-mono">
+              USD/THB {{ state.exchangeRate() | number: '1.2-2' }}
+            </span>
+          } @else {
+            <span class="mobile-rate-sub">{{ 'app.subtitle' | t }}</span>
+          }
+        </div>
+      </div>
+
+      <ion-buttons slot="end" class="mobile-header-actions">
+        <button
+          type="button"
+          class="hdr-pill-btn font-mono"
+          id="mobile-currency-toggle"
+          (click)="state.toggleCurrency()"
+          [attr.aria-label]="state.displayCurrency() === 'THB' ? ('header.currencyUsd' | t) : ('header.currencyThb' | t)"
+        >
+          <span class="hdr-curr-symbol">{{ state.displayCurrency() === 'THB' ? '฿' : '$' }}</span>
+          <span class="hdr-curr-code">{{ state.displayCurrency() }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="hdr-pill-btn"
+          id="mobile-lang-toggle"
+          (click)="state.toggleLang()"
+          [attr.aria-label]="'header.language' | t"
+        >
+          {{ state.i18n.lang().toUpperCase() }}
+        </button>
+
+        <button
+          type="button"
+          class="hdr-icon-btn"
+          [class.privacy-active]="state.privacyMode()"
+          id="mobile-privacy-toggle"
+          (click)="state.togglePrivacyMode()"
+          [attr.aria-label]="state.privacyMode() ? ('header.privacyShow' | t) : ('header.privacyHide' | t)"
+        >
+          <ion-icon [name]="state.privacyMode() ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+        </button>
+
+        <button
+          type="button"
+          class="hdr-icon-btn"
+          id="mobile-theme-toggle"
+          (click)="state.toggleTheme()"
+          [attr.aria-label]="state.theme() === 'dark' ? ('header.themeLight' | t) : ('header.themeDark' | t)"
+        >
+          <ion-icon [name]="state.theme() === 'dark' ? 'sunny-outline' : 'moon-outline'"></ion-icon>
+        </button>
+
+        <button
+          type="button"
+          class="hdr-icon-btn"
+          id="mobile-refresh-btn"
+          (click)="state.refresh()"
+          [attr.aria-label]="'app.refresh' | t"
+        >
+          <ion-icon
+            name="refresh-outline"
+            [class.spin-icon]="state.loading() || state.pricesLoading()"
+          ></ion-icon>
+        </button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+
+  <!-- Branded Fullscreen Loader matching Web -->
+  @if (state.loading() && !state.portfolioData()) {
+    <app-loading-screen
+      variant="fullscreen"
+      [statusTag]="state.loaderState().tag"
+      [title]="state.loaderState().title"
+      [subtitle]="state.loaderState().subtitle"
+    ></app-loading-screen>
+  }
+
+  <!-- Native 6-Tab Bottom Dock matching Web Responsive -->
+  <ion-tabs class="sgsk-mobile-tabs" (ionTabsDidChange)="onTabChange()">
+    <ion-tab-bar slot="bottom" id="mobile-tab-bar" class="sgsk-tab-bar">
+      <ion-tab-button tab="dashboard" id="mobile-tab-dashboard" data-tab="dashboard" class="sgsk-tab-btn">
+        <div class="tab-icon-pill">
+          <ion-icon name="grid-outline"></ion-icon>
+        </div>
+        <ion-label>{{ 'nav.dashboard' | t }}</ion-label>
+      </ion-tab-button>
+
+      <ion-tab-button tab="holdings" id="mobile-tab-holdings" data-tab="holdings" class="sgsk-tab-btn">
+        <div class="tab-icon-pill">
+          <ion-icon name="layers-outline"></ion-icon>
+        </div>
+        <ion-label>{{ 'nav.holdings' | t }}</ion-label>
+      </ion-tab-button>
+
+      <ion-tab-button tab="analytics" id="mobile-tab-analytics" data-tab="analytics" class="sgsk-tab-btn">
+        <div class="tab-icon-pill">
+          <ion-icon name="bar-chart-outline"></ion-icon>
+        </div>
+        <ion-label>{{ 'nav.analytics' | t }}</ion-label>
+      </ion-tab-button>
+
+      <ion-tab-button tab="dividends" id="mobile-tab-dividends" data-tab="dividends" class="sgsk-tab-btn">
+        <div class="tab-icon-pill">
+          <ion-icon name="cash-outline"></ion-icon>
+        </div>
+        <ion-label>{{ 'nav.dividends' | t }}</ion-label>
+      </ion-tab-button>
+
+      <ion-tab-button tab="transactions" id="mobile-tab-transactions" data-tab="transactions" class="sgsk-tab-btn">
+        <div class="tab-icon-pill">
+          <ion-icon name="time-outline"></ion-icon>
+        </div>
+        <ion-label>{{ 'nav.transactions' | t }}</ion-label>
+      </ion-tab-button>
+
+      <ion-tab-button tab="tools" id="mobile-tab-tools" data-tab="tools" class="sgsk-tab-btn">
+        <div class="tab-icon-pill">
+          <ion-icon name="calculator-outline"></ion-icon>
+        </div>
+        <ion-label>{{ 'nav.tools' | t }}</ion-label>
+      </ion-tab-button>
+    </ion-tab-bar>
+  </ion-tabs>
+
+  <app-mobile-factsheet-modal
+    [target]="state.activeFactsheetTarget()"
+    (closeModal)="state.closeFactsheetModal()"
+  ></app-mobile-factsheet-modal>
+</ion-app>

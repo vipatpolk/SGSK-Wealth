@@ -2,24 +2,53 @@ import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import {
-  IonBadge,
   IonButton,
-  IonCard,
-  IonCardContent,
-  IonCardHeader,
-  IonCardTitle,
-  IonChip,
   IonContent,
-  IonItem,
-  IonLabel,
-  IonList,
   IonRefresher,
   IonRefresherContent,
   IonSpinner,
 } from '@ionic/angular';
+import { SymbolIconComponent } from '@shared/components/symbol-icon/symbol-icon.component';
+import { PortfolioPosition } from '@shared/models/portfolio.model';
+import { ToolId } from '@shared/models/tools.model';
+import { LocalizedDatePipe } from '@shared/pipes/localized-date.pipe';
 import { TranslatePipe } from '@shared/pipes/translate.pipe';
-import { convertCurrency, getAssetTypeLabel } from '@shared/utils/format.utils';
+import {
+  convertCurrency,
+  displaySymbol,
+  getAssetColor,
+  getAssetType,
+  getAssetTypeLabel,
+  getQuantityFormat,
+  getSymbolName,
+  getUnitLabel,
+} from '@shared/utils/format.utils';
 import { MobileStateService } from '../../services/mobile-state.service';
+
+export interface MobileAssetAllocationItem {
+  type: string;
+  label: string;
+  color: string;
+  value: number;
+  percentage: number;
+  symbolCount: number;
+  dashArray: string;
+  dashOffset: number;
+}
+
+export interface MobileRecentTxItem {
+  id: string;
+  date: string;
+  type: 'BUY' | 'SELL' | 'EX-IN' | 'EX-OUT';
+  symbol: string;
+  displaySymbol: string;
+  name: string;
+  assetType: string;
+  quantity: number;
+  price: number;
+  totalAmount: number;
+  currency: string;
+}
 
 @Component({
   selector: 'app-mobile-dashboard',
@@ -29,304 +58,362 @@ import { MobileStateService } from '../../services/mobile-state.service';
     CurrencyPipe,
     DecimalPipe,
     TranslatePipe,
+    LocalizedDatePipe,
+    SymbolIconComponent,
     IonContent,
     IonRefresher,
     IonRefresherContent,
-    IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardContent,
-    IonList,
-    IonItem,
-    IonLabel,
-    IonBadge,
     IonButton,
-    IonChip,
     IonSpinner,
   ],
-  template: `
-    <ion-content>
-      <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
-        <ion-refresher-content></ion-refresher-content>
-      </ion-refresher>
-
-      @if (state.loading() && !state.portfolioData()) {
-        <div class="ion-text-center ion-padding" style="margin-top:48px;">
-          <ion-spinner name="crescent"></ion-spinner>
-          <p style="color:var(--sgsk-text-secondary); margin-top:12px;">
-            {{ 'loading.prepDashboard' | t }}
-          </p>
-        </div>
-      } @else if (state.error()) {
-        <ion-card class="mobile-card" id="mobile-error-card">
-          <ion-card-header>
-            <ion-card-title>{{ 'app.error.unableData' | t }}</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <p class="pl-negative">{{ state.error() }}</p>
-            <ion-button expand="block" (click)="state.refresh()" style="margin-top:12px;">
-              {{ 'common.retry' | t }}
-            </ion-button>
-          </ion-card-content>
-        </ion-card>
-      } @else {
-        <!-- Net Worth Hero Card -->
-        <ion-card class="mobile-card hero-gradient-card" id="mobile-dashboard-hero">
-          <ion-card-header>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <ion-chip color="primary" style="margin:0; height:24px; font-size:11px;">
-                {{ 'holdings.heroBadge' | t }}
-              </ion-chip>
-              @if (state.hasRate()) {
-                <span class="font-mono" style="font-size:12px; color:var(--sgsk-text-secondary);">
-                  USD/THB {{ state.exchangeRate() | number: '1.2-2' }}
-                </span>
-              }
-            </div>
-            <ion-card-title style="font-size:28px; margin-top:10px;" class="font-mono privacy-mask">
-              {{ netWorth() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
-            </ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <ion-badge [color]="totalReturn() >= 0 ? 'success' : 'danger'" class="font-mono">
-                {{ totalReturn() >= 0 ? '+' : '' }}{{ returnPct() | number: '1.2-2' }}%
-              </ion-badge>
-              <span
-                class="font-mono privacy-mask"
-                [class.pl-positive]="totalReturn() >= 0"
-                [class.pl-negative]="totalReturn() < 0"
-              >
-                {{ totalReturn() >= 0 ? '+' : ''
-                }}{{ totalReturn() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
-              </span>
-            </div>
-
-            <div class="metric-grid">
-              <div class="metric-box">
-                <span class="metric-label">{{ 'common.totalInvested' | t }}</span>
-                <span class="metric-value font-mono privacy-mask">
-                  {{ investedCost() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
-                </span>
-              </div>
-              <div class="metric-box">
-                <span class="metric-label">{{ 'holdings.realizedReturn' | t }}</span>
-                <span
-                  class="metric-value font-mono privacy-mask"
-                  [class.pl-positive]="realizedPL() >= 0"
-                  [class.pl-negative]="realizedPL() < 0"
-                >
-                  {{ realizedPL() >= 0 ? '+' : ''
-                  }}{{ realizedPL() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
-                </span>
-              </div>
-              <div class="metric-box">
-                <span class="metric-label">{{ 'holdings.openPositions' | t }}</span>
-                <span class="metric-value font-mono">{{ openPositions().length }}</span>
-              </div>
-              <div class="metric-box">
-                <span class="metric-label">{{ 'nav.dividends' | t }}</span>
-                <span class="metric-value font-mono privacy-mask pl-positive">
-                  {{ netDividends() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
-                </span>
-              </div>
-            </div>
-          </ion-card-content>
-        </ion-card>
-
-        <!-- Quick Actions -->
-        <div class="chip-scroll">
-          <ion-chip (click)="goTo('/holdings', false)" id="mobile-quick-holdings">
-            {{ 'nav.holdings' | t }}
-          </ion-chip>
-          <ion-chip (click)="goTo('/holdings', true)" id="mobile-quick-pvd">
-            {{ 'holdings.subtabPvd' | t }}
-          </ion-chip>
-          <ion-chip (click)="goTo('/analytics')" id="mobile-quick-analytics">
-            {{ 'nav.analytics' | t }}
-          </ion-chip>
-          <ion-chip (click)="goTo('/dividends')" id="mobile-quick-dividends">
-            {{ 'nav.dividends' | t }}
-          </ion-chip>
-          <ion-chip (click)="goTo('/tools')" id="mobile-quick-tools">
-            {{ 'nav.tools' | t }}
-          </ion-chip>
-          <ion-chip (click)="goTo('/transactions')" id="mobile-quick-transactions">
-            {{ 'nav.transactions' | t }}
-          </ion-chip>
-        </div>
-
-        <!-- Asset Class Breakdown -->
-        <div class="section-header">
-          <span>{{ 'dashboard.assetAllocation' | t }}</span>
-          <ion-button fill="clear" size="small" (click)="goTo('/analytics')">
-            {{ 'nav.analytics' | t }}
-          </ion-button>
-        </div>
-        <ion-card class="mobile-card" id="mobile-dashboard-allocation">
-          <ion-list lines="full">
-            @for (bucket of assetBuckets(); track bucket.assetType) {
-              <ion-item>
-                <ion-label>
-                  <h3>{{ bucket.label }}</h3>
-                  <p>{{ bucket.count }} {{ 'holdings.symbolsPlural' | t }}</p>
-                </ion-label>
-                <div slot="end" style="text-align:right;">
-                  <div class="font-mono privacy-mask" style="font-weight:700;">
-                    {{ bucket.value | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
-                  </div>
-                  <div class="font-mono" style="font-size:12px; color:var(--sgsk-text-secondary);">
-                    {{ bucket.weight | number: '1.1-1' }}%
-                  </div>
-                </div>
-              </ion-item>
-            } @empty {
-              <ion-item>
-                <ion-label>{{ 'holdings.emptySymbolSearch' | t }}</ion-label>
-              </ion-item>
-            }
-          </ion-list>
-        </ion-card>
-
-        <!-- Top Market Movers -->
-        <div class="section-header">
-          <span>{{ 'performance.topGainers' | t }}</span>
-          <ion-button fill="clear" size="small" (click)="goTo('/holdings')">
-            {{ 'nav.holdings' | t }}
-          </ion-button>
-        </div>
-        <ion-card class="mobile-card" id="mobile-dashboard-movers">
-          <ion-list lines="full">
-            @for (pos of topMovers(); track pos.symbol) {
-              <ion-item button (click)="openHistory(pos.symbol)">
-                <ion-label>
-                  <h3>{{ pos.displaySymbol }}</h3>
-                  <p>{{ pos.name }}</p>
-                </ion-label>
-                <div slot="end" style="text-align:right;">
-                  <div
-                    class="font-mono"
-                    [class.pl-positive]="pos.unrealizedPLPercent >= 0"
-                    [class.pl-negative]="pos.unrealizedPLPercent < 0"
-                    style="font-weight:700;"
-                  >
-                    {{ pos.unrealizedPLPercent >= 0 ? '+' : ''
-                    }}{{ pos.unrealizedPLPercent | number: '1.2-2' }}%
-                  </div>
-                  <div class="font-mono privacy-mask" style="font-size:12px; color:var(--sgsk-text-secondary);">
-                    {{ pos.holdingValue | currency: pos.currency : 'symbol-narrow' : '1.0-0' }}
-                  </div>
-                </div>
-              </ion-item>
-            }
-          </ion-list>
-        </ion-card>
-      }
-    </ion-content>
-  `,
+  templateUrl: './mobile-dashboard.page.html',
+  styleUrl: './mobile-dashboard.page.css',
 })
 export class MobileDashboardPage {
   readonly state = inject(MobileStateService);
   private readonly router = inject(Router);
 
-  readonly openPositions = computed(() => this.state.localizedPortfolioData()?.openPositions ?? []);
+  readonly displaySymbolFn = displaySymbol;
+  readonly getQuantityFormat = getQuantityFormat;
 
-  readonly netWorth = computed(() => {
+  readonly openPositions = computed<PortfolioPosition[]>(
+    () => this.state.localizedPortfolioData()?.openPositions ?? []
+  );
+
+  readonly closedPositions = computed(
+    () => this.state.localizedPortfolioData()?.closedPositions ?? []
+  );
+
+  readonly netPortfolioValue = computed<number>(() => {
     const data = this.state.portfolioData();
     if (!data) return 0;
-    const raw = data.summary.totalValue || data.summary.openInvested || 0;
-    return convertCurrency(raw, data.currency, this.state.displayCurrency(), this.state.exchangeRate());
+    const raw = data.summary?.totalValue || data.summary?.openInvested || 0;
+    return this.cx(raw, data.currency);
   });
 
-  readonly investedCost = computed(() => {
-    const data = this.state.portfolioData();
-    if (!data) return 0;
-    const raw = data.summary.openInvested ?? data.summary.totalInvested ?? 0;
-    return convertCurrency(raw, data.currency, this.state.displayCurrency(), this.state.exchangeRate());
-  });
-
-  readonly totalReturn = computed(() => {
-    const data = this.state.portfolioData();
-    if (!data) return 0;
-    return convertCurrency(
-      data.summary.totalUnrealizedPL || 0,
-      data.currency,
-      this.state.displayCurrency(),
-      this.state.exchangeRate()
-    );
-  });
-
-  readonly realizedPL = computed(() => {
-    const data = this.state.portfolioData();
-    if (!data) return 0;
-    return convertCurrency(
-      data.summary.totalRealizedPL || 0,
-      data.currency,
-      this.state.displayCurrency(),
-      this.state.exchangeRate()
-    );
-  });
-
-  readonly returnPct = computed(() => this.state.portfolioData()?.summary.totalUnrealizedPLPercent ?? 0);
-  readonly netDividends = computed(() => this.state.localizedDividendData()?.totalNetDividends ?? 0);
-
-  readonly assetBuckets = computed(() => {
-    const positions = this.openPositions();
-    const lang = this.state.i18n.lang();
-    const target = this.state.displayCurrency();
+  readonly secondaryNetValue = computed<number | null>(() => {
     const rate = this.state.exchangeRate();
+    if (!this.state.hasRate() || rate <= 0) return null;
+    const net = this.netPortfolioValue();
+    return this.state.displayCurrency() === 'THB' ? net / rate : net * rate;
+  });
 
-    const groups = new Map<string, { assetType: string; label: string; value: number; count: number }>();
-    let total = 0;
+  readonly secondaryCurrencyLabel = computed<'USD' | 'THB'>(() =>
+    this.state.displayCurrency() === 'THB' ? 'USD' : 'THB'
+  );
+
+  readonly totalInvested = computed<number>(() => {
+    const data = this.state.portfolioData();
+    if (!data) return 0;
+    const raw = data.summary?.openInvested ?? data.summary?.totalInvested ?? 0;
+    return this.cx(raw, data.currency);
+  });
+
+  readonly unrealizedPL = computed<number>(() => {
+    const data = this.state.portfolioData();
+    if (!data) return 0;
+    return this.cx(data.summary?.totalUnrealizedPL ?? 0, data.currency);
+  });
+
+  readonly unrealizedPLPercent = computed<number>(
+    () => this.state.portfolioData()?.summary?.totalUnrealizedPLPercent ?? 0
+  );
+
+  readonly realizedPL = computed<number>(() => {
+    const data = this.state.portfolioData();
+    if (!data) return 0;
+    return this.cx(data.summary?.totalRealizedPL ?? 0, data.currency);
+  });
+
+  readonly realizedPLPercent = computed<number>(
+    () => this.state.portfolioData()?.summary?.totalRealizedPLPercent ?? 0
+  );
+
+  readonly totalReturn = computed<number>(() => {
+    const data = this.state.portfolioData();
+    if (!data) return 0;
+    const raw =
+      data.summary?.totalReturn ??
+      (data.summary?.totalUnrealizedPL ?? 0) + (data.summary?.totalRealizedPL ?? 0);
+    return this.cx(raw, data.currency);
+  });
+
+  readonly totalReturnPercent = computed<number>(
+    () => this.state.portfolioData()?.summary?.totalReturnPercent ?? 0
+  );
+
+  readonly totalLotsCount = computed<number>(() =>
+    this.openPositions().reduce((acc, p) => acc + (p.lots?.length ?? 0), 0)
+  );
+
+  readonly assetAllocationList = computed<MobileAssetAllocationItem[]>(() => {
+    const positions = this.openPositions();
+    if (positions.length === 0) return [];
+
+    const lang = this.state.i18n.lang();
+    const order = ['us-stock', 'thai-stock', 'crypto', 'mutual-fund', 'bond', 'provident-fund'];
+    const map = new Map<string, { value: number; count: number }>();
 
     for (const pos of positions) {
-      const val = convertCurrency(pos.holdingValue || pos.totalCost, pos.currency, target, rate);
-      total += val;
-      const existing = groups.get(pos.assetType);
-      if (existing) {
-        existing.value += val;
-        existing.count += 1;
-      } else {
-        groups.set(pos.assetType, {
-          assetType: pos.assetType,
-          label: getAssetTypeLabel(pos.assetType, pos.symbol, lang),
-          value: val,
-          count: 1,
-        });
-      }
+      const type = pos.assetType || getAssetType(pos.symbol);
+      const val = this.cx(pos.holdingValue || pos.totalCost || 0, pos.currency || 'USD');
+      const curr = map.get(type) ?? { value: 0, count: 0 };
+      map.set(type, { value: curr.value + val, count: curr.count + 1 });
     }
 
-    return Array.from(groups.values())
-      .map((g) => ({
-        ...g,
-        weight: total > 0 ? (g.value / total) * 100 : 0,
-      }))
-      .sort((a, b) => b.value - a.value);
+    const totalVal = Array.from(map.values()).reduce((sum, item) => sum + item.value, 0);
+    if (totalVal <= 0) return [];
+
+    const circumference = 251.327; // 2 * pi * 40
+    let cumulativePercent = 0;
+    const result: MobileAssetAllocationItem[] = [];
+
+    const sortedTypes = Array.from(map.keys()).sort((a, b) => {
+      const idxA = order.indexOf(a);
+      const idxB = order.indexOf(b);
+      return (idxA >= 0 ? idxA : 99) - (idxB >= 0 ? idxB : 99);
+    });
+
+    for (const type of sortedTypes) {
+      const item = map.get(type)!;
+      const pct = (item.value / totalVal) * 100;
+      const dashLength = (pct / 100) * circumference;
+      const dashOffset = -(cumulativePercent / 100) * circumference;
+      cumulativePercent += pct;
+
+      result.push({
+        type,
+        label: getAssetTypeLabel(type, undefined, lang),
+        color: getAssetColor(type),
+        value: item.value,
+        percentage: pct,
+        symbolCount: item.count,
+        dashArray: `${dashLength} ${circumference}`,
+        dashOffset,
+      });
+    }
+
+    return result;
   });
 
-  readonly topMovers = computed(() => {
+  readonly topGainers = computed<PortfolioPosition[]>(() => {
     return [...this.openPositions()]
-      .sort((a, b) => Math.abs(b.unrealizedPLPercent) - Math.abs(a.unrealizedPLPercent))
+      .filter((p) => (p.unrealizedPLPercent || 0) > 0)
+      .sort((a, b) => (b.unrealizedPLPercent || 0) - (a.unrealizedPLPercent || 0))
+      .slice(0, 4);
+  });
+
+  readonly topLosers = computed<PortfolioPosition[]>(() => {
+    return [...this.openPositions()]
+      .filter((p) => (p.unrealizedPLPercent || 0) < 0)
+      .sort((a, b) => (a.unrealizedPLPercent || 0) - (b.unrealizedPLPercent || 0))
+      .slice(0, 4);
+  });
+
+  readonly winningPositionsCount = computed<number>(
+    () => this.openPositions().filter((p) => (p.unrealizedPL || 0) > 0).length
+  );
+
+  readonly losingPositionsCount = computed<number>(
+    () => this.openPositions().filter((p) => (p.unrealizedPL || 0) < 0).length
+  );
+
+  readonly annualProjectedDividendConverted = computed<number>(() => {
+    const div = this.state.dividendData();
+    if (!div) return 0;
+    return this.cx(div.projectedAnnualDividends || 0, div.currency || 'THB');
+  });
+
+  readonly portfolioYieldOnCost = computed<number>(
+    () => this.state.dividendData()?.portfolioYieldOnCost ?? 0
+  );
+
+  readonly portfolioCurrentYield = computed<number>(
+    () => this.state.dividendData()?.portfolioDividendYield ?? 0
+  );
+
+  readonly dividendPayingCount = computed<number>(
+    () => this.state.dividendData()?.symbolSummaries?.length ?? 0
+  );
+
+  readonly pvdPositions = computed<PortfolioPosition[]>(() =>
+    this.openPositions().filter((p) => getAssetType(p.assetType, p.symbol) === 'provident-fund')
+  );
+
+  readonly hasPvd = computed<boolean>(() => this.pvdPositions().length > 0);
+
+  readonly pvdFundNames = computed<string[]>(() => {
+    const seen = new Set<string>();
+    const names: string[] = [];
+    for (const pos of this.pvdPositions()) {
+      const fn = (pos.pvdFundName || '').trim();
+      if (fn && !seen.has(fn)) {
+        seen.add(fn);
+        names.push(fn);
+      }
+    }
+    return names;
+  });
+
+  readonly pvdTotalValue = computed<number>(() =>
+    this.pvdPositions().reduce(
+      (acc, pos) => acc + this.cx(pos.holdingValue || pos.totalCost, pos.currency),
+      0
+    )
+  );
+
+  readonly pvdEmployeeContribution = computed<number>(() =>
+    this.pvdPositions().reduce((acc, pos) => acc + (pos.employeeContribution || 0), 0)
+  );
+
+  readonly pvdEmployerMatching = computed<number>(() =>
+    this.pvdPositions().reduce((acc, pos) => acc + (pos.employerMatching || 0), 0)
+  );
+
+  readonly recentTransactions = computed<MobileRecentTxItem[]>(() => {
+    const data = this.state.portfolioData();
+    if (!data) return [];
+
+    const lang = this.state.i18n.lang();
+    const pricesMap = this.state.prices();
+    const items: MobileRecentTxItem[] = [];
+
+    const hasValidSummaries = data.transactionSummaries?.some(
+      (s) => getAssetType(s.assetType, s.symbol) !== 'provident-fund'
+    );
+
+    if (data.transactionSummaries && data.transactionSummaries.length > 0 && hasValidSummaries) {
+      for (const sum of data.transactionSummaries) {
+        if (getAssetType(sum.assetType, sum.symbol) === 'provident-fund') continue;
+        for (const tx of sum.transactions || []) {
+          const assetType = tx.assetType || sum.assetType;
+          const symbol = tx.symbol || sum.symbol;
+          if (getAssetType(assetType, symbol) === 'provident-fund') continue;
+          if (!tx.quantity || tx.quantity <= 0 || !tx.date) continue;
+
+          let t: 'BUY' | 'SELL' | 'EX-IN' | 'EX-OUT' = 'BUY';
+          if (tx.type === 'SELL') t = 'SELL';
+          else if (tx.type === 'EXCHANGE_IN' || tx.type === 'EXCHANGE') t = 'EX-IN';
+          else if (tx.type === 'EXCHANGE_OUT') t = 'EX-OUT';
+          else if (tx.type === 'BUY') t = 'BUY';
+          else continue;
+
+          const pd = pricesMap.get(symbol);
+          items.push({
+            id: tx.id || `tx-${symbol}-${tx.date}-${tx.quantity}`,
+            date: tx.date,
+            type: t,
+            symbol,
+            displaySymbol: displaySymbol(symbol),
+            name: getSymbolName(symbol, pd?.name || '', lang, pd?.nameTh || '', assetType),
+            assetType,
+            quantity: tx.quantity,
+            price: this.cx(tx.price, tx.currency || 'USD'),
+            totalAmount: this.cx(tx.totalAmount || tx.quantity * tx.price, tx.currency || 'USD'),
+            currency: this.state.displayCurrency(),
+          });
+        }
+      }
+    } else if (data.rawTransactions && data.rawTransactions.length > 0) {
+      data.rawTransactions.forEach((tx, idx) => {
+        if (getAssetType(tx.assetType, tx.symbol) === 'provident-fund') return;
+        if (!tx.quantity || tx.quantity <= 0 || !tx.date) return;
+
+        let t: 'BUY' | 'SELL' | 'EX-IN' | 'EX-OUT' = 'BUY';
+        const rawType = (tx.txType || 'BUY').toUpperCase();
+        if (rawType.includes('SELL')) t = 'SELL';
+        else if (rawType.includes('IN') || rawType === 'EXCHANGE') t = 'EX-IN';
+        else if (rawType.includes('OUT')) t = 'EX-OUT';
+        else if (rawType.includes('BUY')) t = 'BUY';
+        else return;
+
+        const pd = pricesMap.get(tx.symbol);
+        items.push({
+          id: `raw-${idx}-${tx.symbol}-${tx.date}`,
+          date: tx.date,
+          type: t,
+          symbol: tx.symbol,
+          displaySymbol: displaySymbol(tx.symbol),
+          name: getSymbolName(tx.symbol, pd?.name || '', lang, pd?.nameTh || '', tx.assetType),
+          assetType: tx.assetType,
+          quantity: tx.quantity,
+          price: this.cx(tx.price, tx.currency || 'USD'),
+          totalAmount: this.cx(tx.quantity * tx.price, tx.currency || 'USD'),
+          currency: this.state.displayCurrency(),
+        });
+      });
+    }
+
+    return [...items]
+      .sort((a, b) => (new Date(b.date).getTime() || 0) - (new Date(a.date).getTime() || 0))
       .slice(0, 5);
   });
 
+  private cx(value: number, fromCurrency: string): number {
+    if (!this.state.hasRate()) return value;
+    return convertCurrency(
+      value,
+      fromCurrency,
+      this.state.displayCurrency(),
+      this.state.exchangeRate()
+    );
+  }
+
+  convertedPrice(pos: PortfolioPosition): number {
+    return this.cx(pos.currentPrice || 0, pos.currency || 'USD');
+  }
+
+  getUnitText(symbol?: string, assetType?: string): string {
+    return getUnitLabel(symbol, assetType, this.state.i18n.lang());
+  }
+
+  getTxTypeLabel(type: 'BUY' | 'SELL' | 'EX-IN' | 'EX-OUT'): string {
+    switch (type) {
+      case 'BUY':
+        return this.state.i18n.t('common.buy');
+      case 'SELL':
+        return this.state.i18n.t('common.sell');
+      case 'EX-IN':
+        return this.state.i18n.t('common.exIn');
+      case 'EX-OUT':
+        return this.state.i18n.t('common.exOut');
+    }
+  }
+
   onRefresh(event: CustomEvent): void {
     this.state.refresh();
-    setTimeout(() => (event.target as HTMLIonRefresherElement).complete(), 400);
+    setTimeout(() => (event.target as HTMLIonRefresherElement).complete(), 450);
   }
 
-  goTo(path: string, pvd = false): void {
-    void this.state.nativePlatform.triggerHapticImpact('light');
-    if (pvd) {
-      this.state.selectHoldingsSubTab('pvd');
-    } else if (path === '/holdings') {
-      this.state.selectHoldingsSubTab('market');
-    }
-    void this.router.navigateByUrl(path);
+  goToHoldings(pvd = false): void {
+    this.state.navigateToHoldings(pvd);
   }
 
-  openHistory(symbol: string): void {
-    this.state.selectedHistorySymbol.set(symbol);
-    void this.router.navigateByUrl('/transactions');
+  goToAnalytics(subTab: 'overview' | 'allocation' | 'performance' = 'overview'): void {
+    this.state.navigateToAnalytics(subTab);
+  }
+
+  goToDividends(): void {
+    void this.state.nativePlatform.triggerHapticSelection();
+    void this.router.navigateByUrl('/dividends');
+  }
+
+  goToTransactions(symbol = ''): void {
+    this.state.navigateToTransactions(symbol);
+  }
+
+  goToTool(toolId: ToolId): void {
+    this.state.navigateToTool(toolId);
+  }
+
+  openFactsheet(event: Event, pos: PortfolioPosition): void {
+    event.stopPropagation();
+    this.state.openFactsheetModal({
+      symbol: pos.symbol,
+      assetType: pos.assetType || 'provident-fund',
+      fundName: pos.pvdFundName || undefined,
+      displayName: pos.name || pos.policyName || displaySymbol(pos.symbol),
+      displayNameTh: pos.nameTh || undefined,
+    });
   }
 }
