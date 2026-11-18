@@ -8,6 +8,23 @@ import { environment } from '../../environments/environment';
 
 export type NativePlatform = 'ios' | 'android' | 'web';
 
+export function resolveMobileApiBaseUrl(
+  platform: NativePlatform,
+  isProduction: boolean,
+  endpoints: typeof environment = environment,
+): string {
+  if (platform !== 'web' && isProduction) {
+    return endpoints.nativeApiBaseUrl;
+  }
+  if (platform === 'android') {
+    return endpoints.nativeAndroidApiBaseUrl;
+  }
+  if (platform === 'ios') {
+    return endpoints.nativeIosApiBaseUrl;
+  }
+  return endpoints.apiBaseUrl;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -25,14 +42,7 @@ export class NativePlatformService {
   }
 
   resolveApiBaseUrl(): string {
-    const platform = this.getPlatform();
-    if (platform === 'android') {
-      return environment.nativeAndroidApiBaseUrl;
-    }
-    if (platform === 'ios') {
-      return environment.nativeIosApiBaseUrl;
-    }
-    return environment.apiBaseUrl;
+    return resolveMobileApiBaseUrl(this.getPlatform(), environment.production);
   }
 
   async hideSplashScreen(): Promise<void> {

@@ -175,7 +175,11 @@ if (lintBackend) {
   });
 } else if (testBackend) {
   console.log(`\x1b[36m[TEST]\x1b[0m Running Pytest on backend using ${pythonCmd}...`);
-  const pytest = spawn(pythonCmd, ['-m', 'pytest', '-m', 'not live_e2e'], { cwd: backendDir, stdio: 'inherit' });
+  const pytest = spawn(
+    pythonCmd,
+    ['-m', 'pytest', '-m', 'not live_e2e', '--cov=.', '--cov-fail-under=80', '--cov-report=term-missing'],
+    { cwd: backendDir, stdio: 'inherit' },
+  );
   pytest.on('close', (code) => process.exit(code ?? 0));
 } else if (runE2e) {
   fs.mkdirSync(e2eTargetDir, { recursive: true });

@@ -25,6 +25,7 @@ INSECURE_NAMED_KEYS: set[str] = {
 class Settings(BaseSettings):
     environment: str = "development"
     backend_api_key: str = "dev_secret_key_change_in_prod"
+    backend_api_key_previous: str = ""
     allowed_origins: list[str] = ["http://localhost:4200"]
     sec_subscription_key: str = ""
     google_spreadsheet_id: str = "sample_spreadsheet_id"
@@ -53,6 +54,14 @@ class Settings(BaseSettings):
                 )
             if len(self.backend_api_key) < 32:
                 raise ValueError("CRITICAL: BACKEND_API_KEY must be at least 32 characters in production.")
+            if self.backend_api_key_previous:
+                previous_key_hash = hashlib.sha256(self.backend_api_key_previous.encode()).hexdigest()
+                if (
+                    self.backend_api_key_previous in INSECURE_NAMED_KEYS
+                    or previous_key_hash in BLOCKED_KEY_HASHES
+                    or len(self.backend_api_key_previous) < 32
+                ):
+                    raise ValueError("CRITICAL: BACKEND_API_KEY_PREVIOUS must be a valid secure key during rotation.")
             if not self.google_spreadsheet_id or self.google_spreadsheet_id in ("sample_spreadsheet_id", ""):
                 raise ValueError(
                     "CRITICAL: GOOGLE_SPREADSHEET_ID must be securely configured via environment variables in production."

@@ -2,6 +2,11 @@ export default async function handler(req, res) {
   const backendOrigin = (process.env.BACKEND_ORIGIN_URL || 'https://api-sgsk-wealth.vercel.app').replace(/\/+$/, '');
   const apiKey = process.env.BACKEND_API_KEY || '';
 
+  if (!apiKey) {
+    console.error('[api-proxy] BACKEND_API_KEY is not configured');
+    return res.status(503).json({ detail: 'Backend authentication is not configured' });
+  }
+
   // Extract path and query params from rewrite: /api/backend/:path* -> /api/proxy?__path=:path*
   const { __path = '', ...queryParams } = req.query;
   const subPath = Array.isArray(__path) ? __path.join('/') : __path;
@@ -63,9 +68,14 @@ export default async function handler(req, res) {
     const buffer = Buffer.from(await upstreamResponse.arrayBuffer());
     return res.send(buffer);
   } catch (error) {
+    console.error('[api-proxy] Upstream request failed', {
+      method: req.method,
+      path: subPath,
+      errorName: error && error.name ? error.name : 'Error',
+      errorMessage: error && error.message ? error.message : String(error),
+    });
     return res.status(502).json({
       detail: 'Bad Gateway: Proxy failed to reach backend origin',
-      error: error && error.message ? error.message : String(error),
     });
   }
 }

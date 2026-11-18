@@ -62,7 +62,7 @@ describe('SGSK Wealth Mobile App', () => {
     expect(state.i18n.lang()).toBe('th');
   });
 
-  it('should resolve web API base URL in non-native browser environment', () => {
+  it('should resolve the browser API base URL in non-native environment', () => {
     const nativePlatform = TestBed.inject(NativePlatformService);
     expect(nativePlatform.getPlatform()).toBe('web');
     expect(nativePlatform.resolveApiBaseUrl()).toBe('/api/backend');

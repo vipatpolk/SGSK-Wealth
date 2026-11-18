@@ -57,6 +57,8 @@ class DirectAccessBlockMiddleware(BaseHTTPMiddleware):
                 "ShareLot-Client",
                 "SGSK-Wealth",
                 "SGSK-Wealth-Client",
+                "SGSK-Wealth-Mobile",
+                "SGSK-Wealth-Capacitor",
             )
 
             if not is_forwarded_from_frontend and not has_valid_app_signature:

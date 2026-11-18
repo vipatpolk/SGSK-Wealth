@@ -361,6 +361,14 @@ SGSK-Wealth enforces strict quality standards before any code is committed:
 This monorepo supports independent or linked deployments on [Vercel](https://vercel.com/):
 1. **Backend Deployment**: Set **Root Directory** to `backend` (configured via `backend/vercel.json` using `@vercel/python`).
 2. **Web Frontend Deployment**: Set **Root Directory** to `web` (configured via `web/vercel.json` with SPA rewrite routing and backend proxy rules).
+3. Set the same strong `BACKEND_API_KEY` as a Sensitive/Secret variable in both projects for each deployed environment. The web proxy keeps this credential server-side; never put it in a mobile or browser bundle.
+4. Native production builds use the HTTPS proxy URL configured as `nativeApiBaseUrl` in `mobile/src/environments/environment.prod.ts`. The deployed proxy domain must be reachable without interactive Vercel SSO from installed apps. If deployment protection is enabled, assign a public custom domain with an appropriate access policy before distributing native builds.
+
+#### Rotating the backend API key
+1. Generate a random key of at least 32 characters and update `BACKEND_API_KEY` in the backend and web Vercel projects for the same environment. Vercel does not reveal Sensitive values later, so preserve the old key from its approved secret source before replacing it.
+2. To avoid downtime, set the old key as backend `BACKEND_API_KEY_PREVIOUS`, deploy the backend with the new key, then deploy the web proxy with the new key.
+3. Verify web and native requests through the proxy, then remove `BACKEND_API_KEY_PREVIOUS` and redeploy the backend to retire the old key.
+4. Keep secret values in Vercel's Sensitive/Secret variables. Do not add keys to `.env.example`, source control, build arguments, or native artifacts.
 
 ### Native `.apk` & `.ipa` Packaging
 - **GitHub Actions Manual Build**: Trigger the **Mobile Native Build (.apk & .ipa)** workflow ([`.github/workflows/mobile-build.yml`](.github/workflows/mobile-build.yml)) from the Actions tab (`workflow_dispatch`) to build and download `sgsk-wealth-debug.apk` / `sgsk-wealth-release.apk` and `sgsk-wealth-debug.ipa` / `sgsk-wealth-release.ipa`.

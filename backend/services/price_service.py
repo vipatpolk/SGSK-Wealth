@@ -1,5 +1,6 @@
 import asyncio
 import html
+import logging
 import re
 import time
 import urllib.parse
@@ -15,6 +16,14 @@ from utils.http_client import get_binance_semaphore, get_http_client, get_yahoo_
 
 SET_LISTED_COMPANIES_TH_URL = "https://weblink.set.or.th/dat/eod/listedcompany/static/listedCompanies_th_TH.xls"
 SET_LISTED_COMPANIES_EN_URL = "https://weblink.set.or.th/dat/eod/listedcompany/static/listedCompanies_en_US.xls"
+logger = logging.getLogger(__name__)
+
+
+def _log_provider_failure(provider: str, operation: str, error: Exception) -> None:
+    logger.warning(
+        "market_data_provider_request_failed",
+        extra={"event": "provider_request_failed", "provider": provider, "operation": operation, "error_type": type(error).__name__},
+    )
 
 
 def _parse_set_listed_companies_html(raw_bytes: bytes) -> dict[str, str]:
@@ -87,7 +96,8 @@ class PriceService:
                 if rate > 0:
                     ttl_cache.set(cache_key, rate, ttl=300.0)
                 return rate
-            except Exception:
+            except Exception as exc:
+                _log_provider_failure("yahoo_finance", "exchange_rate", exc)
                 return 0.0
 
         return await singleflight.execute(f"fetch_rate_{from_currency}_{to_currency}", _do_fetch_rate)
@@ -177,7 +187,8 @@ class PriceService:
                 if price > 0 or data.name:
                     ttl_cache.set(cache_key, data, ttl=60.0)
                 return symbol, data
-            except Exception:
+            except Exception as exc:
+                _log_provider_failure("yahoo_finance", "stock_price", exc)
                 return symbol, PriceData(symbol=symbol, name="", price=0.0, currency="")
 
         return await singleflight.execute(f"stock_price_{symbol}", _do_fetch_stock)
@@ -187,7 +198,8 @@ class PriceService:
             res = await self.client.get(url, follow_redirects=True)
             res.raise_for_status()
             return _parse_set_listed_companies_html(res.content)
-        except Exception:
+        except Exception as exc:
+            _log_provider_failure("set_thailand", "listed_company_names", exc)
             return {}
 
     async def _fetch_set_listed_company_names(self) -> dict[str, dict[str, str]]:
@@ -273,7 +285,8 @@ class PriceService:
                 data = res.json()
                 ttl_cache.set(cache_key, data, ttl=30.0)
                 return data
-            except Exception:
+            except Exception as exc:
+                _log_provider_failure("binance_thailand", "crypto_tickers", exc)
                 return []
 
         return await singleflight.execute("fetch_binance_tickers", _do_fetch_binance)
@@ -299,7 +312,8 @@ class PriceService:
             if name:
                 ttl_cache.set(cache_key, name, ttl=86400.0)
             return symbol, name
-        except Exception:
+        except Exception as exc:
+            _log_provider_failure("yahoo_finance", "crypto_name", exc)
             return symbol, ""
 
     def _resolve_crypto_price(self, raw_symbol: str, tickers: list[dict[str, Any]]) -> tuple[float, str]:
@@ -377,7 +391,8 @@ class PriceService:
                 res_data = {"trailing_12m_dps": trailing_12m, "dividends": div_list}
                 ttl_cache.set(cache_key, res_data, ttl=3600.0)
                 return symbol, res_data
-            except Exception:
+            except Exception as exc:
+                _log_provider_failure("yahoo_finance", "stock_dividends", exc)
                 return symbol, {"trailing_12m_dps": 0.0, "dividends": []}
 
         return await singleflight.execute(f"stock_div_{symbol}", _do_fetch_div)

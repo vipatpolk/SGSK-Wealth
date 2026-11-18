@@ -21,6 +21,37 @@ def test_auth_authorized_with_valid_api_key(api_client, mocked_external_apis):
 
 
 @pytest.mark.unit
+def test_auth_accepts_previous_key_during_rotation(unauth_api_client, monkeypatch, mocked_external_apis):
+    from config.settings import Settings
+
+    rotation_settings = Settings(
+        backend_api_key="new_rotation_key_which_is_long_enough_1234567890",
+        backend_api_key_previous="previous_rotation_key_which_is_long_enough_1234567890",
+    )
+    monkeypatch.setattr("utils.auth.get_settings", lambda: rotation_settings)
+
+    res = unauth_api_client.get(
+        "/share-lot/sheets",
+        headers={"X-API-Key": "previous_rotation_key_which_is_long_enough_1234567890"},
+    )
+    assert res.status_code == 200
+
+
+@pytest.mark.unit
+def test_auth_rejects_key_not_in_rotation_set(unauth_api_client, monkeypatch):
+    from config.settings import Settings
+
+    rotation_settings = Settings(
+        backend_api_key="new_rotation_key_which_is_long_enough_1234567890",
+        backend_api_key_previous="previous_rotation_key_which_is_long_enough_1234567890",
+    )
+    monkeypatch.setattr("utils.auth.get_settings", lambda: rotation_settings)
+
+    res = unauth_api_client.get("/share-lot/sheets", headers={"X-API-Key": "unrecognized_key"})
+    assert res.status_code == 401
+
+
+@pytest.mark.unit
 def test_security_headers_present(api_client, mocked_external_apis):
     res = api_client.get("/share-lot/sheets")
     assert res.headers.get("X-Content-Type-Options") == "nosniff"
@@ -115,6 +146,15 @@ def test_app_source_signature_access_to_vercel_backend_allowed(api_client, mocke
     )
     assert res_wealth.status_code == 200
 
+    res_mobile = api_client.get(
+        "/share-lot/sheets",
+        headers={
+            "Host": "api-sgsk-wealth.vercel.app",
+            "X-App-Source": "SGSK-Wealth-Mobile",
+        },
+    )
+    assert res_mobile.status_code == 200
+
 
 @pytest.mark.unit
 def test_production_settings_validation():
@@ -151,3 +191,12 @@ def test_production_settings_validation():
         google_spreadsheet_id="custom_production_sheet_id_xyz",
     )
     assert prod_settings.environment == "production"
+
+    # A secure previous key may be configured temporarily during rotation.
+    rotation_settings = Settings(
+        environment="production",
+        backend_api_key="a" * 32,
+        backend_api_key_previous="b" * 32,
+        google_spreadsheet_id="custom_production_sheet_id_xyz",
+    )
+    assert rotation_settings.backend_api_key_previous == "b" * 32

@@ -1,9 +1,11 @@
 import asyncio
+import logging
 import time
 from collections.abc import Callable, Coroutine
 from typing import Any, TypeVar, cast
 
 T = TypeVar("T")
+logger = logging.getLogger(__name__)
 
 
 class AsyncSingleflight:
@@ -45,8 +47,12 @@ class TTLCache:
         if key in self._store:
             expiry, value = self._store[key]
             if time.time() < expiry:
+                logger.debug("cache_hit", extra={"event": "cache_hit", "entry_count": len(self._store)})
                 return value
             del self._store[key]
+            logger.debug("cache_expired", extra={"event": "cache_expired", "entry_count": len(self._store)})
+        else:
+            logger.debug("cache_miss", extra={"event": "cache_miss", "entry_count": len(self._store)})
         return None
 
     def set(self, key: str, value: Any, ttl: float | None = None) -> None:
