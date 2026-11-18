@@ -107,7 +107,8 @@ flowchart LR
 - **Average Cost Basis Calculator**: Multi-order forward Buy / Sell simulation with commission fees and Target Average Cost Solver.
 
 ### 📱 Native iOS & Android Mobile App (`mobile/`)
-- **Ionic 9 Standalone Shell**: 5-tab bottom navigation (`Dashboard`, `Holdings`, `Analytics`, `Dividends`, `Tools`), pull-to-refresh (`<ion-refresher>`), native-styled segment switches, searchable cards, and `<ion-modal>` factsheet viewer.
+- **Ionic 9 Standalone Shell**: 6-tab bottom navigation (`Dashboard`, `Holdings`, `Analytics`, `Dividends`, `Transactions`, `Tools`), platform-adaptive Ionic `mode` (`'md'` on Android, `'ios'` on iOS/Web), pull-to-refresh (`<ion-refresher>`), native-styled segment switches, searchable cards, Android hardware back-button handling, and `<ion-modal>` sheet drawers (SEC factsheet, dividend ledger, symbol selectors).
+- **Web Responsive Feature Parity**: Shared `<app-symbol-icon>`, `<app-loading-screen>`, and `<app-date-range-picker>` components from `@shared/*`, Interactive SVG Allocation Donut, Executive PVD analytics, Forward/Reverse Average Cost simulator, No-Sell/Standard Rebalance planner, and TVM trajectory chart.
 - **Capacitor 8 Native Bridge**: Integrated `@capacitor/haptics`, `@capacitor/status-bar`, `@capacitor/splash-screen`, `@capacitor/preferences`, and `@capacitor/app` with platform-aware API routing (`10.0.2.2:8000` on Android emulator, `127.0.0.1:8000` on iOS simulator, `/api/backend` on web dev proxy).
 - **Maven Android Build (`mobile/android/pom.xml`)**: Packages the Capacitor Android `.apk` using Apache Maven + Android SDK (`aapt2`, `javac`, `d8`, `zipalign`, `apksigner`) without Gradle.
 
@@ -119,7 +120,7 @@ flowchart LR
 
 | Technology | Version / Spec | Purpose & Architectural Role |
 |:---|:---|:---|
-| **TypeScript** | `~6.0.0` | Platform-agnostic domain models, financial math (`calculator`, `rebalance`, `tvm`, `format`, `symbol-icon`, `csv-exporter`), bilingual i18n dictionaries, and reactive pipes (`| t`, `| ldate`). |
+| **TypeScript** | `~6.0.0` | Platform-agnostic domain models, shared UI components (`SymbolIconComponent`, `LoadingScreenComponent`, `DateRangePickerComponent`), financial math (`calculator`, `rebalance`, `tvm`, `format`, `symbol-icon`, `csv-exporter`), bilingual i18n dictionaries, and reactive pipes (`| t`, `| ldate`). |
 | **Angular DI Tokens** | `22.2+` | `API_BASE_URL` and `MAX_BATCH_SIZE` injection tokens decouple HTTP services (`PortfolioService`, `DividendService`, `PriceService`, `NavService`, `ShareLotService`, `ToolsService`) from web proxy vs. native mobile hosts. |
 
 ### 2. Web Single Page Application (`web/`)
@@ -138,7 +139,7 @@ flowchart LR
 | **[Ionic Framework](https://ionicframework.com/)** | `9.0+` | Native-adaptive iOS & Android UI components (`@ionic/angular` standalone, `ionicons` `8.1+`). |
 | **[Capacitor](https://capacitorjs.com/)** | `8.6+` | Native iOS (`mobile/ios/`) & Android (`mobile/android/`) container and plugins (`App`, `Haptics`, `Preferences`, `SplashScreen`, `StatusBar`). |
 | **[Apache Maven](https://maven.apache.org/)** | `3.9+` | Android APK build lifecycle (`mobile/android/pom.xml`) resolving AndroidX & Cordova AARs via Google Maven and packaging `.apk` via `build-apk.mjs`. |
-| **[Vitest](https://vitest.dev/)** | `4.1+` | Mobile component & Capacitor service unit tests (`mobile/src/app/app.component.spec.ts`). |
+| **[Vitest](https://vitest.dev/)** | `4.1+` | Mobile component & Capacitor service unit tests (**18 unit tests across 9 test suites** in `mobile/src/app/**/*.spec.ts`). |
 
 ### 4. Backend API & Analytics Service (`backend/`)
 
@@ -147,7 +148,7 @@ flowchart LR
 | **[Python](https://www.python.org/)** | `3.10+` / `3.11` / `3.14` | High-level language powering mathematical algorithms, FIFO matching, and financial simulations. |
 | **[FastAPI](https://fastapi.tiangolo.com/)** | `0.115+` | Asynchronous REST API framework with OpenAPI docs and Pydantic v2 validation. |
 | **[HTTPX](https://www.python-httpx.org/)** | `0.28+` | Asynchronous HTTP client for Yahoo Finance, Binance TH, and SEC Thailand Open APIs. |
-| **[Pytest](https://docs.pytest.org/) / [Ruff](https://astral.sh/ruff) / [Mypy](https://mypy-lang.org/)** | `9.2+` / `0.17+` / `2.4+` | **124 unit tests** with $\ge 80\%$ coverage enforcement, strict linting, and static typing. |
+| **[Pytest](https://docs.pytest.org/) / [Ruff](https://astral.sh/ruff) / [Mypy](https://mypy-lang.org/)** | `9.2+` / `0.17+` / `2.4+` | **126 unit tests** with $\ge 80\%$ coverage enforcement, strict linting, and static typing. |
 
 ### 5. End-to-End Automation Suite (`e2e/`)
 
@@ -156,9 +157,9 @@ flowchart LR
 | **[Java](https://openjdk.org/)** | `JDK 25+` | Enterprise runtime powering the unified E2E regression suite. |
 | **[Spring Boot](https://spring.io/projects/spring-boot)** | `4.1+` | IoC container (`@SpringBootTest`), externalized YAML configuration (`E2eProperties`), and `@ScenarioScope` DI via `cucumber-spring`. |
 | **[Playwright for Java](https://playwright.dev/java/)** | `1.64+` | Web UI browser automation driving Chromium with network route interception (`@ui`). |
-| **[Appium Java Client](https://appium.io/)** | `11.0+` | Native iOS (`XCUITestOptions`) & Android (`UiAutomator2Options`) automation with Capacitor WebView switching and local mobile WebView fallback (`@mobile`). |
+| **[Appium Java Client](https://appium.io/)** | `11.0+` | Native iOS (`XCUITestOptions`) & Android (`UiAutomator2Options`) automation with Capacitor WebView switching and local platform-mode WebView fallback (`@mobile`, `@android`, `@ios`). |
 | **[Rest Assured](https://rest-assured.io/)** | `6.3+` | Fluent REST API contract testing (`@api`). |
-| **[Cucumber-JVM](https://cucumber.io/) & [Allure](https://allurereport.org/)** | `8.0+` / `3.1+` | BDD Gherkin execution across **20 feature files** with interactive HTML reports and failure screenshots. |
+| **[Cucumber-JVM](https://cucumber.io/) & [Allure](https://allurereport.org/)** | `8.0+` / `3.1+` | BDD Gherkin execution across **22 feature files** with `AllureStepEvidencePlugin` attaching step-level Web/Mobile screenshots (`image/png`) and API JSON payloads (`application/json`) directly inside every executed step. |
 
 ### 6. CI/CD Pipelines (`.github/workflows/`)
 
@@ -177,13 +178,14 @@ SGSK-Wealth/
 │   ├── models/                 # Pydantic domain models
 │   ├── routers/                # API routers (share-lot, price, nav, portfolio, tools, icon)
 │   ├── services/               # Core business logic (FIFO engine, valuation, dividend, nav/factsheet, tools)
-│   ├── tests/                  # Pytest unit tests (124 tests, >=80% coverage enforced)
+│   ├── tests/                  # Pytest unit tests (126 tests, >=80% coverage enforced)
 │   ├── pyproject.toml          # Ruff, Mypy, and Pytest coverage configuration
 │   └── vercel.json             # Vercel serverless function configuration (@vercel/python)
 │
 ├── shared/                     # Shared Core Library (@shared/*)
 │   ├── package.json            # @sgsk-wealth/shared workspace package
 │   └── src/
+│       ├── components/         # Shared UI components (SymbolIconComponent, LoadingScreenComponent, DateRangePickerComponent)
 │       ├── config/             # asset.constants.ts, api-config.token.ts
 │       ├── i18n/               # Bilingual EN / TH dictionaries with full key parity
 │       ├── models/             # TypeScript interfaces and domain models
@@ -210,8 +212,8 @@ SGSK-Wealth/
 │   │   ├── modals/             # Ionic FundFactsheetModalComponent
 │   │   ├── pages/              # dashboard, holdings, analytics, dividends, tools, transactions
 │   │   ├── services/           # NativePlatformService (Capacitor) & MobileStateService
-│   │   ├── app.component.ts    # Ionic shell with <ion-header> & 5-tab <ion-tab-bar>
-│   │   ├── app.config.ts
+│   │   ├── app.component.ts    # Ionic shell with <ion-header> & 6-tab <ion-tab-bar>
+│   │   ├── app.config.ts       # Platform-adaptive Ionic mode ('md'/'ios') & API_BASE_URL
 │   │   └── app.routes.ts
 │   ├── capacitor.config.ts
 │   ├── angular.json
@@ -223,15 +225,15 @@ SGSK-Wealth/
 │       ├── java/com/sgsk/wealth/e2e/
 │       │   ├── config/         # CucumberSpringConfiguration, E2eProperties
 │       │   ├── runner/         # CucumberTestRunner
-│       │   ├── context/        # @ScenarioScope TestContext
-│       │   ├── hooks/          # @ui, @api, and @mobile lifecycle hooks
+│       │   ├── context/        # @ScenarioScope TestContext & ThreadLocal TestContextHolder
+│       │   ├── hooks/          # @ui, @api, @mobile hooks & AllureStepEvidencePlugin
 │       │   ├── support/        # PlaywrightManager, AppiumManager, ServerManager, MockBackendServer, ApiRouteMocker
 │       │   ├── pages/          # Playwright Page Objects & mobile/IonicMobileScreen.java
 │       │   └── steps/          # api/, ui/, and mobile/NativeMobileSteps.java
 │       └── resources/
 │           ├── features/api/   # REST API Gherkin specs (01..05)
 │           ├── features/ui/    # Web UI Gherkin specs (01..11)
-│           ├── features/mobile/# Mobile Appium Gherkin specs (01..04)
+│           ├── features/mobile/# Mobile iOS & Android Gherkin specs (01..06)
 │           └── fixtures/       # Deterministic JSON mock payloads
 │
 ├── .agent/skills/              # Canonical AI agent skills (ai-native-sdlc, dividend-payments, cucumber-bdd-best-practices, fifo-cost-basis, sec-open-apis)
@@ -335,11 +337,11 @@ SGSK-Wealth enforces strict quality standards before any code is committed:
 | Command | Description | Tech Stack |
 |:---|:---|:---|
 | **`npm run check`** | Run complete pre-commit QA suite (Gherkin lint, backend lint/test, web test/build, mobile test/build) | Monorepo Orchestration |
-| **`npm run lint:gherkin`** | Validate all **20 `.feature` files** with `validate_gherkin.py --strict` | Python Gherkin Linter |
+| **`npm run lint:gherkin`** | Validate all **22 `.feature` files** with `validate_gherkin.py --strict` | Python Gherkin Linter |
 | **`npm run lint:backend`** | Run Ruff linter and Mypy static type checker on `backend/` | Ruff & Mypy |
-| **`npm run test:backend`** | Run Pytest unit test suite (**124 tests**) with coverage enforcement ($\ge 80\%$) | Pytest & Coverage |
+| **`npm run test:backend`** | Run Pytest unit test suite (**126 tests**) with coverage enforcement ($\ge 80\%$) | Pytest & Coverage |
 | **`npm run test:web`** | Run Web Vitest unit test suite (**352 tests across 35 suites**) | Vitest & jsdom |
-| **`npm run test:mobile`** | Run Mobile Vitest unit test suite (**3 tests**) | Vitest & Ionic |
+| **`npm run test:mobile`** | Run Mobile Vitest unit test suite (**18 tests across 9 suites**) | Vitest & Ionic |
 | **`npm run build:web`** | Compile production-ready Web Angular bundle | Angular CLI |
 | **`npm run build:mobile`** | Compile production-ready Ionic mobile bundle | Angular CLI |
 | **`npm run cap:sync`** | Build mobile bundle and sync assets/plugins to `mobile/android` & `mobile/ios` | Capacitor CLI |
