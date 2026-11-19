@@ -16,6 +16,7 @@
   <img src="https://img.shields.io/badge/TypeScript-6.0-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript 6.0" />
   <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.10+" />
   <img src="https://img.shields.io/badge/FastAPI-0.115+-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/yfinance-1.8+-6001D2?style=flat-square" alt="yfinance 1.8+" />
   <img src="https://img.shields.io/badge/Java-25+-ED8B00?style=flat-square&logo=openjdk&logoColor=white" alt="Java 25+" />
   <img src="https://img.shields.io/badge/Spring_Boot-4.1-6DB33F?style=flat-square&logo=springboot&logoColor=white" alt="Spring Boot 4.1" />
   <img src="https://img.shields.io/badge/Playwright-1.64-45BA4B?style=flat-square&logo=playwright&logoColor=white" alt="Playwright" />
@@ -35,12 +36,12 @@
 
 **SGSK-Wealth** is a production-grade wealth management monorepo designed to solve the complexity of multi-asset, multi-currency portfolio tracking and tax accounting. It automates **First-In, First-Out (FIFO)** transaction matching, reconciles cost bases, calculates unrealized and realized capital gains, and streams live market quotes and foreign exchange rates across both a **Web SPA (`web/`)** and a **Native iOS & Android Mobile App (`mobile/`)** powered by a shared TypeScript core (`shared/`).
 
-The platform ingests trading transaction logs from Google Sheets, connects with external financial data providers (Yahoo Finance, Binance TH, SEC Thailand Mutual Fund & PVD APIs), and provides automated API, Web UI, and Mobile E2E verification.
+The platform ingests trading transaction logs from Google Sheets, connects with external financial data providers (Yahoo Finance via `yfinance`, Binance TH, SET Thailand, SEC Thailand Mutual Fund & PVD APIs), and provides automated API, Web UI, and Mobile E2E verification.
 
 ```mermaid
 flowchart LR
     DataSources["Google Sheets\n(Transaction CSVs)"] --> Backend["FastAPI Backend\n(FIFO Engine & Analytics)"]
-    MarketData["Yahoo Finance / Binance / SEC TH"] --> Backend
+    MarketData["yfinance (Yahoo Finance) / Binance TH / SET / SEC TH"] --> Backend
     Shared["shared/\n(Models, Services, Utils, i18n)"] --> Web["web/\nAngular 22 Web SPA"]
     Shared --> Mobile["mobile/\nIonic 9 + Capacitor 8\n(iOS & Android Maven)"]
     Backend --> Web
@@ -80,7 +81,7 @@ flowchart LR
 - **Complete Fact Sheet Sections**: Displays Policy & Overview, SEC Risk Spectrum (`RS1`–`RS8`), Calendar/Trailing Performance & Benchmark, Key Risk Statistics, Fees & Dealing Conditions, Asset Allocation, Top 5 Holdings, and direct links to the official SEC Fact Sheet PDF and AMC fund page.
 
 ### 💵 Dividend & Yield on Cost (YOC) Accounting
-- **100% Automated Ingestion**: Fetches dividend distributions from Yahoo Finance (US/Thai equities, Bonds) and SEC Thailand (Mutual Funds).
+- **100% Automated Ingestion**: Fetches complete historical dividend distributions via `yfinance` (`period="max"` for US/Thai equities & Bonds) and SEC Thailand Open APIs (Mutual Funds).
 - **Exact Ex-Date Share Accounting**: Evaluates historical transaction logs to reconstruct exact share balances held on ex-dividend dates ($T$):
   $$\text{Shares Held}(T) = \sum_{\text{Tx Date } < T} \text{Buy Quantity} - \sum_{\text{Tx Date } < T} \text{Sell Quantity}$$
 - **Per-Asset Yield on Cost (YOC)**: Calculates true Yield on Cost without currency distortion across US Stocks, Thai Stocks, Mutual Funds, and Bonds.
@@ -147,8 +148,9 @@ flowchart LR
 |:---|:---|:---|
 | **[Python](https://www.python.org/)** | `3.10+` / `3.11` / `3.14` | High-level language powering mathematical algorithms, FIFO matching, and financial simulations. |
 | **[FastAPI](https://fastapi.tiangolo.com/)** | `0.115+` | Asynchronous REST API framework with OpenAPI docs and Pydantic v2 validation. |
-| **[HTTPX](https://www.python-httpx.org/)** | `0.28+` | Asynchronous HTTP client for Yahoo Finance, Binance TH, and SEC Thailand Open APIs. |
-| **[Pytest](https://docs.pytest.org/) / [Ruff](https://astral.sh/ruff) / [Mypy](https://mypy-lang.org/)** | `9.2+` / `0.17+` / `2.4+` | **126 unit tests** with $\ge 80\%$ coverage enforcement, strict linting, and static typing. |
+| **[yfinance](https://ranaroussi.github.io/yfinance/)** | `1.8+` | Async-offloaded `YFinanceClient` adapter (`curl_cffi` TLS impersonation, `<tempdir>/py-yfinance` serverless cache config, bounded concurrency) for stock quotes, FX rates, crypto display names, and full (`max`) dividend history. |
+| **[HTTPX](https://www.python-httpx.org/)** | `0.28+` | Asynchronous HTTP client for Google Sheets, Binance TH, SET listed company metadata, and SEC Thailand Open APIs. |
+| **[Pytest](https://docs.pytest.org/) / [Ruff](https://astral.sh/ruff) / [Mypy](https://mypy-lang.org/)** | `9.2+` / `0.17+` / `2.4+` | **136 unit tests** with $\ge 80\%$ coverage enforcement, strict linting, and static typing. |
 
 ### 5. End-to-End Automation Suite (`e2e/`)
 
@@ -178,7 +180,8 @@ SGSK-Wealth/
 │   ├── models/                 # Pydantic domain models
 │   ├── routers/                # API routers (share-lot, price, nav, portfolio, tools, icon)
 │   ├── services/               # Core business logic (FIFO engine, valuation, dividend, nav/factsheet, tools)
-│   ├── tests/                  # Pytest unit tests (126 tests, >=80% coverage enforced)
+│   ├── utils/                  # Shared HTTP client, yfinance adapter, TTL/singleflight cache, auth & format helpers
+│   ├── tests/                  # Pytest unit tests (136 tests, >=80% coverage enforced)
 │   ├── pyproject.toml          # Ruff, Mypy, and Pytest coverage configuration
 │   └── vercel.json             # Vercel serverless function configuration (@vercel/python)
 │
@@ -336,7 +339,7 @@ SGSK-Wealth enforces strict quality standards before any code is committed:
 | **`npm run check`** | Run complete pre-commit QA suite (Gherkin lint, backend lint/test, web test/build, mobile test/build) | Monorepo Orchestration |
 | **`npm run lint:gherkin`** | Validate all **23 `.feature` files** with `validate_gherkin.py --strict` | Python Gherkin Linter |
 | **`npm run lint:backend`** | Run Ruff linter and Mypy static type checker on `backend/` | Ruff & Mypy |
-| **`npm run test:backend`** | Run Pytest unit test suite (**126 tests**) with coverage enforcement ($\ge 80\%$) | Pytest & Coverage |
+| **`npm run test:backend`** | Run Pytest unit test suite (**136 tests**) with coverage enforcement ($\ge 80\%$) | Pytest & Coverage |
 | **`npm run test:web`** | Run Web Vitest unit test suite (**352 tests across 35 suites**) | Vitest & jsdom |
 | **`npm run test:mobile`** | Run Mobile Vitest unit test suite (**18 tests across 9 suites**) | Vitest & Ionic |
 | **`npm run build:web`** | Compile production-ready Web Angular bundle | Angular CLI |
@@ -358,7 +361,7 @@ SGSK-Wealth enforces strict quality standards before any code is committed:
 
 ### Vercel Deployment (Web & Backend)
 This monorepo supports independent or linked deployments on [Vercel](https://vercel.com/):
-1. **Backend Deployment**: Set **Root Directory** to `backend` (configured via `backend/vercel.json` using `@vercel/python`).
+1. **Backend Deployment**: Set **Root Directory** to `backend` (configured via `backend/vercel.json` using `@vercel/python`). On serverless hosts, `yfinance` automatically redirects its SQLite caches to `/tmp/py-yfinance` (overridable via optional `YFINANCE_CACHE_DIR`, `YFINANCE_TIMEOUT_SECONDS`, `YFINANCE_RETRIES`, `YFINANCE_MAX_CONCURRENCY`, and `YFINANCE_DIVIDEND_PERIOD` environment variables).
 2. **Web Frontend Deployment**: Set **Root Directory** to `web` (configured via `web/vercel.json` with SPA rewrite routing and backend proxy rules).
 3. Set the same strong `BACKEND_API_KEY` as a Sensitive/Secret variable in both projects for each deployed environment. The web proxy keeps this credential server-side; never put it in a mobile or browser bundle.
 4. Native production builds use the HTTPS proxy URL configured as `nativeApiBaseUrl` in `mobile/src/environments/environment.prod.ts`. The deployed proxy domain must be reachable without interactive Vercel SSO from installed apps. If deployment protection is enabled, assign a public custom domain with an appropriate access policy before distributing native builds.
