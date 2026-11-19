@@ -1,9 +1,12 @@
 import json
 import os
 import re
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
+import jwt
 import pytest
+from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi.testclient import TestClient
 
 from main import app
@@ -11,9 +14,63 @@ from services.nav_service import NavService
 from services.price_service import PriceService
 from services.share_lot_service import ShareLotService
 from utils.cache import ttl_cache
+from utils.supabase_auth import SupabaseTokenVerifier
 from utils.yfinance_client import YahooQuote, YFinanceClient
 
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
+
+_TEST_PRIVATE_KEY = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+_TEST_PUBLIC_JWK = jwt.algorithms.RSAAlgorithm.to_jwk(_TEST_PRIVATE_KEY.public_key(), as_dict=True)
+_TEST_PUBLIC_JWK["kid"] = "test-key-1"
+_TEST_PUBLIC_JWK["use"] = "sig"
+_TEST_PUBLIC_JWK["alg"] = "RS256"
+_TEST_JWKS = jwt.PyJWKSet.from_dict({"keys": [_TEST_PUBLIC_JWK]})
+
+
+def build_test_supabase_jwt(
+    email: str = "vipatpolk@gmail.com",
+    sub: str = "00000000-0000-0000-0000-000000000001",
+    *,
+    is_anonymous: bool = False,
+    expired: bool = False,
+    aud: str = "authenticated",
+    iss: str = "https://jjdnxifgpbdvntfwhyzz.supabase.co/auth/v1",
+    providers: list[str] | None = None,
+    email_confirmed: bool = True,
+) -> str:
+    now = datetime.now(timezone.utc)
+    exp = now - timedelta(minutes=5) if expired else now + timedelta(hours=1)
+    payload: dict[str, Any] = {
+        "sub": sub,
+        "email": email,
+        "aud": aud,
+        "iss": iss,
+        "iat": int(now.timestamp()),
+        "exp": int(exp.timestamp()),
+        "role": "authenticated",
+        "is_anonymous": is_anonymous,
+        "app_metadata": {
+            "provider": (providers or ["email"])[0],
+            "providers": providers or ["email"],
+        },
+        "email_confirmed_at": now.isoformat() if email_confirmed else None,
+    }
+    return str(
+        jwt.encode(
+            payload,
+            _TEST_PRIVATE_KEY,
+            algorithm="RS256",
+            headers={"kid": "test-key-1"},
+        )
+    )
+
+
+@pytest.fixture(autouse=True)
+def mock_supabase_jwks(monkeypatch):
+    async def _mock_fetch_jwks_set(self, jwks_url: str, force_refresh: bool = False) -> jwt.PyJWKSet:
+        return _TEST_JWKS
+
+    monkeypatch.setattr(SupabaseTokenVerifier, "_fetch_jwks_set", _mock_fetch_jwks_set)
 
 
 @pytest.fixture(autouse=True)
@@ -24,8 +81,43 @@ def clear_ttl_cache_between_tests():
 
 
 @pytest.fixture
-def api_client():
+def owner_bearer_token() -> str:
+    return build_test_supabase_jwt(email="vipatpolk@gmail.com", providers=["email", "google"])
+
+
+@pytest.fixture
+def non_owner_bearer_token() -> str:
+    return build_test_supabase_jwt(
+        email="other.investor@example.com",
+        sub="00000000-0000-0000-0000-000000000002",
+    )
+
+
+@pytest.fixture
+def api_client(owner_bearer_token):
+    return TestClient(
+        app,
+        headers={
+            "X-API-Key": "dev_secret_key_change_in_prod",
+            "Authorization": f"Bearer {owner_bearer_token}",
+        },
+    )
+
+
+@pytest.fixture
+def api_key_only_client():
     return TestClient(app, headers={"X-API-Key": "dev_secret_key_change_in_prod"})
+
+
+@pytest.fixture
+def non_owner_api_client(non_owner_bearer_token):
+    return TestClient(
+        app,
+        headers={
+            "X-API-Key": "dev_secret_key_change_in_prod",
+            "Authorization": f"Bearer {non_owner_bearer_token}",
+        },
+    )
 
 
 @pytest.fixture

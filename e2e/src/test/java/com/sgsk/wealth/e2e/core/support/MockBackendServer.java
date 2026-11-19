@@ -16,6 +16,8 @@ import java.nio.charset.StandardCharsets;
 
 public class MockBackendServer {
     public static final String VALID_API_KEY = "dev_secret_key_change_in_prod";
+    public static final String VALID_OWNER_TOKEN = "mock-owner-jwt";
+    public static final String NON_OWNER_TOKEN = "mock-standard-jwt";
     private HttpServer server;
     private int port;
 
@@ -83,6 +85,33 @@ public class MockBackendServer {
             boolean isAuthorized = VALID_API_KEY.equals(apiKey);
             if (!isAuthorized) {
                 sendJsonResponse(exchange, 401, "{\"detail\":\"Invalid or missing API Key\"}");
+                return;
+            }
+
+            String bearerToken = extractBearerToken(exchange);
+
+            if ("/auth/me".equals(path)) {
+                if (VALID_OWNER_TOKEN.equals(bearerToken)) {
+                    sendJsonResponse(exchange, 200,
+                            "{\"authenticated\":true,\"userId\":\"mock-owner-id\",\"email\":\"vipatpolk@gmail.com\",\"role\":\"owner\",\"providers\":[\"email\",\"google\"],\"canViewCloudPortfolio\":true,\"portfolioSource\":\"google_sheets\"}");
+                } else if (NON_OWNER_TOKEN.equals(bearerToken)) {
+                    sendJsonResponse(exchange, 200,
+                            "{\"authenticated\":true,\"userId\":\"mock-std-id\",\"email\":\"user@example.com\",\"role\":\"user\",\"providers\":[\"email\"],\"canViewCloudPortfolio\":false,\"portfolioSource\":\"local\"}");
+                } else {
+                    sendJsonResponse(exchange, 200,
+                            "{\"authenticated\":false,\"userId\":null,\"email\":null,\"role\":\"anonymous\",\"providers\":[],\"canViewCloudPortfolio\":false,\"portfolioSource\":\"local\"}");
+                }
+                return;
+            }
+
+            boolean isCloudPortfolioRoute = path.startsWith("/share-lot/")
+                    || "/portfolio/holdings".equals(path)
+                    || "/portfolio/performance".equals(path)
+                    || "/portfolio/allocation".equals(path)
+                    || "/portfolio/dividend".equals(path)
+                    || "/portfolio/tools/rebalance".equals(path);
+
+            if (isCloudPortfolioRoute && !enforceOwnerBearer(exchange, bearerToken)) {
                 return;
             }
 
@@ -205,6 +234,10 @@ public class MockBackendServer {
             // Portfolio tools simulate
             if ("/portfolio/tools/simulate".equals(path)) {
                 String body = readRequestBody(exchange);
+                if (!body.contains("\"initialPosition\"") && body.contains("\"symbol\"")
+                        && !enforceOwnerBearer(exchange, bearerToken)) {
+                    return;
+                }
                 String currency = extractJsonString(body, "currency", "USD");
                 sendJsonResponse(exchange, 200,
                         "{\"currency\":\"" + currency + "\",\"new_shares\":15.0,\"new_avg_cost\":160.0,\"totalCapitalOutlay\":2500.0,\"totalFees\":3.75,\"initial\":{\"totalShares\":10.0,\"averageCost\":150.0,\"totalCost\":1500.0,\"marketPrice\":200.0,\"holdingValue\":2000.0,\"unrealizedPL\":500.0,\"unrealizedPLPercent\":33.33,\"realizedPL\":0.0},\"simulated\":{\"totalShares\":15.0,\"averageCost\":160.0,\"totalCost\":2400.0,\"marketPrice\":200.0,\"holdingValue\":3000.0,\"unrealizedPL\":600.0,\"unrealizedPLPercent\":25.0,\"realizedPL\":0.0},\"delta\":{\"shares\":5.0,\"sharesPercent\":50.0,\"averageCost\":10.0,\"averageCostPercent\":6.67,\"totalCost\":900.0,\"totalCostPercent\":60.0,\"holdingValue\":1000.0,\"holdingValuePercent\":50.0,\"unrealizedPL\":100.0,\"unrealizedPLPercent\":-8.33,\"breakevenDistanceInitial\":-25.0,\"breakevenDistanceSimulated\":-20.0,\"realizedPL\":0.0},\"steps\":[]}");
@@ -214,6 +247,10 @@ public class MockBackendServer {
             // Portfolio tools solve-target
             if ("/portfolio/tools/solve-target".equals(path)) {
                 String body = readRequestBody(exchange);
+                if (!body.contains("\"initialPosition\"") && body.contains("\"symbol\"")
+                        && !enforceOwnerBearer(exchange, bearerToken)) {
+                    return;
+                }
                 String currency = extractJsonString(body, "currency", "USD");
                 sendJsonResponse(exchange, 200,
                         "{\"isValid\":true,\"is_feasible\":true,\"errorMessage\":\"\",\"requiredShares\":25.0,\"requiredCapital\":4500.0,\"feeAmount\":0.0,\"totalOutlay\":4500.0,\"achievedAvgCost\":195.0,\"newTotalShares\":125.0,\"newTotalCost\":24375.0,\"currency\":\"" + currency + "\"}");
@@ -235,6 +272,32 @@ public class MockBackendServer {
         }
 
         private static final ObjectMapper JSON = new ObjectMapper();
+
+        private String extractBearerToken(HttpExchange exchange) {
+            String auth = exchange.getRequestHeaders().getFirst("Authorization");
+            if (auth == null) {
+                auth = exchange.getRequestHeaders().getFirst("authorization");
+            }
+            if (auth != null && auth.toLowerCase().startsWith("bearer ")) {
+                return auth.substring(7).trim();
+            }
+            return null;
+        }
+
+        private boolean enforceOwnerBearer(HttpExchange exchange, String bearerToken) throws IOException {
+            if (bearerToken == null || bearerToken.isEmpty() ||
+                    (!VALID_OWNER_TOKEN.equals(bearerToken) && !NON_OWNER_TOKEN.equals(bearerToken))) {
+                sendJsonResponse(exchange, 401,
+                        "{\"detail\":\"Authentication required to access cloud portfolio data\"}");
+                return false;
+            }
+            if (!VALID_OWNER_TOKEN.equals(bearerToken)) {
+                sendJsonResponse(exchange, 403,
+                        "{\"detail\":\"Portfolio data access is restricted to the authorized owner account\"}");
+                return false;
+            }
+            return true;
+        }
 
         private String buildFilteredSheetResponse(String fixture, String tab) {
             try {

@@ -20,10 +20,13 @@ import {
   SymbolTransactionSummary,
   Transaction,
 } from '@shared/models/transaction.model';
+import { AuthService } from '@shared/services/auth.service';
 import { DividendService } from '@shared/services/dividend.service';
 import { I18nService } from '@shared/services/i18n.service';
+import { LocalPortfolioService } from '@shared/services/local-portfolio.service';
 import { PortfolioService } from '@shared/services/portfolio.service';
 import { PriceData, PriceService } from '@shared/services/price.service';
+import { UserSettingsService } from '@shared/services/user-settings.service';
 import { convertCurrency, getAssetTypeLabel, getSymbolName } from '@shared/utils/format.utils';
 import { NativePlatformService } from './native-platform.service';
 
@@ -35,6 +38,9 @@ export class MobileStateService {
   private readonly priceService = inject(PriceService);
   private readonly dividendService = inject(DividendService);
   private readonly router = inject(Router);
+  readonly authService = inject(AuthService);
+  readonly userSettings = inject(UserSettingsService);
+  readonly localPortfolioService = inject(LocalPortfolioService);
   readonly i18n = inject(I18nService);
   readonly nativePlatform = inject(NativePlatformService);
 
@@ -46,6 +52,13 @@ export class MobileStateService {
   readonly selectedHistorySymbol = signal<string>('');
   readonly activeFactsheetTarget = signal<FactsheetRequestTarget | null>(null);
 
+  readonly isUserSettingsOpen = signal<boolean>(false);
+  readonly isLocalPortfolioOpen = signal<boolean>(false);
+  readonly isAuthModalManualOpen = signal<boolean>(false);
+  readonly shouldShowAuthGate = computed<boolean>(
+    () => this.authService.showAuthGate() || this.isAuthModalManualOpen()
+  );
+
   readonly loading = signal<boolean>(true);
   readonly error = signal<string | null>(null);
   readonly portfolioData = signal<PortfolioHoldingsResponse | null>(null);
@@ -55,12 +68,18 @@ export class MobileStateService {
   readonly pricesLoading = signal<boolean>(false);
   readonly cachedPvdPositions = signal<PortfolioPosition[]>([]);
 
-  readonly displayCurrency = signal<'USD' | 'THB'>('THB');
+  readonly displayCurrency = this.userSettings.displayCurrency;
   readonly exchangeRate = signal<number>(0);
-  readonly theme = signal<'dark' | 'light'>('dark');
-  readonly privacyMode = signal<boolean>(false);
+  readonly theme = this.userSettings.theme;
+  readonly privacyMode = this.userSettings.privacyMode;
 
   private prevCurrency: 'USD' | 'THB' | null = null;
+  private prevSource: 'cloud' | 'local' | null = null;
+  private hasLoadedInitial = false;
+  private lastLocalTx: unknown = null;
+  private lastLocalPrices: unknown = null;
+  private lastLocalRate: number | null = null;
+  private lastLocalLang: string | null = null;
   private readonly tabCache = new Map<
     string,
     { portfolioData: PortfolioHoldingsResponse; prices: Map<string, PriceData>; timestamp: number }
@@ -318,10 +337,63 @@ export class MobileStateService {
   });
 
   constructor() {
-    void this.initPreferences();
-    this.loadTab(this.activeTab(), this.displayCurrency());
-    this.loadDividendData(this.displayCurrency());
-    this.prevCurrency = this.displayCurrency();
+    void this.initMobileAuthAndStorage();
+    this.syncInitialSourceIfReady();
+
+    effect(() => {
+      if (this.authService.isAuthenticated()) {
+        this.isAuthModalManualOpen.set(false);
+      }
+    });
+
+    effect(() => {
+      if (this.authService.initialized() && this.authService.pendingSettingsReopen()) {
+        this.isUserSettingsOpen.set(true);
+        this.authService.consumePendingSettingsReopen();
+      }
+    });
+
+    effect(() => {
+      const currentTheme = this.theme();
+      if (typeof document !== 'undefined') {
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        document.documentElement.classList.toggle('ion-palette-dark', currentTheme === 'dark');
+      }
+      void this.nativePlatform.syncStatusBar(currentTheme);
+    });
+
+    effect(() => {
+      this.syncInitialSourceIfReady();
+    });
+
+    effect(() => {
+      if (
+        !this.authService.initialized() ||
+        this.authService.showAuthGate() ||
+        this.authService.activeDataSource() !== 'local'
+      ) {
+        return;
+      }
+
+      const tx = this.localPortfolioService.transactions();
+      const pr = this.localPortfolioService.prices();
+      const rt = this.localPortfolioService.exchangeRate();
+      const ln = this.i18n.lang();
+
+      if (
+        this.hasLoadedInitial &&
+        (tx !== this.lastLocalTx ||
+          pr !== this.lastLocalPrices ||
+          rt !== this.lastLocalRate ||
+          ln !== this.lastLocalLang)
+      ) {
+        this.lastLocalTx = tx;
+        this.lastLocalPrices = pr;
+        this.lastLocalRate = rt;
+        this.lastLocalLang = ln;
+        untracked(() => this.applyLocalData(this.activeTab(), this.displayCurrency()));
+      }
+    });
 
     effect(() => {
       const data = this.portfolioData();
@@ -334,11 +406,112 @@ export class MobileStateService {
 
     effect(() => {
       const curr = this.displayCurrency();
-      if (this.prevCurrency !== null && this.prevCurrency !== curr) {
+      if (
+        this.authService.initialized() &&
+        !this.authService.showAuthGate() &&
+        this.hasLoadedInitial &&
+        this.prevCurrency !== null &&
+        this.prevCurrency !== curr
+      ) {
         this.prevCurrency = curr;
         untracked(() => this.syncCurrencyChange(curr));
       }
     });
+  }
+
+  private async initMobileAuthAndStorage(): Promise<void> {
+    await Promise.all([this.authService.initialize(), this.localPortfolioService.initialize()]);
+    await this.nativePlatform.hideSplashScreen();
+  }
+
+  private syncInitialSourceIfReady(): void {
+    if (!this.authService.initialized() || this.authService.showAuthGate()) {
+      this.loading.set(false);
+      return;
+    }
+
+    const source = this.authService.activeDataSource();
+    const curr = this.displayCurrency();
+
+    if (!this.hasLoadedInitial || this.prevSource !== source) {
+      this.prevSource = source;
+      this.hasLoadedInitial = true;
+      this.prevCurrency = curr;
+      this.lastLocalTx = this.localPortfolioService.transactions();
+      this.lastLocalPrices = this.localPortfolioService.prices();
+      this.lastLocalRate = this.localPortfolioService.exchangeRate();
+      this.lastLocalLang = this.i18n.lang();
+      untracked(() => {
+        this.tabCache.clear();
+        this.loadTab(this.activeTab(), curr);
+        this.loadDividendData(curr);
+      });
+    }
+  }
+
+  private applyLocalData(tab: AssetTab, currency: 'USD' | 'THB'): void {
+    const lang = this.i18n.lang();
+    const holdings = this.localPortfolioService.getHoldings(tab.id, currency, lang);
+    const dividends = this.localPortfolioService.getDividends(currency, lang);
+    this.error.set(null);
+    this.portfolioData.set(holdings);
+    this.dividendData.set(dividends);
+    this.prices.set(new Map(this.localPortfolioService.prices()));
+    this.exchangeRate.set(
+      holdings.exchangeRate > 0 ? holdings.exchangeRate : this.localPortfolioService.exchangeRate()
+    );
+    this.loading.set(false);
+    this.dividendLoading.set(false);
+    this.pricesLoading.set(this.localPortfolioService.pricesLoading());
+  }
+
+  openUserSettings(): void {
+    void this.nativePlatform.triggerHapticImpact('light');
+    this.isUserSettingsOpen.set(true);
+  }
+
+  closeUserSettings(): void {
+    this.isUserSettingsOpen.set(false);
+  }
+
+  openLocalPortfolio(): void {
+    void this.nativePlatform.triggerHapticImpact('light');
+    this.isLocalPortfolioOpen.set(true);
+  }
+
+  closeLocalPortfolio(): void {
+    this.isLocalPortfolioOpen.set(false);
+  }
+
+  openAuthModal(): void {
+    void this.nativePlatform.triggerHapticImpact('light');
+    this.isAuthModalManualOpen.set(true);
+  }
+
+  closeAuthModal(): void {
+    this.isAuthModalManualOpen.set(false);
+  }
+
+  onLocalPortfolioChanged(): void {
+    if (this.authService.activeDataSource() === 'local') {
+      this.applyLocalData(this.activeTab(), this.displayCurrency());
+      if (this.localPortfolioService.hasTransactions()) {
+        this.localPortfolioService.refreshMarketPrices().subscribe();
+      }
+    }
+  }
+
+  async signOut(): Promise<void> {
+    await this.authService.signOut();
+    this.tabCache.clear();
+    this.portfolioData.set(null);
+    this.dividendData.set(null);
+    this.cachedPvdPositions.set([]);
+    this.hasLoadedInitial = false;
+    this.prevSource = null;
+    this.isUserSettingsOpen.set(false);
+    this.isLocalPortfolioOpen.set(false);
+    this.isAuthModalManualOpen.set(false);
   }
 
   private getTabLabelText(tab: AssetTab): string {
@@ -364,59 +537,32 @@ export class MobileStateService {
     }
   }
 
-  private async initPreferences(): Promise<void> {
-    const savedTheme = await this.nativePlatform.getPreference('sgsk_wealth_theme');
-    this.setTheme(savedTheme === 'light' ? 'light' : 'dark');
-
-    const savedPrivacy = await this.nativePlatform.getPreference('sgsk_wealth_privacy_mode');
-    this.setPrivacyMode(savedPrivacy === 'true');
-
-    const savedLang = await this.nativePlatform.getPreference('sgsk_wealth_lang');
-    if (savedLang === 'en' || savedLang === 'th') {
-      this.i18n.setLang(savedLang);
-    }
-
-    await this.nativePlatform.hideSplashScreen();
-  }
-
   setTheme(theme: 'dark' | 'light'): void {
-    this.theme.set(theme);
-    if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', theme);
-      document.documentElement.classList.toggle('ion-palette-dark', theme === 'dark');
-    }
-    void this.nativePlatform.setPreference('sgsk_wealth_theme', theme);
-    void this.nativePlatform.syncStatusBar(theme);
+    this.userSettings.setTheme(theme);
   }
 
   toggleTheme(): void {
     void this.nativePlatform.triggerHapticImpact('light');
-    this.setTheme(this.theme() === 'dark' ? 'light' : 'dark');
+    this.userSettings.toggleTheme();
   }
 
   setPrivacyMode(privacy: boolean): void {
-    this.privacyMode.set(privacy);
-    if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-privacy', privacy ? 'true' : 'false');
-    }
-    void this.nativePlatform.setPreference('sgsk_wealth_privacy_mode', privacy ? 'true' : 'false');
+    this.userSettings.setPrivacyMode(privacy);
   }
 
   togglePrivacyMode(): void {
     void this.nativePlatform.triggerHapticImpact('light');
-    this.setPrivacyMode(!this.privacyMode());
+    this.userSettings.togglePrivacyMode();
   }
 
   toggleCurrency(): void {
     void this.nativePlatform.triggerHapticImpact('light');
-    this.displayCurrency.set(this.displayCurrency() === 'THB' ? 'USD' : 'THB');
+    this.userSettings.toggleCurrency();
   }
 
   toggleLang(): void {
     void this.nativePlatform.triggerHapticImpact('light');
-    const next = this.i18n.lang() === 'en' ? 'th' : 'en';
-    this.i18n.setLang(next);
-    void this.nativePlatform.setPreference('sgsk_wealth_lang', next);
+    this.userSettings.toggleLang();
   }
 
   selectTab(tab: AssetTab): void {
@@ -463,12 +609,25 @@ export class MobileStateService {
 
   refresh(): void {
     void this.nativePlatform.triggerHapticImpact('light');
+    if (this.authService.activeDataSource() === 'local') {
+      this.applyLocalData(this.activeTab(), this.displayCurrency());
+      this.localPortfolioService.refreshMarketPrices().subscribe();
+      return;
+    }
     this.tabCache.delete(`${this.activeTab().id}::${this.displayCurrency()}`);
     this.loadTab(this.activeTab(), this.displayCurrency(), true);
     this.loadDividendData(this.displayCurrency());
   }
 
   loadTab(tab: AssetTab, currency: 'USD' | 'THB', forceRefresh = false): void {
+    if (this.authService.activeDataSource() === 'local') {
+      this.applyLocalData(tab, currency);
+      if (this.localPortfolioService.hasTransactions()) {
+        this.localPortfolioService.refreshMarketPrices().subscribe();
+      }
+      return;
+    }
+
     const cacheKey = `${tab.id}::${currency}`;
     const cached = this.tabCache.get(cacheKey);
     if (!forceRefresh && cached && Date.now() - cached.timestamp < 60000) {
@@ -533,6 +692,12 @@ export class MobileStateService {
   }
 
   loadDividendData(currency: 'USD' | 'THB' = this.displayCurrency()): void {
+    if (this.authService.activeDataSource() === 'local') {
+      this.dividendData.set(this.localPortfolioService.getDividends(currency, this.i18n.lang()));
+      this.dividendLoading.set(false);
+      return;
+    }
+
     this.dividendLoading.set(true);
     this.dividendService.getDividendAnalytics(currency, 'all').subscribe({
       next: (res) => {
@@ -548,6 +713,11 @@ export class MobileStateService {
   }
 
   private syncCurrencyChange(currency: 'USD' | 'THB'): void {
+    if (this.authService.activeDataSource() === 'local') {
+      this.applyLocalData(this.activeTab(), currency);
+      return;
+    }
+
     if (this.portfolioData()) {
       this.portfolioService.fetchHoldings(this.activeTab().id, currency).subscribe({
         next: (res) => {

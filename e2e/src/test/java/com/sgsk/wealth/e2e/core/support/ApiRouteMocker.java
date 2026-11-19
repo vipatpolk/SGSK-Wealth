@@ -20,9 +20,30 @@ public class ApiRouteMocker {
     }
 
     public void mockPortfolioAPIs(Page page) {
+        mockPortfolioAPIs(page, true);
+    }
+
+    public void mockPortfolioAPIs(Page page, boolean seedOwnerSession) {
+        mockSupabaseAndAuthAPIs(page, seedOwnerSession);
+
         String sheetsAll = loadResource("/fixtures/sheets-all.json");
         String priceFetch = loadResource("/fixtures/price-fetch.json");
         String exchangeRate = loadResource("/fixtures/exchange-rate.json");
+
+        // Mock /api/backend/auth/me
+        page.route("**/api/backend/auth/me**", route -> {
+            String auth = route.request().headers().getOrDefault("authorization", "");
+            if (auth.contains("mock-standard-jwt")) {
+                fulfillJson(route, 200,
+                        "{\"authenticated\":true,\"userId\":\"std-1\",\"email\":\"user@example.com\",\"role\":\"user\",\"providers\":[\"email\"],\"canViewCloudPortfolio\":false,\"portfolioSource\":\"local\"}");
+            } else if (auth.contains("Bearer ")) {
+                fulfillJson(route, 200,
+                        "{\"authenticated\":true,\"userId\":\"owner-1\",\"email\":\"vipatpolk@gmail.com\",\"role\":\"owner\",\"providers\":[\"email\",\"google\"],\"canViewCloudPortfolio\":true,\"portfolioSource\":\"google_sheets\"}");
+            } else {
+                fulfillJson(route, 200,
+                        "{\"authenticated\":false,\"userId\":null,\"email\":null,\"role\":\"anonymous\",\"providers\":[],\"canViewCloudPortfolio\":false,\"portfolioSource\":\"local\"}");
+            }
+        });
 
         // Mock /api/backend/share-lot/sheets
         page.route("**/api/backend/share-lot/sheets**", route -> {
@@ -655,6 +676,120 @@ public class ApiRouteMocker {
                         .setContentType("image/svg+xml")
                         .setBody(svg));
             }
+        });
+    }
+
+    private void mockSupabaseAndAuthAPIs(Page page, boolean seedOwnerSession) {
+        if (seedOwnerSession) {
+            String initSessionScript = """
+                    try {
+                      const expiresAt = Math.floor(Date.now() / 1000) + 36000;
+                      const sessionPayload = {
+                        access_token: 'mock-owner-jwt',
+                        token_type: 'bearer',
+                        expires_in: 36000,
+                        expires_at: expiresAt,
+                        refresh_token: 'mock-refresh-token',
+                        user: {
+                          id: 'owner-1',
+                          aud: 'authenticated',
+                          role: 'authenticated',
+                          email: 'vipatpolk@gmail.com',
+                          user_metadata: { full_name: 'Owner' },
+                          app_metadata: { provider: 'email', providers: ['email'] },
+                          identities: [{
+                            id: 'id-owner-email',
+                            identity_id: 'id-owner-email',
+                            user_id: 'owner-1',
+                            provider: 'email',
+                            identity_data: { email: 'vipatpolk@gmail.com' },
+                            created_at: '2025-01-01T00:00:00Z'
+                          }]
+                        }
+                      };
+                      localStorage.setItem('sb-jjdnxifgpbdvntfwhyzz-auth-token', JSON.stringify(sessionPayload));
+                    } catch (e) {}
+                    """;
+            page.addInitScript(initSessionScript);
+        }
+
+        page.route("https://jjdnxifgpbdvntfwhyzz.supabase.co/**", route -> {
+            String url = route.request().url();
+            String method = route.request().method();
+            String authHeader = route.request().headers().getOrDefault("authorization", "");
+            boolean isStandardUser = authHeader.contains("mock-standard-jwt");
+
+            if ("OPTIONS".equalsIgnoreCase(method)) {
+                route.fulfill(new Route.FulfillOptions().setStatus(204));
+                return;
+            }
+
+            if (url.contains("/auth/v1/logout")) {
+                route.fulfill(new Route.FulfillOptions().setStatus(204));
+                return;
+            }
+
+            if (url.contains("/auth/v1/token") || url.contains("/auth/v1/signup")) {
+                String body = route.request().postData() != null ? route.request().postData() : "";
+                boolean loginStandard = !body.contains("vipatpolk@gmail.com");
+                String uid = loginStandard ? "std-1" : "owner-1";
+                String email = loginStandard ? "user@example.com" : "vipatpolk@gmail.com";
+                String token = loginStandard ? "mock-standard-jwt" : "mock-owner-jwt";
+                String payload = """
+                        {
+                          "access_token": "%s",
+                          "token_type": "bearer",
+                          "expires_in": 36000,
+                          "refresh_token": "mock-refresh-token",
+                          "user": {
+                            "id": "%s",
+                            "aud": "authenticated",
+                            "role": "authenticated",
+                            "email": "%s",
+                            "user_metadata": { "full_name": "%s" },
+                            "identities": [{ "id": "id-%s", "identity_id": "id-%s", "user_id": "%s", "provider": "email", "identity_data": { "email": "%s" } }]
+                          }
+                        }
+                        """.formatted(token, uid, email, loginStandard ? "Standard User" : "Owner", uid, uid, uid, email);
+                fulfillJson(route, 200, payload);
+                return;
+            }
+
+            if (url.contains("/auth/v1/user")) {
+                String uid = isStandardUser ? "std-1" : "owner-1";
+                String email = isStandardUser ? "user@example.com" : "vipatpolk@gmail.com";
+                String userJson = """
+                        {
+                          "id": "%s",
+                          "aud": "authenticated",
+                          "role": "authenticated",
+                          "email": "%s",
+                          "user_metadata": { "full_name": "%s" },
+                          "identities": [{ "id": "id-%s", "identity_id": "id-%s", "user_id": "%s", "provider": "email", "identity_data": { "email": "%s" } }]
+                        }
+                        """.formatted(uid, email, isStandardUser ? "Standard User" : "Owner", uid, uid, uid, email);
+                fulfillJson(route, 200, userJson);
+                return;
+            }
+
+            if (url.contains("/rest/v1/user_profiles")) {
+                String row = isStandardUser
+                        ? "{\"id\":\"std-1\",\"email\":\"user@example.com\",\"display_name\":\"Standard User\",\"avatar_url\":null,\"role\":\"user\",\"can_view_cloud_portfolio\":false}"
+                        : "{\"id\":\"owner-1\",\"email\":\"vipatpolk@gmail.com\",\"display_name\":\"Owner\",\"avatar_url\":null,\"role\":\"owner\",\"can_view_cloud_portfolio\":true}";
+                String accept = route.request().headers().getOrDefault("accept", "");
+                fulfillJson(route, 200, accept.contains("object+json") ? row : "[" + row + "]");
+                return;
+            }
+
+            if (url.contains("/rest/v1/user_settings")) {
+                String row = "{\"currency\":\"THB\",\"language\":\"en\",\"theme\":\"dark\",\"privacy_mode\":false,\"target_allocations\":{},\"rebalance_targets\":{},\"created_at\":\"2025-01-01T00:00:00Z\",\"updated_at\":\"2025-01-01T00:00:00Z\"}";
+                String accept = route.request().headers().getOrDefault("accept", "");
+                fulfillJson(route, "POST".equalsIgnoreCase(method) ? 201 : 200,
+                        accept.contains("object+json") ? row : "[" + row + "]");
+                return;
+            }
+
+            fulfillJson(route, 200, "{}");
         });
     }
 

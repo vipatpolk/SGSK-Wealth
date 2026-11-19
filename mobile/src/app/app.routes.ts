@@ -7,6 +7,11 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
+    path: 'auth/callback',
+    redirectTo: 'dashboard',
+    pathMatch: 'full',
+  },
+  {
     path: 'dashboard',
     loadComponent: () =>
       import('./pages/dashboard/mobile-dashboard.page').then((m) => m.MobileDashboardPage),

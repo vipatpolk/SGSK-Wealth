@@ -166,12 +166,16 @@ public class CommonWebSteps {
 
     @Then("the USD currency button should be active")
     public void verifyUsdActive() {
-        assertThat(headerPage.currencyUsdBtn).hasClass(Pattern.compile(".*currency-btn-active.*"));
+        headerPage.openUserSettings();
+        assertThat(headerPage.settingsCurrencyUsdBtn).hasClass(Pattern.compile(".*\\bactive\\b.*"));
+        headerPage.closeUserSettings();
     }
 
     @Then("the THB currency button should be active")
     public void verifyThbActive() {
-        assertThat(headerPage.currencyThbBtn).hasClass(Pattern.compile(".*currency-btn-active.*"));
+        headerPage.openUserSettings();
+        assertThat(headerPage.settingsCurrencyThbBtn).hasClass(Pattern.compile(".*\\bactive\\b.*"));
+        headerPage.closeUserSettings();
     }
 
     @Given("the active language is {string}")
@@ -209,12 +213,16 @@ public class CommonWebSteps {
 
     @Then("the EN language button should be active")
     public void verifyEnLangActive() {
-        assertThat(headerPage.langEnBtn).hasClass(Pattern.compile(".*lang-btn-active.*"));
+        headerPage.openUserSettings();
+        assertThat(headerPage.settingsLangEnBtn).hasClass(Pattern.compile(".*\\bactive\\b.*"));
+        headerPage.closeUserSettings();
     }
 
     @Then("the TH language button should be active")
     public void verifyThLangActive() {
-        assertThat(headerPage.langThBtn).hasClass(Pattern.compile(".*lang-btn-active.*"));
+        headerPage.openUserSettings();
+        assertThat(headerPage.settingsLangThBtn).hasClass(Pattern.compile(".*\\bactive\\b.*"));
+        headerPage.closeUserSettings();
     }
 
     @Then("the document language attribute should be {string}")

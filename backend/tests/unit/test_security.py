@@ -21,7 +21,9 @@ def test_auth_authorized_with_valid_api_key(api_client, mocked_external_apis):
 
 
 @pytest.mark.unit
-def test_auth_accepts_previous_key_during_rotation(unauth_api_client, monkeypatch, mocked_external_apis):
+def test_auth_accepts_previous_key_during_rotation(
+    unauth_api_client, owner_bearer_token, monkeypatch, mocked_external_apis
+):
     from config.settings import Settings
 
     rotation_settings = Settings(
@@ -32,7 +34,10 @@ def test_auth_accepts_previous_key_during_rotation(unauth_api_client, monkeypatc
 
     res = unauth_api_client.get(
         "/share-lot/sheets",
-        headers={"X-API-Key": "previous_rotation_key_which_is_long_enough_1234567890"},
+        headers={
+            "X-API-Key": "previous_rotation_key_which_is_long_enough_1234567890",
+            "Authorization": f"Bearer {owner_bearer_token}",
+        },
     )
     assert res.status_code == 200
 
@@ -200,3 +205,249 @@ def test_production_settings_validation():
         google_spreadsheet_id="custom_production_sheet_id_xyz",
     )
     assert rotation_settings.backend_api_key_previous == "b" * 32
+
+    with pytest.raises(ValueError, match="CRITICAL: SUPABASE_URL"):
+        Settings(
+            environment="production",
+            backend_api_key="a" * 32,
+            google_spreadsheet_id="custom_production_sheet_id_xyz",
+            supabase_url="",
+        )
+
+    with pytest.raises(ValueError, match="CRITICAL: AUTHORIZED_PORTFOLIO_EMAILS"):
+        Settings(
+            environment="production",
+            backend_api_key="a" * 32,
+            google_spreadsheet_id="custom_production_sheet_id_xyz",
+            authorized_portfolio_emails=[],
+        )
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("method", "endpoint", "body"),
+    [
+        ("GET", "/share-lot/sheets", None),
+        ("GET", "/share-lot/sheet/us-stock", None),
+        ("GET", "/portfolio/holdings", None),
+        ("GET", "/portfolio/performance", None),
+        ("GET", "/portfolio/dividend", None),
+        ("POST", "/portfolio/allocation", {}),
+        ("POST", "/portfolio/tools/rebalance", {"mode": "standard", "targetAllocations": {}, "currency": "THB"}),
+    ],
+)
+def test_portfolio_endpoints_require_bearer_jwt(api_key_only_client, method, endpoint, body):
+    res = api_key_only_client.post(endpoint, json=body) if method == "POST" else api_key_only_client.get(endpoint)
+    assert res.status_code == 401
+    assert res.json()["detail"] == "Authentication required"
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("method", "endpoint", "body"),
+    [
+        ("GET", "/share-lot/sheets", None),
+        ("GET", "/share-lot/sheet/us-stock", None),
+        ("GET", "/portfolio/holdings", None),
+        ("GET", "/portfolio/performance", None),
+        ("GET", "/portfolio/dividend", None),
+        ("POST", "/portfolio/allocation", {}),
+        ("POST", "/portfolio/tools/rebalance", {"mode": "standard", "targetAllocations": {}, "currency": "THB"}),
+    ],
+)
+def test_portfolio_endpoints_forbid_non_owner_user(non_owner_api_client, method, endpoint, body):
+    res = non_owner_api_client.post(endpoint, json=body) if method == "POST" else non_owner_api_client.get(endpoint)
+    assert res.status_code == 403
+    assert "restricted to authorized accounts" in res.json()["detail"]
+
+
+@pytest.mark.unit
+def test_rejects_invalid_expired_and_anonymous_jwts(api_key_only_client):
+    from tests.conftest import build_test_supabase_jwt
+
+    invalid_res = api_key_only_client.get("/portfolio/holdings", headers={"Authorization": "Bearer not-a-jwt"})
+    assert invalid_res.status_code == 401
+
+    expired_token = build_test_supabase_jwt(expired=True)
+    expired_res = api_key_only_client.get(
+        "/portfolio/holdings", headers={"Authorization": f"Bearer {expired_token}"}
+    )
+    assert expired_res.status_code == 401
+
+    anon_token = build_test_supabase_jwt(is_anonymous=True)
+    anon_res = api_key_only_client.get("/portfolio/holdings", headers={"Authorization": f"Bearer {anon_token}"})
+    assert anon_res.status_code == 401
+
+    unconfirmed_owner = build_test_supabase_jwt(email="vipatpolk@gmail.com", email_confirmed=False)
+    unconfirmed_res = api_key_only_client.get(
+        "/portfolio/holdings", headers={"Authorization": f"Bearer {unconfirmed_owner}"}
+    )
+    assert unconfirmed_res.status_code == 403
+
+
+@pytest.mark.unit
+def test_auth_me_returns_expected_states(api_key_only_client, non_owner_api_client, api_client):
+    guest_res = api_key_only_client.get("/auth/me")
+    assert guest_res.status_code == 200
+    assert guest_res.json() == {
+        "authenticated": False,
+        "userId": None,
+        "email": None,
+        "role": "guest",
+        "providers": [],
+        "canViewCloudPortfolio": False,
+        "portfolioSource": "local",
+    }
+
+    non_owner_res = non_owner_api_client.get("/auth/me")
+    assert non_owner_res.status_code == 200
+    non_owner_data = non_owner_res.json()
+    assert non_owner_data["authenticated"] is True
+    assert non_owner_data["email"] == "other.investor@example.com"
+    assert non_owner_data["canViewCloudPortfolio"] is False
+    assert non_owner_data["portfolioSource"] == "local"
+
+    owner_res = api_client.get("/auth/me")
+    assert owner_res.status_code == 200
+    owner_data = owner_res.json()
+    assert owner_data["authenticated"] is True
+    assert owner_data["email"] == "vipatpolk@gmail.com"
+    assert owner_data["role"] == "owner"
+    assert owner_data["canViewCloudPortfolio"] is True
+    assert owner_data["portfolioSource"] == "google_sheets"
+
+
+@pytest.mark.unit
+def test_tools_symbol_lookup_protected_while_stateless_tools_and_market_open_to_guests(
+    api_key_only_client, non_owner_api_client, api_client, mocked_external_apis
+):
+    # Stateless TVM works for guests with API key
+    tvm_res = api_key_only_client.post(
+        "/portfolio/tools/tvm",
+        json={"mode": "FV", "presentValue": 1000, "payment": 100, "annualRatePct": 8, "years": 5},
+    )
+    assert tvm_res.status_code == 200
+
+    # Explicit snapshot simulation works for guests
+    explicit_sim = api_key_only_client.post(
+        "/portfolio/tools/simulate",
+        json={
+            "initialPosition": {"symbol": "AAPL", "shares": 10, "avgCost": 100, "marketPrice": 120, "currency": "USD"},
+            "steps": [{"action": "BUY", "shares": 5, "price": 110}],
+            "currency": "USD",
+        },
+    )
+    assert explicit_sim.status_code == 200
+
+    # Symbol lookup without initialPosition is gated: 401 for guest, 403 for non-owner, 200 for owner
+    guest_lookup = api_key_only_client.post(
+        "/portfolio/tools/simulate",
+        json={"symbol": "AAPL", "steps": [{"action": "BUY", "shares": 5, "price": 110}], "currency": "USD"},
+    )
+    assert guest_lookup.status_code == 401
+
+    non_owner_lookup = non_owner_api_client.post(
+        "/portfolio/tools/solve-target",
+        json={"symbol": "AAPL", "targetAvgCost": 95, "purchasePrice": 80, "currency": "USD"},
+    )
+    assert non_owner_lookup.status_code == 403
+
+    owner_lookup = api_client.post(
+        "/portfolio/tools/simulate",
+        json={"symbol": "AAPL", "steps": [{"action": "BUY", "shares": 5, "price": 110}], "currency": "USD"},
+    )
+    assert owner_lookup.status_code == 200
+
+    # Public market rate works for guests
+    fx_res = api_key_only_client.get("/price/exchange-rate")
+    assert fx_res.status_code == 200
+    assert fx_res.json()["rate"] == 35.0
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_supabase_verifier_jwks_hs256_and_profile_checks(monkeypatch, respx_mock):
+    from datetime import datetime, timedelta, timezone
+
+    import jwt
+
+    from config.settings import Settings
+    from tests.conftest import _TEST_PUBLIC_JWK, build_test_supabase_jwt
+    from utils.supabase_auth import SupabaseTokenVerifier
+
+    verifier = SupabaseTokenVerifier()
+
+    # 1. Real JWKS HTTP fetch path with respx
+    jwks_url = "https://mock.supabase.co/auth/v1/.well-known/jwks.json"
+    respx_mock.get(jwks_url).respond(status_code=200, json={"keys": [_TEST_PUBLIC_JWK]})
+
+    settings_jwks = Settings(
+        supabase_url="https://mock.supabase.co",
+        authorized_portfolio_emails=["vipatpolk@gmail.com"],
+    )
+    rs256_token = build_test_supabase_jwt(
+        email="vipatpolk@gmail.com",
+        iss="https://mock.supabase.co/auth/v1",
+    )
+    user = await verifier.verify_token(rs256_token, settings=settings_jwks)
+    assert user.email == "vipatpolk@gmail.com"
+    assert user.can_view_cloud_portfolio is True
+
+    # 2. HS256 secret verification path
+    now = datetime.now(timezone.utc)
+    hs_secret = "super-secret-hs256-signing-key-at-least-32-chars"
+    hs_token = jwt.encode(
+        {
+            "sub": "user-hs-1",
+            "email": "vipatpolk@gmail.com",
+            "aud": "authenticated",
+            "iss": "https://mock.supabase.co/auth/v1",
+            "iat": int(now.timestamp()),
+            "exp": int((now + timedelta(minutes=30)).timestamp()),
+            "app_metadata": {"providers": ["email"]},
+        },
+        hs_secret,
+        algorithm="HS256",
+    )
+    settings_hs = Settings(
+        supabase_url="https://mock.supabase.co",
+        supabase_jwt_secret=hs_secret,
+        authorized_portfolio_emails=["vipatpolk@gmail.com"],
+    )
+    hs_user = await verifier.verify_token(hs_token, settings=settings_hs)
+    assert hs_user.user_id == "user-hs-1"
+    assert hs_user.can_view_cloud_portfolio is True
+
+    # 3. Auth API fallback + user_profiles RLS verification when publishable key is configured
+    respx_mock.get("https://mock.supabase.co/auth/v1/user").respond(
+        status_code=200,
+        json={
+            "id": "user-hs-1",
+            "email": "vipatpolk@gmail.com",
+            "email_confirmed_at": now.isoformat(),
+            "app_metadata": {"providers": ["email", "google"]},
+        },
+    )
+    respx_mock.get("https://mock.supabase.co/rest/v1/user_profiles").respond(
+        status_code=200,
+        json=[{"role": "owner", "can_view_cloud_portfolio": True}],
+    )
+    settings_api = Settings(
+        supabase_url="https://mock.supabase.co",
+        supabase_publishable_key="sb_publishable_test_key",
+        authorized_portfolio_emails=["vipatpolk@gmail.com"],
+    )
+    api_user = await verifier.verify_token(hs_token, settings=settings_api)
+    assert api_user.role == "owner"
+    assert api_user.providers == ["email", "google"]
+    assert api_user.can_view_cloud_portfolio is True
+
+    # 4. Non-Bearer auth header rejected
+    from fastapi import HTTPException
+    from fastapi.security import HTTPAuthorizationCredentials
+
+    from utils.supabase_auth import get_optional_current_user
+
+    with pytest.raises(HTTPException) as exc_info:
+        await get_optional_current_user(HTTPAuthorizationCredentials(scheme="Basic", credentials="abc"))
+    assert exc_info.value.status_code == 401

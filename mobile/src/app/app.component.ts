@@ -25,11 +25,15 @@ import {
   gridOutline,
   layersOutline,
   moonOutline,
+  personCircleOutline,
   refreshOutline,
   sunnyOutline,
   timeOutline,
 } from 'ionicons/icons';
+import { MobileAuthModalComponent } from './modals/auth-modal/mobile-auth-modal.component';
 import { MobileFactsheetModalComponent } from './modals/fund-factsheet-modal/mobile-factsheet-modal.component';
+import { MobileLocalPortfolioModalComponent } from './modals/local-portfolio-modal/mobile-local-portfolio-modal.component';
+import { MobileUserSettingsModalComponent } from './modals/user-settings-modal/mobile-user-settings-modal.component';
 import { MobileStateService } from './services/mobile-state.service';
 
 @Component({
@@ -50,6 +54,9 @@ import { MobileStateService } from './services/mobile-state.service';
     IonTabButton,
     IonLabel,
     MobileFactsheetModalComponent,
+    MobileAuthModalComponent,
+    MobileUserSettingsModalComponent,
+    MobileLocalPortfolioModalComponent,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
@@ -66,6 +73,14 @@ export class AppComponent implements OnDestroy {
     return 'Mobile';
   });
 
+  readonly userInitial = computed(() => {
+    const label =
+      this.state.authService.displayName().trim() ||
+      this.state.authService.userEmail() ||
+      'G';
+    return label.charAt(0).toUpperCase();
+  });
+
   constructor() {
     addIcons({
       gridOutline,
@@ -79,6 +94,7 @@ export class AppComponent implements OnDestroy {
       sunnyOutline,
       moonOutline,
       refreshOutline,
+      personCircleOutline,
     });
 
     void this.initHardwareBackHandler();
@@ -86,8 +102,20 @@ export class AppComponent implements OnDestroy {
 
   private async initHardwareBackHandler(): Promise<void> {
     this.backBtnHandle = await this.state.nativePlatform.registerBackButtonHandler(() => {
+      if (this.state.isLocalPortfolioOpen()) {
+        this.state.closeLocalPortfolio();
+        return true;
+      }
+      if (this.state.isUserSettingsOpen()) {
+        this.state.closeUserSettings();
+        return true;
+      }
       if (this.state.activeFactsheetTarget() !== null) {
         this.state.closeFactsheetModal();
+        return true;
+      }
+      if (this.state.isAuthModalManualOpen() && !this.state.authService.showAuthGate()) {
+        this.state.closeAuthModal();
         return true;
       }
       if (this.router.url !== '/dashboard') {

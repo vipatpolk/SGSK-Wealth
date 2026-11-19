@@ -43,3 +43,38 @@ Feature: Backend API Authentication & Security
     When I send a GET request to "/price/exchange-rate" with query "from_currency=USD&to_currency=THB"
     Then the response status should be 200
     And the response should contain a positive number property "rate"
+
+  @smoke @TC-API-AUTH-05
+  Scenario Outline: TC-API-AUTH-05: Cloud portfolio endpoints without Bearer JWT are rejected with 401
+    When I send an API-key-only <method> request to "<endpoint>"
+    Then the response status should be 401
+
+    Examples:
+      | method | endpoint                    |
+      | GET    | /share-lot/sheets           |
+      | GET    | /portfolio/holdings         |
+      | GET    | /portfolio/performance      |
+      | POST   | /portfolio/tools/rebalance  |
+
+  @TC-API-AUTH-06
+  Scenario Outline: TC-API-AUTH-06: Cloud portfolio endpoints deny non-owner authenticated users with 403
+    When I send a <method> request to "<endpoint>" with API key and bearer token "mock-standard-jwt"
+    Then the response status should be 403
+
+    Examples:
+      | method | endpoint                    |
+      | GET    | /share-lot/sheets           |
+      | GET    | /portfolio/holdings         |
+      | POST   | /portfolio/tools/rebalance  |
+
+  @smoke @TC-API-AUTH-07
+  Scenario Outline: TC-API-AUTH-07: Auth identity endpoint resolves portfolio access source by user token
+    When I send a GET request to "/auth/me" with API key and bearer token "<token>"
+    Then the response status should be 200
+    And the response property "canViewCloudPortfolio" should equal "<cloudAccess>"
+    And the response property "portfolioSource" should equal "<source>"
+
+    Examples:
+      | token             | cloudAccess | source        |
+      | mock-owner-jwt    | true        | google_sheets |
+      | mock-standard-jwt | false       | local         |

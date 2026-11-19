@@ -21,6 +21,7 @@ import {
 } from '../../models/transaction.model';
 import { PriceData } from '../../services/price.service';
 import { PortfolioService } from '../../services/portfolio.service';
+import { AuthService } from '@shared/services/auth.service';
 import { I18nService } from '../../services/i18n.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import {
@@ -55,6 +56,7 @@ import {
 })
 export class AnalyticsComponent {
   private readonly portfolioService = inject(PortfolioService);
+  private readonly authService = inject(AuthService);
   readonly i18n = inject(I18nService);
 
   summaries = input.required<SymbolSummary[]>();
@@ -90,8 +92,14 @@ export class AnalyticsComponent {
       this.internalSubTab.set(sub);
     });
 
-    // Fetch overview analytics data from backend
+    // Fetch overview analytics data from backend (cloud owner only)
     effect(() => {
+      if (this.authService.activeDataSource() !== 'cloud') {
+        this.serverPerformance.set(null);
+        this.serverAllocation.set(null);
+        return;
+      }
+
       const curr = this.displayCurrency();
       this.portfolioService.fetchPerformance('ALL', '', '', curr).subscribe({
         next: (res) => {

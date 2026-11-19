@@ -1,0 +1,278 @@
+<ion-modal
+  id="mobile-local-portfolio-modal"
+  class="sgsk-sheet-modal"
+  [isOpen]="isOpen()"
+  [initialBreakpoint]="0.92"
+  [breakpoints]="[0, 0.5, 0.92, 1]"
+  (didDismiss)="closed.emit()"
+>
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>{{ 'localPortfolio.modalTitle' | t }}</ion-title>
+        <ion-buttons slot="end">
+          <ion-button id="mobile-local-close-btn" (click)="closed.emit()">
+            {{ 'common.close' | t }}
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <div class="m-local-body">
+        <ion-segment [value]="activeTab()" (ionChange)="onSegmentChange($event)">
+          <ion-segment-button value="add" id="mobile-local-tab-add">
+            <ion-label>{{ 'localPortfolio.tabAdd' | t }}</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="list" id="mobile-local-tab-list">
+            <ion-label>
+              {{ 'localPortfolio.tabList' | t : { count: localPortfolio.transactionCount() } }}
+            </ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="import" id="mobile-local-tab-import">
+            <ion-label>{{ 'localPortfolio.tabImportExport' | t }}</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+
+        @if (errorMessage()) {
+          <div class="m-alert error" role="alert">{{ errorMessage() }}</div>
+        }
+        @if (statusMessage()) {
+          <div class="m-alert success" role="status">{{ statusMessage() }}</div>
+        }
+
+        @if (activeTab() === 'add') {
+          <form class="m-local-form" (ngSubmit)="onSaveTransaction()">
+            <div class="m-grid-2">
+              <label class="m-field">
+                <span>{{ 'localPortfolio.symbol' | t }}</span>
+                <input
+                  id="mobile-local-tx-symbol"
+                  type="text"
+                  class="m-input"
+                  placeholder="AAPL, PTT.BK"
+                  [ngModel]="symbolInput()"
+                  (ngModelChange)="symbolInput.set($event)"
+                  name="symbol"
+                />
+              </label>
+
+              <label class="m-field">
+                <span>{{ 'localPortfolio.assetType' | t }}</span>
+                <select
+                  id="mobile-local-tx-asset-type"
+                  class="m-input"
+                  [ngModel]="assetTypeInput()"
+                  (ngModelChange)="onAssetTypeChange($event)"
+                  name="assetType"
+                >
+                  @for (asset of assetClasses; track asset.id) {
+                    <option [value]="asset.id">{{ asset.label }}</option>
+                  }
+                </select>
+              </label>
+
+              <label class="m-field">
+                <span>{{ 'localPortfolio.action' | t }}</span>
+                <select
+                  id="mobile-local-tx-action"
+                  class="m-input"
+                  [ngModel]="actionInput()"
+                  (ngModelChange)="actionInput.set($event)"
+                  name="action"
+                >
+                  <option value="BUY">BUY</option>
+                  <option value="SELL">SELL</option>
+                  <option value="DIVIDEND">DIVIDEND</option>
+                </select>
+              </label>
+
+              <label class="m-field">
+                <span>{{ 'localPortfolio.date' | t }}</span>
+                <input
+                  id="mobile-local-tx-date"
+                  type="date"
+                  class="m-input"
+                  [ngModel]="dateInput()"
+                  (ngModelChange)="dateInput.set($event)"
+                  name="date"
+                />
+              </label>
+
+              <label class="m-field">
+                <span>{{ 'localPortfolio.quantity' | t }}</span>
+                <input
+                  id="mobile-local-tx-qty"
+                  type="number"
+                  step="any"
+                  min="0"
+                  class="m-input"
+                  [ngModel]="quantityInput()"
+                  (ngModelChange)="quantityInput.set($event)"
+                  name="quantity"
+                />
+              </label>
+
+              <label class="m-field">
+                <span>{{ 'localPortfolio.price' | t }}</span>
+                <input
+                  id="mobile-local-tx-price"
+                  type="number"
+                  step="any"
+                  min="0"
+                  class="m-input"
+                  [ngModel]="priceInput()"
+                  (ngModelChange)="priceInput.set($event)"
+                  name="price"
+                />
+              </label>
+
+              <label class="m-field">
+                <span>{{ 'localPortfolio.currency' | t }}</span>
+                <select
+                  id="mobile-local-tx-currency"
+                  class="m-input"
+                  [ngModel]="currencyInput()"
+                  (ngModelChange)="currencyInput.set($event)"
+                  name="currency"
+                >
+                  <option value="USD">USD</option>
+                  <option value="THB">THB</option>
+                </select>
+              </label>
+
+              <label class="m-field">
+                <span>{{ 'localPortfolio.fee' | t }}</span>
+                <input
+                  id="mobile-local-tx-fee"
+                  type="number"
+                  step="any"
+                  min="0"
+                  class="m-input"
+                  [ngModel]="feeInput()"
+                  (ngModelChange)="feeInput.set($event)"
+                  name="fee"
+                />
+              </label>
+            </div>
+
+            <label class="m-field">
+              <span>{{ 'localPortfolio.note' | t }}</span>
+              <input
+                id="mobile-local-tx-note"
+                type="text"
+                class="m-input"
+                [ngModel]="noteInput()"
+                (ngModelChange)="noteInput.set($event)"
+                name="note"
+              />
+            </label>
+
+            <div class="m-btn-row">
+              @if (editingId()) {
+                <button type="button" class="m-btn-secondary" (click)="resetForm()">
+                  {{ 'localPortfolio.cancelEdit' | t }}
+                </button>
+              }
+              <button type="submit" id="mobile-local-save-tx-btn" class="m-btn-primary">
+                {{ editingId() ? ('localPortfolio.updateTx' | t) : ('localPortfolio.saveTx' | t) }}
+              </button>
+            </div>
+          </form>
+        }
+
+        @if (activeTab() === 'list') {
+          @if (sortedTransactions().length === 0) {
+            <div class="m-empty">{{ 'localPortfolio.emptyList' | t }}</div>
+          } @else {
+            <div class="m-tx-list">
+              @for (tx of sortedTransactions(); track tx.id) {
+                <div class="m-tx-card">
+                  <div class="m-tx-main">
+                    <div class="m-tx-top">
+                      <strong>{{ tx.symbol }}</strong>
+                      <span class="m-tx-badge">{{ tx.txType || (tx.quantity < 0 ? 'SELL' : 'BUY') }}</span>
+                      <span class="m-tx-date">{{ tx.date }}</span>
+                    </div>
+                    <div class="m-tx-meta">
+                      <span>Qty: {{ tx.quantity }}</span>
+                      <span>{{ tx.price }} {{ tx.currency }}</span>
+                    </div>
+                  </div>
+                  <div class="m-tx-actions">
+                    <button type="button" class="m-btn-small" (click)="startEdit(tx)">
+                      {{ 'localPortfolio.edit' | t }}
+                    </button>
+                    <button type="button" class="m-btn-small danger" (click)="onDelete(tx.id)">
+                      {{ 'localPortfolio.delete' | t }}
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        }
+
+        @if (activeTab() === 'import') {
+          <div class="m-import-col">
+            <p class="m-hint">{{ 'localPortfolio.importHint' | t }}</p>
+            <textarea
+              id="mobile-local-csv-textarea"
+              rows="5"
+              class="m-textarea"
+              [placeholder]="'localPortfolio.importPlaceholder' | t"
+              [ngModel]="csvText()"
+              (ngModelChange)="csvText.set($event)"
+            ></textarea>
+
+            <div class="m-btn-row wrap">
+              <button
+                type="button"
+                id="mobile-local-import-csv-btn"
+                class="m-btn-primary"
+                (click)="onImportCsv()"
+              >
+                {{ 'localPortfolio.importBtn' | t }}
+              </button>
+              <button
+                type="button"
+                id="mobile-local-load-sample-btn"
+                class="m-btn-secondary"
+                (click)="onLoadSample()"
+              >
+                {{ 'localPortfolio.loadSampleBtn' | t }}
+              </button>
+              <button
+                type="button"
+                id="mobile-local-export-csv-btn"
+                class="m-btn-secondary"
+                [disabled]="!localPortfolio.hasTransactions()"
+                (click)="onExportCsv()"
+              >
+                {{ 'localPortfolio.exportCsv' | t }}
+              </button>
+              <button
+                type="button"
+                id="mobile-local-export-json-btn"
+                class="m-btn-secondary"
+                [disabled]="!localPortfolio.hasTransactions()"
+                (click)="onExportJson()"
+              >
+                {{ 'localPortfolio.exportJson' | t }}
+              </button>
+              <button
+                type="button"
+                id="mobile-local-clear-all-btn"
+                class="m-btn-small danger"
+                [disabled]="!localPortfolio.hasTransactions()"
+                (click)="onClearAll()"
+              >
+                {{ confirmClear() ? ('localPortfolio.confirmClear' | t) : ('localPortfolio.clearAll' | t) }}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>

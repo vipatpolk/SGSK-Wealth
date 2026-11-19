@@ -1,3 +1,17 @@
+@if (!authService.initialized()) {
+  <app-loading-screen
+    [variant]="'fullscreen'"
+    [statusTag]="'loading.module' | t"
+    [title]="'SGSK Wealth'"
+    [subtitle]="'settings.syncSyncing' | t"
+  ></app-loading-screen>
+} @else if (shouldShowAuthScreen()) {
+  <app-auth-screen
+    (authenticated)="closeAuthScreen()"
+    (continueGuest)="closeAuthScreen()"
+  ></app-auth-screen>
+} @else {
+<div class="app-workspace-shell" [class.sidebar-collapsed]="isSidebarCollapsed()">
 <app-header
   [loading]="loading()"
   [error]="error()"
@@ -9,13 +23,15 @@
   [currentView]="currentView()"
   [displayCurrency]="displayCurrency()"
   [lang]="i18n.lang()"
-  [theme]="theme()"
   [privacyMode]="privacyMode()"
+  [sidebarCollapsed]="isSidebarCollapsed()"
   (viewChange)="setView($event)"
-  (currencyChange)="displayCurrency.set($event)"
-  (langChange)="i18n.setLang($event)"
-  (themeChange)="toggleTheme()"
   (privacyChange)="togglePrivacyMode()"
+  (openUserSettings)="openUserSettings()"
+  (openLocalPortfolio)="openLocalPortfolioModal()"
+  (openSignIn)="openAuthScreen()"
+  (signOut)="onSignOut()"
+  (sidebarCollapseToggle)="toggleSidebarCollapsed()"
 ></app-header>
 
 <!-- Screen Loading Overlay (Hides contents while data is loading) -->
@@ -28,7 +44,38 @@
   ></app-loading-screen>
 }
 
+<div class="app-main-area">
 <main class="main-content">
+  @if (authService.activeDataSource() === 'local') {
+    <section class="local-workspace-bar" id="local-workspace-bar">
+      <div class="local-workspace-info">
+        <strong class="local-workspace-title">{{ 'localPortfolio.bannerTitle' | t }}</strong>
+        <span class="local-workspace-sub">
+          {{ 'localPortfolio.bannerSub' | t : { count: localPortfolioService.transactionCount() } }}
+        </span>
+      </div>
+      <div class="local-workspace-actions">
+        @if (!localPortfolioService.hasTransactions()) {
+          <button
+            type="button"
+            id="local-bar-sample-btn"
+            class="btn btn-secondary btn-sm"
+            (click)="localPortfolioService.loadSamplePortfolio()"
+          >
+            {{ 'localPortfolio.loadSampleBtn' | t }}
+          </button>
+        }
+        <button
+          type="button"
+          id="local-bar-add-btn"
+          class="btn btn-primary btn-sm"
+          (click)="openLocalPortfolioModal()"
+        >
+          {{ 'localPortfolio.addTxBtn' | t }}
+        </button>
+      </div>
+    </section>
+  }
   <!-- Error State -->
   @if (error()) {
     <div class="error-state" id="error-state">
@@ -604,11 +651,32 @@
   }
 </main>
 
+<footer class="footer">
+  <p>{{ 'app.footer' | t }}</p>
+</footer>
+</div>
+
 <app-fund-factsheet-modal
   [target]="activeFactsheetTarget()"
   (closeModal)="closeFactsheetModal()"
 ></app-fund-factsheet-modal>
 
-<footer class="footer">
-  <p>{{ 'app.footer' | t }}</p>
-</footer>
+@if (isUserSettingsOpen()) {
+  @defer (on immediate) {
+    <app-user-settings-modal
+      (closed)="closeUserSettings()"
+      (openSignIn)="openAuthScreen()"
+    ></app-user-settings-modal>
+  }
+}
+
+@if (isLocalPortfolioModalOpen()) {
+  @defer (on immediate) {
+    <app-local-portfolio-modal
+      (closed)="closeLocalPortfolioModal()"
+      (dataChanged)="onLocalPortfolioChanged()"
+    ></app-local-portfolio-modal>
+  }
+}
+</div>
+}

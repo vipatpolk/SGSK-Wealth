@@ -9,8 +9,13 @@ from services.dividend_service import DividendService
 from services.performance_service import PerformanceService
 from services.valuation_service import ValuationService
 from utils.auth import verify_api_key
+from utils.supabase_auth import require_portfolio_authorized_user
 
-router = APIRouter(prefix="/portfolio", tags=["portfolio"], dependencies=[Depends(verify_api_key)])
+router = APIRouter(
+    prefix="/portfolio",
+    tags=["portfolio"],
+    dependencies=[Depends(verify_api_key), Depends(require_portfolio_authorized_user)],
+)
 
 valuation_service = ValuationService()
 performance_service = PerformanceService(valuation_service=valuation_service)

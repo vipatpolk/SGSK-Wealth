@@ -10,6 +10,7 @@ dependencies = [
     "httpx",
     "pydantic",
     "pydantic-settings",
+    "PyJWT[crypto]>=2.10.1",
     "google-auth",
     "requests",
     "yfinance>=1.8.0",

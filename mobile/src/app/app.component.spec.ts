@@ -3,16 +3,34 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideIonicAngular } from '@ionic/angular';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { AuthService } from '@shared/services/auth.service';
+import { LocalPortfolioService } from '@shared/services/local-portfolio.service';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppComponent } from './app.component';
 import { resolveIonicMode } from './app.config';
+import { MobileAuthModalComponent } from './modals/auth-modal/mobile-auth-modal.component';
 import { MobileStateService } from './services/mobile-state.service';
 import { NativePlatformService } from './services/native-platform.service';
+
+function installMemoryLocalStorage() {
+  const store = new Map<string, string>();
+  vi.stubGlobal('localStorage', {
+    get length() {
+      return store.size;
+    },
+    clear: () => store.clear(),
+    getItem: (key: string) => store.get(key) ?? null,
+    key: (index: number) => Array.from(store.keys())[index] ?? null,
+    removeItem: (key: string) => store.delete(key),
+    setItem: (key: string, value: string) => store.set(key, String(value)),
+  } as Storage);
+}
 
 describe('SGSK Wealth Mobile App', () => {
   let httpMock: HttpTestingController;
 
   beforeEach(async () => {
+    installMemoryLocalStorage();
     await TestBed.configureTestingModule({
       imports: [AppComponent],
       providers: [
@@ -24,13 +42,20 @@ describe('SGSK Wealth Mobile App', () => {
     }).compileComponents();
 
     httpMock = TestBed.inject(HttpTestingController);
+    const authService = TestBed.inject(AuthService);
+    authService.session.set(null);
+    authService.canViewCloudPortfolio.set(false);
+    authService.initialized.set(true);
+    authService.isGuestDismissed.set(true);
   });
 
   afterEach(() => {
     httpMock.match(() => true);
+    TestBed.inject(LocalPortfolioService).clearAll();
+    vi.unstubAllGlobals();
   });
 
-  it('should create the Ionic AppComponent with 6 bottom tabs and header controls', () => {
+  it('should create the Ionic AppComponent with 6 bottom tabs, user menu button, and omitted header toggles', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
@@ -44,11 +69,41 @@ describe('SGSK Wealth Mobile App', () => {
     expect(el.querySelector('#mobile-tab-dividends')).toBeTruthy();
     expect(el.querySelector('#mobile-tab-transactions')).toBeTruthy();
     expect(el.querySelector('#mobile-tab-tools')).toBeTruthy();
-    expect(el.querySelector('#mobile-currency-toggle')).toBeTruthy();
-    expect(el.querySelector('#mobile-lang-toggle')).toBeTruthy();
+    expect(el.querySelector('#mobile-currency-toggle')).toBeNull();
+    expect(el.querySelector('#mobile-lang-toggle')).toBeNull();
+    expect(el.querySelector('#mobile-theme-toggle')).toBeNull();
     expect(el.querySelector('#mobile-privacy-toggle')).toBeTruthy();
-    expect(el.querySelector('#mobile-theme-toggle')).toBeTruthy();
     expect(el.querySelector('#mobile-refresh-btn')).toBeTruthy();
+    expect(el.querySelector('#mobile-user-menu-btn')).toBeTruthy();
+    expect(el.querySelector('#mobile-local-banner')).toBeTruthy();
+  });
+
+  it('should open user settings, auth gate, and local portfolio modals cleanly and hide local banner for owner', () => {
+    const state = TestBed.inject(MobileStateService);
+    const auth = TestBed.inject(AuthService);
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+
+    state.openUserSettings();
+    expect(state.isUserSettingsOpen()).toBe(true);
+    state.closeUserSettings();
+    expect(state.isUserSettingsOpen()).toBe(false);
+
+    state.openLocalPortfolio();
+    expect(state.isLocalPortfolioOpen()).toBe(true);
+    state.closeLocalPortfolio();
+    expect(state.isLocalPortfolioOpen()).toBe(false);
+
+    auth.isGuestDismissed.set(false);
+    expect(state.shouldShowAuthGate()).toBe(true);
+
+    auth.session.set({
+      access_token: 'owner-tok',
+      user: { id: 'o1', email: 'vipatpolk@gmail.com' },
+    } as any);
+    auth.canViewCloudPortfolio.set(true);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('#mobile-local-banner')).toBeNull();
   });
 
   it('should resolve platform-adaptive Ionic mode dynamically', () => {
@@ -92,5 +147,38 @@ describe('SGSK Wealth Mobile App', () => {
     const nativePlatform = TestBed.inject(NativePlatformService);
     expect(nativePlatform.getPlatform()).toBe('web');
     expect(nativePlatform.resolveApiBaseUrl()).toBe('/api/backend');
+  });
+
+  it('should reopen user settings on pendingSettingsReopen and safely handle native auth helpers on web', async () => {
+    const state = TestBed.inject(MobileStateService);
+    const auth = TestBed.inject(AuthService);
+    const nativePlatform = TestBed.inject(NativePlatformService);
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+
+    expect(state.isUserSettingsOpen()).toBe(false);
+    auth.pendingSettingsReopen.set(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(state.isUserSettingsOpen()).toBe(true);
+    expect(auth.pendingSettingsReopen()).toBe(false);
+
+    expect(await nativePlatform.getInitialAuthUrl()).toBeNull();
+    await expect(nativePlatform.closeExternalAuthUrl()).resolves.toBeUndefined();
+  });
+
+  it('should switch language between EN and TH inside MobileAuthModalComponent', () => {
+    const authFixture = TestBed.createComponent(MobileAuthModalComponent);
+    const authModal = authFixture.componentInstance;
+    const state = TestBed.inject(MobileStateService);
+
+    authModal.setLanguage('th');
+    expect(authModal.i18n.lang()).toBe('th');
+    expect(state.i18n.lang()).toBe('th');
+
+    authModal.setLanguage('en');
+    expect(authModal.i18n.lang()).toBe('en');
+    expect(state.i18n.lang()).toBe('en');
   });
 });

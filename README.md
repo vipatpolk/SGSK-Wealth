@@ -16,6 +16,7 @@
   <img src="https://img.shields.io/badge/TypeScript-6.0-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript 6.0" />
   <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.10+" />
   <img src="https://img.shields.io/badge/FastAPI-0.115+-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Supabase-Auth_%26_Postgres-3ECF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase Auth & Postgres" />
   <img src="https://img.shields.io/badge/yfinance-1.8+-6001D2?style=flat-square" alt="yfinance 1.8+" />
   <img src="https://img.shields.io/badge/Java-25+-ED8B00?style=flat-square&logo=openjdk&logoColor=white" alt="Java 25+" />
   <img src="https://img.shields.io/badge/Spring_Boot-4.1-6DB33F?style=flat-square&logo=springboot&logoColor=white" alt="Spring Boot 4.1" />
@@ -36,13 +37,15 @@
 
 **SGSK-Wealth** is a production-grade wealth management monorepo designed to solve the complexity of multi-asset, multi-currency portfolio tracking and tax accounting. It automates **First-In, First-Out (FIFO)** transaction matching, reconciles cost bases, calculates unrealized and realized capital gains, and streams live market quotes and foreign exchange rates across both a **Web SPA (`web/`)** and a **Native iOS & Android Mobile App (`mobile/`)** powered by a shared TypeScript core (`shared/`).
 
-The platform ingests trading transaction logs from Google Sheets, connects with external financial data providers (Yahoo Finance via `yfinance`, Binance TH, SET Thailand, SEC Thailand Mutual Fund & PVD APIs), and provides automated API, Web UI, and Mobile E2E verification.
+The platform supports **multi-tier authentication and portfolio data isolation** via **Supabase Auth** (Email/Password, Google OAuth 2.0 PKCE, and Account Linking): the authorized owner account syncs live trading transaction logs from **Cloud Google Sheets**, while Guest and standard signed-in users operate a full-featured **On-Device Local Portfolio Workspace** enriched with live market prices and dividends from external financial data providers (Yahoo Finance via `yfinance`, Binance TH, SET Thailand, SEC Thailand Mutual Fund & PVD APIs).
 
 ```mermaid
 flowchart LR
-    DataSources["Google Sheets\n(Transaction CSVs)"] --> Backend["FastAPI Backend\n(FIFO Engine & Analytics)"]
-    MarketData["yfinance (Yahoo Finance) / Binance TH / SET / SEC TH"] --> Backend
-    Shared["shared/\n(Models, Services, Utils, i18n)"] --> Web["web/\nAngular 22 Web SPA"]
+    DataSources["Google Sheets\n(Owner Cloud CSVs)"] --> Backend["FastAPI Backend\n(FIFO Engine, Owner Guard & Analytics)"]
+    Supabase["Supabase Auth & Postgres\n(JWT/JWKS, profiles, user_settings)"] --> Backend
+    Supabase --> Shared["shared/\n(Models, Auth, Settings, Local Portfolio, i18n)"]
+    MarketData["yfinance / Binance TH / SET / SEC TH"] --> Backend
+    Shared --> Web["web/\nAngular 22 Web SPA\n(Desktop Left Sidebar / Mobile Bottom Nav)"]
     Shared --> Mobile["mobile/\nIonic 9 + Capacitor 8\n(iOS & Android Maven)"]
     Backend --> Web
     Backend --> Mobile
@@ -54,6 +57,21 @@ flowchart LR
 ---
 
 ## Key Features & Functional Modules
+
+### 🔐 Authentication, Account Linking & Cloud/Local Portfolio Isolation
+- **Supabase Auth (Email/Password & Google OAuth 2.0 PKCE)**: Sign in or sign up with Email/Password or Google OAuth across Web (`/auth/callback`) and Native Mobile (`com.sgsk.wealth.mobile://auth/callback` via Chrome Custom Tabs / `SFSafariViewController`).
+- **Sign-In Screen Language Toggle (`EN` / `ไทย`)**: Instant bilingual switcher directly on the Web Sign-In screen and Mobile Auth modal that translates all authentication forms immediately, persists in `localStorage` / Capacitor `Preferences`, carries into Guest mode, and seeds Supabase `user_settings` on first registration.
+- **Bidirectional Account Linking**: Signed-in users can link or unlink their Google identity and set an email password directly from the **User Settings** modal, with PKCE callback recovery automatically reopening User Settings upon completion.
+- **Strict Owner Cloud Guard & On-Device Local Portfolio Workspace**:
+  - **Authorized Owner (`can_view_cloud_portfolio = true`)**: Verified server-side via Supabase JWT/JWKS (`require_owner_cloud_portfolio`) and Postgres RLS; automatically loads cloud Google Sheets portfolio data with local portfolio controls hidden.
+  - **Guest & Standard Users (`Local Portfolio Workspace`)**: Zero cloud portfolio API calls; provides full on-device transaction CRUD, CSV import/export, one-click sample portfolio loader, client-side FIFO lot matching, and live market price & dividend enrichment.
+
+### 🧭 Adaptive Navigation & Top-Right User Menu
+- **Desktop Left Sidebar + Slim Top Utility Bar (`>= 1201px`)**:
+  - Fixed left sidebar (`248px` expanded, collapsible to a `72px` icon-only rail via `#sidebar-collapse-btn` persisted in `localStorage`) housing the brand identity and 6 vertical workspace links (`Dashboard`, `Holdings`, `Analytics`, `Dividends`, `Transactions`, `Tools`).
+  - Slim `56px` sticky top utility bar displaying the active workspace breadcrumb on the left and the `USD/THB` exchange rate pill, Privacy Mode toggle (`#privacy-toggle-btn`), and top-right User Menu (`#user-menu-btn`) on the right.
+- **Mobile & Tablet Responsive Dock (`<= 1200px` Web & Native iOS/Android)**: Single-DOM responsive layout that transforms into a sticky top header and a fixed 6-tab bottom dock without duplicating DOM IDs.
+- **Unified User Settings Modal**: Accessible from the top-right User Menu on both Web and Mobile, consolidating Display Currency (`THB` / `USD`), Language (`English` / `ไทย`), Appearance Theme (`Dark` / `Light`), Privacy Mode switch, real-time Supabase preference sync status, display name management, and connected sign-in methods.
 
 ### 📊 Executive Dashboard Landing Page
 - **Root Landing View**: Direct landing at `/` with zero navigation friction.
@@ -71,7 +89,7 @@ flowchart LR
 - **Percentage Visibility**: Keeps performance percentages (`P/L %`, `Realized %`, `Yield on Cost %`, `Target %`, `Return %`) unblurred for safe public demonstrations or screen sharing.
 
 ### 🌐 Bilingual Localization (`EN` / `TH`)
-- **Top-Menu Language Toggle**: Instant switch (`EN` / `TH`) persisted under `sgsk_wealth_lang` with synchronized `<html lang>` and Gregorian CE date formatting (`th-TH-u-ca-gregory` / `en-US`).
+- **Sign-In & User Settings Language Toggle**: Instant switch (`EN` / `ไทย`) available directly on the Sign-In screen and inside the User Settings modal, persisted under `sgsk_wealth_lang` and synced to Supabase `user_settings` for authenticated users, with synchronized `<html lang>` and Gregorian CE date formatting (`th-TH-u-ca-gregory` / `en-US`).
 - **Dynamic Upstream Security Names**: Resolves English (`name`) and Thai (`nameTh`) security names dynamically from SEC Open APIs and market data feeds (`NavService`, `PriceService`) with zero hardcoded symbol-to-name maps.
 - **Market-Aware Display**: Thai equities (`.BK`), Mutual Funds (`.FUND`), and Provident Funds display in the active language (`TH` or `EN`), while non-Thai assets (`us-stock`, `crypto`, `bond`) remain in English across all views, dropdowns, and autocompletes.
 
@@ -121,16 +139,17 @@ flowchart LR
 
 | Technology | Version / Spec | Purpose & Architectural Role |
 |:---|:---|:---|
-| **TypeScript** | `~6.0.0` | Platform-agnostic domain models, shared UI components (`SymbolIconComponent`, `LoadingScreenComponent`, `DateRangePickerComponent`), financial math (`calculator`, `rebalance`, `tvm`, `format`, `symbol-icon`, `csv-exporter`), bilingual i18n dictionaries, and reactive pipes (`| t`, `| ldate`). |
-| **Angular DI Tokens** | `22.2+` | `API_BASE_URL` and `MAX_BATCH_SIZE` injection tokens decouple HTTP services (`PortfolioService`, `DividendService`, `PriceService`, `NavService`, `ShareLotService`, `ToolsService`) from web proxy vs. native mobile hosts. |
+| **TypeScript** | `~6.0.0` | Platform-agnostic domain models, shared UI components (`SymbolIconComponent`, `LoadingScreenComponent`, `DateRangePickerComponent`), financial math (`calculator`, `rebalance`, `tvm`, `format`, `symbol-icon`, `csv-exporter`, client-side FIFO `local-portfolio`), bilingual i18n dictionaries, and reactive pipes (`| t`, `| ldate`). |
+| **Supabase JS SDK** | `^2.103.3` | Shared `AuthService` (Email/Password, Google OAuth PKCE, manual identity linking/unlinking, cold-start deep-link callback capture) and `UserSettingsService` (real-time preference sync with `public.user_settings`). |
+| **Angular DI Tokens** | `22.2+` | `API_BASE_URL`, `MAX_BATCH_SIZE`, and `SUPABASE_CONFIG` injection tokens decouple HTTP & Auth services (`PortfolioService`, `DividendService`, `PriceService`, `NavService`, `ShareLotService`, `ToolsService`, `AuthService`, `UserSettingsService`, `LocalPortfolioService`) from web vs. native mobile hosts. |
 
 ### 2. Web Single Page Application (`web/`)
 
 | Technology | Version / Spec | Purpose & Architectural Role |
 |:---|:---|:---|
-| **[Angular](https://angular.dev/)** | `22.2+` | Modern web framework utilizing standalone components, reactive Signals, and Computed Signals. |
+| **[Angular](https://angular.dev/)** | `22.2+` | Modern web framework utilizing standalone components, reactive Signals, Computed Signals, collapsible desktop sidebar navigation (`>= 1201px`), and responsive bottom dock (`<= 1200px`). |
 | **[Tailwind CSS](https://tailwindcss.com/)** | `v4.3+` | Next-generation CSS framework utilizing `@theme` tokens, dark/light themes, and privacy blur filters. |
-| **[Vitest](https://vitest.dev/)** | `4.1+` | Fast unit testing runner paired with `jsdom` executing **352 unit tests across 35 test suites**. |
+| **[Vitest](https://vitest.dev/)** | `4.1+` | Fast unit testing runner paired with `jsdom` executing **381 unit tests across 40 test suites**. |
 
 ### 3. Native iOS & Android Mobile App (`mobile/`)
 
@@ -138,19 +157,19 @@ flowchart LR
 |:---|:---|:---|
 | **[Angular](https://angular.dev/)** | `22.2+` | Standalone component architecture sharing all domain logic from `@shared/*`. |
 | **[Ionic Framework](https://ionicframework.com/)** | `9.0+` | Native-adaptive iOS & Android UI components (`@ionic/angular` standalone, `ionicons` `8.1+`). |
-| **[Capacitor](https://capacitorjs.com/)** | `8.6+` | Native iOS (`mobile/ios/`) & Android (`mobile/android/`) container and plugins (`App`, `Haptics`, `Preferences`, `SplashScreen`, `StatusBar`). |
+| **[Capacitor](https://capacitorjs.com/)** | `8.6+` | Native iOS (`mobile/ios/`) & Android (`mobile/android/`) container and plugins (`App`, `Browser`, `Haptics`, `Preferences`, `SplashScreen`, `StatusBar`). |
 | **[Apache Maven](https://maven.apache.org/)** | `3.9+` | Android APK build lifecycle (`mobile/android/pom.xml`) resolving AndroidX & Cordova AARs via Google Maven and packaging `.apk` via `build-apk.mjs`. |
-| **[Vitest](https://vitest.dev/)** | `4.1+` | Mobile component & Capacitor service unit tests (**18 unit tests across 9 test suites** in `mobile/src/app/**/*.spec.ts`). |
+| **[Vitest](https://vitest.dev/)** | `4.1+` | Mobile component & Capacitor service unit tests (**23 unit tests across 10 test suites** in `mobile/src/app/**/*.spec.ts`). |
 
 ### 4. Backend API & Analytics Service (`backend/`)
 
 | Technology | Version / Spec | Purpose & Architectural Role |
 |:---|:---|:---|
 | **[Python](https://www.python.org/)** | `3.10+` / `3.11` / `3.14` | High-level language powering mathematical algorithms, FIFO matching, and financial simulations. |
-| **[FastAPI](https://fastapi.tiangolo.com/)** | `0.115+` | Asynchronous REST API framework with OpenAPI docs and Pydantic v2 validation. |
+| **[FastAPI](https://fastapi.tiangolo.com/)** | `0.115+` | Asynchronous REST API framework with OpenAPI docs, Pydantic v2 validation, and Supabase JWT/JWKS owner authorization (`require_owner_cloud_portfolio`). |
 | **[yfinance](https://ranaroussi.github.io/yfinance/)** | `1.8+` | Async-offloaded `YFinanceClient` adapter (`curl_cffi` TLS impersonation, `<tempdir>/py-yfinance` serverless cache config, bounded concurrency) for stock quotes, FX rates, crypto display names, and full (`max`) dividend history. |
-| **[HTTPX](https://www.python-httpx.org/)** | `0.28+` | Asynchronous HTTP client for Google Sheets, Binance TH, SET listed company metadata, and SEC Thailand Open APIs. |
-| **[Pytest](https://docs.pytest.org/) / [Ruff](https://astral.sh/ruff) / [Mypy](https://mypy-lang.org/)** | `9.2+` / `0.17+` / `2.4+` | **136 unit tests** with $\ge 80\%$ coverage enforcement, strict linting, and static typing. |
+| **[HTTPX](https://www.python-httpx.org/)** | `0.28+` | Asynchronous HTTP client for Google Sheets, Supabase Auth/REST verification, Binance TH, SET listed company metadata, and SEC Thailand Open APIs. |
+| **[Pytest](https://docs.pytest.org/) / [Ruff](https://astral.sh/ruff) / [Mypy](https://mypy-lang.org/)** | `9.2+` / `0.17+` / `2.4+` | **154 unit tests** (`88.42%` coverage) with $\ge 80\%$ coverage enforcement, strict linting, and static typing. |
 
 ### 5. End-to-End Automation Suite (`e2e/`)
 
@@ -161,7 +180,7 @@ flowchart LR
 | **[Playwright for Java](https://playwright.dev/java/)** | `1.64+` | Web UI browser automation driving Chromium with network route interception (`@web`). |
 | **[Appium Java Client](https://appium.io/)** | `11.0+` | Native iOS (`XCUITestOptions`) & Android (`UiAutomator2Options`) automation with Capacitor WebView switching and local platform-mode WebView fallback (`@mobile`, `@android`, `@ios`). |
 | **[Rest Assured](https://rest-assured.io/)** | `6.3+` | Fluent REST API contract testing (`@api`). |
-| **[Cucumber-JVM](https://cucumber.io/) & [Allure](https://allurereport.org/)** | `8.0+` / `3.1+` | BDD Gherkin execution across **23 feature files** organized by target and business function with `AllureStepEvidencePlugin` attaching step-level Web/Mobile screenshots (`image/png`) and API JSON payloads (`application/json`) directly inside every executed step. |
+| **[Cucumber-JVM](https://cucumber.io/) & [Allure](https://allurereport.org/)** | `8.0+` / `3.1+` | BDD Gherkin execution across **25 feature files** organized by target and business function with `AllureStepEvidencePlugin` attaching step-level Web/Mobile screenshots (`image/png`) and API JSON payloads (`application/json`) directly inside every executed step. |
 
 ### 6. CI/CD Pipelines (`.github/workflows/`)
 
@@ -178,10 +197,10 @@ SGSK-Wealth/
 │   ├── main.py                 # FastAPI application entry point & CORS configuration
 │   ├── config/                 # Settings, API keys, and Google Sheet GID mappings
 │   ├── models/                 # Pydantic domain models
-│   ├── routers/                # API routers (share-lot, price, nav, portfolio, tools, icon)
+│   ├── routers/                # API routers (auth, share-lot, price, nav, portfolio, tools, icon)
 │   ├── services/               # Core business logic (FIFO engine, valuation, dividend, nav/factsheet, tools)
-│   ├── utils/                  # Shared HTTP client, yfinance adapter, TTL/singleflight cache, auth & format helpers
-│   ├── tests/                  # Pytest unit tests (136 tests, >=80% coverage enforced)
+│   ├── utils/                  # Shared HTTP client, Supabase JWT/JWKS verifier, yfinance adapter, TTL/singleflight cache, auth & format helpers
+│   ├── tests/                  # Pytest unit tests (154 tests, >=80% coverage enforced)
 │   ├── pyproject.toml          # Ruff, Mypy, and Pytest coverage configuration
 │   └── vercel.json             # Vercel serverless function configuration (@vercel/python)
 │
@@ -189,17 +208,17 @@ SGSK-Wealth/
 │   ├── package.json            # @sgsk-wealth/shared workspace package
 │   └── src/
 │       ├── components/         # Shared UI components (SymbolIconComponent, LoadingScreenComponent, DateRangePickerComponent)
-│       ├── config/             # asset.constants.ts, api-config.token.ts
+│       ├── config/             # asset.constants.ts, api-config.token.ts, supabase-config.token.ts
 │       ├── i18n/               # Bilingual EN / TH dictionaries with full key parity
-│       ├── models/             # TypeScript interfaces and domain models
+│       ├── models/             # TypeScript interfaces and domain models (portfolio, dividend, auth, user-settings)
 │       ├── pipes/              # Reactive localization & Gregorian date pipes (| t, | ldate)
-│       ├── services/           # Angular HTTP & i18n services
+│       ├── services/           # Angular HTTP, Supabase Auth, UserSettings, LocalPortfolio & i18n services
 │       ├── utils/              # Formatting, TVM, rebalance, and calculation helpers
 │       └── index.ts            # Barrel exports
 │
 ├── web/                        # Angular 22 Web Single Page Application (@sgsk-wealth/web)
 │   ├── public/                 # Static assets, SVG icons, and favicons
-│   ├── src/                    # Web components, app shell, proxy & Vercel config
+│   ├── src/                    # Web components (desktop sidebar header, auth-screen, user-settings-modal, local-portfolio-modal, views), app shell & proxy
 │   ├── angular.json
 │   ├── tsconfig.json           # Maps @shared/* -> ../shared/src/*
 │   ├── package.json
@@ -212,7 +231,7 @@ SGSK-Wealth/
 │   │   └── app/src/main/       # AndroidManifest.xml, MainActivity.java, Capacitor assets
 │   ├── ios/                    # Native iOS Xcode project (Swift + SPM Capacitor plugins)
 │   ├── src/app/
-│   │   ├── modals/             # Ionic FundFactsheetModalComponent
+│   │   ├── modals/             # Ionic modals (MobileAuthModal, MobileUserSettingsModal, MobileLocalPortfolioModal, FundFactsheetModal)
 │   │   ├── pages/              # dashboard, holdings, analytics, dividends, tools, transactions
 │   │   ├── services/           # NativePlatformService (Capacitor) & MobileStateService
 │   │   ├── app.component.ts    # Ionic shell with <ion-header> & 6-tab <ion-tab-bar>
@@ -337,11 +356,11 @@ SGSK-Wealth enforces strict quality standards before any code is committed:
 | Command | Description | Tech Stack |
 |:---|:---|:---|
 | **`npm run check`** | Run complete pre-commit QA suite (Gherkin lint, backend lint/test, web test/build, mobile test/build) | Monorepo Orchestration |
-| **`npm run lint:gherkin`** | Validate all **23 `.feature` files** with `validate_gherkin.py --strict` | Python Gherkin Linter |
+| **`npm run lint:gherkin`** | Validate all **25 `.feature` files** with `validate_gherkin.py --strict` | Python Gherkin Linter |
 | **`npm run lint:backend`** | Run Ruff linter and Mypy static type checker on `backend/` | Ruff & Mypy |
-| **`npm run test:backend`** | Run Pytest unit test suite (**136 tests**) with coverage enforcement ($\ge 80\%$) | Pytest & Coverage |
-| **`npm run test:web`** | Run Web Vitest unit test suite (**352 tests across 35 suites**) | Vitest & jsdom |
-| **`npm run test:mobile`** | Run Mobile Vitest unit test suite (**18 tests across 9 suites**) | Vitest & Ionic |
+| **`npm run test:backend`** | Run Pytest unit test suite (**154 tests**) with coverage enforcement ($\ge 80\%$) | Pytest & Coverage |
+| **`npm run test:web`** | Run Web Vitest unit test suite (**381 tests across 40 suites**) | Vitest & jsdom |
+| **`npm run test:mobile`** | Run Mobile Vitest unit test suite (**23 tests across 10 suites**) | Vitest & Ionic |
 | **`npm run build:web`** | Compile production-ready Web Angular bundle | Angular CLI |
 | **`npm run build:mobile`** | Compile production-ready Ionic mobile bundle | Angular CLI |
 | **`npm run cap:sync`** | Build mobile bundle and sync assets/plugins to `mobile/android` & `mobile/ios` | Capacitor CLI |

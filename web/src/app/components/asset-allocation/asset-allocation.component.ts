@@ -17,6 +17,8 @@ import {
 } from '../../models/transaction.model';
 import { PriceData } from '../../services/price.service';
 import { PortfolioService } from '../../services/portfolio.service';
+import { AuthService } from '@shared/services/auth.service';
+import { UserSettingsService } from '@shared/services/user-settings.service';
 import { I18nService } from '../../services/i18n.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { PortfolioAllocationResponse } from '../../models/portfolio.model';
@@ -39,6 +41,8 @@ import {
 })
 export class AssetAllocationComponent implements OnInit {
   private readonly portfolioService = inject(PortfolioService);
+  private readonly authService = inject(AuthService);
+  private readonly userSettings = inject(UserSettingsService);
   readonly i18n = inject(I18nService);
 
   summaries = input.required<SymbolSummary[]>();
@@ -76,6 +80,16 @@ export class AssetAllocationComponent implements OnInit {
 
   constructor() {
     effect(() => {
+      const savedTargets = this.userSettings.targetAllocations();
+      this.targetAllocation.set({ ...this.defaultTargets, ...savedTargets });
+    });
+
+    effect(() => {
+      if (this.authService.activeDataSource() !== 'cloud') {
+        this.serverAllocation.set(null);
+        return;
+      }
+
       const targets = this.targetAllocation();
       const curr = this.displayCurrency();
       this.portfolioService.fetchAllocation(targets, curr).subscribe({
@@ -85,33 +99,17 @@ export class AssetAllocationComponent implements OnInit {
           }
         },
       });
-      if (typeof localStorage !== 'undefined' && localStorage != null) {
-        try {
-          localStorage.setItem('sgsk_wealth_target_allocation', JSON.stringify(targets));
-          localStorage.setItem('sharelot_target_allocation', JSON.stringify(targets));
-        } catch {
-          // Ignore localStorage errors
-        }
-      }
     });
   }
 
   ngOnInit() {
-    if (typeof localStorage !== 'undefined' && localStorage != null) {
-      try {
-        const saved =
-          localStorage.getItem('sgsk_wealth_target_allocation') ||
-          localStorage.getItem('sharelot_target_allocation');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (parsed && typeof parsed === 'object') {
-            this.targetAllocation.set({ ...this.defaultTargets, ...parsed });
-          }
-        }
-      } catch {
-        // use defaults
-      }
-    }
+    this.targetAllocation.set({ ...this.defaultTargets, ...this.userSettings.targetAllocations() });
+  }
+
+  updateTargets(targets: TargetAllocation): void {
+    const merged = { ...this.defaultTargets, ...targets };
+    this.targetAllocation.set(merged);
+    this.userSettings.setTargetAllocations(merged);
   }
 
   private cx(value: number, originalCurrency: string): number {

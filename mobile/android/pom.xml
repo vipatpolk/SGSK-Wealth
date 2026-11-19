@@ -100,6 +100,12 @@
                                     <type>aar</type>
                                 </artifactItem>
                                 <artifactItem>
+                                    <groupId>androidx.browser</groupId>
+                                    <artifactId>browser</artifactId>
+                                    <version>1.9.0</version>
+                                    <type>aar</type>
+                                </artifactItem>
+                                <artifactItem>
                                     <groupId>androidx.core</groupId>
                                     <artifactId>core-splashscreen</artifactId>
                                     <version>${androidx.splashscreen.version}</version>

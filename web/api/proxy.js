@@ -15,7 +15,7 @@ function applyCorsHeaders(req, res) {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
     res.setHeader(
       'Access-Control-Allow-Headers',
-      'Content-Type, X-API-Key, X-App-Source, X-Requested-With',
+      'Content-Type, Authorization, X-API-Key, X-App-Source, X-Requested-With',
     );
   }
 }
@@ -60,6 +60,9 @@ export default async function handler(req, res) {
 
   if (req.headers['content-type']) {
     forwardHeaders['Content-Type'] = req.headers['content-type'];
+  }
+  if (req.headers['authorization']) {
+    forwardHeaders['Authorization'] = req.headers['authorization'];
   }
 
   try {

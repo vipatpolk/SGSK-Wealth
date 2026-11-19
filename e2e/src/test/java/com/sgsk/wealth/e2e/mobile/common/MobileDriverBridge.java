@@ -163,4 +163,22 @@ public class MobileDriverBridge {
         }
         return webView().locator("html").getAttribute(attribute);
     }
+
+    public boolean hasClass(String selector, String cssClass) {
+        waitForVisible(selector);
+        String cls = isAppiumActive()
+                ? appium().findElement(By.cssSelector(selector)).getAttribute("class")
+                : webView().locator(selector).first().getAttribute("class");
+        return cls != null && java.util.Arrays.asList(cls.trim().split("\\s+")).contains(cssClass);
+    }
+
+    public void assertNotPresent(String selector) {
+        if (isAppiumActive()) {
+            assertTrue(appium().findElements(By.cssSelector(selector)).isEmpty(),
+                    "Expected element not present: " + selector);
+            return;
+        }
+        assertTrue(webView().locator(selector).count() == 0,
+                "Expected element not present: " + selector);
+    }
 }

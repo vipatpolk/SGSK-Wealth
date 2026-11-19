@@ -5,7 +5,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401) {
-        console.error('[HTTP 401] Unauthorized: Missing or invalid API key.', error.url);
+        console.error('[HTTP 401] Unauthorized: Missing or invalid credentials.', error.url);
+      } else if (error.status === 403) {
+        console.warn('[HTTP 403] Forbidden: Access restricted for this account.', error.url);
       } else if (error.status === 429) {
         console.error('[HTTP 429] Too Many Requests: Rate limit exceeded.', error.url);
       } else if (error.status === 422) {

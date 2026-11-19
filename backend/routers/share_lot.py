@@ -3,8 +3,13 @@ from fastapi import APIRouter, Depends
 from models.transaction import SheetResult
 from services.share_lot_service import ShareLotService
 from utils.auth import verify_api_key
+from utils.supabase_auth import require_portfolio_authorized_user
 
-router = APIRouter(prefix="/share-lot", tags=["share-lot"], dependencies=[Depends(verify_api_key)])
+router = APIRouter(
+    prefix="/share-lot",
+    tags=["share-lot"],
+    dependencies=[Depends(verify_api_key), Depends(require_portfolio_authorized_user)],
+)
 service = ShareLotService()
 
 

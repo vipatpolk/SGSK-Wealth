@@ -5,6 +5,7 @@ import { SymbolIconComponent } from '../symbol-icon/symbol-icon.component';
 import { SymbolSummary, ClosedSymbolSummary, SymbolTransactionSummary, Transaction } from '../../models/transaction.model';
 import { PriceData } from '../../services/price.service';
 import { PortfolioService } from '../../services/portfolio.service';
+import { AuthService } from '@shared/services/auth.service';
 import { I18nService } from '../../services/i18n.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { PortfolioPerformanceResponse } from '../../models/portfolio.model';
@@ -29,6 +30,7 @@ import {
 })
 export class PerformanceComponent {
   private readonly portfolioService = inject(PortfolioService);
+  private readonly authService = inject(AuthService);
   readonly i18n = inject(I18nService);
 
   summaries = input.required<SymbolSummary[]>();
@@ -78,6 +80,11 @@ export class PerformanceComponent {
 
   constructor() {
     effect(() => {
+      if (this.authService.activeDataSource() !== 'cloud') {
+        this.serverPerformance.set(null);
+        return;
+      }
+
       const curr = this.displayCurrency();
       const start = this.startDate();
       const end = this.endDate();

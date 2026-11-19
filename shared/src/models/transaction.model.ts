@@ -84,7 +84,7 @@ export interface SymbolTransaction {
   id: string;
   symbol: string;
   date: string;
-  type: 'BUY' | 'SELL' | 'EXCHANGE' | 'EXCHANGE_IN' | 'EXCHANGE_OUT';
+  type: 'BUY' | 'SELL' | 'EXCHANGE' | 'EXCHANGE_IN' | 'EXCHANGE_OUT' | 'DIVIDEND';
   quantity: number;
   rawQuantity: number;
   price: number;

@@ -2,6 +2,7 @@ package com.sgsk.wealth.e2e.web.navigation;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.WaitForSelectorState;
 import com.sgsk.wealth.e2e.core.context.TestContext;
 import io.cucumber.spring.ScenarioScope;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,13 +22,22 @@ public class HeaderPage {
     public final Locator viewToggleTransactionsBtn;
     public final Locator viewToggleToolsBtn;
     public final Locator viewToggleDividendsBtn;
-    public final Locator currencyUsdBtn;
-    public final Locator currencyThbBtn;
-    public final Locator langToggle;
-    public final Locator langEnBtn;
-    public final Locator langThBtn;
-    public final Locator themeToggleBtn;
     public final Locator privacyToggleBtn;
+    public final Locator userMenuBtn;
+    public final Locator userMenuDropdown;
+    public final Locator userMenuSettingsBtn;
+    public final Locator userMenuLocalDataBtn;
+    public final Locator userMenuSignInBtn;
+    public final Locator userMenuSignOutBtn;
+    public final Locator settingsModal;
+    public final Locator settingsCurrencyUsdBtn;
+    public final Locator settingsCurrencyThbBtn;
+    public final Locator settingsLangEnBtn;
+    public final Locator settingsLangThBtn;
+    public final Locator settingsThemeDarkBtn;
+    public final Locator settingsThemeLightBtn;
+    public final Locator settingsCloseBtn;
+    private final Page page;
 
     @Autowired
     public HeaderPage(TestContext testContext) {
@@ -35,6 +45,7 @@ public class HeaderPage {
     }
 
     public HeaderPage(Page page) {
+        this.page = page;
         this.logoText = page.locator(".logo-text");
         this.viewToggleDashboardBtn = page.locator("#view-toggle-dashboard");
         this.viewToggleHoldingsBtn = page.locator("#view-toggle-holdings");
@@ -45,13 +56,21 @@ public class HeaderPage {
         this.viewToggleTransactionsBtn = page.locator("#view-toggle-transactions");
         this.viewToggleToolsBtn = page.locator("#view-toggle-tools");
         this.viewToggleDividendsBtn = page.locator("#view-toggle-dividends");
-        this.currencyUsdBtn = page.locator("#currency-usd");
-        this.currencyThbBtn = page.locator("#currency-thb");
-        this.langToggle = page.locator("#lang-toggle");
-        this.langEnBtn = page.locator("#lang-en");
-        this.langThBtn = page.locator("#lang-th");
-        this.themeToggleBtn = page.locator("#theme-toggle-btn");
         this.privacyToggleBtn = page.locator("#privacy-toggle-btn");
+        this.userMenuBtn = page.locator("#user-menu-btn");
+        this.userMenuDropdown = page.locator("#user-menu-dropdown");
+        this.userMenuSettingsBtn = page.locator("#user-menu-settings-btn");
+        this.userMenuLocalDataBtn = page.locator("#user-menu-local-data-btn");
+        this.userMenuSignInBtn = page.locator("#user-menu-signin-btn");
+        this.userMenuSignOutBtn = page.locator("#user-menu-signout-btn");
+        this.settingsModal = page.locator("#user-settings-modal");
+        this.settingsCurrencyUsdBtn = page.locator("#settings-currency-usd");
+        this.settingsCurrencyThbBtn = page.locator("#settings-currency-thb");
+        this.settingsLangEnBtn = page.locator("#settings-lang-en");
+        this.settingsLangThBtn = page.locator("#settings-lang-th");
+        this.settingsThemeDarkBtn = page.locator("#settings-theme-dark");
+        this.settingsThemeLightBtn = page.locator("#settings-theme-light");
+        this.settingsCloseBtn = page.locator("#settings-close-btn");
     }
 
     public void selectDashboardView() {
@@ -102,23 +121,60 @@ public class HeaderPage {
         }
     }
 
+    public void openUserMenu() {
+        if (!userMenuDropdown.isVisible()) {
+            userMenuBtn.click();
+            userMenuDropdown.waitFor();
+        }
+    }
+
+    public void openUserSettings() {
+        if (!settingsModal.isVisible()) {
+            openUserMenu();
+            userMenuSettingsBtn.click();
+            settingsModal.waitFor();
+        }
+    }
+
+    public void closeUserSettings() {
+        if (settingsModal.isVisible()) {
+            settingsCloseBtn.click();
+            settingsModal.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.HIDDEN));
+        }
+    }
+
     public void switchToUSD() {
-        currencyUsdBtn.click();
+        openUserSettings();
+        settingsCurrencyUsdBtn.click();
+        closeUserSettings();
     }
 
     public void switchToTHB() {
-        currencyThbBtn.click();
+        openUserSettings();
+        settingsCurrencyThbBtn.click();
+        closeUserSettings();
     }
 
     public void switchToEN() {
-        langEnBtn.click();
+        openUserSettings();
+        settingsLangEnBtn.click();
+        closeUserSettings();
     }
 
     public void switchToTH() {
-        langThBtn.click();
+        openUserSettings();
+        settingsLangThBtn.click();
+        closeUserSettings();
     }
 
     public void toggleTheme() {
-        themeToggleBtn.click();
+        String current = page.locator("html").getAttribute("data-theme");
+        openUserSettings();
+        if ("dark".equalsIgnoreCase(current)) {
+            settingsThemeLightBtn.click();
+        } else {
+            settingsThemeDarkBtn.click();
+        }
+        closeUserSettings();
     }
 }

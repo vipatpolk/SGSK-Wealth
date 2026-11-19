@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
 import { App } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
 import { Capacitor, PluginListenerHandle } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { Preferences } from '@capacitor/preferences';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { SupabaseStorageAdapter } from '@shared/config/supabase-config.token';
 import { environment } from '../../environments/environment';
 
 export type NativePlatform = 'ios' | 'android' | 'web';
@@ -138,6 +140,75 @@ export class NativePlatformService {
       }
     } catch {
       // Ignore storage write errors
+    }
+  }
+
+  async removePreference(key: string): Promise<void> {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(key);
+      }
+      if (this.isNative()) {
+        await Preferences.remove({ key });
+      }
+    } catch {
+      // Ignore storage remove errors
+    }
+  }
+
+  createSupabaseStorageAdapter(): SupabaseStorageAdapter {
+    return {
+      getItem: (key: string) => this.getPreference(key),
+      setItem: (key: string, value: string) => this.setPreference(key, value),
+      removeItem: (key: string) => this.removePreference(key),
+    };
+  }
+
+  async openExternalAuthUrl(url: string): Promise<void> {
+    if (this.isNative()) {
+      await Browser.open({ url, presentationStyle: 'popover' });
+      return;
+    }
+    if (typeof window !== 'undefined') {
+      window.location.assign(url);
+    }
+  }
+
+  async closeExternalAuthUrl(): Promise<void> {
+    if (!this.isNative()) return;
+    try {
+      await Browser.close();
+    } catch {
+      // Ignore if browser is already closed or unsupported
+    }
+  }
+
+  async getInitialAuthUrl(): Promise<string | null> {
+    if (!this.isNative()) return null;
+    try {
+      const launch = await App.getLaunchUrl();
+      return launch?.url ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  async registerAuthUrlListener(callback: (url: string) => void): Promise<() => void> {
+    if (!this.isNative()) {
+      return () => undefined;
+    }
+    try {
+      const handle = await App.addListener('appUrlOpen', ({ url }) => {
+        if (url) {
+          void Browser.close().catch(() => undefined);
+          callback(url);
+        }
+      });
+      return () => {
+        void handle.remove();
+      };
+    } catch {
+      return () => undefined;
     }
   }
 }

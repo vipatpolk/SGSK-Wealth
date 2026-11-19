@@ -32,13 +32,16 @@ public class WebHooks {
     }
 
     @Before("@web")
-    public void setupWebScenario() {
+    public void setupWebScenario(Scenario scenario) {
         serverManager.ensureBackendServer();
         String frontendUrl = serverManager.ensureFrontendServer();
 
         BrowserContext context = playwrightManager.newBrowserContext(frontendUrl);
         Page page = context.newPage();
-        apiRouteMocker.mockPortfolioAPIs(page);
+        boolean freshAuth = scenario != null
+                && (scenario.getSourceTagNames().contains("@auth_fresh")
+                || scenario.getSourceTagNames().contains("@guest"));
+        apiRouteMocker.mockPortfolioAPIs(page, !freshAuth);
 
         testContext.setBrowserContext(context);
         testContext.setPage(page);

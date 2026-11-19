@@ -65,7 +65,10 @@ public class MobileHooks {
         String mobileUrl = serverManager.ensureMobileServer();
         BrowserContext context = playwrightManager.newMobileBrowserContext(mobileUrl, resolvedPlatform);
         Page page = context.newPage();
-        apiRouteMocker.mockPortfolioAPIs(page);
+        boolean freshAuth = scenario != null
+                && (scenario.getSourceTagNames().contains("@auth_fresh")
+                || scenario.getSourceTagNames().contains("@guest"));
+        apiRouteMocker.mockPortfolioAPIs(page, !freshAuth);
 
         testContext.setBrowserContext(context);
         testContext.setPage(page);

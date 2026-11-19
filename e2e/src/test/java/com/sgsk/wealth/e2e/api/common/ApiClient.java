@@ -29,9 +29,19 @@ public class ApiClient {
         return properties.backend().apiKey();
     }
 
+    private String ownerBearerToken() {
+        String prop = System.getProperty("e2e.auth.bearer");
+        if (prop != null && !prop.isBlank()) {
+            return prop.trim();
+        }
+        String env = System.getenv("E2E_AUTH_BEARER");
+        return (env != null && !env.isBlank()) ? env.trim() : "mock-owner-jwt";
+    }
+
     public Response getAuthorized(String endpoint) {
         Response response = given()
                 .header("X-API-Key", apiKey())
+                .header("Authorization", "Bearer " + ownerBearerToken())
                 .get(endpoint);
         context.setLastApiResponse(response);
         return response;
@@ -40,6 +50,7 @@ public class ApiClient {
     public Response getAuthorized(String endpoint, Map<String, String> queryParams) {
         Response response = given()
                 .header("X-API-Key", apiKey())
+                .header("Authorization", "Bearer " + ownerBearerToken())
                 .queryParams(queryParams)
                 .get(endpoint);
         context.setLastApiResponse(response);
@@ -54,6 +65,7 @@ public class ApiClient {
     public Response postAuthorizedJson(String endpoint, String jsonBody) {
         Response response = given()
                 .header("X-API-Key", apiKey())
+                .header("Authorization", "Bearer " + ownerBearerToken())
                 .contentType(ContentType.JSON)
                 .body(jsonBody)
                 .post(endpoint);
@@ -65,6 +77,32 @@ public class ApiClient {
         Response response = given()
                 .header(headerName, headerValue)
                 .get(endpoint);
+        context.setLastApiResponse(response);
+        return response;
+    }
+
+    public Response sendApiKeyOnly(String method, String endpoint) {
+        Response response = "POST".equalsIgnoreCase(method)
+                ? given().header("X-API-Key", apiKey()).contentType(ContentType.JSON).body("{}").when().post(endpoint)
+                : given().header("X-API-Key", apiKey()).when().get(endpoint);
+        context.setLastApiResponse(response);
+        return response;
+    }
+
+    public Response sendWithApiKeyAndBearer(String method, String endpoint, String bearerToken) {
+        Response response = "POST".equalsIgnoreCase(method)
+                ? given()
+                        .header("X-API-Key", apiKey())
+                        .header("Authorization", "Bearer " + bearerToken)
+                        .contentType(ContentType.JSON)
+                        .body("{}")
+                        .when()
+                        .post(endpoint)
+                : given()
+                        .header("X-API-Key", apiKey())
+                        .header("Authorization", "Bearer " + bearerToken)
+                        .when()
+                        .get(endpoint);
         context.setLastApiResponse(response);
         return response;
     }

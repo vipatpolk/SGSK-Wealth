@@ -43,6 +43,26 @@ class Settings(BaseSettings):
     yfinance_max_concurrency: int = 8
     yfinance_dividend_period: str = "max"
     yfinance_cache_dir: str = ""
+    supabase_url: str = "https://jjdnxifgpbdvntfwhyzz.supabase.co"
+    supabase_publishable_key: str = ""
+    supabase_jwks_url: str = ""
+    supabase_jwt_audience: str = "authenticated"
+    supabase_jwt_secret: str = ""
+    authorized_portfolio_emails: list[str] = ["vipatpolk@gmail.com"]
+
+    @property
+    def resolved_supabase_jwks_url(self) -> str:
+        if self.supabase_jwks_url.strip():
+            return self.supabase_jwks_url.strip()
+        if self.supabase_url.strip():
+            return f"{self.supabase_url.strip().rstrip('/')}/auth/v1/.well-known/jwks.json"
+        return ""
+
+    @property
+    def resolved_supabase_issuer(self) -> str:
+        if not self.supabase_url.strip():
+            return ""
+        return f"{self.supabase_url.strip().rstrip('/')}/auth/v1"
 
     model_config = SettingsConfigDict(
         env_file=(str(ROOT_ENV_FILE), ".env"),
@@ -76,6 +96,12 @@ class Settings(BaseSettings):
             if not self.google_spreadsheet_id or self.google_spreadsheet_id in ("sample_spreadsheet_id", ""):
                 raise ValueError(
                     "CRITICAL: GOOGLE_SPREADSHEET_ID must be securely configured via environment variables in production."
+                )
+            if not self.supabase_url.strip():
+                raise ValueError("CRITICAL: SUPABASE_URL must be configured in production.")
+            if not any(email.strip() for email in self.authorized_portfolio_emails):
+                raise ValueError(
+                    "CRITICAL: AUTHORIZED_PORTFOLIO_EMAILS must contain at least one authorized email in production."
                 )
         return self
 

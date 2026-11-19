@@ -87,11 +87,18 @@ export class MobileAnalyticsPage {
 
   constructor() {
     effect(() => {
+      const source = this.state.authService.activeDataSource();
       const currency = this.state.displayCurrency();
       const tf = this.timeframe();
       const s = this.startDate();
       const e = this.endDate();
       const effectiveTf = s || e ? 'CUSTOM' : tf;
+      if (source !== 'cloud') {
+        this.performance.set(null);
+        this.allocation.set(null);
+        this.loading.set(false);
+        return;
+      }
       this.loadAnalytics(currency, effectiveTf, s, e);
     });
   }
@@ -490,6 +497,13 @@ export class MobileAnalyticsPage {
   }
 
   private loadAnalytics(currency: 'USD' | 'THB', tf: string, start: string, end: string): void {
+    if (this.state.authService.activeDataSource() !== 'cloud') {
+      this.performance.set(null);
+      this.allocation.set(null);
+      this.loading.set(false);
+      return;
+    }
+
     this.loading.set(true);
     this.portfolioService.fetchPerformance(tf, start, end, currency).subscribe({
       next: (perf) => {

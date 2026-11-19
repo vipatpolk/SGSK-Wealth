@@ -25,6 +25,7 @@ const bat = (name) => (isWin ? `${name}.bat` : name);
 
 const ROOT_COORDS = [
   'androidx.appcompat:appcompat:1.7.0',
+  'androidx.browser:browser:1.9.0',
   'androidx.core:core:1.17.0',
   'androidx.activity:activity:1.11.0',
   'androidx.fragment:fragment:1.8.9',
@@ -319,8 +320,8 @@ function extractAarArchives() {
       const manifestFile = path.join(out, 'AndroidManifest.xml');
       if (fs.existsSync(manifestFile)) {
         const manifestXml = fs.readFileSync(manifestFile, 'utf8');
-        aarManifests.push({ name, xml: manifestXml });
         const pkgMatch = /\bpackage="([^"]+)"/.exec(manifestXml);
+        aarManifests.push({ name, pkg: pkgMatch ? pkgMatch[1] : null, xml: manifestXml });
         if (pkgMatch && (hasRes || hasRTxt)) {
           aarRPackages.add(pkgMatch[1]);
         }
@@ -352,11 +353,18 @@ function mergeAndroidManifests(appManifestXml, libraryManifests, appId) {
 
   const seenTopTags = new Set();
   const seenComponents = new Set();
+  const seenQueries = new Set();
   const extraTopBlocks = [];
   const extraAppBlocks = [];
+  const extraQueryBlocks = [];
   const startupMetaData = new Map();
   let startupProviderOpenTag = null;
   let appComponentFactory = null;
+
+  const qualifyRelativeNames = (block, pkg) => {
+    if (!pkg) return block;
+    return block.replace(/\bandroid:name="(\.[^"]+)"/g, `android:name="${pkg}$1"`);
+  };
 
   const trackExisting = (xml) => {
     for (const m of xml.matchAll(/<(permission|uses-permission|uses-feature)\b[^>]*>/g)) {
@@ -367,11 +375,17 @@ function mergeAndroidManifests(appManifestXml, libraryManifests, appId) {
       const name = getAttr(m[0], 'android:name');
       if (name) seenComponents.add(`${m[1]}:${name}`);
     }
+    for (const qm of xml.matchAll(/<queries\b[^>]*>([\s\S]*?)<\/queries>/g)) {
+      const inner = stripToolsAttrs(qm[1]).trim();
+      if (inner) seenQueries.add(inner.replace(/\s+/g, ' '));
+    }
   };
   trackExisting(merged);
 
   for (const lib of libraryManifests) {
     const xml = replaceAppId(lib.xml);
+    const xmlPkgMatch = /\bpackage="([^"]+)"/.exec(xml);
+    const libPkg = lib.pkg || (xmlPkgMatch ? xmlPkgMatch[1] : null);
 
     // Capture application-level android:appComponentFactory
     const appOpenMatch = /<application\b([^>]*)>/.exec(xml);
@@ -393,6 +407,17 @@ function mergeAndroidManifests(appManifestXml, libraryManifests, appId) {
       }
     }
 
+    // Top-level <queries> blocks (required for Android 11+ Chrome Custom Tabs / Browser plugin)
+    for (const qm of xml.matchAll(/<queries\b[^>]*>([\s\S]*?)<\/queries>/g)) {
+      const inner = stripToolsAttrs(qm[1]).trim();
+      if (!inner) continue;
+      const normKey = inner.replace(/\s+/g, ' ');
+      if (!seenQueries.has(normKey)) {
+        seenQueries.add(normKey);
+        extraQueryBlocks.push(inner);
+      }
+    }
+
     // Extract <application> inner components (<provider>, <receiver>, <service>, <activity>)
     const appBodyMatch = /<application\b[^>]*>([\s\S]*?)<\/application>/.exec(xml);
     if (!appBodyMatch) continue;
@@ -401,7 +426,7 @@ function mergeAndroidManifests(appManifestXml, libraryManifests, appId) {
     for (const tag of ['provider', 'receiver', 'service', 'activity']) {
       const regex = new RegExp(`<${tag}\\b([\\s\\S]*?)(?:/>|>[\\s\\S]*?</${tag}>)`, 'g');
       for (const m of appBody.matchAll(regex)) {
-        const block = m[0];
+        const block = qualifyRelativeNames(m[0], libPkg);
         const compName = getAttr(block, 'android:name');
         if (!compName) continue;
 
@@ -460,6 +485,20 @@ function mergeAndroidManifests(appManifestXml, libraryManifests, appId) {
     );
   }
 
+  if (extraQueryBlocks.length > 0) {
+    if (/<\/queries>/.test(merged)) {
+      merged = merged.replace(
+        /<\/queries>/,
+        `        ${extraQueryBlocks.join('\n        ')}\n    </queries>`
+      );
+    } else {
+      merged = merged.replace(
+        /<\/manifest>/,
+        `\n    <queries>\n        ${extraQueryBlocks.join('\n        ')}\n    </queries>\n</manifest>`
+      );
+    }
+  }
+
   return merged;
 }
 
@@ -500,6 +539,7 @@ async function main() {
   const capacitorAndroidDir = path.join(capacitorAndroidRoot, 'src', 'main');
   const capacitorPluginRoots = [
     '@capacitor/app',
+    '@capacitor/browser',
     '@capacitor/haptics',
     '@capacitor/preferences',
     '@capacitor/splash-screen',
@@ -514,7 +554,13 @@ async function main() {
   const libraryManifests = [...aarManifests];
   const capManifestPath = path.join(capacitorAndroidDir, 'AndroidManifest.xml');
   if (fs.existsSync(capManifestPath)) {
-    libraryManifests.push({ name: '@capacitor/android', xml: fs.readFileSync(capManifestPath, 'utf8') });
+    const capXml = fs.readFileSync(capManifestPath, 'utf8');
+    const capPkgMatch = /\bpackage="([^"]+)"/.exec(capXml);
+    libraryManifests.push({
+      name: '@capacitor/android',
+      pkg: capPkgMatch ? capPkgMatch[1] : 'com.getcapacitor.android',
+      xml: capXml,
+    });
   }
 
   const extraPackages = new Set([
@@ -525,18 +571,25 @@ async function main() {
   ]);
 
   for (const plugin of capacitorPluginRoots) {
-    const manifestPath = path.join(plugin.mainDir, 'AndroidManifest.xml');
-    if (fs.existsSync(manifestPath)) {
-      const xml = fs.readFileSync(manifestPath, 'utf8');
-      libraryManifests.push({ name: plugin.pkg, xml });
-      const pkgMatch = /\bpackage="([^"]+)"/.exec(xml);
-      if (pkgMatch) extraPackages.add(pkgMatch[1]);
-    }
+    let pluginPkg = null;
     const gradlePath = path.join(plugin.androidRoot, 'build.gradle');
     if (fs.existsSync(gradlePath)) {
       const gradleTxt = fs.readFileSync(gradlePath, 'utf8');
       const nsMatch = /\bnamespace\s*=?\s*["']([^"']+)["']/.exec(gradleTxt);
-      if (nsMatch) extraPackages.add(nsMatch[1]);
+      if (nsMatch) {
+        pluginPkg = nsMatch[1];
+        extraPackages.add(nsMatch[1]);
+      }
+    }
+    const manifestPath = path.join(plugin.mainDir, 'AndroidManifest.xml');
+    if (fs.existsSync(manifestPath)) {
+      const xml = fs.readFileSync(manifestPath, 'utf8');
+      const pkgMatch = /\bpackage="([^"]+)"/.exec(xml);
+      if (pkgMatch) {
+        pluginPkg = pkgMatch[1];
+        extraPackages.add(pkgMatch[1]);
+      }
+      libraryManifests.push({ name: plugin.pkg, pkg: pluginPkg, xml });
     }
   }
 

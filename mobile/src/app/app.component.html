@@ -35,27 +35,6 @@
       <ion-buttons slot="end" class="mobile-header-actions">
         <button
           type="button"
-          class="hdr-pill-btn font-mono"
-          id="mobile-currency-toggle"
-          (click)="state.toggleCurrency()"
-          [attr.aria-label]="state.displayCurrency() === 'THB' ? ('header.currencyUsd' | t) : ('header.currencyThb' | t)"
-        >
-          <span class="hdr-curr-symbol">{{ state.displayCurrency() === 'THB' ? '฿' : '$' }}</span>
-          <span class="hdr-curr-code">{{ state.displayCurrency() }}</span>
-        </button>
-
-        <button
-          type="button"
-          class="hdr-pill-btn"
-          id="mobile-lang-toggle"
-          (click)="state.toggleLang()"
-          [attr.aria-label]="'header.language' | t"
-        >
-          {{ state.i18n.lang().toUpperCase() }}
-        </button>
-
-        <button
-          type="button"
           class="hdr-icon-btn"
           [class.privacy-active]="state.privacyMode()"
           id="mobile-privacy-toggle"
@@ -63,16 +42,6 @@
           [attr.aria-label]="state.privacyMode() ? ('header.privacyShow' | t) : ('header.privacyHide' | t)"
         >
           <ion-icon [name]="state.privacyMode() ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
-        </button>
-
-        <button
-          type="button"
-          class="hdr-icon-btn"
-          id="mobile-theme-toggle"
-          (click)="state.toggleTheme()"
-          [attr.aria-label]="state.theme() === 'dark' ? ('header.themeLight' | t) : ('header.themeDark' | t)"
-        >
-          <ion-icon [name]="state.theme() === 'dark' ? 'sunny-outline' : 'moon-outline'"></ion-icon>
         </button>
 
         <button
@@ -87,12 +56,50 @@
             [class.spin-icon]="state.loading() || state.pricesLoading()"
           ></ion-icon>
         </button>
+
+        <button
+          type="button"
+          class="hdr-user-btn"
+          id="mobile-user-menu-btn"
+          (click)="state.openUserSettings()"
+          [attr.aria-label]="'userMenu.ariaLabel' | t"
+        >
+          <span class="m-avatar-dot" [class.guest]="!state.authService.isAuthenticated()">
+            {{ userInitial() }}
+          </span>
+          <span
+            class="m-mode-dot"
+            [class.cloud]="state.authService.activeDataSource() === 'cloud'"
+          >
+            {{
+              state.authService.activeDataSource() === 'cloud'
+                ? ('userMenu.cloudBadge' | t)
+                : ('userMenu.localBadge' | t)
+            }}
+          </span>
+        </button>
       </ion-buttons>
     </ion-toolbar>
+
+    @if (state.authService.activeDataSource() === 'local' && !state.shouldShowAuthGate()) {
+      <div class="mobile-local-banner" id="mobile-local-banner">
+        <span class="mobile-local-banner-text">
+          {{ 'localPortfolio.bannerTitle' | t }} ({{ state.localPortfolioService.transactionCount() }})
+        </span>
+        <button
+          type="button"
+          id="mobile-local-manage-btn"
+          class="mobile-local-banner-btn"
+          (click)="state.openLocalPortfolio()"
+        >
+          {{ 'localPortfolio.manageBtn' | t }}
+        </button>
+      </div>
+    }
   </ion-header>
 
   <!-- Branded Fullscreen Loader matching Web -->
-  @if (state.loading() && !state.portfolioData()) {
+  @if (!state.authService.initialized() || (state.loading() && !state.portfolioData() && !state.shouldShowAuthGate())) {
     <app-loading-screen
       variant="fullscreen"
       [statusTag]="state.loaderState().tag"
@@ -152,4 +159,26 @@
     [target]="state.activeFactsheetTarget()"
     (closeModal)="state.closeFactsheetModal()"
   ></app-mobile-factsheet-modal>
+
+  <app-mobile-auth-modal
+    [isOpen]="state.authService.initialized() && state.shouldShowAuthGate()"
+    [allowDismiss]="!state.authService.showAuthGate()"
+    (closed)="state.closeAuthModal()"
+    (authenticated)="state.closeAuthModal()"
+    (continueGuest)="state.closeAuthModal()"
+  ></app-mobile-auth-modal>
+
+  <app-mobile-user-settings-modal
+    [isOpen]="state.isUserSettingsOpen()"
+    (closed)="state.closeUserSettings()"
+    (openSignIn)="state.openAuthModal()"
+    (openLocalPortfolio)="state.openLocalPortfolio()"
+    (signOut)="state.signOut()"
+  ></app-mobile-user-settings-modal>
+
+  <app-mobile-local-portfolio-modal
+    [isOpen]="state.isLocalPortfolioOpen()"
+    (closed)="state.closeLocalPortfolio()"
+    (dataChanged)="state.onLocalPortfolioChanged()"
+  ></app-mobile-local-portfolio-modal>
 </ion-app>

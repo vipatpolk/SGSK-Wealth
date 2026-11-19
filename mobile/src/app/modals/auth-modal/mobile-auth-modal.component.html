@@ -1,0 +1,207 @@
+<ion-modal
+  id="mobile-auth-modal"
+  class="sgsk-sheet-modal mobile-auth-modal"
+  [isOpen]="isOpen()"
+  [backdropDismiss]="allowDismiss()"
+  (didDismiss)="onDidDismiss()"
+>
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>SGSK Wealth</ion-title>
+        @if (allowDismiss()) {
+          <ion-buttons slot="end">
+            <ion-button id="mobile-auth-close-btn" (click)="closed.emit()">
+              {{ 'common.close' | t }}
+            </ion-button>
+          </ion-buttons>
+        }
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <div class="m-auth-body">
+        <div class="m-auth-hero">
+          <div class="m-auth-brand">
+            <div class="m-auth-logo" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" />
+                <path d="M8 12.5l2.8 2.8 5.2-5.3" />
+              </svg>
+            </div>
+            <div>
+              <h1 class="m-auth-title">SGSK Wealth</h1>
+              <p class="m-auth-sub">{{ 'app.tagline' | t }}</p>
+            </div>
+          </div>
+
+          <div
+            class="m-auth-lang-toggle"
+            id="mobile-auth-lang-toggle"
+            role="group"
+            [attr.aria-label]="'settings.languageLabel' | t"
+          >
+            <button
+              type="button"
+              id="mobile-auth-lang-en"
+              class="m-auth-lang-btn"
+              [class.active]="i18n.lang() === 'en'"
+              [attr.aria-pressed]="i18n.lang() === 'en'"
+              [title]="'header.langEn' | t"
+              [attr.aria-label]="'header.langEn' | t"
+              (click)="setLanguage('en')"
+            >
+              EN
+            </button>
+            <button
+              type="button"
+              id="mobile-auth-lang-th"
+              class="m-auth-lang-btn"
+              [class.active]="i18n.lang() === 'th'"
+              [attr.aria-pressed]="i18n.lang() === 'th'"
+              [title]="'header.langTh' | t"
+              [attr.aria-label]="'header.langTh' | t"
+              (click)="setLanguage('th')"
+            >
+              ไทย
+            </button>
+          </div>
+        </div>
+
+        @if (mode() !== 'reset') {
+          <ion-segment
+            [value]="mode()"
+            (ionChange)="onSegmentChange($event)"
+            class="m-auth-segment"
+          >
+            <ion-segment-button value="signin" id="mobile-auth-tab-signin">
+              <ion-label>{{ 'auth.signIn' | t }}</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="signup" id="mobile-auth-tab-signup">
+              <ion-label>{{ 'auth.signUp' | t }}</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+
+          <button
+            type="button"
+            id="mobile-auth-google-btn"
+            class="m-auth-google-btn"
+            [disabled]="authService.loading()"
+            (click)="onGoogleSignIn()"
+          >
+            <span>{{ 'auth.continueWithGoogle' | t }}</span>
+          </button>
+
+          <div class="m-auth-divider">
+            <span>{{ 'auth.orWithEmail' | t }}</span>
+          </div>
+        } @else {
+          <div class="m-auth-reset-box">
+            <h2>{{ 'auth.resetPasswordTitle' | t }}</h2>
+            <p>{{ 'auth.resetPasswordDesc' | t }}</p>
+          </div>
+        }
+
+        @if (localError() || authService.authError(); as errMsg) {
+          <div class="m-auth-alert error" role="alert">{{ errMsg }}</div>
+        }
+        @if (authService.authNotice(); as noticeMsg) {
+          <div class="m-auth-alert success" role="status">{{ noticeMsg }}</div>
+        }
+
+        <form class="m-auth-form" (ngSubmit)="onSubmit()">
+          @if (mode() === 'signup') {
+            <label class="m-auth-field">
+              <span>{{ 'auth.displayNameLabel' | t }}</span>
+              <input
+                id="mobile-auth-name"
+                type="text"
+                class="m-auth-input"
+                [ngModel]="displayName()"
+                (ngModelChange)="displayName.set($event)"
+                [placeholder]="'auth.displayNamePlaceholder' | t"
+                name="displayName"
+              />
+            </label>
+          }
+
+          <label class="m-auth-field">
+            <span>{{ 'auth.emailLabel' | t }}</span>
+            <input
+              id="mobile-auth-email"
+              type="email"
+              class="m-auth-input"
+              [ngModel]="email()"
+              (ngModelChange)="email.set($event)"
+              [placeholder]="'auth.emailPlaceholder' | t"
+              name="email"
+              autocomplete="email"
+            />
+          </label>
+
+          @if (mode() !== 'reset') {
+            <label class="m-auth-field">
+              <div class="m-auth-field-row">
+                <span>{{ 'auth.passwordLabel' | t }}</span>
+                @if (mode() === 'signin') {
+                  <button
+                    type="button"
+                    id="mobile-auth-forgot-btn"
+                    class="m-auth-link-btn"
+                    (click)="setMode('reset')"
+                  >
+                    {{ 'auth.forgotPassword' | t }}
+                  </button>
+                }
+              </div>
+              <input
+                id="mobile-auth-password"
+                [type]="showPassword() ? 'text' : 'password'"
+                class="m-auth-input"
+                [ngModel]="password()"
+                (ngModelChange)="password.set($event)"
+                [placeholder]="'auth.passwordPlaceholder' | t"
+                name="password"
+              />
+            </label>
+          }
+
+          <button
+            type="submit"
+            id="mobile-auth-submit-btn"
+            class="m-auth-primary-btn"
+            [disabled]="authService.loading()"
+          >
+            @if (mode() === 'signin') {
+              {{ 'auth.submitSignIn' | t }}
+            } @else if (mode() === 'signup') {
+              {{ 'auth.submitSignUp' | t }}
+            } @else {
+              {{ 'auth.sendResetLink' | t }}
+            }
+          </button>
+
+          @if (mode() === 'reset') {
+            <button type="button" class="m-auth-link-btn center" (click)="setMode('signin')">
+              {{ 'auth.backToSignIn' | t }}
+            </button>
+          }
+        </form>
+
+        <div class="m-auth-guest-box">
+          <button
+            type="button"
+            id="mobile-auth-guest-btn"
+            class="m-auth-guest-btn"
+            [disabled]="authService.loading()"
+            (click)="onContinueAsGuest()"
+          >
+            {{ 'auth.continueAsGuest' | t }}
+          </button>
+          <p class="m-auth-hint">{{ 'auth.guestHint' | t }}</p>
+          <p class="m-auth-hint muted">{{ 'auth.ownerOnlyNotice' | t }}</p>
+        </div>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>

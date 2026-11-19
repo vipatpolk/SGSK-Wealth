@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HeaderComponent } from './header.component';
 import { ComponentRef } from '@angular/core';
+import { AuthService } from '@shared/services/auth.service';
 import { I18nService } from '../../services/i18n.service';
 
 describe('HeaderComponent', () => {
@@ -8,6 +9,7 @@ describe('HeaderComponent', () => {
   let componentRef: ComponentRef<HeaderComponent>;
   let fixture: ComponentFixture<HeaderComponent>;
   let i18n: I18nService;
+  let authService: AuthService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -15,7 +17,10 @@ describe('HeaderComponent', () => {
     }).compileComponents();
 
     i18n = TestBed.inject(I18nService);
+    authService = TestBed.inject(AuthService);
     i18n.setLang('en');
+    authService.session.set(null);
+    authService.canViewCloudPortfolio.set(false);
 
     fixture = TestBed.createComponent(HeaderComponent);
     component = fixture.componentInstance;
@@ -28,7 +33,6 @@ describe('HeaderComponent', () => {
     componentRef.setInput('exchangeRate', 35.0);
     componentRef.setInput('currentView', 'holdings');
     componentRef.setInput('displayCurrency', 'USD');
-    componentRef.setInput('theme', 'dark');
 
     fixture.detectChanges();
   });
@@ -230,33 +234,84 @@ describe('HeaderComponent', () => {
     expect(button.getAttribute('title')).toContain('Show sensitive');
   });
 
-  it('should render EN/TH language toggle and switch language when clicked', () => {
-    const toggle = fixture.nativeElement.querySelector('#lang-toggle') as HTMLElement;
-    const enBtn = fixture.nativeElement.querySelector('#lang-en') as HTMLButtonElement;
-    const thBtn = fixture.nativeElement.querySelector('#lang-th') as HTMLButtonElement;
-
-    expect(toggle).toBeTruthy();
-    expect(enBtn).toBeTruthy();
-    expect(thBtn).toBeTruthy();
-    expect(enBtn.classList.contains('lang-btn-active')).toBe(true);
-    expect(thBtn.classList.contains('lang-btn-active')).toBe(false);
-
-    const emittedLangs: string[] = [];
-    component.langChange.subscribe((lang) => emittedLangs.push(lang));
-
-    thBtn.click();
+  it('should omit currency, language, and theme buttons from header and render top-right user menu', () => {
+    componentRef.setInput('result', { totalSymbols: 2, totalLots: 4, error: null } as any);
     fixture.detectChanges();
 
-    expect(i18n.lang()).toBe('th');
-    expect(thBtn.classList.contains('lang-btn-active')).toBe(true);
-    expect(enBtn.classList.contains('lang-btn-active')).toBe(false);
-    expect(emittedLangs).toEqual(['th']);
+    expect(fixture.nativeElement.querySelector('#currency-toggle')).toBeNull();
+    expect(fixture.nativeElement.querySelector('#lang-toggle')).toBeNull();
+    expect(fixture.nativeElement.querySelector('#theme-toggle-btn')).toBeNull();
+    expect(fixture.nativeElement.querySelector('#privacy-toggle-btn')).toBeTruthy();
 
-    enBtn.click();
+    const menuBtn = fixture.nativeElement.querySelector('#user-menu-btn') as HTMLButtonElement;
+    expect(menuBtn).toBeTruthy();
+    menuBtn.click();
     fixture.detectChanges();
 
-    expect(i18n.lang()).toBe('en');
-    expect(enBtn.classList.contains('lang-btn-active')).toBe(true);
-    expect(emittedLangs).toEqual(['th', 'en']);
+    expect(fixture.nativeElement.querySelector('#user-menu-dropdown')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('#user-menu-settings-btn')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('#user-menu-local-data-btn')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('#user-menu-signin-btn')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('#user-menu-signout-btn')).toBeNull();
+  });
+
+  it('should emit openUserSettings and hide local portfolio item when signed in as cloud owner', () => {
+    authService.session.set({
+      access_token: 'owner-tok',
+      user: { id: 'u1', email: 'vipatpolk@gmail.com' },
+    } as any);
+    authService.canViewCloudPortfolio.set(true);
+    fixture.detectChanges();
+
+    let settingsOpened = false;
+    let signedOut = false;
+    component.openUserSettings.subscribe(() => (settingsOpened = true));
+    component.signOut.subscribe(() => (signedOut = true));
+
+    const menuBtn = fixture.nativeElement.querySelector('#user-menu-btn') as HTMLButtonElement;
+    menuBtn.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('#user-menu-local-data-btn')).toBeNull();
+    expect(fixture.nativeElement.querySelector('#user-menu-signin-btn')).toBeNull();
+    expect(fixture.nativeElement.querySelector('#user-menu-signout-btn')).toBeTruthy();
+
+    (fixture.nativeElement.querySelector('#user-menu-settings-btn') as HTMLButtonElement).click();
+    expect(settingsOpened).toBe(true);
+    expect(component.isUserMenuOpen()).toBe(false);
+
+    menuBtn.click();
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('#user-menu-signout-btn') as HTMLButtonElement).click();
+    expect(signedOut).toBe(true);
+  });
+
+  it('should render desktop sidebar container, compute activeViewLabelKey, and emit sidebarCollapseToggle', () => {
+    componentRef.setInput('result', { totalSymbols: 2, totalLots: 4, error: null } as any);
+    componentRef.setInput('currentView', 'dividends');
+    componentRef.setInput('sidebarCollapsed', false);
+    fixture.detectChanges();
+
+    expect(component.activeViewLabelKey()).toBe('nav.dividends');
+    const sidebarEl = fixture.nativeElement.querySelector('#desktop-sidebar') as HTMLElement;
+    expect(sidebarEl).toBeTruthy();
+    expect(sidebarEl.classList.contains('collapsed')).toBe(false);
+
+    const topbarTitle = fixture.nativeElement.querySelector('#desktop-topbar-title') as HTMLElement;
+    expect(topbarTitle?.textContent?.trim()).toBe('Dividends');
+
+    let collapseToggled = false;
+    component.sidebarCollapseToggle.subscribe(() => (collapseToggled = true));
+
+    const collapseBtn = fixture.nativeElement.querySelector(
+      '#sidebar-collapse-btn',
+    ) as HTMLButtonElement;
+    expect(collapseBtn).toBeTruthy();
+    collapseBtn.click();
+    expect(collapseToggled).toBe(true);
+
+    componentRef.setInput('sidebarCollapsed', true);
+    fixture.detectChanges();
+    expect(sidebarEl.classList.contains('collapsed')).toBe(true);
   });
 });

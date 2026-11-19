@@ -48,12 +48,34 @@ public class MobileShellScreen {
         driver.assertVisible(selector);
     }
 
+    public void openUserSettings() {
+        driver.tap("#mobile-user-menu-btn");
+        driver.waitForVisible("#mobile-settings-close-btn");
+    }
+
+    public void closeUserSettings() {
+        driver.tap("#mobile-settings-close-btn");
+        driver.waitForHidden("#mobile-settings-close-btn");
+    }
+
     public void toggleCurrency() {
-        driver.tap("#mobile-currency-toggle");
+        openUserSettings();
+        if (driver.hasClass("#mobile-settings-currency-thb", "active")) {
+            driver.tap("#mobile-settings-currency-usd");
+        } else {
+            driver.tap("#mobile-settings-currency-thb");
+        }
+        closeUserSettings();
     }
 
     public void toggleLanguage() {
-        driver.tap("#mobile-lang-toggle");
+        openUserSettings();
+        if (driver.hasClass("#mobile-settings-lang-en", "active")) {
+            driver.tap("#mobile-settings-lang-th");
+        } else {
+            driver.tap("#mobile-settings-lang-en");
+        }
+        closeUserSettings();
     }
 
     public void togglePrivacyMode() {
@@ -61,7 +83,14 @@ public class MobileShellScreen {
     }
 
     public void toggleTheme() {
-        driver.tap("#mobile-theme-toggle");
+        String current = driver.getHtmlAttribute("data-theme");
+        openUserSettings();
+        if ("dark".equalsIgnoreCase(current)) {
+            driver.tap("#mobile-settings-theme-light");
+        } else {
+            driver.tap("#mobile-settings-theme-dark");
+        }
+        closeUserSettings();
     }
 
     public void tapRefresh() {

@@ -1,10 +1,12 @@
-import { TestBed } from '@angular/core/testing';
+import { DeferBlockBehavior, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { of } from 'rxjs';
 import { PortfolioService } from './services/portfolio.service';
 import { DividendService } from './services/dividend.service';
 import { I18nService } from './services/i18n.service';
+import { AuthService } from '@shared/services/auth.service';
+import { LocalPortfolioService } from '@shared/services/local-portfolio.service';
 import { PortfolioDividendResponse } from './models/dividend.model';
 import { App } from './app';
 import { ASSET_TABS } from './config/asset.constants';
@@ -14,11 +16,18 @@ describe('App', () => {
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [provideHttpClient()],
+      deferBlockBehavior: DeferBlockBehavior.Playthrough,
     }).compileComponents();
   });
 
   afterEach(() => {
     TestBed.inject(I18nService).setLang('en');
+    const authService = TestBed.inject(AuthService);
+    authService.session.set(null);
+    authService.canViewCloudPortfolio.set(false);
+    authService.initialized.set(true);
+    authService.isGuestDismissed.set(true);
+    TestBed.inject(LocalPortfolioService).clearAll();
   });
 
   it('should create the app', () => {
@@ -631,6 +640,13 @@ describe('App', () => {
   });
 
   it('should not cause infinite loop when portfolioData updates or currency changes', async () => {
+    const authService = TestBed.inject(AuthService);
+    authService.session.set({
+      access_token: 'owner-tok',
+      user: { id: 'owner-1', email: 'vipatpolk@gmail.com' },
+    } as any);
+    authService.canViewCloudPortfolio.set(true);
+
     const portfolioService = TestBed.inject(PortfolioService);
     const dividendService = TestBed.inject(DividendService);
 
@@ -846,5 +862,107 @@ describe('App', () => {
     expect(thPositions.find((p) => p.symbol === 'AAPL')?.name).toBe('Apple Inc.');
     expect(thPositions.find((p) => p.symbol === 'BTC.CRYPTO')?.name).toBe('Bitcoin');
     expect(thPositions.find((p) => p.symbol === 'US-BOND')?.name).toBe('US Treasury Note');
+  });
+
+  it('should show AuthScreenComponent on first visit when guest gate is active and enter local workspace on guest continue', async () => {
+    const authService = TestBed.inject(AuthService);
+    const portfolioService = TestBed.inject(PortfolioService);
+    const fetchSpy = vi.spyOn(portfolioService, 'fetchHoldings');
+    authService.initialized.set(true);
+    authService.session.set(null);
+    authService.isGuestDismissed.set(false);
+
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('#auth-screen')).toBeTruthy();
+    expect(fetchSpy).not.toHaveBeenCalled();
+
+    const guestBtn = fixture.nativeElement.querySelector('#auth-guest-btn') as HTMLButtonElement;
+    guestBtn.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('#auth-screen')).toBeNull();
+    expect(fixture.nativeElement.querySelector('#local-workspace-bar')).toBeTruthy();
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('should hide local workspace bar when signed in as authorized cloud owner', async () => {
+    const authService = TestBed.inject(AuthService);
+    const portfolioService = TestBed.inject(PortfolioService);
+    const dividendService = TestBed.inject(DividendService);
+
+    vi.spyOn(portfolioService, 'fetchHoldings').mockReturnValue(
+      of({
+        currency: 'THB',
+        exchangeRate: 34.5,
+        tabId: 'all',
+        summary: {
+          totalInvested: 100,
+          totalValue: 120,
+          openInvested: 100,
+          closedInvested: 0,
+          totalUnrealizedPL: 20,
+          totalUnrealizedPLPercent: 20,
+          totalRealizedPL: 0,
+          totalRealizedPLPercent: 0,
+          totalReturn: 20,
+          totalReturnPercent: 20,
+        },
+        openPositions: [],
+        closedPositions: [],
+        error: null,
+      }),
+    );
+    vi.spyOn(dividendService, 'getDividendAnalytics').mockReturnValue(
+      of({
+        currency: 'THB',
+        exchangeRate: 34.5,
+        totalGrossDividends: 0,
+        totalNetDividends: 0,
+        totalWithholdingTax: 0,
+        effectiveTaxRate: 0,
+        projectedAnnualDividends: 0,
+        portfolioDividendYield: 0,
+        portfolioYieldOnCost: 0,
+        annualDividends: [],
+        monthlyDividends: [],
+        assetTypeSummaries: [],
+        symbolSummaries: [],
+        records: [],
+        error: null,
+      }),
+    );
+
+    authService.session.set({
+      access_token: 'owner-tok',
+      user: { id: 'owner-1', email: 'vipatpolk@gmail.com' },
+    } as any);
+    authService.canViewCloudPortfolio.set(true);
+
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('#local-workspace-bar')).toBeNull();
+  });
+
+  it('should toggle desktop sidebar collapsed state and persist to localStorage and documentElement', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+
+    app.setSidebarCollapsed(false);
+    expect(app.isSidebarCollapsed()).toBe(false);
+    expect(document.documentElement.getAttribute('data-sidebar-collapsed')).toBe('false');
+
+    app.toggleSidebarCollapsed();
+    expect(app.isSidebarCollapsed()).toBe(true);
+    expect(document.documentElement.getAttribute('data-sidebar-collapsed')).toBe('true');
+
+    app.toggleSidebarCollapsed();
+    expect(app.isSidebarCollapsed()).toBe(false);
+    expect(document.documentElement.getAttribute('data-sidebar-collapsed')).toBe('false');
   });
 });
