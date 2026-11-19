@@ -1,0 +1,14 @@
+# Supabase public client-side publishable key (sb_publishable_*) — safe by design (enforced via Supabase RLS)
+626c891d8ee4da55e5bc85193c341bb1a2e81793:mobile/src/environments/environment.prod.ts:generic-api-key:10
+626c891d8ee4da55e5bc85193c341bb1a2e81793:mobile/src/environments/environment.ts:generic-api-key:10
+626c891d8ee4da55e5bc85193c341bb1a2e81793:web/src/environments/environment.prod.ts:generic-api-key:7
+626c891d8ee4da55e5bc85193c341bb1a2e81793:web/src/environments/environment.ts:generic-api-key:7
+
+# Retired/revoked historical dev key (blocked in backend/config/settings.py BLOCKED_KEY_HASHES)
+aa58df08e76923a4a6b20bc44c45b290be4b1cb2:mobile/proxy.conf.json:generic-api-key:10
+aa58df08e76923a4a6b20bc44c45b290be4b1cb2:mobile/src/environments/environment.ts:generic-api-key:6
+1e9f5ffffdd0e64fe205e3b9a7f37dffa03475cc:frontend/proxy.conf.json:generic-api-key:10
+1e9f5ffffdd0e64fe205e3b9a7f37dffa03475cc:frontend/src/environments/environment.ts:generic-api-key:4
+98d987d7409ca2609a5b8639c72b3964847489eb:frontend/proxy.conf.json:generic-api-key:10
+98d987d7409ca2609a5b8639c72b3964847489eb:frontend/src/environments/environment.prod.ts:generic-api-key:4
+98d987d7409ca2609a5b8639c72b3964847489eb:frontend/src/environments/environment.ts:generic-api-key:4

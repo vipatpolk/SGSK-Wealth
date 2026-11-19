@@ -1,0 +1,11 @@
+title = "SGSK-Wealth Gitleaks Configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allow public client-side Supabase publishable keys (sb_publishable_*)"
+regexTarget = "secret"
+regexes = [
+  '''^sb_publishable_[A-Za-z0-9_-]+$''',
+]
