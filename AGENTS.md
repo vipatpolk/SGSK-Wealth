@@ -68,7 +68,7 @@ All agents (Antigravity, OpenAI Codex, and Claude Code via `.claude/skills/`) sh
   npm run lint:gherkin
   npm run test:e2e:smoke
   npm run test:e2e:api
-  npm run test:e2e:ui
+  npm run test:e2e:web
   npm run test:e2e:mobile
   npm run test:e2e
   ```

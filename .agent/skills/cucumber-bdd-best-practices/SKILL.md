@@ -138,7 +138,7 @@ Feature: Dividend Analytics & Yield on Cost (YOC)
 
 | Tag Category | Standard Prefixes / Tags | Purpose |
 | :--- | :--- | :--- |
-| **Layer** | `@ui`, `@api`, `@database` | Classifies the system boundary under test. |
+| **Layer** | `@web`, `@ui`, `@api`, `@mobile`, `@database` | Classifies the system boundary under test. |
 | **Execution Tier** | `@smoke`, `@sanity`, `@regression` | Filters pipelines (Fast PR checks vs. Nightly regression). |
 | **Feature / Module** | `@auth`, `@portfolio`, `@dividend`, `@holdings`, `@tools` | Slices tests by business domain. |
 | **Lifecycle / State** | `@ready`, `@wip`, `@quarantine`, `@flaky` | Excludes broken or incomplete tests without deleting code. |
@@ -209,7 +209,7 @@ Run from the repository root:
 py .agent/skills/cucumber-bdd-best-practices/scripts/validate_gherkin.py e2e/src/test/resources/features
 
 # Validate a specific feature file
-py .agent/skills/cucumber-bdd-best-practices/scripts/validate_gherkin.py e2e/src/test/resources/features/ui/09_dividend_analytics.feature
+py .agent/skills/cucumber-bdd-best-practices/scripts/validate_gherkin.py e2e/src/test/resources/features/web/dividends/dividend_analytics.feature
 ```
 
 ### Checks Performed by the Linter:

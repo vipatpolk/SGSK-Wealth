@@ -29,7 +29,7 @@
     "test:frontend": "npm --prefix web run test -- --watch=false",
     "test:mobile": "npm --prefix mobile run test -- --watch=false",
     "test:e2e": "node scripts/dev.mjs --e2e",
-    "test:e2e:ui": "node scripts/dev.mjs --e2e --tags=@ui",
+    "test:e2e:web": "node scripts/dev.mjs --e2e --tags=@web",
     "test:e2e:api": "node scripts/dev.mjs --e2e --tags=@api",
     "test:e2e:mobile": "node scripts/dev.mjs --e2e --tags=@mobile",
     "test:e2e:android": "node scripts/dev.mjs --e2e --tags=@android",

@@ -1,0 +1,98 @@
+package com.sgsk.wealth.e2e.mobile.navigation;
+
+import com.sgsk.wealth.e2e.mobile.common.MobileDriverBridge;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class MobileShellSteps {
+    private final MobileDriverBridge driver;
+    private final MobileShellScreen shellScreen;
+
+    public MobileShellSteps(MobileDriverBridge driver, MobileShellScreen shellScreen) {
+        this.driver = driver;
+        this.shellScreen = shellScreen;
+    }
+
+    @Given("the SGSK Wealth mobile application is launched")
+    public void launchMobileApp() {
+        shellScreen.launchApp();
+    }
+
+    @When("I switch to the {string} mobile tab")
+    public void switchMobileTab(String tabName) {
+        shellScreen.tapBottomTab(tabName);
+    }
+
+    @When("I switch the mobile display currency")
+    public void switchMobileCurrency() {
+        shellScreen.toggleCurrency();
+    }
+
+    @When("I switch the mobile application language")
+    public void switchMobileLanguage() {
+        shellScreen.toggleLanguage();
+    }
+
+    @When("I toggle mobile privacy mode")
+    public void toggleMobilePrivacy() {
+        shellScreen.togglePrivacyMode();
+    }
+
+    @When("I toggle the mobile visual theme")
+    public void toggleMobileTheme() {
+        shellScreen.toggleTheme();
+    }
+
+    @When("I trigger a manual refresh on mobile")
+    public void triggerMobileRefresh() {
+        shellScreen.tapRefresh();
+    }
+
+    @When("I use the {string} quick action on the mobile dashboard")
+    public void useMobileDashboardQuickAction(String target) {
+        shellScreen.tapQuickAction(target);
+    }
+
+    @Then("the mobile bottom tab bar should be displayed")
+    public void verifyBottomTabBarDisplayed() {
+        driver.assertVisible("#mobile-tab-bar");
+    }
+
+    @Then("the mobile dashboard hero summary should be displayed")
+    public void verifyDashboardHeroDisplayed() {
+        driver.assertVisible("#mobile-dashboard-hero");
+    }
+
+    @Then("the mobile dashboard overview sections should be displayed")
+    public void verifyDashboardSectionsDisplayed() {
+        shellScreen.assertDashboardWidgetsVisible();
+    }
+
+    @Then("the mobile {string} workspace should be active")
+    public void verifyMobileTabWorkspaceActive(String tabName) {
+        shellScreen.assertTabWorkspaceVisible(tabName);
+    }
+
+    @Then("the mobile display currency should show {string}")
+    public void verifyMobileCurrency(String expectedCurrency) {
+        driver.assertTextContains("#mobile-currency-toggle", expectedCurrency);
+    }
+
+    @Then("the mobile application language should be {string}")
+    public void verifyMobileLanguage(String expectedLang) {
+        driver.assertTextContains("#mobile-lang-toggle", expectedLang);
+    }
+
+    @Then("mobile privacy masking should be active")
+    public void verifyPrivacyActive() {
+        assertEquals("true", driver.getHtmlAttribute("data-privacy"));
+    }
+
+    @Then("the mobile visual theme should be {string}")
+    public void verifyMobileTheme(String expectedTheme) {
+        assertEquals(expectedTheme, driver.getHtmlAttribute("data-theme"));
+    }
+}

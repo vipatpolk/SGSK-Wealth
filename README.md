@@ -156,10 +156,10 @@ flowchart LR
 |:---|:---|:---|
 | **[Java](https://openjdk.org/)** | `JDK 25+` | Enterprise runtime powering the unified E2E regression suite. |
 | **[Spring Boot](https://spring.io/projects/spring-boot)** | `4.1+` | IoC container (`@SpringBootTest`), externalized YAML configuration (`E2eProperties`), and `@ScenarioScope` DI via `cucumber-spring`. |
-| **[Playwright for Java](https://playwright.dev/java/)** | `1.64+` | Web UI browser automation driving Chromium with network route interception (`@ui`). |
+| **[Playwright for Java](https://playwright.dev/java/)** | `1.64+` | Web UI browser automation driving Chromium with network route interception (`@web`). |
 | **[Appium Java Client](https://appium.io/)** | `11.0+` | Native iOS (`XCUITestOptions`) & Android (`UiAutomator2Options`) automation with Capacitor WebView switching and local platform-mode WebView fallback (`@mobile`, `@android`, `@ios`). |
 | **[Rest Assured](https://rest-assured.io/)** | `6.3+` | Fluent REST API contract testing (`@api`). |
-| **[Cucumber-JVM](https://cucumber.io/) & [Allure](https://allurereport.org/)** | `8.0+` / `3.1+` | BDD Gherkin execution across **22 feature files** with `AllureStepEvidencePlugin` attaching step-level Web/Mobile screenshots (`image/png`) and API JSON payloads (`application/json`) directly inside every executed step. |
+| **[Cucumber-JVM](https://cucumber.io/) & [Allure](https://allurereport.org/)** | `8.0+` / `3.1+` | BDD Gherkin execution across **23 feature files** organized by target and business function with `AllureStepEvidencePlugin` attaching step-level Web/Mobile screenshots (`image/png`) and API JSON payloads (`application/json`) directly inside every executed step. |
 
 ### 6. CI/CD Pipelines (`.github/workflows/`)
 
@@ -223,17 +223,14 @@ SGSK-Wealth/
 │   ├── pom.xml                 # Maven (Spring Boot, Playwright, Appium, Rest Assured, Cucumber, Allure)
 │   └── src/test/
 │       ├── java/com/sgsk/wealth/e2e/
-│       │   ├── config/         # CucumberSpringConfiguration, E2eProperties
-│       │   ├── runner/         # CucumberTestRunner
-│       │   ├── context/        # @ScenarioScope TestContext & ThreadLocal TestContextHolder
-│       │   ├── hooks/          # @ui, @api, @mobile hooks & AllureStepEvidencePlugin
-│       │   ├── support/        # PlaywrightManager, AppiumManager, ServerManager, MockBackendServer, ApiRouteMocker
-│       │   ├── pages/          # Playwright Page Objects & mobile/IonicMobileScreen.java
-│       │   └── steps/          # api/, ui/, and mobile/NativeMobileSteps.java
+│       │   ├── core/           # config, context (TestContext/Holder), runner, support & AllureStepEvidencePlugin
+│       │   ├── web/            # Playwright Page Objects, Steps & Hooks grouped by function
+│       │   ├── mobile/         # Ionic/Appium Screens, MobileDriverBridge, Steps & Hooks grouped by function
+│       │   └── api/            # Rest Assured ApiClient, Steps & Hooks grouped by function
 │       └── resources/
-│           ├── features/api/   # REST API Gherkin specs (01..05)
-│           ├── features/ui/    # Web UI Gherkin specs (01..11)
-│           ├── features/mobile/# Mobile iOS & Android Gherkin specs (01..06)
+│           ├── features/web/   # Web Gherkin specs (navigation, dashboard, holdings, analytics, dividends, transactions, tools, resilience)
+│           ├── features/mobile/# Mobile iOS/Android specs (navigation, holdings, analytics, dividends, transactions, tools, platform)
+│           ├── features/api/   # REST API Gherkin specs (auth, price, portfolio, tools, sharelot)
 │           └── fixtures/       # Deterministic JSON mock payloads
 │
 ├── .agent/skills/              # Canonical AI agent skills (ai-native-sdlc, dividend-payments, cucumber-bdd-best-practices, fifo-cost-basis, sec-open-apis)
@@ -337,7 +334,7 @@ SGSK-Wealth enforces strict quality standards before any code is committed:
 | Command | Description | Tech Stack |
 |:---|:---|:---|
 | **`npm run check`** | Run complete pre-commit QA suite (Gherkin lint, backend lint/test, web test/build, mobile test/build) | Monorepo Orchestration |
-| **`npm run lint:gherkin`** | Validate all **22 `.feature` files** with `validate_gherkin.py --strict` | Python Gherkin Linter |
+| **`npm run lint:gherkin`** | Validate all **23 `.feature` files** with `validate_gherkin.py --strict` | Python Gherkin Linter |
 | **`npm run lint:backend`** | Run Ruff linter and Mypy static type checker on `backend/` | Ruff & Mypy |
 | **`npm run test:backend`** | Run Pytest unit test suite (**126 tests**) with coverage enforcement ($\ge 80\%$) | Pytest & Coverage |
 | **`npm run test:web`** | Run Web Vitest unit test suite (**352 tests across 35 suites**) | Vitest & jsdom |
@@ -345,13 +342,13 @@ SGSK-Wealth enforces strict quality standards before any code is committed:
 | **`npm run build:web`** | Compile production-ready Web Angular bundle | Angular CLI |
 | **`npm run build:mobile`** | Compile production-ready Ionic mobile bundle | Angular CLI |
 | **`npm run cap:sync`** | Build mobile bundle and sync assets/plugins to `mobile/android` & `mobile/ios` | Capacitor CLI |
-| **`npm run test:e2e`** | Run default Java E2E suite (`not @mobile`: `@api` + `@ui`) | Playwright, Rest Assured & Cucumber |
-| **`npm run test:e2e:ui`** | Run Playwright Web UI automation scenarios (`@ui`) | Playwright & Cucumber-JVM |
+| **`npm run test:e2e`** | Run default Java E2E suite (`not @mobile`: `@api` + `@web`) | Playwright, Rest Assured & Cucumber |
+| **`npm run test:e2e:web`** | Run Playwright Web UI automation scenarios (`@web`) | Playwright & Cucumber-JVM |
 | **`npm run test:e2e:api`** | Run Rest Assured API automation scenarios (`@api`) | Rest Assured & Cucumber-JVM |
 | **`npm run test:e2e:mobile`** | Run Mobile Appium + Cucumber scenarios (`@mobile`, with local WebView fallback when Appium `:4723` is offline) | Appium & Cucumber-JVM |
 | **`npm run test:e2e:android`** | Run Android-tagged mobile E2E scenarios (`@android`) | Appium UiAutomator2 |
 | **`npm run test:e2e:ios`** | Run iOS-tagged mobile E2E scenarios (`@ios`) | Appium XCUITest |
-| **`npm run test:e2e:smoke`** | Run critical path smoke scenarios across `@api`, `@ui`, and `@mobile` | Cucumber-JVM |
+| **`npm run test:e2e:smoke`** | Run critical path smoke scenarios across `@api`, `@web`, and `@mobile` | Cucumber-JVM |
 | **`npm run test:e2e:report`** | Generate and open the interactive Allure HTML report locally | Allure Maven Plugin |
 | **`npm run test:e2e:report:build`** | Generate the static Allure HTML report (`e2e/target/site/allure-maven-plugin/`) | Allure Maven Plugin |
 
