@@ -5,6 +5,8 @@ from contextlib import asynccontextmanager
 import httpx
 from fastapi import FastAPI
 
+from config.settings import get_settings
+
 _client: httpx.AsyncClient | None = None
 _semaphore: asyncio.Semaphore | None = None
 _yahoo_semaphore: asyncio.Semaphore | None = None
@@ -23,7 +25,7 @@ def get_outbound_semaphore() -> asyncio.Semaphore:
 def get_yahoo_semaphore() -> asyncio.Semaphore:
     global _yahoo_semaphore
     if _yahoo_semaphore is None:
-        _yahoo_semaphore = asyncio.Semaphore(25)
+        _yahoo_semaphore = asyncio.Semaphore(max(1, get_settings().yfinance_max_concurrency))
     return _yahoo_semaphore
 
 
@@ -67,9 +69,12 @@ def get_http_client() -> httpx.AsyncClient:
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     global _client, _semaphore, _yahoo_semaphore, _sec_semaphore, _sheets_semaphore, _binance_semaphore
+    from utils.yfinance_client import configure_yfinance
+
+    configure_yfinance()
     _client = _create_http_client()
     _semaphore = asyncio.Semaphore(25)
-    _yahoo_semaphore = asyncio.Semaphore(25)
+    _yahoo_semaphore = asyncio.Semaphore(max(1, get_settings().yfinance_max_concurrency))
     _sec_semaphore = asyncio.Semaphore(10)
     _sheets_semaphore = asyncio.Semaphore(5)
     _binance_semaphore = asyncio.Semaphore(5)

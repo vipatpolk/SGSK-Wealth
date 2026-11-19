@@ -38,6 +38,11 @@ class Settings(BaseSettings):
     google_pvd_spreadsheet_id: str = "sample_pvd_spreadsheet_id"
     google_service_account_json: str = ""
     sec_pvd_base_url: str = "https://api.sec.or.th/v1/pvd"
+    yfinance_timeout_seconds: float = 10.0
+    yfinance_retries: int = 1
+    yfinance_max_concurrency: int = 8
+    yfinance_dividend_period: str = "max"
+    yfinance_cache_dir: str = ""
 
     model_config = SettingsConfigDict(
         env_file=(str(ROOT_ENV_FILE), ".env"),

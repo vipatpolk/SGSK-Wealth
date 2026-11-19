@@ -1,6 +1,7 @@
 import json
 import os
 import re
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
@@ -10,6 +11,7 @@ from services.nav_service import NavService
 from services.price_service import PriceService
 from services.share_lot_service import ShareLotService
 from utils.cache import ttl_cache
+from utils.yfinance_client import YahooQuote, YFinanceClient
 
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
 
@@ -96,18 +98,41 @@ def fixture_sec_nav_json():
 
 @pytest.fixture
 def mocked_external_apis(
-    respx_mock, fixture_us_stock_csv, fixture_yahoo_finance_json, fixture_binance_ticker_json, fixture_sec_nav_json
+    monkeypatch,
+    respx_mock,
+    fixture_us_stock_csv,
+    fixture_yahoo_finance_json,
+    fixture_binance_ticker_json,
+    fixture_sec_nav_json,
 ):
-    """Mocks all third-party external HTTP calls (Google Sheets, Yahoo Finance, Binance TH, SEC Thailand)."""
+    """Mocks all third-party external calls (Google Sheets, yfinance, Binance TH, SEC Thailand)."""
     # Mock Google Sheet CSV export
     respx_mock.get(url=re.compile(r"https://docs\.google\.com/spreadsheets/.*")).respond(
         status_code=200, text=fixture_us_stock_csv
     )
 
-    # Mock Yahoo Finance Quote API
-    respx_mock.get(url=re.compile(r"https://query1\.finance\.yahoo\.com/.*")).respond(
-        status_code=200, json=fixture_yahoo_finance_json
+    # Mock yfinance client methods (yfinance uses curl_cffi rather than httpx)
+    meta = fixture_yahoo_finance_json.get("chart", {}).get("result", [{}])[0].get("meta", {})
+    mock_quote: YahooQuote = YahooQuote(
+        price=float(meta.get("regularMarketPrice") or 185.50),
+        name=str(meta.get("longName") or meta.get("shortName") or "Apple Inc."),
+        currency=str(meta.get("currency") or "USD"),
     )
+
+    async def _mock_get_quote(self, yahoo_symbol: str) -> YahooQuote:
+        if yahoo_symbol.endswith("=X"):
+            return YahooQuote(price=35.0, name=yahoo_symbol, currency="THB")
+        return mock_quote
+
+    async def _mock_get_exchange_rate(self, from_currency: str = "USD", to_currency: str = "THB") -> float:
+        return 1.0 if from_currency == to_currency else 35.0
+
+    async def _mock_get_dividends(self, yahoo_symbol: str, period: str | None = None) -> list[dict[str, Any]]:
+        return []
+
+    monkeypatch.setattr(YFinanceClient, "get_quote", _mock_get_quote)
+    monkeypatch.setattr(YFinanceClient, "get_exchange_rate", _mock_get_exchange_rate)
+    monkeypatch.setattr(YFinanceClient, "get_dividends", _mock_get_dividends)
 
     # Mock Binance TH Ticker API
     respx_mock.get(url=re.compile(r"https://api\.binance\.th/.*")).respond(
