@@ -1,0 +1,35 @@
+# Local secrets & credentials (never upload to Vercel)
+.env
+.env.*
+!.env.example
+*service_account*.json
+*credentials*.json
+*.pem
+*.key
+*.p12
+
+# Non-Vercel monorepo directories
+e2e/
+docs/
+supabase/
+.github/
+.idea/
+.vscode/
+.claude/
+
+# Exclude mobile sources/native artifacts while keeping mobile/package.json for root npm workspaces `npm ci`
+mobile/*
+!mobile/package.json
+
+# Build, test, and linter caches
+dist/
+.angular/
+out-tsc/
+tmp/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+backend/tests/

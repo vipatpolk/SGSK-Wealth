@@ -201,8 +201,7 @@ SGSK-Wealth/
 │   ├── services/               # Core business logic (FIFO engine, valuation, dividend, nav/factsheet, tools)
 │   ├── utils/                  # Shared HTTP client, Supabase JWT/JWKS verifier, yfinance adapter, TTL/singleflight cache, auth & format helpers
 │   ├── tests/                  # Pytest unit tests (154 tests, >=80% coverage enforced)
-│   ├── pyproject.toml          # Ruff, Mypy, and Pytest coverage configuration
-│   └── vercel.json             # Vercel serverless function configuration (@vercel/python)
+│   └── pyproject.toml          # Ruff, Mypy, and Pytest coverage configuration
 │
 ├── shared/                     # Shared Core Library (@shared/*)
 │   ├── package.json            # @sgsk-wealth/shared workspace package
@@ -221,8 +220,7 @@ SGSK-Wealth/
 │   ├── src/                    # Web components (desktop sidebar header, auth-screen, user-settings-modal, local-portfolio-modal, views), app shell & proxy
 │   ├── angular.json
 │   ├── tsconfig.json           # Maps @shared/* -> ../shared/src/*
-│   ├── package.json
-│   └── vercel.json             # Vercel SPA routing and backend proxy rewrite rules
+│   └── package.json
 │
 ├── mobile/                     # Angular 22 + Ionic 9 + Capacitor 8 Mobile App (@sgsk-wealth/mobile)
 │   ├── android/                # Native Android Capacitor project built with Maven
@@ -264,6 +262,7 @@ SGSK-Wealth/
 │   ├── dev.mjs                 # Concurrent runner ([BACKEND], [WEB], [MOBILE] & live [E2E] log tailer)
 │   └── setup-agents.mjs        # Cross-platform .claude/skills -> .agent/skills linker
 ├── package.json                # Root npm workspaces & unified monorepo scripts
+├── vercel.json                 # Unified Vercel Services config (web Angular SPA + backend FastAPI)
 ├── AGENTS.md                   # Unified QA & engineering standards (Antigravity & Codex)
 └── CLAUDE.md                   # Claude Code entrypoint (@AGENTS.md + Claude-specific rules)
 ```
@@ -378,18 +377,17 @@ SGSK-Wealth enforces strict quality standards before any code is committed:
 
 ## Deployment & Mobile Builds
 
-### Vercel Deployment (Web & Backend)
-This monorepo supports independent or linked deployments on [Vercel](https://vercel.com/):
-1. **Backend Deployment**: Set **Root Directory** to `backend` (configured via `backend/vercel.json` using `@vercel/python`). On serverless hosts, `yfinance` automatically redirects its SQLite caches to `/tmp/py-yfinance` (overridable via optional `YFINANCE_CACHE_DIR`, `YFINANCE_TIMEOUT_SECONDS`, `YFINANCE_RETRIES`, `YFINANCE_MAX_CONCURRENCY`, and `YFINANCE_DIVIDEND_PERIOD` environment variables).
-2. **Web Frontend Deployment**: Set **Root Directory** to `web` (configured via `web/vercel.json` with SPA rewrite routing and backend proxy rules).
-3. Set the same strong `BACKEND_API_KEY` as a Sensitive/Secret variable in both projects for each deployed environment. The web proxy keeps this credential server-side; never put it in a mobile or browser bundle.
-4. Native production builds use the HTTPS proxy URL configured as `nativeApiBaseUrl` in `mobile/src/environments/environment.prod.ts`. The deployed proxy domain must be reachable without interactive Vercel SSO from installed apps. If deployment protection is enabled, assign a public custom domain with an appropriate access policy before distributing native builds.
+### Vercel Deployment (Unified Vercel Services)
+This monorepo deploys **both** the Angular Web SPA (`web/`) and Python FastAPI backend (`backend/`) in a **single Vercel project** (`sgsk-wealth`) using **Vercel Services (Beta)** configured in root [`vercel.json`](vercel.json):
+1. **Project Settings**: Keep **Root Directory** at repository root (`.`), set **Framework Preset** to **Services**, use **Node.js 24/26**, and keep **Fluid Compute** enabled under **Settings → Functions**. Connect the `sgsk-supabase` integration to `sgsk-wealth` for both Preview and Production.
+2. **Web Service (`web/`)**: Builds the Angular 22 workspace (`installCommand: "cd .. && npm ci"`, `buildCommand: "npm run build"`, `outputDirectory: "dist/sgsk-wealth"`) with SPA fallback rewrites to `/index.html`.
+3. **Backend Service (`backend/`)**: Runs FastAPI (`main:app`) on Python Fluid Compute. Top-level `rewrites` route `/api/backend(/.*)?` to `backend`, where service-scoped `routes` inject `X-API-Key` from the Secret `$BACKEND_API_KEY` environment variable (`request.headers` transform) and strip the `/api/backend` prefix (`dest` + `check: true` after `filesystem`). On serverless hosts, `yfinance` automatically redirects its SQLite caches to `/tmp/py-yfinance` (overridable via optional `YFINANCE_CACHE_DIR`, `YFINANCE_TIMEOUT_SECONDS`, `YFINANCE_RETRIES`, `YFINANCE_MAX_CONCURRENCY`, and `YFINANCE_DIVIDEND_PERIOD` environment variables).
+4. **Local Services Emulation & Native Mobile**: Run `vercel dev --local` from the repository root to test unified Services routing locally. Native mobile production builds call `https://sgsk-wealth.vercel.app/api/backend` (`nativeApiBaseUrl` in `mobile/src/environments/environment.prod.ts`) without bundling `BACKEND_API_KEY`; FastAPI automatically preserves Capacitor origins (`http://localhost`, `https://localhost`, `capacitor://localhost`) in CORS, and Production (`https://sgsk-wealth.vercel.app`) must stay reachable without interactive Vercel SSO.
 
 #### Rotating the backend API key
-1. Generate a random key of at least 32 characters and update `BACKEND_API_KEY` in the backend and web Vercel projects for the same environment. Vercel does not reveal Sensitive values later, so preserve the old key from its approved secret source before replacing it.
-2. To avoid downtime, set the old key as backend `BACKEND_API_KEY_PREVIOUS`, deploy the backend with the new key, then deploy the web proxy with the new key.
-3. Verify web and native requests through the proxy, then remove `BACKEND_API_KEY_PREVIOUS` and redeploy the backend to retire the old key.
-4. Keep secret values in Vercel's Sensitive/Secret variables. Do not add keys to `.env.example`, source control, build arguments, or native artifacts.
+1. Generate a random key of at least 32 characters and update `BACKEND_API_KEY` as a Sensitive/Secret variable in the single `sgsk-wealth` Vercel project (shared atomically by both the edge route transform and FastAPI). Vercel does not reveal Sensitive values later, so store a backup in your secret manager first.
+2. Because `web` and `backend` deploy together in one atomic deployment, updating `BACKEND_API_KEY` and redeploying rotates both simultaneously. If staged zero-downtime rotation is needed across in-flight requests, temporarily set `BACKEND_API_KEY_PREVIOUS`, deploy, verify Web and Mobile traffic, then remove `BACKEND_API_KEY_PREVIOUS` and redeploy.
+3. Keep secret values in Vercel's Sensitive/Secret variables. Do not add keys to `.env.example`, source control, build arguments, or native artifacts.
 
 ### Native `.apk` & `.ipa` Packaging
 - **GitHub Actions Manual Build**: Trigger the **Mobile Native Build (.apk & .ipa)** workflow ([`.github/workflows/mobile-build.yml`](.github/workflows/mobile-build.yml)) from the Actions tab (`workflow_dispatch`) to build and download `sgsk-wealth-debug.apk` / `sgsk-wealth-release.apk` and `sgsk-wealth-debug.ipa` / `sgsk-wealth-release.ipa`.

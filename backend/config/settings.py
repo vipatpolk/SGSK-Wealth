@@ -21,6 +21,12 @@ INSECURE_NAMED_KEYS: set[str] = {
     "changeme",
 }
 
+NATIVE_MOBILE_ORIGINS: tuple[str, ...] = (
+    "http://localhost",
+    "https://localhost",
+    "capacitor://localhost",
+)
+
 
 class Settings(BaseSettings):
     environment: str = "development"
@@ -32,6 +38,7 @@ class Settings(BaseSettings):
         "http://localhost",
         "https://localhost",
         "capacitor://localhost",
+        "https://sgsk-wealth.vercel.app",
     ]
     sec_subscription_key: str = ""
     google_spreadsheet_id: str = "sample_spreadsheet_id"
@@ -49,6 +56,15 @@ class Settings(BaseSettings):
     supabase_jwt_audience: str = "authenticated"
     supabase_jwt_secret: str = ""
     authorized_portfolio_emails: list[str] = ["vipatpolk@gmail.com"]
+
+    @property
+    def resolved_allowed_origins(self) -> list[str]:
+        merged: list[str] = []
+        for origin in (*self.allowed_origins, *NATIVE_MOBILE_ORIGINS):
+            cleaned = origin.strip().rstrip("/")
+            if cleaned and cleaned not in merged:
+                merged.append(cleaned)
+        return merged
 
     @property
     def resolved_supabase_jwks_url(self) -> str:

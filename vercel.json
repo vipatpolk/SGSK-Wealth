@@ -1,0 +1,77 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": {
+    "deploymentEnabled": {
+      "gh-pages": false
+    }
+  },
+  "services": {
+    "web": {
+      "root": "web",
+      "framework": "angular",
+      "installCommand": "cd .. && npm ci",
+      "buildCommand": "npm run build",
+      "outputDirectory": "dist/sgsk-wealth",
+      "rewrites": [
+        {
+          "source": "/(.*)",
+          "destination": "/index.html"
+        }
+      ]
+    },
+    "backend": {
+      "root": "backend",
+      "framework": "fastapi",
+      "entrypoint": "main:app",
+      "functions": {
+        "main.py": {
+          "excludeFiles": "{tests/**,.pytest_cache/**,.mypy_cache/**,.ruff_cache/**,.coverage,coverage.xml}"
+        }
+      },
+      "routes": [
+        {
+          "src": "^/api/backend(?:/(.*))?$",
+          "transforms": [
+            {
+              "type": "request.headers",
+              "op": "set",
+              "target": {
+                "key": "X-API-Key"
+              },
+              "args": "$BACKEND_API_KEY",
+              "env": ["BACKEND_API_KEY"]
+            }
+          ],
+          "continue": true
+        },
+        {
+          "handle": "filesystem"
+        },
+        {
+          "src": "^/api/backend/(.+)$",
+          "dest": "/$1",
+          "check": true
+        },
+        {
+          "src": "^/api/backend/?$",
+          "dest": "/",
+          "check": true
+        }
+      ]
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/backend(/.*)?",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "web"
+      }
+    }
+  ]
+}

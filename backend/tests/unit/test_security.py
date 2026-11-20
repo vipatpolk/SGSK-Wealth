@@ -451,3 +451,60 @@ async def test_supabase_verifier_jwks_hs256_and_profile_checks(monkeypatch, resp
     with pytest.raises(HTTPException) as exc_info:
         await get_optional_current_user(HTTPAuthorizationCredentials(scheme="Basic", credentials="abc"))
     assert exc_info.value.status_code == 401
+
+
+@pytest.mark.unit
+def test_resolved_allowed_origins_preserves_native_mobile_origins():
+    from config.settings import Settings
+
+    settings = Settings(allowed_origins=["https://sgsk-wealth.vercel.app/"])
+    resolved = settings.resolved_allowed_origins
+
+    assert resolved[0] == "https://sgsk-wealth.vercel.app"
+    for native_origin in ("http://localhost", "https://localhost", "capacitor://localhost"):
+        assert native_origin in resolved
+    assert len(resolved) == len(set(resolved))
+
+
+@pytest.mark.unit
+def test_mobile_capacitor_cors_preflight_and_api_request(api_key_only_client, mocked_external_apis):
+    preflight_res = api_key_only_client.options(
+        "/price/exchange-rate",
+        headers={
+            "Origin": "capacitor://localhost",
+            "Access-Control-Request-Method": "GET",
+            "Access-Control-Request-Headers": "X-App-Source, X-Requested-With, Authorization",
+        },
+    )
+    assert preflight_res.status_code == 200
+    assert preflight_res.headers.get("access-control-allow-origin") == "capacitor://localhost"
+
+    api_res = api_key_only_client.get(
+        "/price/exchange-rate",
+        headers={
+            "Origin": "http://localhost",
+            "X-App-Source": "SGSK-Wealth-Mobile",
+            "X-Requested-With": "SGSK-Wealth-Capacitor",
+        },
+    )
+    assert api_res.status_code == 200
+    assert api_res.headers.get("access-control-allow-origin") == "http://localhost"
+
+
+@pytest.mark.unit
+def test_icon_endpoint_allowed_on_preview_host_containing_backend(unauth_api_client, monkeypatch):
+    async def _mock_get_symbol_icon(symbol: str, asset_type: str = "", fund_name: str = "") -> tuple[bytes, str]:
+        return b"<svg></svg>", "image/svg+xml"
+
+    monkeypatch.setattr("routers.icon.service.get_symbol_icon", _mock_get_symbol_icon)
+
+    res = unauth_api_client.get(
+        "/icon/AAPL?asset_type=us-stock",
+        headers={
+            "Host": "sgsk-wealth-git-vercel-backend-preview.vercel.app",
+            "Sec-Fetch-Dest": "image",
+            "Accept": "image/svg+xml,image/*,*/*;q=0.8",
+        },
+    )
+    assert res.status_code == 200
+    assert "image/svg+xml" in res.headers.get("content-type", "")
