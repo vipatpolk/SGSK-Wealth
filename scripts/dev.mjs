@@ -16,35 +16,13 @@ const e2eLogPath = path.join(e2eTargetDir, 'e2e-live.log');
 const isWindows = process.platform === 'win32';
 const npmCmd = isWindows ? 'npm.cmd' : 'npm';
 
-// Locate Python executable with uvicorn / tools installed
-function getPythonCommand() {
-  const localAppData = process.env.LOCALAPPDATA || '';
-  const userProfile = process.env.USERPROFILE || '';
-
+// Locate Cargo executable and ensure Rust + MinGW toolchain directories are on PATH
+function getCargoCommand() {
+  const userProfile = process.env.USERPROFILE || process.env.HOME || '';
+  const cargoBinDir = userProfile ? path.join(userProfile, '.cargo', 'bin') : '';
   const candidates = [
-    // 1. Virtual environments
-    path.join(backendDir, '.venv', 'Scripts', 'python.exe'),
-    path.join(backendDir, '.venv', 'bin', 'python'),
-    path.join(backendDir, 'venv', 'Scripts', 'python.exe'),
-    path.join(backendDir, 'venv', 'bin', 'python'),
-    path.join(rootDir, '.venv', 'Scripts', 'python.exe'),
-    path.join(rootDir, '.venv', 'bin', 'python'),
-
-    // 2. Python Programs installation (with full dev tools)
-    path.join(localAppData, 'Programs', 'Python', 'Python314', 'python.exe'),
-    path.join(localAppData, 'Programs', 'Python', 'Python313', 'python.exe'),
-    path.join(localAppData, 'Programs', 'Python', 'Python312', 'python.exe'),
-    path.join(localAppData, 'Programs', 'Python', 'Python311', 'python.exe'),
-    path.join(localAppData, 'Programs', 'Python', 'Python310', 'python.exe'),
-
-    // 3. User local Python
-    path.join(localAppData, 'Python', 'bin', 'python.exe'),
-    path.join(userProfile, 'AppData', 'Local', 'Python', 'bin', 'python.exe'),
-
-    // 4. Fallback system commands
-    'python',
-    'python3',
-    'py',
+    cargoBinDir ? path.join(cargoBinDir, isWindows ? 'cargo.exe' : 'cargo') : '',
+    'cargo',
   ];
 
   for (const candidate of candidates) {
@@ -53,10 +31,43 @@ function getPythonCommand() {
       return candidate;
     }
   }
-  return isWindows ? 'python' : 'python3';
+  return 'cargo';
 }
 
-const pythonCmd = getPythonCommand();
+function getBackendEnv(extra = {}) {
+  const pathKey = Object.keys(process.env).find((k) => k.toUpperCase() === 'PATH') || 'PATH';
+  const currentPath = process.env[pathKey] || '';
+  const extraDirs = [];
+
+  const userProfile = process.env.USERPROFILE || process.env.HOME || '';
+  if (userProfile) {
+    const cargoBin = path.join(userProfile, '.cargo', 'bin');
+    if (fs.existsSync(cargoBin)) extraDirs.push(cargoBin);
+  }
+
+  if (isWindows) {
+    const wingetPkgs = path.join(process.env.LOCALAPPDATA || '', 'Microsoft', 'WinGet', 'Packages');
+    if (fs.existsSync(wingetPkgs)) {
+      for (const entry of fs.readdirSync(wingetPkgs)) {
+        if (entry.startsWith('BrechtSanders.WinLibs')) {
+          const mingwBin = path.join(wingetPkgs, entry, 'mingw64', 'bin');
+          if (fs.existsSync(mingwBin)) extraDirs.push(mingwBin);
+        }
+      }
+    }
+  }
+
+  const sep = isWindows ? ';' : ':';
+  const prefix = extraDirs.filter((d) => !currentPath.includes(d)).join(sep);
+  return {
+    ...process.env,
+    [pathKey]: prefix ? `${prefix}${sep}${currentPath}` : currentPath,
+    ...extra,
+  };
+}
+
+const cargoCmd = getCargoCommand();
+const backendEnv = getBackendEnv();
 
 // Parse CLI flags
 const args = process.argv.slice(2);
@@ -166,21 +177,29 @@ function startE2eLogTailer(logFilePath) {
 
 // Backend QA commands: lint or test, or E2E runner with live log teeing
 if (lintBackend) {
-  console.log(`\x1b[36m[LINT]\x1b[0m Running Ruff and Mypy on backend using ${pythonCmd}...`);
-  const ruff = spawn(pythonCmd, ['-m', 'ruff', 'check', '.'], { cwd: backendDir, stdio: 'inherit' });
-  ruff.on('close', (code) => {
+  console.log(`\x1b[36m[LINT]\x1b[0m Running cargo fmt and clippy on backend using ${cargoCmd}...`);
+  const fmt = spawn(cargoCmd, ['fmt', '--all', '--', '--check'], {
+    cwd: backendDir,
+    stdio: 'inherit',
+    env: backendEnv,
+  });
+  fmt.on('close', (code) => {
     if (code !== 0) process.exit(code ?? 1);
-    const mypy = spawn(pythonCmd, ['-m', 'mypy', '.'], { cwd: backendDir, stdio: 'inherit' });
-    mypy.on('close', (mCode) => process.exit(mCode ?? 0));
+    const clippy = spawn(cargoCmd, ['clippy', '--all-targets', '--', '-D', 'warnings'], {
+      cwd: backendDir,
+      stdio: 'inherit',
+      env: backendEnv,
+    });
+    clippy.on('close', (cCode) => process.exit(cCode ?? 0));
   });
 } else if (testBackend) {
-  console.log(`\x1b[36m[TEST]\x1b[0m Running Pytest on backend using ${pythonCmd}...`);
-  const pytest = spawn(
-    pythonCmd,
-    ['-m', 'pytest', '-m', 'not live_e2e', '--cov=.', '--cov-fail-under=80', '--cov-report=term-missing'],
-    { cwd: backendDir, stdio: 'inherit' },
-  );
-  pytest.on('close', (code) => process.exit(code ?? 0));
+  console.log(`\x1b[36m[TEST]\x1b[0m Running cargo test on backend using ${cargoCmd}...`);
+  const cargoTest = spawn(cargoCmd, ['test'], {
+    cwd: backendDir,
+    stdio: 'inherit',
+    env: backendEnv,
+  });
+  cargoTest.on('close', (code) => process.exit(code ?? 0));
 } else if (runE2e) {
   fs.mkdirSync(e2eTargetDir, { recursive: true });
   fs.writeFileSync(e2eLogPath, '');
@@ -249,22 +268,29 @@ if (lintBackend) {
   console.log('\x1b[32m===================================================\x1b[0m');
 
   if (!onlyFrontend) {
-    console.log(`\x1b[36m[BACKEND]\x1b[0m FastAPI starting on http://127.0.0.1:8000 (Python: ${pythonCmd})`);
-    const rootEnvPath = path.join(rootDir, '.env');
-    const uvicornArgs = ['-m', 'uvicorn', 'main:app', '--reload', '--host', '127.0.0.1', '--port', '8000'];
-    if (fs.existsSync(rootEnvPath)) {
-      uvicornArgs.push('--env-file', rootEnvPath);
-    }
+    console.log(`\x1b[36m[BACKEND]\x1b[0m Rust Axum starting on http://127.0.0.1:8000 (Cargo: ${cargoCmd})`);
     const backendProc = spawn(
-      pythonCmd,
-      uvicornArgs,
+      cargoCmd,
+      ['run', '--bin', 'sgsk-backend'],
       {
         cwd: backendDir,
-        env: { ...process.env, PYTHONUNBUFFERED: '1' },
+        env: getBackendEnv({ HOST: '127.0.0.1', PORT: '8000' }),
       }
     );
     attachPrefixedStream(backendProc.stdout, 'BACKEND', '36');
     attachPrefixedStream(backendProc.stderr, 'BACKEND', '36');
+    backendProc.on('error', (err) => {
+      console.error(`\x1b[31m[BACKEND] Failed to start Rust backend (${cargoCmd}): ${err.message}\x1b[0m`);
+    });
+    backendProc.on('close', (code, signal) => {
+      if (code !== null && code !== 0) {
+        console.error(
+          `\x1b[31m[BACKEND] Rust backend exited with code ${code} (is port 8000 already in use?). Proxy requests at /api/backend will fail until port 8000 is listening.\x1b[0m`
+        );
+      } else if (signal) {
+        console.log(`\x1b[33m[BACKEND] Rust backend terminated by signal ${signal}\x1b[0m`);
+      }
+    });
     children.push(backendProc);
   }
 

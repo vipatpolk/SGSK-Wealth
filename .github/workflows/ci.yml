@@ -39,7 +39,7 @@ jobs:
         run: npm run lint:gherkin
 
   backend-qa:
-    name: Backend QA (Ruff, Mypy & Pytest)
+    name: Backend QA (Rust Fmt, Clippy & Cargo Test)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -48,33 +48,27 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - name: Set up Rust Stable Toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
-          python-version: '3.11'
-          cache: 'pip'
-          cache-dependency-path: 'backend/requirements-dev.txt'
+          components: rustfmt, clippy
 
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
-
-      - name: Run Ruff Linter
-        run: ruff check .
-
-      - name: Run Mypy Type Checker
-        run: mypy .
-
-      - name: Run Pytest Unit Tests with Coverage
-        run: pytest -m "not live_e2e" --cov=. --cov-fail-under=80 --cov-report=xml --cov-report=term-missing
-
-      - name: Upload Backend Coverage Artifact
-        uses: actions/upload-artifact@v4
+      - name: Cache Cargo Dependencies & Target
+        uses: Swatinem/rust-cache@v2
         with:
-          name: backend-coverage-report
-          path: backend/coverage.xml
-          retention-days: 7
+          workspaces: backend
+
+      - name: Check Rust Formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run Clippy Linter
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Run Cargo Test Suite
+        run: cargo test
+
+      - name: Verify Release Binary Compilation
+        run: cargo build --release --all-targets
 
   frontend-qa:
     name: Web Frontend QA (Vitest & Build)

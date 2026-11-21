@@ -1,7 +1,5 @@
-venv/
-.venv/
-__pycache__/
-*.pyc
+/target
+**/*.rs.bk
 .env
 .env.*
 !.env.example
@@ -10,9 +8,3 @@ __pycache__/
 *.pem
 *.key
 *.p12
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.coverage
-coverage.xml
-htmlcov/

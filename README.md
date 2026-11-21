@@ -14,10 +14,10 @@
   <img src="https://img.shields.io/badge/Capacitor-8.6-119EFF?style=flat-square&logo=capacitor&logoColor=white" alt="Capacitor 8" />
   <img src="https://img.shields.io/badge/TailwindCSS-v4.3-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS v4.3" />
   <img src="https://img.shields.io/badge/TypeScript-6.0-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript 6.0" />
-  <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.10+" />
-  <img src="https://img.shields.io/badge/FastAPI-0.115+-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Rust-Stable-000000?style=flat-square&logo=rust&logoColor=white" alt="Rust Stable" />
+  <img src="https://img.shields.io/badge/Axum-0.8-7C3AED?style=flat-square" alt="Axum 0.8" />
   <img src="https://img.shields.io/badge/Supabase-Auth_%26_Postgres-3ECF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase Auth & Postgres" />
-  <img src="https://img.shields.io/badge/yfinance-1.8+-6001D2?style=flat-square" alt="yfinance 1.8+" />
+  <img src="https://img.shields.io/badge/Yahoo_Finance-HTTP_API-6001D2?style=flat-square" alt="Yahoo Finance HTTP API" />
   <img src="https://img.shields.io/badge/Java-25+-ED8B00?style=flat-square&logo=openjdk&logoColor=white" alt="Java 25+" />
   <img src="https://img.shields.io/badge/Spring_Boot-4.1-6DB33F?style=flat-square&logo=springboot&logoColor=white" alt="Spring Boot 4.1" />
   <img src="https://img.shields.io/badge/Playwright-1.64-45BA4B?style=flat-square&logo=playwright&logoColor=white" alt="Playwright" />
@@ -37,14 +37,14 @@
 
 **SGSK-Wealth** is a production-grade wealth management monorepo designed to solve the complexity of multi-asset, multi-currency portfolio tracking and tax accounting. It automates **First-In, First-Out (FIFO)** transaction matching, reconciles cost bases, calculates unrealized and realized capital gains, and streams live market quotes and foreign exchange rates across both a **Web SPA (`web/`)** and a **Native iOS & Android Mobile App (`mobile/`)** powered by a shared TypeScript core (`shared/`).
 
-The platform supports **multi-tier authentication and portfolio data isolation** via **Supabase Auth** (Email/Password, Google OAuth 2.0 PKCE, and Account Linking): the authorized owner account syncs live trading transaction logs from **Cloud Google Sheets**, while Guest and standard signed-in users operate a full-featured **On-Device Local Portfolio Workspace** enriched with live market prices and dividends from external financial data providers (Yahoo Finance via `yfinance`, Binance TH, SET Thailand, SEC Thailand Mutual Fund & PVD APIs).
+The platform supports **multi-tier authentication and portfolio data isolation** via **Supabase Auth** (Email/Password, Google OAuth 2.0 PKCE, and Account Linking): the authorized owner account syncs live trading transaction logs from **Cloud Google Sheets**, while Guest and standard signed-in users operate a full-featured **On-Device Local Portfolio Workspace** enriched with live market prices and dividends from Yahoo Finance, Binance TH, SET Thailand, and SEC Thailand Mutual Fund & PVD APIs.
 
 ```mermaid
 flowchart LR
-    DataSources["Google Sheets\n(Owner Cloud CSVs)"] --> Backend["FastAPI Backend\n(FIFO Engine, Owner Guard & Analytics)"]
+    DataSources["Google Sheets\n(Owner Cloud CSVs)"] --> Backend["Rust Axum Backend\n(FIFO Engine, Owner Guard & Analytics)"]
     Supabase["Supabase Auth & Postgres\n(JWT/JWKS, profiles, user_settings)"] --> Backend
     Supabase --> Shared["shared/\n(Models, Auth, Settings, Local Portfolio, i18n)"]
-    MarketData["yfinance / Binance TH / SET / SEC TH"] --> Backend
+    MarketData["Yahoo Finance / Binance TH / SET / SEC TH"] --> Backend
     Shared --> Web["web/\nAngular 22 Web SPA\n(Desktop Left Sidebar / Mobile Bottom Nav)"]
     Shared --> Mobile["mobile/\nIonic 9 + Capacitor 8\n(iOS & Android Maven)"]
     Backend --> Web
@@ -99,7 +99,7 @@ flowchart LR
 - **Complete Fact Sheet Sections**: Displays Policy & Overview, SEC Risk Spectrum (`RS1`–`RS8`), Calendar/Trailing Performance & Benchmark, Key Risk Statistics, Fees & Dealing Conditions, Asset Allocation, Top 5 Holdings, and direct links to the official SEC Fact Sheet PDF and AMC fund page.
 
 ### 💵 Dividend & Yield on Cost (YOC) Accounting
-- **100% Automated Ingestion**: Fetches complete historical dividend distributions via `yfinance` (`period="max"` for US/Thai equities & Bonds) and SEC Thailand Open APIs (Mutual Funds).
+- **Automated Ingestion**: Fetches historical dividend distributions from Yahoo Finance for US/Thai equities and bonds, and SEC Thailand Open APIs for mutual funds.
 - **Exact Ex-Date Share Accounting**: Evaluates historical transaction logs to reconstruct exact share balances held on ex-dividend dates ($T$):
   $$\text{Shares Held}(T) = \sum_{\text{Tx Date } < T} \text{Buy Quantity} - \sum_{\text{Tx Date } < T} \text{Sell Quantity}$$
 - **Per-Asset Yield on Cost (YOC)**: Calculates true Yield on Cost without currency distortion across US Stocks, Thai Stocks, Mutual Funds, and Bonds.
@@ -165,11 +165,9 @@ flowchart LR
 
 | Technology | Version / Spec | Purpose & Architectural Role |
 |:---|:---|:---|
-| **[Python](https://www.python.org/)** | `3.10+` / `3.11` / `3.14` | High-level language powering mathematical algorithms, FIFO matching, and financial simulations. |
-| **[FastAPI](https://fastapi.tiangolo.com/)** | `0.115+` | Asynchronous REST API framework with OpenAPI docs, Pydantic v2 validation, and Supabase JWT/JWKS owner authorization (`require_owner_cloud_portfolio`). |
-| **[yfinance](https://ranaroussi.github.io/yfinance/)** | `1.8+` | Async-offloaded `YFinanceClient` adapter (`curl_cffi` TLS impersonation, `<tempdir>/py-yfinance` serverless cache config, bounded concurrency) for stock quotes, FX rates, crypto display names, and full (`max`) dividend history. |
-| **[HTTPX](https://www.python-httpx.org/)** | `0.28+` | Asynchronous HTTP client for Google Sheets, Supabase Auth/REST verification, Binance TH, SET listed company metadata, and SEC Thailand Open APIs. |
-| **[Pytest](https://docs.pytest.org/) / [Ruff](https://astral.sh/ruff) / [Mypy](https://mypy-lang.org/)** | `9.2+` / `0.17+` / `2.4+` | **154 unit tests** (`88.42%` coverage) with $\ge 80\%$ coverage enforcement, strict linting, and static typing. |
+| **[Rust](https://www.rust-lang.org/) / [Axum](https://github.com/tokio-rs/axum)** | Stable / `0.8` | Async REST API, typed request handling, financial analytics, and Supabase JWT/JWKS owner authorization. |
+| **[Tokio](https://tokio.rs/) / [Reqwest](https://docs.rs/reqwest/)** | `1.x` / `0.12` | Async runtime and HTTP clients for Google Sheets, Supabase, Binance TH, SET, Yahoo Finance, and SEC Thailand APIs. |
+| **[Cargo](https://doc.rust-lang.org/cargo/) / rustfmt / Clippy** | Stable | Dependency management, formatting, linting, and backend test execution. |
 
 ### 5. End-to-End Automation Suite (`e2e/`)
 
@@ -184,7 +182,7 @@ flowchart LR
 
 ### 6. CI/CD Pipelines (`.github/workflows/`)
 
-- **[`ci.yml`](.github/workflows/ci.yml)**: Automated push/PR/manual pipeline running `security-scan` (Gitleaks), `backend-qa` (Ruff, Mypy, Pytest), `frontend-qa` (Web Vitest + build), `mobile-qa` (Mobile Vitest + build), `e2e-automation` (Java Playwright + Rest Assured + Allure), and `publish-allure-report` to [GitHub Pages](https://vipatpolk.github.io/SGSK-Wealth/).
+- **[`ci.yml`](.github/workflows/ci.yml)**: Automated push/PR/manual pipeline running `security-scan` (Gitleaks), `backend-qa` (Rust fmt, Clippy, Cargo tests), `frontend-qa` (Web Vitest + build), `mobile-qa` (Mobile Vitest + build), `e2e-automation` (Java Playwright + Rest Assured + Allure), and `publish-allure-report` to [GitHub Pages](https://vipatpolk.github.io/SGSK-Wealth/).
 - **[`mobile-build.yml`](.github/workflows/mobile-build.yml)**: Dedicated manual `workflow_dispatch` workflow (`platform`: `all` | `android` | `ios`, `build_type`: `debug` | `release`) that builds and uploads the **Android `.apk`** (via Maven + Android SDK) and **iOS `.ipa`** (via Xcode `xcodebuild`).
 
 ---
@@ -193,33 +191,39 @@ flowchart LR
 
 ```text
 SGSK-Wealth/
-├── backend/                    # Python FastAPI Backend
-│   ├── main.py                 # FastAPI application entry point & CORS configuration
-│   ├── config/                 # Settings, API keys, and Google Sheet GID mappings
-│   ├── models/                 # Pydantic domain models
-│   ├── routers/                # API routers (auth, share-lot, price, nav, portfolio, tools, icon)
-│   ├── services/               # Core business logic (FIFO engine, valuation, dividend, nav/factsheet, tools)
-│   ├── utils/                  # Shared HTTP client, Supabase JWT/JWKS verifier, yfinance adapter, TTL/singleflight cache, auth & format helpers
-│   ├── tests/                  # Pytest unit tests (154 tests, >=80% coverage enforced)
-│   └── pyproject.toml          # Ruff, Mypy, and Pytest coverage configuration
+├── backend/                    # Rust Axum API and analytics service
+│   ├── api/index.rs            # Vercel function entry point
+│   ├── src/main.rs             # Local server entry point
+│   ├── src/features/           # Feature modules: portfolio, dividends, market_data, tools, identity
+│   │   └── <feature>/{api,models,services}/
+│   ├── src/{config,utils}/     # Runtime settings and shared infrastructure
+│   ├── tests/                  # Rust integration tests and fixtures
+│   ├── Cargo.toml              # Rust package, binaries, and dependencies
+│   └── Dockerfile.vercel       # Container deployment entry point
 │
 ├── shared/                     # Shared Core Library (@shared/*)
 │   ├── package.json            # @sgsk-wealth/shared workspace package
 │   └── src/
-│       ├── components/         # Shared UI components (SymbolIconComponent, LoadingScreenComponent, DateRangePickerComponent)
-│       ├── config/             # asset.constants.ts, api-config.token.ts, supabase-config.token.ts
-│       ├── i18n/               # Bilingual EN / TH dictionaries with full key parity
-│       ├── models/             # TypeScript interfaces and domain models (portfolio, dividend, auth, user-settings)
-│       ├── pipes/              # Reactive localization & Gregorian date pipes (| t, | ldate)
-│       ├── services/           # Angular HTTP, Supabase Auth, UserSettings, LocalPortfolio & i18n services
-│       ├── utils/              # Formatting, TVM, rebalance, and calculation helpers
+│       ├── components/         # Shared UI components
+│       ├── config/             # API, asset, and Supabase configuration
+│       ├── i18n/               # English and Thai dictionaries
+│       ├── models/             # Shared domain and API types
+│       ├── pipes/              # Localization and date pipes
+│       ├── services/           # Shared API, auth, settings, and local portfolio services
+│       ├── utils/              # Formatting, FIFO, TVM, rebalance, and calculation helpers
 │       └── index.ts            # Barrel exports
 │
 ├── web/                        # Angular 22 Web Single Page Application (@sgsk-wealth/web)
 │   ├── public/                 # Static assets, SVG icons, and favicons
-│   ├── src/                    # Web components (desktop sidebar header, auth-screen, user-settings-modal, local-portfolio-modal, views), app shell & proxy
+│   ├── src/app/                # Web app shell and feature-oriented components
+│   │   ├── core/               # AppStateFacade for workspace state and data coordination
+│   │   ├── features/           # Dashboard, analytics, dividends, holdings, tools, and transaction flows
+│   │   ├── ui/                 # Web-specific navigation and reusable presentation components
+│   │   ├── interceptors/       # Web HTTP interceptors
+│   │   ├── shared-tests/       # Web test-runner coverage for shared library modules
+│   │   └── app.ts              # Thin Angular shell and component composition
 │   ├── angular.json
-│   ├── tsconfig.json           # Maps @shared/* -> ../shared/src/*
+│   ├── tsconfig.json           # Maps @shared/* and @app/* imports
 │   └── package.json
 │
 ├── mobile/                     # Angular 22 + Ionic 9 + Capacitor 8 Mobile App (@sgsk-wealth/mobile)
@@ -262,7 +266,7 @@ SGSK-Wealth/
 │   ├── dev.mjs                 # Concurrent runner ([BACKEND], [WEB], [MOBILE] & live [E2E] log tailer)
 │   └── setup-agents.mjs        # Cross-platform .claude/skills -> .agent/skills linker
 ├── package.json                # Root npm workspaces & unified monorepo scripts
-├── vercel.json                 # Unified Vercel Services config (web Angular SPA + backend FastAPI)
+├── vercel.json                 # Unified Vercel Services config (Angular SPA + Rust API)
 ├── AGENTS.md                   # Unified QA & engineering standards (Antigravity & Codex)
 └── CLAUDE.md                   # Claude Code entrypoint (@AGENTS.md + Claude-specific rules)
 ```
@@ -276,7 +280,7 @@ SGSK-Wealth/
 Ensure the following tools are installed on your workstation:
 - **Node.js**: `v24+` or `v26 LTS`
 - **npm**: `v10+` or `v11+`
-- **Python**: `3.10+`, `3.11+` or `3.14`
+- **Rust**: Stable toolchain with `rustfmt` and `clippy`
 - **Java**: `JDK 25+`
 - **Apache Maven**: `3.9+`
 - **Mobile Native Tooling (optional, for native device/emulator builds & Appium)**: Android SDK (`ANDROID_HOME`) for `.apk` builds, Xcode (macOS) for `.ipa` builds, and Appium 2 (`http://127.0.0.1:4723`).
@@ -291,21 +295,7 @@ cd SGSK-Wealth
 npm install
 ```
 
-Set up the Python virtual environment for the backend:
-
-```bash
-cd backend
-python -m venv .venv
-
-# On Windows:
-.venv\Scripts\activate
-# On macOS / Linux:
-source .venv/bin/activate
-
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
-cd ..
-```
+Install the Rust toolchain with `rustup`; Cargo downloads backend dependencies when its commands run.
 
 Install Playwright Chromium browser binaries for the E2E suite:
 
@@ -317,7 +307,7 @@ mvn -f e2e/pom.xml exec:java -Dexec.classpathScope=test -Dexec.mainClass=com.mic
 
 ## Local Development Workflow
 
-Start **both** the FastAPI backend and Angular Web SPA concurrently from the monorepo root:
+Start **both** the Rust backend and Angular Web SPA concurrently from the monorepo root:
 
 ```bash
 npm start
@@ -326,13 +316,13 @@ npm run dev
 ```
 
 - **Web Application**: `http://localhost:4200` (proxies `/api/backend/*` to `:8000`)
-- **Backend API**: `http://127.0.0.1:8000` (interactive OpenAPI Swagger docs at `http://127.0.0.1:8000/docs`)
+- **Backend API**: `http://127.0.0.1:8000`
 - **Live `[E2E]` Log Streaming**: `npm start` tails `e2e/target/e2e-live.log` automatically whenever `npm run test:e2e*` runs in another terminal (disable with `node scripts/dev.mjs --no-e2e-logs`).
 
 To start services individually or include the Ionic mobile dev server:
 
 ```bash
-npm run dev:backend            # Runs only FastAPI on http://127.0.0.1:8000
+npm run dev:backend            # Runs only the Rust backend on http://127.0.0.1:8000
 npm run dev:web                # Runs only Web Angular SPA on http://localhost:4200
 npm run dev:mobile             # Runs Ionic Mobile App on http://localhost:4201
 node scripts/dev.mjs --mobile  # Starts Backend + Web (:4200) + Mobile (:4201) together
@@ -356,8 +346,8 @@ SGSK-Wealth enforces strict quality standards before any code is committed:
 |:---|:---|:---|
 | **`npm run check`** | Run complete pre-commit QA suite (Gherkin lint, backend lint/test, web test/build, mobile test/build) | Monorepo Orchestration |
 | **`npm run lint:gherkin`** | Validate all **25 `.feature` files** with `validate_gherkin.py --strict` | Python Gherkin Linter |
-| **`npm run lint:backend`** | Run Ruff linter and Mypy static type checker on `backend/` | Ruff & Mypy |
-| **`npm run test:backend`** | Run Pytest unit test suite (**154 tests**) with coverage enforcement ($\ge 80\%$) | Pytest & Coverage |
+| **`npm run lint:backend`** | Check Rust formatting and run Clippy with warnings denied | rustfmt & Clippy |
+| **`npm run test:backend`** | Run backend unit and integration tests | Cargo test |
 | **`npm run test:web`** | Run Web Vitest unit test suite (**381 tests across 40 suites**) | Vitest & jsdom |
 | **`npm run test:mobile`** | Run Mobile Vitest unit test suite (**23 tests across 10 suites**) | Vitest & Ionic |
 | **`npm run build:web`** | Compile production-ready Web Angular bundle | Angular CLI |
@@ -378,14 +368,14 @@ SGSK-Wealth enforces strict quality standards before any code is committed:
 ## Deployment & Mobile Builds
 
 ### Vercel Deployment (Unified Vercel Services)
-This monorepo deploys **both** the Angular Web SPA (`web/`) and Python FastAPI backend (`backend/`) in a **single Vercel project** (`sgsk-wealth`) using **Vercel Services (Beta)** configured in root [`vercel.json`](vercel.json):
+This monorepo deploys **both** the Angular Web SPA (`web/`) and Rust Axum backend (`backend/`) in a **single Vercel project** (`sgsk-wealth`) using **Vercel Services** configured in root [`vercel.json`](vercel.json):
 1. **Project Settings**: Keep **Root Directory** at repository root (`.`), set **Framework Preset** to **Services**, use **Node.js 24/26**, and keep **Fluid Compute** enabled under **Settings → Functions**. Connect the `sgsk-supabase` integration to `sgsk-wealth` for both Preview and Production.
 2. **Web Service (`web/`)**: Builds the Angular 22 workspace (`installCommand: "cd .. && npm ci"`, `buildCommand: "npm run build"`, `outputDirectory: "dist/sgsk-wealth"`) with SPA fallback rewrites to `/index.html`.
-3. **Backend Service (`backend/`)**: Runs FastAPI (`main:app`) on Python Fluid Compute. Top-level `rewrites` route `/api/backend(/.*)?` to `backend`, where service-scoped `routes` inject `X-API-Key` from the Secret `$BACKEND_API_KEY` environment variable (`request.headers` transform) and strip the `/api/backend` prefix (`dest` + `check: true` after `filesystem`). On serverless hosts, `yfinance` automatically redirects its SQLite caches to `/tmp/py-yfinance` (overridable via optional `YFINANCE_CACHE_DIR`, `YFINANCE_TIMEOUT_SECONDS`, `YFINANCE_RETRIES`, `YFINANCE_MAX_CONCURRENCY`, and `YFINANCE_DIVIDEND_PERIOD` environment variables).
-4. **Local Services Emulation & Native Mobile**: Run `vercel dev --local` from the repository root to test unified Services routing locally. Native mobile production builds call `https://sgsk-wealth.vercel.app/api/backend` (`nativeApiBaseUrl` in `mobile/src/environments/environment.prod.ts`) without bundling `BACKEND_API_KEY`; FastAPI automatically preserves Capacitor origins (`http://localhost`, `https://localhost`, `capacitor://localhost`) in CORS, and Production (`https://sgsk-wealth.vercel.app`) must stay reachable without interactive Vercel SSO.
+3. **Backend Service (`backend/`)**: Builds the Rust function in `api/index.rs` using the backend Cargo package and `vercel_runtime`. Service-scoped routes inject `X-API-Key` from the Secret `$BACKEND_API_KEY` environment variable. Local development uses `cargo run --bin sgsk-backend` on port `8000`.
+4. **Local Services Emulation & Native Mobile**: Run `vercel dev --local` from the repository root to test unified Services routing locally. Native mobile production builds call `https://sgsk-wealth.vercel.app/api/backend` (`nativeApiBaseUrl` in `mobile/src/environments/environment.prod.ts`) without bundling `BACKEND_API_KEY`; the Rust backend allows configured web and Capacitor origins through CORS.
 
 #### Rotating the backend API key
-1. Generate a random key of at least 32 characters and update `BACKEND_API_KEY` as a Sensitive/Secret variable in the single `sgsk-wealth` Vercel project (shared atomically by both the edge route transform and FastAPI). Vercel does not reveal Sensitive values later, so store a backup in your secret manager first.
+1. Generate a random key of at least 32 characters and update `BACKEND_API_KEY` as a Sensitive/Secret variable in the single `sgsk-wealth` Vercel project (shared by the edge route transform and backend runtime). Vercel does not reveal Sensitive values later, so store a backup in your secret manager first.
 2. Because `web` and `backend` deploy together in one atomic deployment, updating `BACKEND_API_KEY` and redeploying rotates both simultaneously. If staged zero-downtime rotation is needed across in-flight requests, temporarily set `BACKEND_API_KEY_PREVIOUS`, deploy, verify Web and Mobile traffic, then remove `BACKEND_API_KEY_PREVIOUS` and redeploy.
 3. Keep secret values in Vercel's Sensitive/Secret variables. Do not add keys to `.env.example`, source control, build arguments, or native artifacts.
 

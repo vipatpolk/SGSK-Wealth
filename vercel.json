@@ -21,11 +21,9 @@
     },
     "backend": {
       "root": "backend",
-      "framework": "fastapi",
-      "entrypoint": "main:app",
       "functions": {
-        "main.py": {
-          "excludeFiles": "{tests/**,.pytest_cache/**,.mypy_cache/**,.ruff_cache/**,.coverage,coverage.xml}"
+        "api/**/*.rs": {
+          "excludeFiles": "{tests/**,target/**}"
         }
       },
       "routes": [
@@ -48,14 +46,12 @@
           "handle": "filesystem"
         },
         {
-          "src": "^/api/backend/(.+)$",
-          "dest": "/$1",
-          "check": true
+          "src": "^/api/backend(?:/(.*))?$",
+          "dest": "/api/index"
         },
         {
-          "src": "^/api/backend/?$",
-          "dest": "/",
-          "check": true
+          "src": "^/(.*)$",
+          "dest": "/api/index"
         }
       ]
     }

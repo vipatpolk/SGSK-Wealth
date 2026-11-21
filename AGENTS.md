@@ -1,7 +1,7 @@
 # SGSK-Wealth Monorepo Agent & Quality Assurance Standards
 
 This repository is a monorepo consisting of:
-- **`backend/`**: Python FastAPI backend service
+- **`backend/`**: Rust (Axum + Tokio) backend service
 - **`shared/`**: Shared Angular core models, HTTP services, pipes, i18n dictionaries, and calculation utilities (`@shared/*`)
 - **`web/`**: Angular 22 Web Single Page Application
 - **`mobile/`**: Angular 22 + Ionic + Capacitor Native iOS (`mobile/ios/`) and Android (`mobile/android/` via Maven) mobile application
@@ -16,10 +16,10 @@ All agents (Antigravity, OpenAI Codex, and Claude Code via `.claude/skills/`) sh
 
 | Skill | Path | When to Load |
 | :--- | :--- | :--- |
-| **`dividend-payments`** | [`.agent/skills/dividend-payments/SKILL.md`](.agent/skills/dividend-payments/SKILL.md) | U.S. (SEC T+1) and Thai (SET T+2) equity dividends, ex-dividend/XD dates, withholding taxes (15% W-8BEN / 30% NRA, 10% Thai / 0% BOI), stock dividends, and `dividend_service.py`. |
+| **`dividend-payments`** | [`.agent/skills/dividend-payments/SKILL.md`](.agent/skills/dividend-payments/SKILL.md) | U.S. (SEC T+1) and Thai (SET T+2) equity dividends, ex-dividend/XD dates, withholding taxes (15% W-8BEN / 30% NRA, 10% Thai / 0% BOI), stock dividends, and `dividend_service.rs`. |
 | **`cucumber-bdd-best-practices`** | [`.agent/skills/cucumber-bdd-best-practices/SKILL.md`](.agent/skills/cucumber-bdd-best-practices/SKILL.md) | Authoring, reviewing, or refactoring `.feature` Gherkin specifications, Cucumber step definitions, Playwright Page Objects, REST Assured steps, and tagging taxonomy in `e2e/`. |
-| **`fifo-cost-basis`** | [`.agent/skills/fifo-cost-basis/SKILL.md`](.agent/skills/fifo-cost-basis/SKILL.md) | First In, First Out (FIFO) inventory valuation (COGS, ending inventory, GAAP/IFRS vs. LIFO) and portfolio cost-basis accounting (lot matching, acquisition fees, FIFO vs. Average Cost, `share_lot_service.py`). |
-| **`sec-open-apis`** | [`.agent/skills/sec-open-apis/SKILL.md`](.agent/skills/sec-open-apis/SKILL.md) | Thailand SEC Open Data APIs for Mutual Funds (`/v2/fund/*`, 21 endpoints) and Provident Funds (`/v1/pvd/factsheet/*`, 15 endpoints), cursor pagination, `Ocp-Apim-Subscription-Key` auth, `204` handling, and `nav_service.py`. |
+| **`fifo-cost-basis`** | [`.agent/skills/fifo-cost-basis/SKILL.md`](.agent/skills/fifo-cost-basis/SKILL.md) | First In, First Out (FIFO) inventory valuation (COGS, ending inventory, GAAP/IFRS vs. LIFO) and portfolio cost-basis accounting (lot matching, acquisition fees, FIFO vs. Average Cost, `share_lot_service.rs`). |
+| **`sec-open-apis`** | [`.agent/skills/sec-open-apis/SKILL.md`](.agent/skills/sec-open-apis/SKILL.md) | Thailand SEC Open Data APIs for Mutual Funds (`/v2/fund/*`, 21 endpoints) and Provident Funds (`/v1/pvd/factsheet/*`, 15 endpoints), cursor pagination, `Ocp-Apim-Subscription-Key` auth, `204` handling, and `nav_service.rs`. |
 | **`ai-native-sdlc`** | [`.agent/skills/ai-native-sdlc/SKILL.md`](.agent/skills/ai-native-sdlc/SKILL.md) | Authoritative guide and operational standards for the AI-Native Software Development Lifecycle across all 6 stages (Plan, Design, Build, Test, Deploy, Maintain), artifact chains (`intent.md` -> `spec.md` -> `plan.md` -> `REVIEW.md` -> `bands.yaml`), plan mode, continuous evals, and closed-loop maintenance. |
 
 ---
@@ -32,7 +32,7 @@ All agents (Antigravity, OpenAI Codex, and Claude Code via `.claude/skills/`) sh
   # or
   npm run dev
   ```
-  Runs FastAPI on `http://127.0.0.1:8000` and Angular dev server on `http://localhost:4200` (with proxy to `:8000`).
+  Runs Rust Axum backend on `http://127.0.0.1:8000` and Angular dev server on `http://localhost:4200` (with proxy to `:8000`).
 
 - **Run All Pre-Commit Checks**:
   ```bash
@@ -81,12 +81,12 @@ Before committing or pushing any changes, verify that the following checks pass:
 
 ### 1. Backend Verification (`backend/`)
 From root:
-- `npm run lint:backend` (Runs `ruff check .` and `mypy .`)
-- `npm run test:backend` (Runs `pytest -m "not live_e2e"`)
+- `npm run lint:backend` (Runs `cargo fmt --all -- --check` and `cargo clippy --all-targets -- -D warnings`)
+- `npm run test:backend` (Runs `cargo test`)
 
 Strict backend guidelines:
-- Never redeclare variable type annotations inside separate conditional branches (causes mypy `[no-redef]`). Declare types before `if/else` blocks.
-- Maintain test coverage (enforced at $\ge 80\%$).
+- Treat all Clippy warnings as errors (`-D warnings`) and keep code `rustfmt`-clean.
+- Maintain comprehensive unit and integration test parity across core accounting engines, external market data parsers, authentication/CORS security controls, and all HTTP routers.
 
 ### 2. Web & Mobile Verification (`web/` & `mobile/`)
 From root:

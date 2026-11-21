@@ -1,7 +1,7 @@
 {
   "name": "sgsk-wealth",
   "version": "1.0.0",
-  "description": "SGSK-Wealth Monorepo - FastAPI Backend, Shared Core, Angular Web SPA & Ionic Capacitor Mobile App",
+  "description": "SGSK-Wealth Monorepo - Rust (Axum) Backend, Shared Core, Angular Web SPA & Ionic Capacitor Mobile App",
   "private": true,
   "workspaces": [
     "shared",
