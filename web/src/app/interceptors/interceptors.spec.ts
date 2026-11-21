@@ -6,7 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AuthService } from '@shared/services/auth.service';
 import { authInterceptor } from './auth.interceptor';
-import { errorInterceptor } from './error.interceptor';
+import { errorInterceptor } from '@app/interceptors/error.interceptor';
 
 describe('HTTP Interceptors', () => {
   let http: HttpClient;

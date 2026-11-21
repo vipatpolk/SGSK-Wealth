@@ -13,7 +13,7 @@ import { AuthService } from '@shared/services/auth.service';
 import { environment } from '../environments/environment';
 import { routes } from './app.routes';
 import { authInterceptor } from './interceptors/auth.interceptor';
-import { errorInterceptor } from './interceptors/error.interceptor';
+import { errorInterceptor } from '@app/interceptors/error.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [

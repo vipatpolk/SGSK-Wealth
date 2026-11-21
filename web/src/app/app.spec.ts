@@ -2,14 +2,14 @@ import { DeferBlockBehavior, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { of } from 'rxjs';
-import { PortfolioService } from './services/portfolio.service';
-import { DividendService } from './services/dividend.service';
-import { I18nService } from './services/i18n.service';
+import { PortfolioService } from '@shared/services/portfolio.service';
+import { DividendService } from '@shared/services/dividend.service';
+import { I18nService } from '@shared/services/i18n.service';
 import { AuthService } from '@shared/services/auth.service';
 import { LocalPortfolioService } from '@shared/services/local-portfolio.service';
-import { PortfolioDividendResponse } from './models/dividend.model';
+import { PortfolioDividendResponse } from '@shared/models/dividend.model';
 import { App } from './app';
-import { ASSET_TABS } from './config/asset.constants';
+import { ASSET_TABS } from '@shared/config/asset.constants';
 
 describe('App', () => {
   beforeEach(async () => {
