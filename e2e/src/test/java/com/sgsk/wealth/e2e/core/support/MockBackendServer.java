@@ -22,14 +22,17 @@ public class MockBackendServer {
     private int port;
 
     public void start(int preferredPort) throws IOException {
-        this.port = preferredPort;
         try {
-            server = HttpServer.create(new InetSocketAddress(port), 0);
+            server = HttpServer.create(new InetSocketAddress(preferredPort), 0);
         } catch (IOException e) {
-            this.port = preferredPort + 1;
-            server = HttpServer.create(new InetSocketAddress(this.port), 0);
+            try {
+                server = HttpServer.create(new InetSocketAddress(preferredPort + 1), 0);
+            } catch (IOException fallbackException) {
+                server = HttpServer.create(new InetSocketAddress(0), 0);
+            }
         }
 
+        this.port = server.getAddress().getPort();
         server.createContext("/", new UnifiedMockHandler());
         server.setExecutor(null);
         server.start();

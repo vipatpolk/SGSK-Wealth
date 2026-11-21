@@ -6,9 +6,11 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 @Component
 public class ServerManager {
@@ -39,7 +41,7 @@ public class ServerManager {
         }
 
         String defaultBackendUrl = properties.backend().defaultUrl();
-        if (isHttpEndpointAvailable(defaultBackendUrl + "/")) {
+        if (isCompatibleBackendAvailable(defaultBackendUrl)) {
             backendBaseUrl = defaultBackendUrl;
             return backendBaseUrl;
         }
@@ -119,6 +121,45 @@ public class ServerManager {
             return process;
         } catch (Exception ignored) {
             return null;
+        }
+    }
+
+    private String resolveOwnerBearerToken() {
+        String prop = System.getProperty("e2e.auth.bearer");
+        if (prop != null && !prop.isBlank()) {
+            return prop.trim();
+        }
+        String env = System.getenv("E2E_AUTH_BEARER");
+        return (env != null && !env.isBlank()) ? env.trim() : MockBackendServer.VALID_OWNER_TOKEN;
+    }
+
+    private boolean isCompatibleBackendAvailable(String baseUrl) {
+        if (baseUrl == null || baseUrl.isBlank()) {
+            return false;
+        }
+        HttpURLConnection conn = null;
+        try {
+            String normalizedBaseUrl = baseUrl.replaceAll("/+$", "");
+            URL url = URI.create(normalizedBaseUrl + "/auth/me").toURL();
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setConnectTimeout(800);
+            conn.setReadTimeout(800);
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("X-API-Key", properties.backend().apiKey());
+            conn.setRequestProperty("Authorization", "Bearer " + resolveOwnerBearerToken());
+            if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                return false;
+            }
+            try (InputStream in = conn.getInputStream()) {
+                String body = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+                return body.replaceAll("\\s+", "").contains("\"canViewCloudPortfolio\":true");
+            }
+        } catch (Exception e) {
+            return false;
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
         }
     }
 
