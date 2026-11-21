@@ -48,10 +48,15 @@ pub struct Settings {
     pub yfinance_cache_dir: String,
     pub supabase_url: String,
     pub supabase_publishable_key: String,
+    pub supabase_service_role_key: String,
     pub supabase_jwks_url: String,
     pub supabase_jwt_audience: String,
     pub supabase_jwt_secret: String,
     pub authorized_portfolio_emails: Vec<String>,
+    pub logo_dev_publishable_key: String,
+    pub logo_dev_secret_key: String,
+    pub logo_dev_img_base_url: String,
+    pub logo_dev_api_base_url: String,
 }
 
 impl Default for Settings {
@@ -90,10 +95,15 @@ impl Default for Settings {
             yfinance_cache_dir: String::new(),
             supabase_url: "https://jjdnxifgpbdvntfwhyzz.supabase.co".to_string(),
             supabase_publishable_key: String::new(),
+            supabase_service_role_key: String::new(),
             supabase_jwks_url: String::new(),
             supabase_jwt_audience: "authenticated".to_string(),
             supabase_jwt_secret: String::new(),
             authorized_portfolio_emails: vec!["vipatpolk@gmail.com".to_string()],
+            logo_dev_publishable_key: String::new(),
+            logo_dev_secret_key: String::new(),
+            logo_dev_img_base_url: "https://img.logo.dev".to_string(),
+            logo_dev_api_base_url: "https://api.logo.dev".to_string(),
         }
     }
 }
@@ -142,6 +152,9 @@ impl Settings {
         let supabase_url = env_var("SUPABASE_URL").unwrap_or(defaults.supabase_url);
         let supabase_publishable_key =
             env_var("SUPABASE_PUBLISHABLE_KEY").unwrap_or(defaults.supabase_publishable_key);
+        let supabase_service_role_key = env_var("SUPABASE_SERVICE_ROLE_KEY")
+            .or_else(|| env_var("SUPABASE_SECRET_KEY"))
+            .unwrap_or(defaults.supabase_service_role_key);
         let supabase_jwks_url = env_var("SUPABASE_JWKS_URL").unwrap_or(defaults.supabase_jwks_url);
         let supabase_jwt_audience =
             env_var("SUPABASE_JWT_AUDIENCE").unwrap_or(defaults.supabase_jwt_audience);
@@ -150,6 +163,15 @@ impl Settings {
         let authorized_portfolio_emails = env_var("AUTHORIZED_PORTFOLIO_EMAILS")
             .map(|v| parse_list_env(&v))
             .unwrap_or(defaults.authorized_portfolio_emails);
+        let logo_dev_publishable_key = env_var("LOGO_DEV_PUBLISHABLE_KEY")
+            .or_else(|| env_var("LOGO_DEV_TOKEN"))
+            .unwrap_or(defaults.logo_dev_publishable_key);
+        let logo_dev_secret_key =
+            env_var("LOGO_DEV_SECRET_KEY").unwrap_or(defaults.logo_dev_secret_key);
+        let logo_dev_img_base_url =
+            env_var("LOGO_DEV_IMG_BASE_URL").unwrap_or(defaults.logo_dev_img_base_url);
+        let logo_dev_api_base_url =
+            env_var("LOGO_DEV_API_BASE_URL").unwrap_or(defaults.logo_dev_api_base_url);
 
         let settings = Self {
             environment,
@@ -174,10 +196,15 @@ impl Settings {
             yfinance_cache_dir,
             supabase_url,
             supabase_publishable_key,
+            supabase_service_role_key,
             supabase_jwks_url,
             supabase_jwt_audience,
             supabase_jwt_secret,
             authorized_portfolio_emails,
+            logo_dev_publishable_key,
+            logo_dev_secret_key,
+            logo_dev_img_base_url,
+            logo_dev_api_base_url,
         };
         settings.validate_production_security()?;
         Ok(settings)

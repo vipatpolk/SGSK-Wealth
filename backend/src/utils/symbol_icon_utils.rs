@@ -112,7 +112,26 @@ pub fn get_symbol_color(symbol: &str) -> String {
     hsl_to_hex(hue, sat, light)
 }
 
+pub fn build_logo_dev_url(base_url: &str, path: &str, token: Option<&str>) -> String {
+    let base = base_url.trim().trim_end_matches('/');
+    let clean_path = path.trim().trim_start_matches('/');
+    let mut url = format!("{base}/{clean_path}?format=png&size=128&fallback=404");
+    if let Some(tk) = token.map(str::trim).filter(|s| !s.is_empty()) {
+        url.push_str(&format!("&token={}", urlencoding::encode(tk)));
+    }
+    url
+}
+
 pub fn get_symbol_logo_config(symbol: &str, asset_type: &str) -> SymbolLogoConfig {
+    get_symbol_logo_config_with_base(symbol, asset_type, "https://img.logo.dev", None)
+}
+
+pub fn get_symbol_logo_config_with_base(
+    symbol: &str,
+    asset_type: &str,
+    img_base_url: &str,
+    token: Option<&str>,
+) -> SymbolLogoConfig {
     if symbol.is_empty() {
         return SymbolLogoConfig {
             primary_url: None,
@@ -148,12 +167,12 @@ pub fn get_symbol_logo_config(symbol: &str, asset_type: &str) -> SymbolLogoConfi
     if resolved_type == "crypto" {
         let sym_lower = clean_ticker.to_lowercase();
         return SymbolLogoConfig {
-            primary_url: Some(format!(
-                "https://assets.coincap.io/assets/icons/{sym_lower}@2x.png"
+            primary_url: Some(build_logo_dev_url(
+                img_base_url,
+                &format!("crypto/{sym_lower}"),
+                token,
             )),
-            secondary_url: Some(format!(
-                "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/{sym_lower}.svg"
-            )),
+            secondary_url: None,
             is_mutual_fund: false,
             monogram,
             brand_color,
@@ -163,11 +182,15 @@ pub fn get_symbol_logo_config(symbol: &str, asset_type: &str) -> SymbolLogoConfi
     if resolved_type == "thai-stock" {
         let clean_upper = clean_ticker.to_uppercase();
         return SymbolLogoConfig {
-            primary_url: Some(format!(
-                "https://www.set.or.th/dat/vender/quote/company_logo/{clean_upper}.png"
+            primary_url: Some(build_logo_dev_url(
+                img_base_url,
+                &format!("ticker/{clean_upper}.BK"),
+                token,
             )),
-            secondary_url: Some(format!(
-                "https://assets.parqet.com/logos/symbol/{clean_upper}.BK?format=png"
+            secondary_url: Some(build_logo_dev_url(
+                img_base_url,
+                &format!("ticker/{clean_upper}"),
+                token,
             )),
             is_mutual_fund: false,
             monogram,
@@ -177,12 +200,12 @@ pub fn get_symbol_logo_config(symbol: &str, asset_type: &str) -> SymbolLogoConfi
 
     let clean_upper = clean_ticker.to_uppercase();
     SymbolLogoConfig {
-        primary_url: Some(format!(
-            "https://assets.parqet.com/logos/symbol/{clean_upper}?format=png"
+        primary_url: Some(build_logo_dev_url(
+            img_base_url,
+            &format!("ticker/{clean_upper}"),
+            token,
         )),
-        secondary_url: Some(format!(
-            "https://financialmodelingprep.com/image-stock/{clean_upper}.png"
-        )),
+        secondary_url: None,
         is_mutual_fund: false,
         monogram,
         brand_color,

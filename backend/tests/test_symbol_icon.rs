@@ -12,12 +12,12 @@ use sgsk_backend::state::AppState;
 use sgsk_backend::utils::cache::{AsyncSingleflight, TTLCache};
 use sgsk_backend::utils::http_client::HttpResources;
 use sgsk_backend::utils::symbol_icon_utils::{
-    clean_ticker_for_url, derive_amc_code, extract_brand_tokens, extract_domain_candidates,
-    generate_amc_svg, generate_symbol_svg, get_symbol_color, get_symbol_logo_config,
-    get_symbol_monogram,
+    build_logo_dev_url, clean_ticker_for_url, derive_amc_code, extract_brand_tokens,
+    extract_domain_candidates, generate_amc_svg, generate_symbol_svg, get_symbol_color,
+    get_symbol_logo_config, get_symbol_logo_config_with_base, get_symbol_monogram,
 };
 use tower::ServiceExt;
-use wiremock::matchers::{method, path};
+use wiremock::matchers::{header, method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 #[test]
@@ -47,32 +47,46 @@ fn test_symbol_icon_helpers_and_colors() {
     assert!(!us_cfg.is_mutual_fund);
     assert_eq!(
         us_cfg.primary_url.as_deref(),
-        Some("https://assets.parqet.com/logos/symbol/AAPL?format=png")
+        Some("https://img.logo.dev/ticker/AAPL?format=png&size=128&fallback=404")
+    );
+    assert!(us_cfg.secondary_url.is_none());
+
+    let us_with_token = get_symbol_logo_config_with_base(
+        "AAPL",
+        "us-stock",
+        "https://img.logo.dev",
+        Some("pk_123"),
     );
     assert_eq!(
-        us_cfg.secondary_url.as_deref(),
-        Some("https://financialmodelingprep.com/image-stock/AAPL.png")
+        us_with_token.primary_url.as_deref(),
+        Some("https://img.logo.dev/ticker/AAPL?format=png&size=128&fallback=404&token=pk_123")
     );
 
     let th_cfg = get_symbol_logo_config("PTT.BK", "thai-stock");
     assert_eq!(
         th_cfg.primary_url.as_deref(),
-        Some("https://www.set.or.th/dat/vender/quote/company_logo/PTT.png")
+        Some("https://img.logo.dev/ticker/PTT.BK?format=png&size=128&fallback=404")
     );
     assert_eq!(
         th_cfg.secondary_url.as_deref(),
-        Some("https://assets.parqet.com/logos/symbol/PTT.BK?format=png")
+        Some("https://img.logo.dev/ticker/PTT?format=png&size=128&fallback=404")
     );
 
     let crypto_cfg = get_symbol_logo_config("BTC.CRYPTO", "crypto");
     assert_eq!(
         crypto_cfg.primary_url.as_deref(),
-        Some("https://assets.coincap.io/assets/icons/btc@2x.png")
+        Some("https://img.logo.dev/crypto/btc?format=png&size=128&fallback=404")
     );
+    assert!(crypto_cfg.secondary_url.is_none());
 
     let mf_cfg = get_symbol_logo_config("SCBSET.FUND", "mutual-fund");
     assert!(mf_cfg.is_mutual_fund);
     assert!(mf_cfg.primary_url.is_none());
+
+    assert_eq!(
+        build_logo_dev_url("https://img.logo.dev", "kasikornasset.com", Some("pk_test")),
+        "https://img.logo.dev/kasikornasset.com?format=png&size=128&fallback=404&token=pk_test"
+    );
 
     assert_eq!(
         extract_domain_candidates(Some("https://www.ktam.co.th/th/home")),
@@ -142,6 +156,7 @@ async fn test_icon_service_caching_and_router_endpoints() {
         sec_subscription_key: "test-sec-key".to_string(),
         sec_pvd_base_url: format!("{}/v1/pvd", mock_server.uri()),
         sec_mf_base_url: format!("{}/v2/fund", mock_server.uri()),
+        supabase_url: String::new(),
         ..Settings::default()
     };
 
@@ -157,6 +172,7 @@ async fn test_icon_service_caching_and_router_endpoints() {
         Arc::clone(&sf),
     );
     let icon_svc = IconService::new(
+        Arc::clone(&settings_arc),
         Arc::clone(&http),
         Arc::clone(&cache),
         Arc::clone(&sf),
@@ -232,4 +248,220 @@ async fn test_icon_service_caching_and_router_endpoints() {
         .as_str()
         .unwrap()
         .contains("fund_name=Mock%20PVD%20Fund"));
+}
+
+#[tokio::test]
+async fn test_logo_dev_and_supabase_l2_caching_pipeline() {
+    let mock_server = MockServer::start().await;
+    let fake_png_bytes = vec![0x89u8; 120]; // > 50 bytes
+
+    // 1. Mock Supabase L2 cache MISS on NVDA, followed by Logo.dev Ticker HIT and Supabase Storage + Table write
+    Mock::given(method("GET"))
+        .and(path("/rest/v1/symbol_logo_cache"))
+        .and(query_param("cache_key", "eq.icon:NVDA:us-stock"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!([])))
+        .mount(&mock_server)
+        .await;
+
+    Mock::given(method("GET"))
+        .and(path("/logo-img/ticker/NVDA"))
+        .and(query_param("token", "pk_test_123"))
+        .and(query_param("fallback", "404"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header("content-type", "image/png")
+                .set_body_bytes(fake_png_bytes.clone()),
+        )
+        .expect(1)
+        .mount(&mock_server)
+        .await;
+
+    Mock::given(method("POST"))
+        .and(path(
+            "/storage/v1/object/symbol-logos/tickers/us-stock/NVDA.png",
+        ))
+        .and(header("x-upsert", "true"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_json(json!({"Key": "symbol-logos/tickers/us-stock/NVDA.png"})),
+        )
+        .expect(1)
+        .mount(&mock_server)
+        .await;
+
+    Mock::given(method("POST"))
+        .and(path("/rest/v1/symbol_logo_cache"))
+        .respond_with(ResponseTemplate::new(201))
+        .mount(&mock_server)
+        .await;
+
+    // 2. Mock Supabase L2 cache HIT on MSFT (simulating cold start where L1 is empty, avoiding Logo.dev call)
+    let cached_msft_bytes = vec![0x42u8; 100];
+    Mock::given(method("GET"))
+        .and(path("/rest/v1/symbol_logo_cache"))
+        .and(query_param("cache_key", "eq.icon:MSFT:us-stock"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!([
+            {
+                "cache_key": "icon:MSFT:us-stock",
+                "symbol": "MSFT",
+                "asset_type": "us-stock",
+                "fund_name": null,
+                "amc_id": null,
+                "amc_name": null,
+                "amc_domain": null,
+                "storage_path": "tickers/us-stock/MSFT.png",
+                "content_type": "image/png",
+                "status": "resolved",
+                "expires_at": "2099-01-01T00:00:00Z"
+            }
+        ])))
+        .expect(1)
+        .mount(&mock_server)
+        .await;
+
+    Mock::given(method("GET"))
+        .and(path(
+            "/storage/v1/object/public/symbol-logos/tickers/us-stock/MSFT.png",
+        ))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header("content-type", "image/png")
+                .set_body_bytes(cached_msft_bytes.clone()),
+        )
+        .expect(1)
+        .mount(&mock_server)
+        .await;
+
+    // 3. Mock Mutual Fund resolving AMC via Logo.dev Search API + Domain API
+    Mock::given(method("GET"))
+        .and(path("/rest/v1/symbol_logo_cache"))
+        .and(query_param("cache_key", "eq.icon:K-USA.FUND:mutual-fund"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!([])))
+        .mount(&mock_server)
+        .await;
+
+    Mock::given(method("GET"))
+        .and(path("/rest/v1/symbol_logo_cache"))
+        .and(query_param("cache_key", "eq.amc_logo:AMC_KASSET"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!([])))
+        .mount(&mock_server)
+        .await;
+
+    Mock::given(method("GET"))
+        .and(path("/rest/v1/symbol_logo_cache"))
+        .and(query_param("amc_id", "eq.AMC_KASSET"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!([])))
+        .mount(&mock_server)
+        .await;
+
+    Mock::given(method("GET"))
+        .and(path("/v2/fund/general-info/profiles"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "items": [
+                {
+                    "proj_id": "P_KUSA",
+                    "proj_abbr_name": "K-USA",
+                    "fund_class_name": "K-USA",
+                    "unique_id": "AMC_KASSET",
+                    "comp_name_en": "Kasikorn Asset Management"
+                }
+            ]
+        })))
+        .mount(&mock_server)
+        .await;
+
+    Mock::given(method("GET"))
+        .and(path("/v2/fund/factsheet/urls"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({ "items": [] })))
+        .mount(&mock_server)
+        .await;
+
+    Mock::given(method("GET"))
+        .and(path("/v2/fund/general-info/amcs"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({ "items": [] })))
+        .mount(&mock_server)
+        .await;
+
+    Mock::given(method("GET"))
+        .and(path("/logo-api/search"))
+        .and(query_param("q", "Kasikorn Asset Management"))
+        .and(header("Authorization", "Bearer sk_test_secret"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!([
+            {
+                "name": "Kasikorn Asset Management",
+                "domain": "kasikornasset.com"
+            }
+        ])))
+        .expect(1)
+        .mount(&mock_server)
+        .await;
+
+    let kasset_logo_bytes = vec![0x77u8; 96];
+    Mock::given(method("GET"))
+        .and(path("/logo-img/kasikornasset.com"))
+        .and(query_param("token", "pk_test_123"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header("content-type", "image/png")
+                .set_body_bytes(kasset_logo_bytes.clone()),
+        )
+        .expect(1)
+        .mount(&mock_server)
+        .await;
+
+    Mock::given(method("POST"))
+        .and(path("/storage/v1/object/symbol-logos/amcs/AMC_KASSET.png"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_json(json!({"Key": "symbol-logos/amcs/AMC_KASSET.png"})),
+        )
+        .expect(1)
+        .mount(&mock_server)
+        .await;
+
+    let settings = Settings {
+        sec_subscription_key: "test-sec-key".to_string(),
+        sec_pvd_base_url: format!("{}/v1/pvd", mock_server.uri()),
+        sec_mf_base_url: format!("{}/v2/fund", mock_server.uri()),
+        supabase_url: mock_server.uri(),
+        supabase_publishable_key: "sb_pub_test".to_string(),
+        supabase_service_role_key: "sb_service_role_test".to_string(),
+        logo_dev_publishable_key: "pk_test_123".to_string(),
+        logo_dev_secret_key: "sk_test_secret".to_string(),
+        logo_dev_img_base_url: format!("{}/logo-img", mock_server.uri()),
+        logo_dev_api_base_url: format!("{}/logo-api", mock_server.uri()),
+        ..Settings::default()
+    };
+
+    let app = create_app(AppState::from_settings(settings));
+
+    // Test 1: NVDA fetched from Logo.dev and persisted to Supabase
+    let nvda_req = Request::builder()
+        .uri("/icon/NVDA?asset_type=us-stock")
+        .body(Body::empty())
+        .unwrap();
+    let nvda_resp = app.clone().oneshot(nvda_req).await.unwrap();
+    assert_eq!(nvda_resp.status(), StatusCode::OK);
+    let nvda_body = nvda_resp.into_body().collect().await.unwrap().to_bytes();
+    assert_eq!(nvda_body.as_ref(), fake_png_bytes.as_slice());
+
+    // Test 2: MSFT served directly from Supabase L2 cache without calling Logo.dev
+    let msft_req = Request::builder()
+        .uri("/icon/MSFT?asset_type=us-stock")
+        .body(Body::empty())
+        .unwrap();
+    let msft_resp = app.clone().oneshot(msft_req).await.unwrap();
+    assert_eq!(msft_resp.status(), StatusCode::OK);
+    let msft_body = msft_resp.into_body().collect().await.unwrap().to_bytes();
+    assert_eq!(msft_body.as_ref(), cached_msft_bytes.as_slice());
+
+    // Test 3: K-USA.FUND resolves AMC via Logo.dev Search + Domain API and uploads to amcs/AMC_KASSET.png
+    let kusa_req = Request::builder()
+        .uri("/icon/K-USA.FUND?asset_type=mutual-fund")
+        .body(Body::empty())
+        .unwrap();
+    let kusa_resp = app.oneshot(kusa_req).await.unwrap();
+    assert_eq!(kusa_resp.status(), StatusCode::OK);
+    let kusa_body = kusa_resp.into_body().collect().await.unwrap().to_bytes();
+    assert_eq!(kusa_body.as_ref(), kasset_logo_bytes.as_slice());
 }

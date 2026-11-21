@@ -78,6 +78,7 @@ impl AppState {
             yf_client,
         );
         let icon_service = IconService::new(
+            Arc::clone(&settings),
             Arc::clone(&http),
             icon_cache,
             icon_singleflight,
