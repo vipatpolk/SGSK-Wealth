@@ -192,8 +192,7 @@ flowchart LR
 ```text
 SGSK-Wealth/
 ├── backend/                    # Rust Axum API and analytics service
-│   ├── api/index.rs            # Vercel function entry point
-│   ├── src/main.rs             # Local server entry point
+│   ├── src/main.rs             # Local & Vercel standalone server entry point
 │   ├── src/features/           # Feature modules: portfolio, dividends, market_data, tools, identity
 │   │   └── <feature>/{api,models,services}/
 │   ├── src/{config,utils}/     # Runtime settings and shared infrastructure
@@ -370,7 +369,7 @@ SGSK-Wealth enforces strict quality standards before any code is committed:
 This monorepo deploys **both** the Angular Web SPA (`web/`) and Rust Axum backend (`backend/`) in a **single Vercel project** (`sgsk-wealth`) using **Vercel Services** configured in root [`vercel.json`](vercel.json):
 1. **Project Settings**: Keep **Root Directory** at repository root (`.`), set **Framework Preset** to **Services**, use **Node.js 24/26**, and keep **Fluid Compute** enabled under **Settings → Functions**. Connect the `sgsk-supabase` integration to `sgsk-wealth` for both Preview and Production.
 2. **Web Service (`web/`)**: Builds the Angular 22 workspace (`installCommand: "cd .. && npm ci"`, `buildCommand: "npm run build"`, `outputDirectory: "dist/sgsk-wealth"`) with SPA fallback rewrites to `/index.html`.
-3. **Backend Service (`backend/`)**: Builds the Rust function in `api/index.rs` using the backend Cargo package and `vercel_runtime`. Service-scoped routes inject `X-API-Key` from the Secret `$BACKEND_API_KEY` environment variable. Local development uses `cargo run --bin sgsk-backend` on port `8000`.
+3. **Backend Service (`backend/`)**: Builds the standalone Rust Axum server in `src/main.rs` via `@vercel/rust`. Service-scoped routes inject `X-API-Key` from the Secret `$BACKEND_API_KEY` environment variable. Local development runs `cargo run --bin sgsk-backend` on port `8000`.
 4. **Local Services Emulation & Native Mobile**: Run `vercel dev --local` from the repository root to test unified Services routing locally. Native mobile production builds call `https://sgsk-wealth.vercel.app/api/backend` (`nativeApiBaseUrl` in `mobile/src/environments/environment.prod.ts`) without bundling `BACKEND_API_KEY`; the Rust backend allows configured web and Capacitor origins through CORS.
 
 #### Rotating the backend API key

@@ -22,9 +22,9 @@
     "backend": {
       "root": "backend",
       "framework": "rust",
-      "entrypoint": "api/index.rs",
+      "entrypoint": "src/main.rs",
       "functions": {
-        "api/**/*.rs": {
+        "src/main.rs": {
           "excludeFiles": "{tests/**,target/**}"
         }
       },
@@ -49,36 +49,13 @@
         },
         {
           "src": "^/api/backend/(.+)$",
-          "dest": "/index",
-          "transforms": [
-            {
-              "type": "request.path",
-              "op": "set",
-              "args": "/$1"
-            }
-          ]
+          "dest": "/$1",
+          "check": true
         },
         {
           "src": "^/api/backend/?$",
-          "dest": "/index",
-          "transforms": [
-            {
-              "type": "request.path",
-              "op": "set",
-              "args": "/"
-            }
-          ]
-        },
-        {
-          "src": "^/(.*)$",
-          "dest": "/index",
-          "transforms": [
-            {
-              "type": "request.path",
-              "op": "set",
-              "args": "/$1"
-            }
-          ]
+          "dest": "/",
+          "check": true
         }
       ]
     }
