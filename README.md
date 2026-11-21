@@ -198,8 +198,7 @@ SGSK-Wealth/
 │   │   └── <feature>/{api,models,services}/
 │   ├── src/{config,utils}/     # Runtime settings and shared infrastructure
 │   ├── tests/                  # Rust integration tests and fixtures
-│   ├── Cargo.toml              # Rust package, binaries, and dependencies
-│   └── Dockerfile.vercel       # Container deployment entry point
+│   └── Cargo.toml              # Rust package, binaries, and dependencies
 │
 ├── shared/                     # Shared Core Library (@shared/*)
 │   ├── package.json            # @sgsk-wealth/shared workspace package
