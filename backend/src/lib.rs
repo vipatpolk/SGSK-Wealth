@@ -2,6 +2,7 @@ pub mod config;
 pub mod error;
 pub mod features;
 pub mod middleware;
+pub mod ports;
 pub mod state;
 pub mod utils;
 
@@ -21,7 +22,7 @@ use crate::state::AppState;
 use crate::utils::auth::ApiKeyAuth;
 
 pub fn create_app(state: Arc<AppState>) -> Router {
-    let cors_layer = build_cors_layer(&state.settings);
+    let cors_layer = build_cors_layer(&state.infra.settings);
     let compression_layer = CompressionLayer::new().compress_when(SizeAbove::new(1000));
 
     let api_routes = Router::new()
@@ -38,9 +39,12 @@ pub fn create_app(state: Arc<AppState>) -> Router {
         .merge(api_routes.clone())
         .route("/api/backend/", get(read_root))
         .nest("/api/backend", api_routes)
-        .with_state(state)
+        .with_state(state.clone())
         .layer(compression_layer)
-        .layer(axum_middleware::from_fn(direct_access_block_middleware))
+        .layer(axum_middleware::from_fn_with_state(
+            state,
+            direct_access_block_middleware,
+        ))
         .layer(axum_middleware::from_fn(security_headers_middleware))
         .layer(cors_layer)
 }

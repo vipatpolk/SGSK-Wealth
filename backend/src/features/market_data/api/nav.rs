@@ -38,7 +38,13 @@ async fn fetch_navs(
     State(state): State<Arc<AppState>>,
     ValidatedJson(req): ValidatedJson<NavRequest>,
 ) -> Json<HashMap<String, PriceData>> {
-    Json(state.nav_service.fetch_fund_navs(&req.symbols).await)
+    Json(
+        state
+            .market_data
+            .nav_service
+            .fetch_fund_navs(&req.symbols)
+            .await,
+    )
 }
 
 async fn get_fund_factsheet(
@@ -48,6 +54,7 @@ async fn get_fund_factsheet(
 ) -> Result<Json<FundFactsheetResponse>, AppError> {
     let Query(q) = query_res.map_err(|e| AppError::unprocessable(e.body_text()))?;
     let res = state
+        .market_data
         .nav_service
         .fetch_fund_factsheet(&q.symbol, &q.asset_type, q.fund_name.as_deref())
         .await;

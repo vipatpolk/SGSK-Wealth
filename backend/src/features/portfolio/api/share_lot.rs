@@ -1,10 +1,11 @@
 use std::sync::Arc;
 
 use axum::extract::{Path, State};
+use axum::response::Response;
 use axum::routing::get;
-use axum::{Json, Router};
+use axum::Router;
 
-use crate::features::portfolio::models::transaction::SheetResult;
+use crate::error::upstream_json_response;
 use crate::state::AppState;
 use crate::utils::auth::ApiKeyAuth;
 use crate::utils::supabase_auth::RequirePortfolioAuthorizedUser;
@@ -20,14 +21,16 @@ async fn fetch_sheet(
     _user: RequirePortfolioAuthorizedUser,
     State(state): State<Arc<AppState>>,
     Path(tab_id): Path<String>,
-) -> Json<SheetResult> {
-    Json(state.share_lot_service.fetch_sheet(&tab_id).await)
+) -> Response {
+    let result = state.portfolio.share_lot_service.fetch_sheet(&tab_id).await;
+    upstream_json_response(&result, result.error.as_deref())
 }
 
 async fn fetch_all_sheets(
     _api_key: ApiKeyAuth,
     _user: RequirePortfolioAuthorizedUser,
     State(state): State<Arc<AppState>>,
-) -> Json<SheetResult> {
-    Json(state.share_lot_service.fetch_all_sheets().await)
+) -> Response {
+    let result = state.portfolio.share_lot_service.fetch_all_sheets().await;
+    upstream_json_response(&result, result.error.as_deref())
 }

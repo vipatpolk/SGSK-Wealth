@@ -187,6 +187,23 @@ async fn test_direct_host_blocking_and_capacitor_cors() {
         cors_res.headers().get("access-control-allow-origin"),
         Some(&HeaderValue::from_static("http://localhost"))
     );
+
+    // Custom BLOCKED_DIRECT_HOSTS configuration blocks configured host without X-App-Source
+    let custom_blocked_settings = Settings {
+        blocked_direct_hosts: vec!["custom-backend.example.com".to_string()],
+        ..Settings::default()
+    };
+    let custom_app = create_app(AppState::from_settings(custom_blocked_settings));
+    let custom_blocked = Request::builder()
+        .uri("/")
+        .header("Host", "custom-backend.example.com")
+        .header("X-API-Key", "dev_secret_key_change_in_prod")
+        .body(Body::empty())
+        .unwrap();
+    assert_eq!(
+        custom_app.oneshot(custom_blocked).await.unwrap().status(),
+        StatusCode::FORBIDDEN
+    );
 }
 
 #[test]
@@ -202,6 +219,10 @@ fn test_production_settings_validation() {
     assert!(prod.validate_production_security().is_err());
 
     prod.google_spreadsheet_id = "real_sheet_id_12345".to_string();
+    // Option A: still fails closed when supabase_url is missing in production
+    assert!(prod.validate_production_security().is_err());
+
+    prod.supabase_url = "https://example.supabase.co".to_string();
     assert!(prod.validate_production_security().is_ok());
 
     prod.backend_api_key_previous = "short".to_string();
@@ -505,4 +526,337 @@ async fn test_supabase_auth_jwks_hs256_profiles_and_portfolio_gating() {
     assert_eq!(fb_json["authenticated"], true);
     assert_eq!(fb_json["role"], "owner");
     assert_eq!(fb_json["canViewCloudPortfolio"], false);
+}
+
+#[tokio::test]
+async fn test_complete_route_authorization_matrix_and_fail_closed_prod() {
+    let mock_server = MockServer::start().await;
+
+    let priv_key = RsaPrivateKey::new(&mut OsRng, 2048).expect("rsa keygen");
+    let pub_key = priv_key.to_public_key();
+    let n_b64 = URL_SAFE_NO_PAD.encode(pub_key.n().to_bytes_be());
+    let e_b64 = URL_SAFE_NO_PAD.encode(pub_key.e().to_bytes_be());
+    let pem = priv_key
+        .to_pkcs8_pem(rsa::pkcs8::LineEnding::LF)
+        .expect("pkcs8 pem");
+    let enc_key = EncodingKey::from_rsa_pem(pem.as_bytes()).expect("encoding key");
+
+    Mock::given(method("GET"))
+        .and(path("/auth/v1/.well-known/jwks.json"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "keys": [{
+                "kty": "RSA",
+                "use": "sig",
+                "alg": "RS256",
+                "kid": "matrix-kid-1",
+                "n": n_b64,
+                "e": e_b64
+            }]
+        })))
+        .mount(&mock_server)
+        .await;
+
+    // Simulate Supabase PostgREST outage (HTTP 500) to test fail-closed production owner check
+    Mock::given(method("GET"))
+        .and(path("/rest/v1/user_profiles"))
+        .respond_with(ResponseTemplate::new(500).set_body_string("upstream error"))
+        .mount(&mock_server)
+        .await;
+
+    let prod_api_key = "prod_super_secure_api_key_at_least_32_chars!";
+    let prod_settings = Settings {
+        environment: "production".to_string(),
+        backend_api_key: prod_api_key.to_string(),
+        google_spreadsheet_id: "real_sheet_id_prod".to_string(),
+        supabase_url: mock_server.uri(),
+        supabase_publishable_key: "sb_publishable_prod_test".to_string(),
+        authorized_portfolio_emails: vec!["owner@sgsk.io".to_string()],
+        ..Settings::default()
+    };
+    assert!(prod_settings.validate_production_security().is_ok());
+
+    let app = create_app(AppState::from_settings(prod_settings.clone()));
+    let issuer = prod_settings.resolved_supabase_issuer();
+    let future_exp = (chrono::Utc::now().timestamp() + 3600) as u64;
+    let past_exp = (chrono::Utc::now().timestamp() - 3600) as u64;
+
+    let mut header = Header::new(Algorithm::RS256);
+    header.kid = Some("matrix-kid-1".to_string());
+
+    let make_jwt = |claims: serde_json::Value| encode(&header, &claims, &enc_key).unwrap();
+
+    let owner_jwt = make_jwt(json!({
+        "sub": "usr-owner-matrix",
+        "email": "owner@sgsk.io",
+        "aud": "authenticated",
+        "iss": issuer,
+        "exp": future_exp,
+        "email_confirmed_at": "2026-01-01T00:00:00Z"
+    }));
+    let non_owner_jwt = make_jwt(json!({
+        "sub": "usr-standard-matrix",
+        "email": "standard@example.com",
+        "aud": "authenticated",
+        "iss": issuer,
+        "exp": future_exp,
+        "email_confirmed_at": "2026-01-01T00:00:00Z"
+    }));
+    let unconfirmed_owner_jwt = make_jwt(json!({
+        "sub": "usr-unconf-matrix",
+        "email": "owner@sgsk.io",
+        "aud": "authenticated",
+        "iss": issuer,
+        "exp": future_exp,
+        "email_confirmed_at": null
+    }));
+    let expired_jwt = make_jwt(json!({
+        "sub": "usr-exp",
+        "email": "owner@sgsk.io",
+        "aud": "authenticated",
+        "iss": issuer,
+        "exp": past_exp,
+        "email_confirmed_at": "2026-01-01T00:00:00Z"
+    }));
+    let wrong_aud_jwt = make_jwt(json!({
+        "sub": "usr-aud",
+        "email": "owner@sgsk.io",
+        "aud": "wrong-audience",
+        "iss": issuer,
+        "exp": future_exp
+    }));
+    let wrong_iss_jwt = make_jwt(json!({
+        "sub": "usr-iss",
+        "email": "owner@sgsk.io",
+        "aud": "authenticated",
+        "iss": "https://evil.example.com/auth/v1",
+        "exp": future_exp
+    }));
+    let anon_jwt = make_jwt(json!({
+        "sub": "usr-anon",
+        "email": "owner@sgsk.io",
+        "aud": "authenticated",
+        "iss": issuer,
+        "exp": future_exp,
+        "is_anonymous": true
+    }));
+
+    // 1. All 16 API-key-protected routes reject missing and invalid X-API-Key
+    let api_key_routes: &[(&str, &str, Option<&str>)] = &[
+        ("GET", "/", None),
+        ("GET", "/auth/me", None),
+        ("GET", "/portfolio/holdings", None),
+        ("GET", "/portfolio/performance", None),
+        ("POST", "/portfolio/allocation", Some("{}")),
+        ("GET", "/portfolio/dividend", None),
+        ("GET", "/share-lot/sheet/us-stock", None),
+        ("GET", "/share-lot/sheets", None),
+        (
+            "POST",
+            "/portfolio/tools/simulate",
+            Some(r#"{"symbol":"AAPL","steps":[],"currency":"USD"}"#),
+        ),
+        (
+            "POST",
+            "/portfolio/tools/solve-target",
+            Some(
+                r#"{"symbol":"AAPL","targetAvgCost":100,"purchasePrice":90,"feePercent":0,"currency":"USD"}"#,
+            ),
+        ),
+        (
+            "POST",
+            "/portfolio/tools/tvm",
+            Some(
+                r#"{"mode":"FV","presentValue":1000,"annualRate":5,"years":1,"compounding":"ANNUALLY"}"#,
+            ),
+        ),
+        (
+            "POST",
+            "/portfolio/tools/rebalance",
+            Some(r#"{"mode":"FULL_REBALANCE","targetAllocations":{},"currency":"USD"}"#),
+        ),
+        ("POST", "/price/fetch-prices", Some(r#"{"summaries":[]}"#)),
+        ("GET", "/price/exchange-rate", None),
+        ("POST", "/nav/fetch", Some(r#"{"symbols":[]}"#)),
+        ("GET", "/nav/factsheet?symbol=KFSDIV", None),
+    ];
+
+    for (m, uri, body_opt) in api_key_routes {
+        let mut req_no_key = Request::builder()
+            .method(*m)
+            .uri(*uri)
+            .header("Content-Type", "application/json")
+            .body(
+                body_opt
+                    .map(|b| Body::from(b.to_string()))
+                    .unwrap_or_else(Body::empty),
+            )
+            .unwrap();
+        assert_eq!(
+            app.clone().oneshot(req_no_key).await.unwrap().status(),
+            StatusCode::UNAUTHORIZED,
+            "missing X-API-Key should 401 on {m} {uri}"
+        );
+
+        req_no_key = Request::builder()
+            .method(*m)
+            .uri(*uri)
+            .header("X-API-Key", "wrong-api-key")
+            .header("Content-Type", "application/json")
+            .body(
+                body_opt
+                    .map(|b| Body::from(b.to_string()))
+                    .unwrap_or_else(Body::empty),
+            )
+            .unwrap();
+        assert_eq!(
+            app.clone().oneshot(req_no_key).await.unwrap().status(),
+            StatusCode::UNAUTHORIZED,
+            "wrong X-API-Key should 401 on {m} {uri}"
+        );
+    }
+
+    // Public icon routes (3 routes) remain accessible without X-API-Key
+    for uri in ["/icon/meta/AAPL", "/icon?symbol=AAPL", "/icon/AAPL"] {
+        let req = Request::builder().uri(uri).body(Body::empty()).unwrap();
+        assert_eq!(
+            app.clone().oneshot(req).await.unwrap().status(),
+            StatusCode::OK,
+            "public icon route {uri} should return 200"
+        );
+    }
+
+    // 2. Owner-only routes (+ conditional tool lookups) enforce JWT & owner checks even with X-App-Source headers
+    let owner_routes: &[(&str, &str, Option<&str>)] = &[
+        ("GET", "/portfolio/holdings", None),
+        ("GET", "/portfolio/performance", None),
+        ("POST", "/portfolio/allocation", Some("{}")),
+        ("GET", "/portfolio/dividend", None),
+        ("GET", "/share-lot/sheet/us-stock", None),
+        ("GET", "/share-lot/sheets", None),
+        (
+            "POST",
+            "/portfolio/tools/rebalance",
+            Some(r#"{"mode":"FULL_REBALANCE","targetAllocations":{},"currency":"USD"}"#),
+        ),
+        (
+            "POST",
+            "/portfolio/tools/simulate",
+            Some(r#"{"symbol":"AAPL","steps":[],"currency":"USD"}"#),
+        ),
+        (
+            "POST",
+            "/portfolio/tools/solve-target",
+            Some(
+                r#"{"symbol":"AAPL","targetAvgCost":100,"purchasePrice":90,"feePercent":0,"currency":"USD"}"#,
+            ),
+        ),
+    ];
+
+    for (m, uri, body_opt) in owner_routes {
+        // Missing JWT with X-App-Source diagnostic headers still 401
+        let missing_jwt = Request::builder()
+            .method(*m)
+            .uri(*uri)
+            .header("X-API-Key", prod_api_key)
+            .header("X-App-Source", "SGSK-Wealth")
+            .header("X-Requested-With", "SGSK-Wealth-Client")
+            .header("Content-Type", "application/json")
+            .body(
+                body_opt
+                    .map(|b| Body::from(b.to_string()))
+                    .unwrap_or_else(Body::empty),
+            )
+            .unwrap();
+        assert_eq!(
+            app.clone().oneshot(missing_jwt).await.unwrap().status(),
+            StatusCode::UNAUTHORIZED,
+            "missing JWT must 401 on {m} {uri}"
+        );
+
+        // Invalid/expired/wrong-aud/wrong-iss/anonymous tokens -> 401
+        for bad_tok in [
+            "not.a.jwt",
+            expired_jwt.as_str(),
+            wrong_aud_jwt.as_str(),
+            wrong_iss_jwt.as_str(),
+            anon_jwt.as_str(),
+        ] {
+            let req = Request::builder()
+                .method(*m)
+                .uri(*uri)
+                .header("X-API-Key", prod_api_key)
+                .header("X-App-Source", "SGSK-Wealth")
+                .header("Authorization", format!("Bearer {bad_tok}"))
+                .header("Content-Type", "application/json")
+                .body(
+                    body_opt
+                        .map(|b| Body::from(b.to_string()))
+                        .unwrap_or_else(Body::empty),
+                )
+                .unwrap();
+            assert_eq!(
+                app.clone().oneshot(req).await.unwrap().status(),
+                StatusCode::UNAUTHORIZED,
+                "invalid JWT must 401 on {m} {uri}"
+            );
+        }
+
+        // Non-owner and unconfirmed owner -> 403
+        for forbidden_tok in [non_owner_jwt.as_str(), unconfirmed_owner_jwt.as_str()] {
+            let req = Request::builder()
+                .method(*m)
+                .uri(*uri)
+                .header("X-API-Key", prod_api_key)
+                .header("X-App-Source", "SGSK-Wealth")
+                .header("Authorization", format!("Bearer {forbidden_tok}"))
+                .header("Content-Type", "application/json")
+                .body(
+                    body_opt
+                        .map(|b| Body::from(b.to_string()))
+                        .unwrap_or_else(Body::empty),
+                )
+                .unwrap();
+            assert_eq!(
+                app.clone().oneshot(req).await.unwrap().status(),
+                StatusCode::FORBIDDEN,
+                "non-owner/unconfirmed must 403 on {m} {uri}"
+            );
+        }
+
+        // Fail-closed in production when PostgREST user_profiles fails (500) -> 403 even for allowlisted owner JWT
+        let fail_closed_req = Request::builder()
+            .method(*m)
+            .uri(*uri)
+            .header("X-API-Key", prod_api_key)
+            .header("Authorization", format!("Bearer {owner_jwt}"))
+            .header("Content-Type", "application/json")
+            .body(
+                body_opt
+                    .map(|b| Body::from(b.to_string()))
+                    .unwrap_or_else(Body::empty),
+            )
+            .unwrap();
+        assert_eq!(
+            app.clone().oneshot(fail_closed_req).await.unwrap().status(),
+            StatusCode::FORBIDDEN,
+            "production must fail-closed to 403 when user_profiles lookup fails on {m} {uri}"
+        );
+    }
+
+    // 3. /auth/me confirms fail-closed state when user_profiles is unreachable in production
+    let auth_me_req = Request::builder()
+        .uri("/auth/me")
+        .header("X-API-Key", prod_api_key)
+        .header("Authorization", format!("Bearer {owner_jwt}"))
+        .body(Body::empty())
+        .unwrap();
+    let auth_me_res = app.oneshot(auth_me_req).await.unwrap();
+    assert_eq!(auth_me_res.status(), StatusCode::OK);
+    let auth_me_json: serde_json::Value =
+        serde_json::from_slice(&auth_me_res.into_body().collect().await.unwrap().to_bytes())
+            .unwrap();
+    assert_eq!(auth_me_json["authenticated"], true);
+    assert_eq!(auth_me_json["role"], "user");
+    assert_eq!(auth_me_json["canViewCloudPortfolio"], false);
+    assert_eq!(auth_me_json["portfolioSource"], "local");
 }

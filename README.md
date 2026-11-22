@@ -1,7 +1,7 @@
 # SGSK-Wealth — Investment Portfolio Tracker & Wealth Analytics
 
 <p align="center">
-  <img src="web/public/favicon.svg" alt="SGSK Wealth Logo" width="96" height="96" />
+  <img src="apps/web/public/favicon.svg" alt="SGSK Wealth Logo" width="96" height="96" />
 </p>
 
 <p align="center">
@@ -35,18 +35,20 @@
 
 ## What This Repository Does
 
-**SGSK-Wealth** is a production-grade wealth management monorepo designed to solve the complexity of multi-asset, multi-currency portfolio tracking and tax accounting. It automates **First-In, First-Out (FIFO)** transaction matching, reconciles cost bases, calculates unrealized and realized capital gains, and streams live market quotes and foreign exchange rates across both a **Web SPA (`web/`)** and a **Native iOS & Android Mobile App (`mobile/`)** powered by a shared TypeScript core (`shared/`).
+**SGSK-Wealth** is a production-grade wealth management monorepo designed to solve the complexity of multi-asset, multi-currency portfolio tracking and tax accounting. It automates **First-In, First-Out (FIFO)** transaction matching, reconciles cost bases, calculates unrealized and realized capital gains, and streams live market quotes and foreign exchange rates across both a **Web SPA (`apps/web/`)** and a **Native iOS & Android Mobile App (`apps/mobile/`)** powered by framework-free domain packages (`packages/contracts/`, `packages/domain/`) and shared Angular services/UI (`shared/`).
 
 The platform supports **multi-tier authentication and portfolio data isolation** via **Supabase Auth** (Email/Password, Google OAuth 2.0 PKCE, and Account Linking): the authorized owner account syncs live trading transaction logs from **Cloud Google Sheets**, while Guest and standard signed-in users operate a full-featured **On-Device Local Portfolio Workspace** enriched with live market prices and dividends from Yahoo Finance, Binance TH, SET Thailand, and SEC Thailand Mutual Fund & PVD APIs.
 
+> **Architecture, Decisions & Operations Docs:** See [Architecture Overview](docs/architecture/overview.md), [ADRs (`docs/decisions/`)](docs/decisions/ADR-001-local-cloud-portfolio-isolation.md), and the [Operations Runbook](docs/operations/runbook.md).
+
 ```mermaid
 flowchart LR
-    DataSources["Google Sheets\n(Owner Cloud CSVs)"] --> Backend["Rust Axum Backend\n(FIFO Engine, Owner Guard & Analytics)"]
+    DataSources["Google Sheets\n(Owner Cloud CSVs)"] --> Backend["Rust Axum Backend\n(FIFO Engine, Owner Guard & Ports)"]
     Supabase["Supabase Auth & Postgres\n(JWT/JWKS, profiles, user_settings)"] --> Backend
-    Supabase --> Shared["shared/\n(Models, Auth, Settings, Local Portfolio, i18n)"]
+    Supabase --> Shared["packages/* & shared/\n(Contracts, Domain Math, Providers, i18n)"]
     MarketData["Yahoo Finance / Binance TH / SET / SEC TH"] --> Backend
-    Shared --> Web["web/\nAngular 22 Web SPA\n(Desktop Left Sidebar / Mobile Bottom Nav)"]
-    Shared --> Mobile["mobile/\nIonic 9 + Capacitor 8\n(iOS & Android Maven)"]
+    Shared --> Web["apps/web/\nAngular 22 Web SPA\n(Desktop Left Sidebar / Mobile Bottom Nav)"]
+    Shared --> Mobile["apps/mobile/\nIonic 9 + Capacitor 8\n(iOS & Android Maven)"]
     Backend --> Web
     Backend --> Mobile
     E2E["Java E2E Automation\n(Playwright + Appium + Rest Assured)"] -. Validates .-> Backend
@@ -125,65 +127,65 @@ flowchart LR
 - **Time Value of Money (TVM) Calculator**: 5 solve modes ($FV$, $PMT$, $PV$, $N$, $Rate$), 8 compounding frequencies, portfolio value sync, interactive SVG growth curve, and expandable schedule.
 - **Average Cost Basis Calculator**: Multi-order forward Buy / Sell simulation with commission fees and Target Average Cost Solver.
 
-### 📱 Native iOS & Android Mobile App (`mobile/`)
+### 📱 Native iOS & Android Mobile App (`apps/mobile/`)
 - **Ionic 9 Standalone Shell**: 6-tab bottom navigation (`Dashboard`, `Holdings`, `Analytics`, `Dividends`, `Transactions`, `Tools`), platform-adaptive Ionic `mode` (`'md'` on Android, `'ios'` on iOS/Web), pull-to-refresh (`<ion-refresher>`), native-styled segment switches, searchable cards, Android hardware back-button handling, and `<ion-modal>` sheet drawers (SEC factsheet, dividend ledger, symbol selectors).
 - **Web Responsive Feature Parity**: Shared `<app-symbol-icon>`, `<app-loading-screen>`, and `<app-date-range-picker>` components from `@shared/*`, Interactive SVG Allocation Donut, Executive PVD analytics, Forward/Reverse Average Cost simulator, No-Sell/Standard Rebalance planner, and TVM trajectory chart.
 - **Capacitor 8 Native Bridge**: Integrated `@capacitor/haptics`, `@capacitor/status-bar`, `@capacitor/splash-screen`, `@capacitor/preferences`, and `@capacitor/app` with platform-aware API routing (`10.0.2.2:8000` on Android emulator, `127.0.0.1:8000` on iOS simulator, `/api/backend` on web dev proxy).
-- **Maven Android Build (`mobile/android/pom.xml`)**: Packages the Capacitor Android `.apk` using Apache Maven + Android SDK (`aapt2`, `javac`, `d8`, `zipalign`, `apksigner`) without Gradle.
+- **Maven Android Build (`apps/mobile/android/pom.xml`)**: Packages the Capacitor Android `.apk` using Apache Maven + Android SDK (`aapt2`, `javac`, `d8`, `zipalign`, `apksigner`) without Gradle.
 
 ---
 
 ## Detailed Tech Stacks
 
-### 1. Shared Core Library (`shared/`)
+### 1. Framework-Free Packages (`packages/`) & Shared Angular Library (`shared/`)
 
 | Technology | Version / Spec | Purpose & Architectural Role |
 |:---|:---|:---|
-| **TypeScript** | `~6.0.0` | Platform-agnostic domain models, shared UI components (`SymbolIconComponent`, `LoadingScreenComponent`, `DateRangePickerComponent`), financial math (`calculator`, `rebalance`, `tvm`, `format`, `symbol-icon`, `csv-exporter`, client-side FIFO `local-portfolio`), bilingual i18n dictionaries, and reactive pipes (`| t`, `| ldate`). |
-| **Supabase JS SDK** | `^2.103.3` | Shared `AuthService` (Email/Password, Google OAuth PKCE, manual identity linking/unlinking, cold-start deep-link callback capture) and `UserSettingsService` (real-time preference sync with `public.user_settings`). |
-| **Angular DI Tokens** | `22.2+` | `API_BASE_URL`, `MAX_BATCH_SIZE`, and `SUPABASE_CONFIG` injection tokens decouple HTTP & Auth services (`PortfolioService`, `DividendService`, `PriceService`, `NavService`, `ShareLotService`, `ToolsService`, `AuthService`, `UserSettingsService`, `LocalPortfolioService`) from web vs. native mobile hosts. |
+| **`@sgsk-wealth/contracts`** | `TypeScript ~6.0` | Framework-free DTO contracts, `ApiResult<T>` helpers (`apiOk`, `apiErr`, `mapHttpErrorToApiFailure`), `AppLang`, and Rust/TS JSON contract tests (`packages/contracts/`). |
+| **`@sgsk-wealth/domain`** | `TypeScript ~6.0` | Framework-free financial math, FIFO lot matching, TVM/rebalance/avg-cost calculators, pure CSV export, holdings/ledger filters & formatters, and shared Rust parity fixtures (`packages/domain/`). |
+| **Shared Core (`shared/`)** | `Angular 22.2+` | Platform-agnostic UI components (`SymbolIconComponent`, `LoadingScreenComponent`, `DateRangePickerComponent`), `PortfolioDataProvider` / `PortfolioSourceCoordinator`, `KeyValueStorageAdapter`, API services, Supabase Auth/Settings, bilingual i18n dictionaries, and DI tokens. |
 
-### 2. Web Single Page Application (`web/`)
+### 2. Web Single Page Application (`apps/web/`)
 
 | Technology | Version / Spec | Purpose & Architectural Role |
 |:---|:---|:---|
 | **[Angular](https://angular.dev/)** | `22.2+` | Modern web framework utilizing standalone components, reactive Signals, Computed Signals, collapsible desktop sidebar navigation (`>= 1201px`), and responsive bottom dock (`<= 1200px`). |
 | **[Tailwind CSS](https://tailwindcss.com/)** | `v4.3+` | Next-generation CSS framework utilizing `@theme` tokens, dark/light themes, and privacy blur filters. |
-| **[Vitest](https://vitest.dev/)** | `4.1+` | Fast unit testing runner paired with `jsdom` executing **381 unit tests across 40 test suites**. |
+| **[Vitest](https://vitest.dev/)** | `4.1+` | Fast unit testing runner paired with `jsdom` executing Web component & integration specs (`npm run test:web`). |
 
-### 3. Native iOS & Android Mobile App (`mobile/`)
+### 3. Native iOS & Android Mobile App (`apps/mobile/`)
 
 | Technology | Version / Spec | Purpose & Architectural Role |
 |:---|:---|:---|
-| **[Angular](https://angular.dev/)** | `22.2+` | Standalone component architecture sharing all domain logic from `@shared/*`. |
+| **[Angular](https://angular.dev/)** | `22.2+` | Standalone component architecture sharing domain logic from `@sgsk-wealth/domain`, `@sgsk-wealth/contracts`, and `@shared/*`. |
 | **[Ionic Framework](https://ionicframework.com/)** | `9.0+` | Native-adaptive iOS & Android UI components (`@ionic/angular` standalone, `ionicons` `8.1+`). |
-| **[Capacitor](https://capacitorjs.com/)** | `8.6+` | Native iOS (`mobile/ios/`) & Android (`mobile/android/`) container and plugins (`App`, `Browser`, `Haptics`, `Preferences`, `SplashScreen`, `StatusBar`). |
-| **[Apache Maven](https://maven.apache.org/)** | `3.9+` | Android APK build lifecycle (`mobile/android/pom.xml`) resolving AndroidX & Cordova AARs via Google Maven and packaging `.apk` via `build-apk.mjs`. |
-| **[Vitest](https://vitest.dev/)** | `4.1+` | Mobile component & Capacitor service unit tests (**23 unit tests across 10 test suites** in `mobile/src/app/**/*.spec.ts`). |
+| **[Capacitor](https://capacitorjs.com/)** | `8.6+` | Native iOS (`apps/mobile/ios/`) & Android (`apps/mobile/android/`) container and plugins (`App`, `Browser`, `Haptics`, `Preferences`, `SplashScreen`, `StatusBar`). |
+| **[Apache Maven](https://maven.apache.org/)** | `3.9+` | Android APK build lifecycle (`apps/mobile/android/pom.xml`) resolving AndroidX & Cordova AARs via Google Maven and packaging `.apk` via `build-apk.mjs`. |
+| **[Vitest](https://vitest.dev/)** | `4.1+` | Mobile component & Capacitor service unit tests (`npm run test:mobile`). |
 
 ### 4. Backend API & Analytics Service (`backend/`)
 
 | Technology | Version / Spec | Purpose & Architectural Role |
 |:---|:---|:---|
-| **[Rust](https://www.rust-lang.org/) / [Axum](https://github.com/tokio-rs/axum)** | Stable / `0.8` | Async REST API, typed request handling, financial analytics, and Supabase JWT/JWKS owner authorization. |
+| **[Rust](https://www.rust-lang.org/) / [Axum](https://github.com/tokio-rs/axum)** | Stable / `0.8` | Async REST API, typed request handling, port traits (`ports.rs`), grouped `AppState`, financial analytics, and Supabase JWT/JWKS owner authorization. |
 | **[Tokio](https://tokio.rs/) / [Reqwest](https://docs.rs/reqwest/)** | `1.x` / `0.12` | Async runtime and HTTP clients for Google Sheets, Supabase, Binance TH, SET, Yahoo Finance, and SEC Thailand APIs. |
-| **[Cargo](https://doc.rust-lang.org/cargo/) / rustfmt / Clippy** | Stable | Dependency management, formatting, linting, and backend test execution. |
+| **[Cargo](https://doc.rust-lang.org/cargo/) / rustfmt / Clippy** | Stable | Dependency management, formatting, linting (`-D warnings`), offline port tests, and backend test execution. |
 
 ### 5. End-to-End Automation Suite (`e2e/`)
 
 | Technology | Version / Spec | Purpose & Architectural Role |
 |:---|:---|:---|
-| **[Java](https://openjdk.org/)** | `JDK 25+` | Enterprise runtime powering the unified E2E regression suite. |
+| **[Java](https://openjdk.org/)** | `JDK 25` | Enterprise runtime powering the unified E2E regression suite (`e2e/pom.xml`). |
 | **[Spring Boot](https://spring.io/projects/spring-boot)** | `4.1+` | IoC container (`@SpringBootTest`), externalized YAML configuration (`E2eProperties`), and `@ScenarioScope` DI via `cucumber-spring`. |
 | **[Playwright for Java](https://playwright.dev/java/)** | `1.64+` | Web UI browser automation driving Chromium with network route interception (`@web`). |
 | **[Appium Java Client](https://appium.io/)** | `11.0+` | Native iOS (`XCUITestOptions`) & Android (`UiAutomator2Options`) automation with Capacitor WebView switching and local platform-mode WebView fallback (`@mobile`, `@android`, `@ios`). |
 | **[Rest Assured](https://rest-assured.io/)** | `6.3+` | Fluent REST API contract testing (`@api`). |
-| **[Cucumber-JVM](https://cucumber.io/) & [Allure](https://allurereport.org/)** | `8.0+` / `3.1+` | BDD Gherkin execution across **25 feature files** organized by target and business function with `AllureStepEvidencePlugin` attaching step-level Web/Mobile screenshots (`image/png`) and API JSON payloads (`application/json`) directly inside every executed step. |
+| **[Cucumber-JVM](https://cucumber.io/) & [Allure](https://allurereport.org/)** | `8.0+` / `3.1+` | BDD Gherkin execution across **25 feature files** organized by target and business function with `AllureStepEvidencePlugin` attaching step-level screenshots and API JSON payloads directly inside every executed step. |
 
 ### 6. CI/CD Pipelines (`.github/workflows/`)
 
-- **[`ci.yml`](.github/workflows/ci.yml)**: Automated push/PR/manual pipeline running `security-scan` (Gitleaks), `backend-qa` (Rust fmt, Clippy, Cargo tests), `frontend-qa` (Web Vitest + build), `mobile-qa` (Mobile Vitest + build), `e2e-automation` (Java Playwright + Rest Assured + Allure), and `publish-allure-report` to [GitHub Pages](https://vipatpolk.github.io/SGSK-Wealth/).
-- **[`mobile-build.yml`](.github/workflows/mobile-build.yml)**: Dedicated manual `workflow_dispatch` workflow (`platform`: `all` | `android` | `ios`, `build_type`: `debug` | `release`) that builds and uploads the **Android `.apk`** (via Maven + Android SDK) and **iOS `.ipa`** (via Xcode `xcodebuild`).
+- **[`ci.yml`](.github/workflows/ci.yml)**: Automated push/PR/manual pipeline running `security-scan` (Gitleaks), `gherkin-qa` (Python 3.11), `backend-qa` (Rust Stable fmt, Clippy, Cargo test, release build), `domain-qa` (boundary lint, contracts & domain typecheck + Vitest), `frontend-qa` (Web Vitest, build & secret scan), `mobile-qa` (Mobile Vitest, build & secret scan), `e2e-api` (Playwright-free `@api` Rest Assured scenarios), `e2e-automation` (Playwright + Rest Assured + Allure), and `publish-allure-report` to [GitHub Pages](https://vipatpolk.github.io/SGSK-Wealth/).
+- **[`mobile-build.yml`](.github/workflows/mobile-build.yml)**: Dedicated manual `workflow_dispatch` workflow (`platform`: `all` | `android` | `ios`, `build_type`: `debug` | `release`) that builds and uploads the **Android `.apk`** (JDK 21 + Android SDK Platform 36 + Build-Tools 36.0.0 via Maven) and **iOS `.ipa`** (macOS runner + Xcode `xcodebuild`).
 
 ---
 
@@ -193,78 +195,49 @@ flowchart LR
 SGSK-Wealth/
 ├── backend/                    # Rust Axum API and analytics service
 │   ├── src/main.rs             # Local & Vercel standalone server entry point
+│   ├── src/{ports,state,error,middleware,lib}.rs
 │   ├── src/features/           # Feature modules: portfolio, dividends, market_data, tools, identity
-│   │   └── <feature>/{api,models,services}/
-│   ├── src/{config,utils}/     # Runtime settings and shared infrastructure
-│   ├── tests/                  # Rust integration tests and fixtures
+│   ├── src/{config,utils}/     # Runtime settings, cache, singleflight, auth & upstream clients
+│   ├── tests/                  # Rust integration & offline port tests
 │   └── Cargo.toml              # Rust package, binaries, and dependencies
 │
-├── shared/                     # Shared Core Library (@shared/*)
-│   ├── package.json            # @sgsk-wealth/shared workspace package
-│   └── src/
-│       ├── components/         # Shared UI components
-│       ├── config/             # API, asset, and Supabase configuration
-│       ├── i18n/               # English and Thai dictionaries
-│       ├── models/             # Shared domain and API types
-│       ├── pipes/              # Localization and date pipes
-│       ├── services/           # Shared API, auth, settings, and local portfolio services
-│       ├── utils/              # Formatting, FIFO, TVM, rebalance, and calculation helpers
-│       └── index.ts            # Barrel exports
+├── packages/                   # Framework-free pure workspace packages
+│   ├── contracts/              # @sgsk-wealth/contracts DTOs, ApiResult<T>, AppLang & contract tests
+│   └── domain/                 # @sgsk-wealth/domain pure FIFO/TVM/rebalance/filter logic & unit specs
 │
-├── web/                        # Angular 22 Web Single Page Application (@sgsk-wealth/web)
-│   ├── public/                 # Static assets, SVG icons, and favicons
-│   ├── src/app/                # Web app shell and feature-oriented components
-│   │   ├── core/               # AppStateFacade for workspace state and data coordination
-│   │   ├── features/           # Dashboard, analytics, dividends, holdings, tools, and transaction flows
-│   │   ├── ui/                 # Web-specific navigation and reusable presentation components
-│   │   ├── interceptors/       # Web HTTP interceptors
-│   │   ├── shared-tests/       # Web test-runner coverage for shared library modules
-│   │   └── app.ts              # Thin Angular shell and component composition
-│   ├── angular.json
-│   ├── tsconfig.json           # Maps @shared/* and @app/* imports
+├── shared/                     # Shared Angular core library (@shared/*)
+│   ├── src/config/             # API tokens, Supabase tokens, KeyValueStorageAdapter
+│   ├── src/providers/          # PortfolioDataProvider, CloudPortfolioProvider, LocalPortfolioProvider, Coordinator
+│   ├── src/{components,i18n,pipes,services}/
 │   └── package.json
 │
-├── mobile/                     # Angular 22 + Ionic 9 + Capacitor 8 Mobile App (@sgsk-wealth/mobile)
-│   ├── android/                # Native Android Capacitor project built with Maven
-│   │   ├── pom.xml             # Maven Android APK build configuration
-│   │   ├── scripts/build-apk.mjs
-│   │   └── app/src/main/       # AndroidManifest.xml, MainActivity.java, Capacitor assets
-│   ├── ios/                    # Native iOS Xcode project (Swift + SPM Capacitor plugins)
-│   ├── src/app/
-│   │   ├── modals/             # Ionic modals (MobileAuthModal, MobileUserSettingsModal, MobileLocalPortfolioModal, FundFactsheetModal)
-│   │   ├── pages/              # dashboard, holdings, analytics, dividends, tools, transactions
-│   │   ├── services/           # NativePlatformService (Capacitor) & MobileStateService
-│   │   ├── app.component.ts    # Ionic shell with <ion-header> & 6-tab <ion-tab-bar>
-│   │   ├── app.config.ts       # Platform-adaptive Ionic mode ('md'/'ios') & API_BASE_URL
-│   │   └── app.routes.ts
-│   ├── capacitor.config.ts
-│   ├── angular.json
-│   └── package.json
+├── apps/
+│   ├── web/                    # Angular 22 Web Single Page Application (@sgsk-wealth/web)
+│   │   ├── public/             # Static assets, SVG icons, and favicons
+│   │   ├── src/app/{core,features,ui,interceptors,shared-tests}/
+│   │   └── angular.json, tsconfig.json, package.json
+│   └── mobile/                 # Angular 22 + Ionic 9 + Capacitor 8 Mobile App (@sgsk-wealth/mobile)
+│       ├── android/            # Native Android Capacitor project built with Maven (pom.xml)
+│       ├── ios/                # Native iOS Xcode project (Swift + SPM Capacitor plugins)
+│       ├── src/app/{modals,pages,services}/
+│       └── capacitor.config.ts, angular.json, package.json
 │
 ├── e2e/                        # Unified Spring Boot E2E Test Suite
 │   ├── pom.xml                 # Maven (Spring Boot, Playwright, Appium, Rest Assured, Cucumber, Allure)
-│   └── src/test/
-│       ├── java/com/sgsk/wealth/e2e/
-│       │   ├── core/           # config, context (TestContext/Holder), runner, support & AllureStepEvidencePlugin
-│       │   ├── web/            # Playwright Page Objects, Steps & Hooks grouped by function
-│       │   ├── mobile/         # Ionic/Appium Screens, MobileDriverBridge, Steps & Hooks grouped by function
-│       │   └── api/            # Rest Assured ApiClient, Steps & Hooks grouped by function
-│       └── resources/
-│           ├── features/web/   # Web Gherkin specs (navigation, dashboard, holdings, analytics, dividends, transactions, tools, resilience)
-│           ├── features/mobile/# Mobile iOS/Android specs (navigation, holdings, analytics, dividends, transactions, tools, platform)
-│           ├── features/api/   # REST API Gherkin specs (auth, price, portfolio, tools, sharelot)
-│           └── fixtures/       # Deterministic JSON mock payloads
+│   └── src/test/               # Java step definitions, page/screen objects & 25 .feature files
 │
-├── .agent/skills/              # Canonical AI agent skills (ai-native-sdlc, dividend-payments, cucumber-bdd-best-practices, fifo-cost-basis, sec-open-apis)
-├── .claude/                    # Claude Code adapter (skills symlink -> ../.agent/skills)
-├── .github/workflows/
-│   ├── ci.yml                  # Automated Backend, Web, Mobile & E2E QA pipeline
-│   └── mobile-build.yml        # Manual workflow_dispatch builder for Android .apk & iOS .ipa
-├── scripts/
-│   ├── dev.mjs                 # Concurrent runner ([BACKEND], [WEB], [MOBILE] & live [E2E] log tailer)
-│   └── setup-agents.mjs        # Cross-platform .claude/skills -> .agent/skills linker
+├── docs/
+│   ├── architecture/overview.md
+│   ├── decisions/              # ADR-001 through ADR-004
+│   ├── operations/runbook.md
+│   └── specs/sgsk-wealth-improvement-spec.md
+│
+├── fixtures/accounting/        # Shared language-neutral FIFO & CSV parity fixtures
+├── .agent/skills/              # Canonical AI agent skills (synced to .claude/skills/)
+├── .github/workflows/          # ci.yml & mobile-build.yml
+├── scripts/                    # check-boundaries.mjs, check-bundle-secrets.mjs, lint-gherkin.mjs, dev.mjs, setup-agents.mjs
 ├── package.json                # Root npm workspaces & unified monorepo scripts
-├── vercel.json                 # Unified Vercel Services config (Angular SPA + Rust API)
+├── vercel.json                 # Unified Vercel Services config (apps/web + backend)
 ├── AGENTS.md                   # Unified QA & engineering standards (Antigravity & Codex)
 └── CLAUDE.md                   # Claude Code entrypoint (@AGENTS.md + Claude-specific rules)
 ```
@@ -273,19 +246,20 @@ SGSK-Wealth/
 
 ## Getting Started
 
-### Prerequisites
+### Runtime Matrix (Aligned with CI)
 
-Ensure the following tools are installed on your workstation:
-- **Node.js**: `v24+` or `v26 LTS`
-- **npm**: `v10+` or `v11+`
-- **Rust**: Stable toolchain with `rustfmt` and `clippy`
-- **Java**: `JDK 25+`
-- **Apache Maven**: `3.9+`
-- **Mobile Native Tooling (optional, for native device/emulator builds & Appium)**: Android SDK (`ANDROID_HOME`) for `.apk` builds, Xcode (macOS) for `.ipa` builds, and Appium 2 (`http://127.0.0.1:4723`).
+| Runtime / SDK | Version | Used By |
+|---|---|---|
+| **Node.js / npm** | `26 LTS` / `npm@11.10.1` | Root workspaces (`packages/*`, `shared`, `apps/*`), Vitest, Angular CLI |
+| **Rust** | `Stable` (`rustfmt`, `clippy`) | `backend/` Axum server & integration tests |
+| **Python** | `3.11` | Gherkin strict validation (`npm run lint:gherkin`) |
+| **Java (E2E Suite)** | `JDK 25` (`maven.compiler.release=25`) | `e2e/` Playwright, Appium & Rest Assured suite |
+| **Java & Android SDK (APK)** | `JDK 21` + `Android SDK Platform 36` + `Build-Tools 36.0.0` | `apps/mobile/android/pom.xml` APK packaging |
+| **Xcode (IPA)** | `macOS` runner | `apps/mobile/ios/App/` IPA packaging via Capacitor |
 
 ### 1. Installation
 
-Clone the repository and install all npm workspace dependencies (`shared`, `web`, `mobile`):
+Clone the repository and install all npm workspace dependencies (`packages/*`, `shared`, `apps/*`):
 
 ```bash
 git clone https://github.com/vipatpolk/SGSK-Wealth.git
@@ -295,7 +269,7 @@ npm install
 
 Install the Rust toolchain with `rustup`; Cargo downloads backend dependencies when its commands run.
 
-Install Playwright Chromium browser binaries for the E2E suite:
+Install Playwright Chromium browser binaries for the Web E2E suite:
 
 ```bash
 mvn -f e2e/pom.xml exec:java -Dexec.classpathScope=test -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install chromium"
@@ -329,9 +303,9 @@ node scripts/dev.mjs --mobile  # Starts Backend + Web (:4200) + Mobile (:4201) t
 To sync built Ionic web assets into native Capacitor iOS & Android projects:
 
 ```bash
-npm run cap:sync               # Builds mobile/ and syncs mobile/android + mobile/ios
-npm --prefix mobile run cap:open:android
-npm --prefix mobile run cap:open:ios
+npm run cap:sync               # Builds apps/mobile and syncs apps/mobile/android + apps/mobile/ios
+npm --prefix apps/mobile run cap:open:android
+npm --prefix apps/mobile run cap:open:ios
 ```
 
 ---
@@ -342,18 +316,22 @@ SGSK-Wealth enforces strict quality standards before any code is committed:
 
 | Command | Description | Tech Stack |
 |:---|:---|:---|
-| **`npm run check`** | Run complete pre-commit QA suite (Gherkin lint, backend lint/test, web test/build, mobile test/build) | Monorepo Orchestration |
-| **`npm run lint:gherkin`** | Validate all **25 `.feature` files** with `validate_gherkin.py --strict` | Python Gherkin Linter |
+| **`npm run check`** | Run complete pre-commit QA suite (boundaries, Gherkin, contracts, domain, backend, web, mobile & secret scan) | Monorepo Orchestration |
+| **`npm run lint:boundaries`** | Verify framework-free domain/contracts & workspace boundaries (`check-boundaries.mjs`) | Node AST/Import Check |
+| **`npm run lint:gherkin`** | Validate all **25 `.feature` files** with `validate_gherkin.py --strict` | Python 3.11 Linter |
+| **`npm run test:contracts`** | Run DTO & API result envelope contract tests (`packages/contracts`) | Vitest & TypeScript |
+| **`npm run test:domain`** | Run pure domain financial, parity & filter unit tests (`packages/domain`) | Vitest & TypeScript |
 | **`npm run lint:backend`** | Check Rust formatting and run Clippy with warnings denied | rustfmt & Clippy |
-| **`npm run test:backend`** | Run backend unit and integration tests | Cargo test |
-| **`npm run test:web`** | Run Web Vitest unit test suite (**381 tests across 40 suites**) | Vitest & jsdom |
-| **`npm run test:mobile`** | Run Mobile Vitest unit test suite (**23 tests across 10 suites**) | Vitest & Ionic |
-| **`npm run build:web`** | Compile production-ready Web Angular bundle | Angular CLI |
-| **`npm run build:mobile`** | Compile production-ready Ionic mobile bundle | Angular CLI |
-| **`npm run cap:sync`** | Build mobile bundle and sync assets/plugins to `mobile/android` & `mobile/ios` | Capacitor CLI |
+| **`npm run test:backend`** | Run backend unit, integration & offline port tests (`backend/tests`) | Cargo test |
+| **`npm run test:web`** | Run Web Vitest unit test suite (`apps/web`) | Vitest & jsdom |
+| **`npm run test:mobile`** | Run Mobile Vitest unit test suite (`apps/mobile`) | Vitest & Ionic |
+| **`npm run build:web`** | Compile production-ready Web Angular bundle (`apps/web/dist/sgsk-wealth`) | Angular CLI |
+| **`npm run build:mobile`** | Compile production-ready Ionic mobile bundle (`apps/mobile/dist/sgsk-wealth-mobile`) | Angular CLI |
+| **`npm run check:secrets`** | Scan built Web/Mobile JS bundles for accidental secret leaks | Node Bundle Scanner |
+| **`npm run cap:sync`** | Build mobile bundle and sync assets/plugins to `apps/mobile/android` & `apps/mobile/ios` | Capacitor CLI |
 | **`npm run test:e2e`** | Run default Java E2E suite (`not @mobile`: `@api` + `@web`) | Playwright, Rest Assured & Cucumber |
 | **`npm run test:e2e:web`** | Run Playwright Web UI automation scenarios (`@web`) | Playwright & Cucumber-JVM |
-| **`npm run test:e2e:api`** | Run Rest Assured API automation scenarios (`@api`) | Rest Assured & Cucumber-JVM |
+| **`npm run test:e2e:api`** | Run Rest Assured API automation scenarios (`@api`, no browser required) | Rest Assured & Cucumber-JVM |
 | **`npm run test:e2e:mobile`** | Run Mobile Appium + Cucumber scenarios (`@mobile`, with local WebView fallback when Appium `:4723` is offline) | Appium & Cucumber-JVM |
 | **`npm run test:e2e:android`** | Run Android-tagged mobile E2E scenarios (`@android`) | Appium UiAutomator2 |
 | **`npm run test:e2e:ios`** | Run iOS-tagged mobile E2E scenarios (`@ios`) | Appium XCUITest |
@@ -366,25 +344,34 @@ SGSK-Wealth enforces strict quality standards before any code is committed:
 ## Deployment & Mobile Builds
 
 ### Vercel Deployment (Unified Vercel Services)
-This monorepo deploys **both** the Angular Web SPA (`web/`) and Rust Axum backend (`backend/`) in a **single Vercel project** (`sgsk-wealth`) using **Vercel Services** configured in root [`vercel.json`](vercel.json):
-1. **Project Settings**: Keep **Root Directory** at repository root (`.`), set **Framework Preset** to **Services**, use **Node.js 24/26**, and keep **Fluid Compute** enabled under **Settings → Functions**. Connect the `sgsk-supabase` integration to `sgsk-wealth` for both Preview and Production.
-2. **Web Service (`web/`)**: Builds the Angular 22 workspace (`installCommand: "cd .. && npm ci"`, `buildCommand: "npm run build"`, `outputDirectory: "dist/sgsk-wealth"`) with SPA fallback rewrites to `/index.html`.
+This monorepo deploys **both** the Angular Web SPA (`apps/web/`) and Rust Axum backend (`backend/`) in a **single Vercel project** (`sgsk-wealth`) using **Vercel Services** configured in root [`vercel.json`](vercel.json):
+1. **Project Settings**: Keep **Root Directory** at repository root (`.`), set **Framework Preset** to **Services**, use **Node.js 26**, and keep **Fluid Compute** enabled under **Settings → Functions**. Connect the `sgsk-supabase` integration to `sgsk-wealth` for both Preview and Production.
+2. **Web Service (`apps/web/`)**: Builds the Angular 22 workspace (`installCommand: "cd ../.. && npm ci"`, `buildCommand: "npm run build"`, `outputDirectory: "dist/sgsk-wealth"`) with SPA fallback rewrites to `/index.html`.
 3. **Backend Service (`backend/`)**: Builds the standalone Rust Axum server in `src/main.rs` via `@vercel/rust`. Service-scoped routes inject `X-API-Key` from the Secret `$BACKEND_API_KEY` environment variable. Local development runs `cargo run --bin sgsk-backend` on port `8000`.
-4. **Local Services Emulation & Native Mobile**: Run `vercel dev --local` from the repository root to test unified Services routing locally. Native mobile production builds call `https://sgsk-wealth.vercel.app/api/backend` (`nativeApiBaseUrl` in `mobile/src/environments/environment.prod.ts`) without bundling `BACKEND_API_KEY`; the Rust backend allows configured web and Capacitor origins through CORS.
+4. **Local Services Emulation & Native Mobile**: Run `vercel dev --local` from the repository root to test unified Services routing locally. Native mobile production builds call `https://sgsk-wealth.vercel.app/api/backend` (`nativeApiBaseUrl` in `apps/mobile/src/environments/environment.prod.ts`) without bundling `BACKEND_API_KEY`; the Rust backend allows configured web and Capacitor origins through CORS.
 
 #### Rotating the backend API key
-1. Generate a random key of at least 32 characters and update `BACKEND_API_KEY` as a Sensitive/Secret variable in the single `sgsk-wealth` Vercel project (shared by the edge route transform and backend runtime). Vercel does not reveal Sensitive values later, so store a backup in your secret manager first.
-2. Because `web` and `backend` deploy together in one atomic deployment, updating `BACKEND_API_KEY` and redeploying rotates both simultaneously. If staged zero-downtime rotation is needed across in-flight requests, temporarily set `BACKEND_API_KEY_PREVIOUS`, deploy, verify Web and Mobile traffic, then remove `BACKEND_API_KEY_PREVIOUS` and redeploy.
+See the detailed procedure in [docs/operations/runbook.md](docs/operations/runbook.md#2-zero-downtime-backend_api_key-rotation). Summary:
+1. Generate a random key of at least 32 characters and set the previous key in `BACKEND_API_KEY_PREVIOUS` while updating `BACKEND_API_KEY` as a Sensitive/Secret variable in the single `sgsk-wealth` Vercel project.
+2. Redeploy so Web and Mobile traffic continue smoothly, then remove `BACKEND_API_KEY_PREVIOUS` and redeploy.
 3. Keep secret values in Vercel's Sensitive/Secret variables. Do not add keys to `.env.example`, source control, build arguments, or native artifacts.
 
 ### Native `.apk` & `.ipa` Packaging
 - **GitHub Actions Manual Build**: Trigger the **Mobile Native Build (.apk & .ipa)** workflow ([`.github/workflows/mobile-build.yml`](.github/workflows/mobile-build.yml)) from the Actions tab (`workflow_dispatch`) to build and download `sgsk-wealth-debug.apk` / `sgsk-wealth-release.apk` and `sgsk-wealth-debug.ipa` / `sgsk-wealth-release.ipa`.
-- **Local Android Maven Build** (requires `ANDROID_HOME` with Platform 36 & Build Tools):
+- **Local Android Maven Build** (requires `ANDROID_HOME` with Platform 36 & Build-Tools `36.0.0`, JDK 21):
   ```bash
   npm run build:mobile
-  npx --prefix mobile cap copy android
-  mvn -f mobile/android/pom.xml clean package
+  npx --prefix apps/mobile cap copy android
+  mvn -f apps/mobile/android/pom.xml clean package
   ```
+
+---
+
+## Documentation
+
+- **[Architecture Overview](docs/architecture/overview.md)** — Monorepo layout, trust-boundary diagram, Backend Ports & `AppState`, 19-route auth matrix & cache TTL inventory
+- **[Architecture Decision Records](docs/decisions/)** — [ADR-001](docs/decisions/ADR-001-local-cloud-portfolio-isolation.md), [ADR-002](docs/decisions/ADR-002-financial-calculation-parity.md), [ADR-003](docs/decisions/ADR-003-typed-api-result-contract.md), [ADR-004](docs/decisions/ADR-004-fail-closed-production-owner-auth.md)
+- **[Operations Runbook](docs/operations/runbook.md)** — Environment variables, zero-downtime key rotation, Vercel edge transforms, Supabase fail-closed triage & `502`/`503` recovery
 
 ---
 

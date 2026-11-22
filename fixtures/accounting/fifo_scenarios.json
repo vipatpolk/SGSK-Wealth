@@ -1,0 +1,354 @@
+{
+  "schemaVersion": "1.0.0",
+  "fifoScenarios": [
+    {
+      "id": "basic-buy-sell-full-close",
+      "description": "Single buy followed by full sell leaves zero open lots and exact realized P&L",
+      "exchangeRateUsdToThb": 35.0,
+      "transactions": [
+        { "symbol": "AAPL", "date": "2025-01-10", "quantity": 10, "price": 100.0, "currency": "USD", "assetType": "us-stock", "txType": "BUY" },
+        { "symbol": "AAPL", "date": "2025-02-10", "quantity": -10, "price": 125.0, "currency": "USD", "assetType": "us-stock", "txType": "SELL" }
+      ],
+      "expected": {
+        "tolerance": 1e-6,
+        "bySymbol": [
+          {
+            "symbol": "AAPL",
+            "buyCount": 1,
+            "sellCount": 1,
+            "exchangeCount": 0,
+            "transactionCount": 2,
+            "netShares": 0.0,
+            "realizedPL": 250.0,
+            "openLots": [],
+            "closedLots": [
+              { "purchaseDate": "2025-01-10", "closeDate": "2025-02-10", "quantity": 10.0, "costBasis": 100.0, "sellPrice": 125.0, "realizedPL": 250.0 }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "fifo-partial-sell-with-fees",
+      "description": "Two buys at different prices with fees, followed by a partial sell spanning both lots",
+      "exchangeRateUsdToThb": 35.0,
+      "transactions": [
+        { "symbol": "AAPL", "date": "2025-01-10", "quantity": 10, "price": 100.0, "fee": 5.0, "currency": "USD", "assetType": "us-stock", "txType": "BUY" },
+        { "symbol": "AAPL", "date": "2025-02-10", "quantity": 10, "price": 120.0, "fee": 5.0, "currency": "USD", "assetType": "us-stock", "txType": "BUY" },
+        { "symbol": "AAPL", "date": "2025-03-10", "quantity": -15, "price": 150.0, "fee": 7.5, "currency": "USD", "assetType": "us-stock", "txType": "SELL" }
+      ],
+      "expected": {
+        "tolerance": 1e-6,
+        "bySymbol": [
+          {
+            "symbol": "AAPL",
+            "buyCount": 2,
+            "sellCount": 1,
+            "exchangeCount": 0,
+            "transactionCount": 3,
+            "netShares": 5.0,
+            "realizedPL": 635.0,
+            "openLots": [
+              { "purchaseDate": "2025-02-10", "quantity": 5.0, "costBasis": 120.5, "totalCost": 602.5 }
+            ],
+            "closedLots": [
+              { "purchaseDate": "2025-01-10", "closeDate": "2025-03-10", "quantity": 10.0, "costBasis": 100.5, "sellPrice": 149.5, "realizedPL": 490.0 },
+              { "purchaseDate": "2025-02-10", "closeDate": "2025-03-10", "quantity": 5.0, "costBasis": 120.5, "sellPrice": 149.5, "realizedPL": 145.0 }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "same-day-buy-and-sell",
+      "description": "Same-day sell listed before buy still processes inflow before outflow",
+      "exchangeRateUsdToThb": 35.0,
+      "transactions": [
+        { "symbol": "NVDA", "date": "2025-04-01", "quantity": -4, "price": 130.0, "currency": "USD", "assetType": "us-stock", "txType": "SELL" },
+        { "symbol": "NVDA", "date": "2025-04-01", "quantity": 10, "price": 100.0, "currency": "USD", "assetType": "us-stock", "txType": "BUY" }
+      ],
+      "expected": {
+        "tolerance": 1e-6,
+        "bySymbol": [
+          {
+            "symbol": "NVDA",
+            "buyCount": 1,
+            "sellCount": 1,
+            "exchangeCount": 0,
+            "transactionCount": 2,
+            "netShares": 6.0,
+            "realizedPL": 120.0,
+            "openLots": [
+              { "purchaseDate": "2025-04-01", "quantity": 6.0, "costBasis": 100.0, "totalCost": 600.0 }
+            ],
+            "closedLots": [
+              { "purchaseDate": "2025-04-01", "closeDate": "2025-04-01", "quantity": 4.0, "costBasis": 100.0, "sellPrice": 130.0, "realizedPL": 120.0 }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "date-boundary-and-leap-day",
+      "description": "Normalizes leap-day ISO and DD/MM/YYYY dates chronologically before FIFO matching",
+      "exchangeRateUsdToThb": 35.0,
+      "transactions": [
+        { "symbol": "MSFT", "date": "2025-03-01", "quantity": -5, "price": 450.0, "currency": "USD", "assetType": "us-stock", "txType": "SELL" },
+        { "symbol": "MSFT", "date": "25/02/2025", "quantity": 4, "price": 420.0, "currency": "USD", "assetType": "us-stock", "txType": "BUY" },
+        { "symbol": "MSFT", "date": "2024-02-29", "quantity": 3, "price": 400.0, "currency": "USD", "assetType": "us-stock", "txType": "BUY" }
+      ],
+      "expected": {
+        "tolerance": 1e-6,
+        "bySymbol": [
+          {
+            "symbol": "MSFT",
+            "buyCount": 2,
+            "sellCount": 1,
+            "exchangeCount": 0,
+            "transactionCount": 3,
+            "netShares": 2.0,
+            "realizedPL": 210.0,
+            "openLots": [
+              { "purchaseDate": "25/02/2025", "quantity": 2.0, "costBasis": 420.0, "totalCost": 840.0 }
+            ],
+            "closedLots": [
+              { "purchaseDate": "2024-02-29", "closeDate": "2025-03-01", "quantity": 3.0, "costBasis": 400.0, "sellPrice": 450.0, "realizedPL": 150.0 },
+              { "purchaseDate": "25/02/2025", "closeDate": "2025-03-01", "quantity": 2.0, "costBasis": 420.0, "sellPrice": 450.0, "realizedPL": 60.0 }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "oversell-insufficient-lots",
+      "description": "Sell exceeding available shares clamps open shares to 0 and computes P&L on matched quantity",
+      "exchangeRateUsdToThb": 35.0,
+      "transactions": [
+        { "symbol": "TSLA", "date": "2025-01-01", "quantity": 5, "price": 200.0, "currency": "USD", "assetType": "us-stock", "txType": "BUY" },
+        { "symbol": "TSLA", "date": "2025-02-01", "quantity": -8, "price": 250.0, "currency": "USD", "assetType": "us-stock", "txType": "SELL" }
+      ],
+      "expected": {
+        "tolerance": 1e-6,
+        "bySymbol": [
+          {
+            "symbol": "TSLA",
+            "buyCount": 1,
+            "sellCount": 1,
+            "exchangeCount": 0,
+            "transactionCount": 2,
+            "netShares": 0.0,
+            "realizedPL": 250.0,
+            "openLots": [],
+            "closedLots": [
+              { "purchaseDate": "2025-01-01", "closeDate": "2025-02-01", "quantity": 5.0, "costBasis": 200.0, "sellPrice": 250.0, "realizedPL": 250.0 }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "exchange-in-exchange-out",
+      "description": "Mutual fund EX-OUT and EX-IN classify as exchanges without incrementing buyCount/sellCount",
+      "exchangeRateUsdToThb": 35.0,
+      "transactions": [
+        { "symbol": "FUNDA.FUND", "date": "2025-01-01", "quantity": 100, "price": 10.0, "currency": "THB", "assetType": "mutual-fund", "txType": "BUY" },
+        { "symbol": "FUNDA.FUND", "date": "2025-02-01", "quantity": -40, "price": 12.5, "currency": "THB", "assetType": "mutual-fund", "txType": "EX-OUT" },
+        { "symbol": "FUNDB.FUND", "date": "2025-02-01", "quantity": 25, "price": 20.0, "currency": "THB", "assetType": "mutual-fund", "txType": "EX-IN" }
+      ],
+      "expected": {
+        "tolerance": 1e-6,
+        "bySymbol": [
+          {
+            "symbol": "FUNDA.FUND",
+            "buyCount": 1,
+            "sellCount": 0,
+            "exchangeCount": 1,
+            "transactionCount": 2,
+            "netShares": 60.0,
+            "realizedPL": 100.0,
+            "openLots": [
+              { "purchaseDate": "2025-01-01", "quantity": 60.0, "costBasis": 10.0, "totalCost": 600.0 }
+            ],
+            "closedLots": [
+              { "purchaseDate": "2025-01-01", "closeDate": "2025-02-01", "quantity": 40.0, "costBasis": 10.0, "sellPrice": 12.5, "realizedPL": 100.0 }
+            ]
+          },
+          {
+            "symbol": "FUNDB.FUND",
+            "buyCount": 0,
+            "sellCount": 0,
+            "exchangeCount": 1,
+            "transactionCount": 1,
+            "netShares": 25.0,
+            "realizedPL": 0.0,
+            "openLots": [
+              { "purchaseDate": "2025-02-01", "quantity": 25.0, "costBasis": 20.0, "totalCost": 500.0 }
+            ],
+            "closedLots": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "zero-and-epsilon-quantities",
+      "description": "Residual share quantity <= 1e-7 epsilon closes cleanly without ghost open lots",
+      "exchangeRateUsdToThb": 35.0,
+      "transactions": [
+        { "symbol": "ETH.CRYPTO", "date": "2025-01-01", "quantity": 1.00000004, "price": 2000.0, "currency": "USD", "assetType": "crypto", "txType": "BUY" },
+        { "symbol": "ETH.CRYPTO", "date": "2025-02-01", "quantity": -1.0, "price": 2500.0, "currency": "USD", "assetType": "crypto", "txType": "SELL" }
+      ],
+      "expected": {
+        "tolerance": 1e-5,
+        "bySymbol": [
+          {
+            "symbol": "ETH.CRYPTO",
+            "buyCount": 1,
+            "sellCount": 1,
+            "exchangeCount": 0,
+            "transactionCount": 2,
+            "netShares": 0.0,
+            "realizedPL": 500.0,
+            "openLots": [],
+            "closedLots": [
+              { "purchaseDate": "2025-01-01", "closeDate": "2025-02-01", "quantity": 1.0, "costBasis": 2000.0, "sellPrice": 2500.0, "realizedPL": 500.0 }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "fee-exceeds-gross-proceeds",
+      "description": "Sell fee greater than gross proceeds clamps net proceeds to zero",
+      "exchangeRateUsdToThb": 35.0,
+      "transactions": [
+        { "symbol": "PENNY", "date": "2025-01-01", "quantity": 10, "price": 1.0, "currency": "USD", "assetType": "us-stock", "txType": "BUY" },
+        { "symbol": "PENNY", "date": "2025-02-01", "quantity": -10, "price": 0.5, "fee": 10.0, "currency": "USD", "assetType": "us-stock", "txType": "SELL" }
+      ],
+      "expected": {
+        "tolerance": 1e-6,
+        "bySymbol": [
+          {
+            "symbol": "PENNY",
+            "buyCount": 1,
+            "sellCount": 1,
+            "exchangeCount": 0,
+            "transactionCount": 2,
+            "netShares": 0.0,
+            "realizedPL": -10.0,
+            "openLots": [],
+            "closedLots": [
+              { "purchaseDate": "2025-01-01", "closeDate": "2025-02-01", "quantity": 10.0, "costBasis": 1.0, "sellPrice": 0.0, "realizedPL": -10.0 }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "dividend-tx-neutral-to-lots",
+      "description": "DIVIDEND row appears in transaction history without altering open lots or cost basis",
+      "exchangeRateUsdToThb": 35.0,
+      "transactions": [
+        { "symbol": "PTT.BK", "date": "2025-01-10", "quantity": 100, "price": 30.0, "currency": "THB", "assetType": "thai-stock", "txType": "BUY" },
+        { "symbol": "PTT.BK", "date": "2025-04-15", "quantity": 100, "price": 1.5, "currency": "THB", "assetType": "thai-stock", "txType": "DIVIDEND" }
+      ],
+      "expected": {
+        "tolerance": 1e-6,
+        "bySymbol": [
+          {
+            "symbol": "PTT.BK",
+            "buyCount": 1,
+            "sellCount": 0,
+            "exchangeCount": 0,
+            "transactionCount": 2,
+            "netShares": 100.0,
+            "realizedPL": 0.0,
+            "openLots": [
+              { "purchaseDate": "2025-01-10", "quantity": 100.0, "costBasis": 30.0, "totalCost": 3000.0 }
+            ],
+            "closedLots": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "multi-currency-conversion",
+      "description": "USD and THB open positions convert consistently into THB and USD display currencies",
+      "exchangeRateUsdToThb": 35.0,
+      "transactions": [
+        { "symbol": "AAPL", "date": "2025-01-10", "quantity": 10, "price": 100.0, "currency": "USD", "assetType": "us-stock", "txType": "BUY" },
+        { "symbol": "PTT.BK", "date": "2025-01-12", "quantity": 100, "price": 35.0, "currency": "THB", "assetType": "thai-stock", "txType": "BUY" }
+      ],
+      "expected": {
+        "tolerance": 1e-6,
+        "totalCostInThb": 38500.0,
+        "totalCostInUsd": 1100.0,
+        "bySymbol": [
+          {
+            "symbol": "AAPL",
+            "buyCount": 1,
+            "sellCount": 0,
+            "exchangeCount": 0,
+            "transactionCount": 1,
+            "netShares": 10.0,
+            "realizedPL": 0.0,
+            "openLots": [
+              { "purchaseDate": "2025-01-10", "quantity": 10.0, "costBasis": 100.0, "totalCost": 1000.0 }
+            ],
+            "closedLots": []
+          },
+          {
+            "symbol": "PTT.BK",
+            "buyCount": 1,
+            "sellCount": 0,
+            "exchangeCount": 0,
+            "transactionCount": 1,
+            "netShares": 100.0,
+            "realizedPL": 0.0,
+            "openLots": [
+              { "purchaseDate": "2025-01-12", "quantity": 100.0, "costBasis": 35.0, "totalCost": 3500.0 }
+            ],
+            "closedLots": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "crypto-fractional-precision",
+      "description": "Preserves 8-decimal fractional cryptocurrency precision without premature rounding",
+      "exchangeRateUsdToThb": 35.0,
+      "transactions": [
+        { "symbol": "BTC.CRYPTO", "date": "2025-01-01", "quantity": 0.00012345, "price": 3000000.0, "currency": "THB", "assetType": "crypto", "txType": "BUY" },
+        { "symbol": "BTC.CRYPTO", "date": "2025-02-01", "quantity": -0.00002345, "price": 3200000.0, "currency": "THB", "assetType": "crypto", "txType": "SELL" }
+      ],
+      "expected": {
+        "tolerance": 1e-6,
+        "bySymbol": [
+          {
+            "symbol": "BTC.CRYPTO",
+            "buyCount": 1,
+            "sellCount": 1,
+            "exchangeCount": 0,
+            "transactionCount": 2,
+            "netShares": 0.0001,
+            "realizedPL": 4.69,
+            "openLots": [
+              { "purchaseDate": "2025-01-01", "quantity": 0.0001, "costBasis": 3000000.0, "totalCost": 300.0 }
+            ],
+            "closedLots": [
+              { "purchaseDate": "2025-01-01", "closeDate": "2025-02-01", "quantity": 0.00002345, "costBasis": 3000000.0, "sellPrice": 3200000.0, "realizedPL": 4.69 }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "csvScenarios": [
+    {
+      "id": "invalid-csv-rows-skipped",
+      "description": "Skips zero quantity, NaN/non-numeric numbers, blank symbol, blank date, and short rows",
+      "defaultAssetType": "us-stock",
+      "csvText": "Symbol,Date,Quantity,Price,Currency,Asset Type,Transaction Type\nAAPL,2025-01-10,10,150.0,USD,us-stock,BUY\nZERO,2025-01-11,0,100.0,USD,us-stock,BUY\nNANP,2025-01-12,5,NaN,USD,us-stock,BUY\nBADQ,2025-01-13,abc,100.0,USD,us-stock,BUY\n,2025-01-14,5,100.0,USD,us-stock,BUY\nNODATE,,5,100.0,USD,us-stock,BUY\nSHORT,2025-01-15,5,100.0\nPTT.BK,2025-01-16,100,32.5,THB,thai-stock,BUY\n",
+      "expectedSymbols": ["AAPL", "PTT.BK"]
+    }
+  ]
+}

@@ -1,15 +1,28 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, catchError, map, of } from 'rxjs';
-import { SUPABASE_CONFIG } from '../config/supabase-config.token';
+import { KEY_VALUE_STORAGE_ADAPTER } from '../config/storage-adapter.token';
+import {
+  ApiFailure,
+  ApiResult,
+  apiOk,
+  mapHttpErrorToApiFailure,
+} from '../models/api-result.model';
 import { PortfolioDividendResponse } from '../models/dividend.model';
 import { LocalCsvImportResult, LocalTransaction } from '../models/local-portfolio.model';
-import { PortfolioHoldingsResponse } from '../models/portfolio.model';
+import {
+  PortfolioAllocationResponse,
+  PortfolioHoldingsResponse,
+  PortfolioPerformanceResponse,
+  TargetAllocation,
+} from '../models/portfolio.model';
 import { AppLang } from './i18n.service';
 import { PriceData, PriceService } from './price.service';
 import {
   SAMPLE_LOCAL_TRANSACTIONS,
+  buildLocalAllocationResponse,
   buildLocalDividendResponse,
   buildLocalHoldingsResponse,
+  buildLocalPerformanceResponse,
   parseLocalTransactionsCsv,
 } from '../utils/local-fifo.utils';
 
@@ -20,12 +33,13 @@ export const LOCAL_TRANSACTIONS_STORAGE_KEY = 'sgsk_wealth_local_transactions_v1
 })
 export class LocalPortfolioService {
   private readonly priceService = inject(PriceService, { optional: true });
-  private readonly supabaseConfig = inject(SUPABASE_CONFIG, { optional: true });
+  private readonly storage = inject(KEY_VALUE_STORAGE_ADAPTER);
 
-  readonly transactions = signal<LocalTransaction[]>(this.loadInitialFromLocalStorage());
+  readonly transactions = signal<LocalTransaction[]>(this.loadInitialFromStorage());
   readonly prices = signal<Map<string, PriceData>>(new Map());
   readonly exchangeRate = signal<number>(0);
   readonly pricesLoading = signal<boolean>(false);
+  readonly pricesError = signal<ApiFailure | null>(null);
 
   readonly hasTransactions = computed(() => this.transactions().length > 0);
   readonly transactionCount = computed(() => this.transactions().length);
@@ -36,18 +50,16 @@ export class LocalPortfolioService {
     if (this.hydrated) return;
     this.hydrated = true;
 
-    if (this.supabaseConfig?.storage) {
-      try {
-        const raw = await this.supabaseConfig.storage.getItem(LOCAL_TRANSACTIONS_STORAGE_KEY);
-        if (raw) {
-          const parsed = this.parseStoredArray(raw);
-          if (parsed.length > 0 || this.transactions().length === 0) {
-            this.transactions.set(parsed);
-          }
+    try {
+      const raw = await this.storage.getItem(LOCAL_TRANSACTIONS_STORAGE_KEY);
+      if (raw) {
+        const parsed = this.parseStoredArray(raw);
+        if (parsed.length > 0 || this.transactions().length === 0) {
+          this.transactions.set(parsed);
         }
-      } catch {
-        // Keep localStorage snapshot
       }
+    } catch {
+      // Keep synchronous storage snapshot
     }
   }
 
@@ -154,6 +166,7 @@ export class LocalPortfolioService {
   clearAll(): void {
     this.saveTransactions([]);
     this.prices.set(new Map());
+    this.pricesError.set(null);
   }
 
   getHoldings(
@@ -184,9 +197,44 @@ export class LocalPortfolioService {
     );
   }
 
-  refreshMarketPrices(): Observable<{ prices: Map<string, PriceData>; rate: number }> {
+  getPerformance(
+    timeframe: string = 'ALL',
+    startDate: string = '',
+    endDate: string = '',
+    currency: 'USD' | 'THB' = 'THB',
+    lang: AppLang = 'en'
+  ): PortfolioPerformanceResponse {
+    return buildLocalPerformanceResponse(
+      this.transactions(),
+      timeframe,
+      startDate,
+      endDate,
+      currency,
+      this.prices(),
+      this.exchangeRate(),
+      lang
+    );
+  }
+
+  getAllocation(
+    targetAllocation?: TargetAllocation,
+    currency: 'USD' | 'THB' = 'THB',
+    lang: AppLang = 'en'
+  ): PortfolioAllocationResponse {
+    return buildLocalAllocationResponse(
+      this.transactions(),
+      targetAllocation,
+      currency,
+      this.prices(),
+      this.exchangeRate(),
+      lang
+    );
+  }
+
+  refreshMarketPrices(): Observable<ApiResult<{ prices: Map<string, PriceData>; rate: number }>> {
     if (!this.priceService) {
-      return of({ prices: this.prices(), rate: this.exchangeRate() });
+      this.pricesError.set(null);
+      return of(apiOk({ prices: this.prices(), rate: this.exchangeRate() }));
     }
 
     const unique = new Map<string, string>();
@@ -201,9 +249,14 @@ export class LocalPortfolioService {
       return this.priceService.fetchExchangeRate('USD', 'THB').pipe(
         map((rate) => {
           if (rate > 0) this.exchangeRate.set(rate);
-          return { prices: new Map<string, PriceData>(), rate: this.exchangeRate() };
+          this.pricesError.set(null);
+          return apiOk({ prices: new Map<string, PriceData>(), rate: this.exchangeRate() });
         }),
-        catchError(() => of({ prices: new Map<string, PriceData>(), rate: this.exchangeRate() }))
+        catchError((err) => {
+          const failure = mapHttpErrorToApiFailure(err, 'Failed to refresh FX exchange rate.');
+          this.pricesError.set(failure);
+          return of(failure);
+        })
       );
     }
 
@@ -219,12 +272,15 @@ export class LocalPortfolioService {
         if (rate > 0) {
           this.exchangeRate.set(rate);
         }
+        this.pricesError.set(null);
         this.pricesLoading.set(false);
-        return { prices, rate: this.exchangeRate() };
+        return apiOk({ prices, rate: this.exchangeRate() });
       }),
-      catchError(() => {
+      catchError((err) => {
+        const failure = mapHttpErrorToApiFailure(err, 'Failed to refresh live market prices.');
+        this.pricesError.set(failure);
         this.pricesLoading.set(false);
-        return of({ prices: this.prices(), rate: this.exchangeRate() });
+        return of(failure);
       })
     );
   }
@@ -233,24 +289,17 @@ export class LocalPortfolioService {
     this.transactions.set(list);
     const serialized = JSON.stringify(list);
     try {
-      if (typeof localStorage !== 'undefined' && localStorage != null) {
-        localStorage.setItem(LOCAL_TRANSACTIONS_STORAGE_KEY, serialized);
-      }
-      if (this.supabaseConfig?.storage) {
-        void this.supabaseConfig.storage.setItem(LOCAL_TRANSACTIONS_STORAGE_KEY, serialized);
-      }
+      void this.storage.setItem(LOCAL_TRANSACTIONS_STORAGE_KEY, serialized);
     } catch {
       // Ignore storage write errors
     }
   }
 
-  private loadInitialFromLocalStorage(): LocalTransaction[] {
+  private loadInitialFromStorage(): LocalTransaction[] {
     try {
-      if (typeof localStorage !== 'undefined' && localStorage != null) {
-        const raw = localStorage.getItem(LOCAL_TRANSACTIONS_STORAGE_KEY);
-        if (raw) {
-          return this.parseStoredArray(raw);
-        }
+      const raw = this.storage.getItemSync?.(LOCAL_TRANSACTIONS_STORAGE_KEY) ?? null;
+      if (raw) {
+        return this.parseStoredArray(raw);
       }
     } catch {
       // Ignore storage read errors

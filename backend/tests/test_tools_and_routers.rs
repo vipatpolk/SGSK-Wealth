@@ -59,7 +59,7 @@ impl YahooFinanceProvider for MockYahoo {
 
 fn make_tools_service() -> ToolsService {
     let state = AppState::from_settings(Settings::default());
-    state.tools_service.clone()
+    state.portfolio.tools_service.clone()
 }
 
 #[tokio::test]
@@ -386,6 +386,7 @@ async fn test_router_root_tools_and_prefix_normalization() {
         ("PTT.BK".to_string(), 100.0),
     ]);
     let std_reb = reb_state
+        .portfolio
         .tools_service
         .calculate_rebalance(&RebalanceCalculateRequest {
             mode: RebalanceMode::Standard,
@@ -399,6 +400,7 @@ async fn test_router_root_tools_and_prefix_normalization() {
     assert!(std_reb.total_current_portfolio_value > 0.0);
 
     let min_inflow = reb_state
+        .portfolio
         .tools_service
         .calculate_rebalance(&RebalanceCalculateRequest {
             mode: RebalanceMode::NoSell,
@@ -412,6 +414,7 @@ async fn test_router_root_tools_and_prefix_normalization() {
     assert_relative_eq!(min_inflow.total_sell_amount, 0.0, epsilon = 1e-6);
 
     let custom_dep = reb_state
+        .portfolio
         .tools_service
         .calculate_rebalance(&RebalanceCalculateRequest {
             mode: RebalanceMode::NoSell,

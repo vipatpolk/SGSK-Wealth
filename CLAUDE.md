@@ -22,5 +22,5 @@ Workspace skills are exposed in `.claude/skills/`, which is symlinked (or juncti
 
 ### 3. Pre-Completion Verification Gate
 Before concluding any task that modifies code, tests, or Gherkin specifications:
-1. Run `npm run check` (`lint:gherkin`, `lint:backend`, `test:backend`, `test:frontend`, and production `build`).
+1. Run `npm run check` (`lint:boundaries`, `lint:gherkin`, `test:contracts`, `test:domain`, `lint:backend`, `test:backend`, `test:web`, `build:web`, `test:mobile`, `build:mobile`, and `check:secrets`).
 2. When modifying `e2e/`, additionally run `npm run test:e2e:smoke` (or `npm run test:e2e:api` / `npm run test:e2e:ui`) to confirm end-to-end execution.

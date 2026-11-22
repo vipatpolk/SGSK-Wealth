@@ -1,8 +1,9 @@
 import { Injectable, effect, signal } from '@angular/core';
+import type { AppLang } from '../../../packages/contracts/src/common.model';
 import { en, TranslationKey } from '../i18n/en';
 import { th } from '../i18n/th';
 
-export type AppLang = 'en' | 'th';
+export type { AppLang };
 
 export const LANG_STORAGE_KEY = 'sgsk_wealth_lang';
 

@@ -65,7 +65,7 @@ jobs:
       - name: Build Ionic Mobile Bundle & Sync Capacitor Android Assets
         run: |
           npm run build:mobile
-          cd mobile && npx cap copy android
+          cd apps/mobile && npx cap copy android
 
       - name: Package Android APK via Maven
         env:
@@ -73,13 +73,13 @@ jobs:
           ANDROID_KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASS: ${{ secrets.ANDROID_KEY_PASS }}
-        run: mvn -f mobile/android/pom.xml clean package -Dandroid.buildType=${{ inputs.build_type }}
+        run: mvn -f apps/mobile/android/pom.xml clean package -Dandroid.buildType=${{ inputs.build_type }}
 
       - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: sgsk-wealth-android-${{ inputs.build_type }}-apk
-          path: mobile/android/target/sgsk-wealth-${{ inputs.build_type }}.apk
+          path: apps/mobile/android/target/sgsk-wealth-${{ inputs.build_type }}.apk
           retention-days: 30
 
   build-ios-ipa:
@@ -103,10 +103,10 @@ jobs:
       - name: Build Ionic Mobile Bundle & Sync Capacitor iOS
         run: |
           npm run build:mobile
-          cd mobile && npx cap sync ios
+          cd apps/mobile && npx cap sync ios
 
       - name: Archive & Package iOS IPA
-        working-directory: mobile/ios/App
+        working-directory: apps/mobile/ios/App
         run: |
           CONFIG=$([ "${{ inputs.build_type }}" = "release" ] && echo "Release" || echo "Debug")
           xcodebuild \
@@ -134,5 +134,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sgsk-wealth-ios-${{ inputs.build_type }}-ipa
-          path: mobile/ios/App/build/sgsk-wealth-${{ inputs.build_type }}.ipa
+          path: apps/mobile/ios/App/build/sgsk-wealth-${{ inputs.build_type }}.ipa
           retention-days: 30

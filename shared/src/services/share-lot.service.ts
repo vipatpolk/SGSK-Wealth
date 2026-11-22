@@ -1,27 +1,22 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, of } from 'rxjs';
+import { Observable, catchError, map, of } from 'rxjs';
 import { API_BASE_URL } from '../config/api-config.token';
 import {
-  Transaction,
-  SymbolSummary,
+  ApiResult,
+  apiErr,
+  apiOk,
+  mapHttpErrorToApiFailure,
+} from '../models/api-result.model';
+import {
   ClosedSymbolSummary,
+  SheetResult,
+  SymbolSummary,
   SymbolTransactionSummary,
+  Transaction,
 } from '../models/transaction.model';
 
-export interface SheetResult {
-  summaries: SymbolSummary[];
-  closedSummaries: ClosedSymbolSummary[];
-  transactionSummaries?: SymbolTransactionSummary[];
-  rawTransactions?: Transaction[];
-  totalCostByCurrency: Record<string, number>;
-  totalProceedsByCurrency: Record<string, number>;
-  totalRealizedPLByCurrency: Record<string, number>;
-  totalSymbols: number;
-  totalLots: number;
-  error: string | null;
-  isClosed?: boolean;
-}
+export type { SheetResult };
 
 @Injectable({
   providedIn: 'root',
@@ -33,31 +28,29 @@ export class ShareLotService {
     return `${this.apiBaseUrl}/share-lot`;
   }
 
-  fetchSheet(tabId: string): Observable<SheetResult> {
+  fetchSheet(tabId: string): Observable<ApiResult<SheetResult>> {
     return this.http.get<SheetResult>(`${this.baseUrl}/sheet/${tabId}`).pipe(
-      catchError(() => of(this.createEmptyResult('Failed to fetch data from backend.', false)))
+      map((res) =>
+        res?.error
+          ? apiErr('upstream', 502, res.error, true)
+          : apiOk(res)
+      ),
+      catchError((err) =>
+        of(mapHttpErrorToApiFailure(err, 'Failed to fetch data from backend.'))
+      )
     );
   }
 
-  fetchAllSheets(): Observable<SheetResult> {
+  fetchAllSheets(): Observable<ApiResult<SheetResult>> {
     return this.http.get<SheetResult>(`${this.baseUrl}/sheets`).pipe(
-      catchError(() => of(this.createEmptyResult('Failed to fetch data from backend.', false)))
+      map((res) =>
+        res?.error
+          ? apiErr('upstream', 502, res.error, true)
+          : apiOk(res)
+      ),
+      catchError((err) =>
+        of(mapHttpErrorToApiFailure(err, 'Failed to fetch data from backend.'))
+      )
     );
-  }
-
-  private createEmptyResult(error: string, isClosed: boolean): SheetResult {
-    return {
-      summaries: [],
-      closedSummaries: [],
-      transactionSummaries: [],
-      rawTransactions: [],
-      totalCostByCurrency: {},
-      totalProceedsByCurrency: {},
-      totalRealizedPLByCurrency: {},
-      totalSymbols: 0,
-      totalLots: 0,
-      error,
-      isClosed,
-    };
   }
 }

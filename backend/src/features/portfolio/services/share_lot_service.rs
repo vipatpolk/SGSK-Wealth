@@ -5,22 +5,21 @@ use std::sync::Arc;
 use chrono::{Local, NaiveDate};
 
 use crate::config::settings::Settings;
-use crate::config::sheet_config::{find_asset_tab, get_sheet_export_url, ASSET_TABS};
+use crate::config::sheet_config::find_asset_tab;
 use crate::features::portfolio::models::transaction::{
     ClosedShareLot, ClosedSymbolSummary, ShareLot, SheetResult, SymbolSummary, SymbolTransaction,
     SymbolTransactionSummary, Transaction,
 };
+use crate::ports::{GoogleSheetsAdapter, TransactionSheetPort};
 use crate::utils::cache::{AsyncSingleflight, TTLCache};
 use crate::utils::format_utils::{get_asset_type, normalize_asset_type};
-use crate::utils::google_auth::get_google_auth_headers;
 use crate::utils::http_client::HttpResources;
 
 const EPSILON: f64 = 1e-7;
 
 #[derive(Clone)]
 pub struct ShareLotService {
-    settings: Arc<Settings>,
-    http: Arc<HttpResources>,
+    sheet_port: Arc<dyn TransactionSheetPort>,
     cache: Arc<TTLCache>,
     singleflight: Arc<AsyncSingleflight>,
 }
@@ -32,9 +31,18 @@ impl ShareLotService {
         cache: Arc<TTLCache>,
         singleflight: Arc<AsyncSingleflight>,
     ) -> Self {
+        let sheet_port: Arc<dyn TransactionSheetPort> =
+            Arc::new(GoogleSheetsAdapter::new(settings, http, Arc::clone(&cache)));
+        Self::with_port(sheet_port, cache, singleflight)
+    }
+
+    pub fn with_port(
+        sheet_port: Arc<dyn TransactionSheetPort>,
+        cache: Arc<TTLCache>,
+        singleflight: Arc<AsyncSingleflight>,
+    ) -> Self {
         Self {
-            settings,
-            http,
+            sheet_port,
             cache,
             singleflight,
         }
@@ -66,29 +74,9 @@ impl ShareLotService {
                             .create_empty_result(&format!("Invalid tab id: {tab_owned}"), false));
                     }
 
-                    let url =
-                        get_sheet_export_url(&this.settings, tab.sheet_gid, Some(tab.id), None);
                     let is_closed = tab.id == "closed-position";
                     let asset_type = tab.id;
-                    let headers =
-                        get_google_auth_headers(&this.settings, &this.http, &this.cache).await;
-
-                    let fetch_res = async {
-                        let _permit = this
-                            .http
-                            .sheets_sem
-                            .acquire()
-                            .await
-                            .map_err(|e| e.to_string())?;
-                        let mut req = this.http.client.get(&url);
-                        for (k, v) in &headers {
-                            req = req.header(k.as_str(), v.as_str());
-                        }
-                        let resp = req.send().await.map_err(|e| e.to_string())?;
-                        let resp = resp.error_for_status().map_err(|e| e.to_string())?;
-                        resp.text().await.map_err(|e| e.to_string())
-                    }
-                    .await;
+                    let fetch_res = this.sheet_port.fetch_tab_csv(tab).await;
 
                     match fetch_res {
                         Ok(csv_text) => {
@@ -128,61 +116,29 @@ impl ShareLotService {
                     return Ok(c);
                 }
 
-                let sheet_tabs: Vec<_> = ASSET_TABS
-                    .iter()
-                    .filter(|t| !t.sheet_gid.is_empty())
-                    .copied()
-                    .collect();
-
-                let mut handles = Vec::with_capacity(sheet_tabs.len());
-                for tab in sheet_tabs {
-                    let svc = this.clone();
-                    handles.push(tokio::spawn(async move {
-                        let headers =
-                            get_google_auth_headers(&svc.settings, &svc.http, &svc.cache).await;
-                        let url =
-                            get_sheet_export_url(&svc.settings, tab.sheet_gid, Some(tab.id), None);
-                        let csv_res: Result<String, String> = async {
-                            let _permit = svc
-                                .http
-                                .sheets_sem
-                                .acquire()
-                                .await
-                                .map_err(|e| e.to_string())?;
-                            let mut req = svc.http.client.get(&url);
-                            for (k, v) in &headers {
-                                req = req.header(k.as_str(), v.as_str());
-                            }
-                            let resp = req.send().await.map_err(|e| e.to_string())?;
-                            let resp = resp.error_for_status().map_err(|e| e.to_string())?;
-                            resp.text().await.map_err(|e| e.to_string())
+                match this.sheet_port.fetch_all_tabs_csv().await {
+                    Ok(tab_csvs) => {
+                        let mut all_transactions = Vec::new();
+                        for (tab, csv_text) in tab_csvs {
+                            all_transactions.extend(this.parse_csv(&csv_text, tab.id));
                         }
-                        .await;
-                        match csv_res {
-                            Ok(text) => svc.parse_csv(&text, tab.id),
-                            Err(_) => Vec::new(),
-                        }
-                    }));
-                }
 
-                let mut all_transactions = Vec::new();
-                for handle in handles {
-                    if let Ok(txs) = handle.await {
-                        all_transactions.extend(txs);
+                        let (summaries, closed_summaries, transaction_summaries) =
+                            this.process_transactions(&all_transactions);
+                        let result = this.build_result(
+                            summaries,
+                            closed_summaries,
+                            transaction_summaries,
+                            all_transactions,
+                            false,
+                        );
+                        this.cache.set(cache_key, result.clone(), Some(120.0));
+                        Ok(result)
+                    }
+                    Err(e) => {
+                        Ok(this.create_empty_result(&format!("Failed to fetch data: {e}"), false))
                     }
                 }
-
-                let (summaries, closed_summaries, transaction_summaries) =
-                    this.process_transactions(&all_transactions);
-                let result = this.build_result(
-                    summaries,
-                    closed_summaries,
-                    transaction_summaries,
-                    all_transactions,
-                    false,
-                );
-                this.cache.set(cache_key, result.clone(), Some(120.0));
-                Ok(result)
             })
             .await;
 
@@ -409,7 +365,12 @@ impl ShareLotService {
                 continue;
             };
 
-            if symbol.is_empty() {
+            if symbol.is_empty()
+                || date.is_empty()
+                || !quantity.is_finite()
+                || !price.is_finite()
+                || quantity == 0.0
+            {
                 continue;
             }
 

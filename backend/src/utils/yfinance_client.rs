@@ -6,7 +6,7 @@ use std::time::Duration;
 use chrono::{DateTime, Datelike, FixedOffset, NaiveDate, TimeZone, Utc};
 use serde_json::Value;
 
-use crate::config::settings::Settings;
+use crate::config::settings::{Settings, DEFAULT_YAHOO_BASE_URL};
 use crate::utils::http_client::HttpResources;
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -105,6 +105,7 @@ pub fn timestamp_to_utc_midnight_epoch(
 pub struct HttpYahooFinanceClient {
     http: Arc<HttpResources>,
     base_url: String,
+    fallback_base_url: String,
     timeout_seconds: f64,
     retries: usize,
     dividend_period: String,
@@ -114,7 +115,16 @@ impl HttpYahooFinanceClient {
     pub fn new(http: Arc<HttpResources>, settings: &Settings) -> Self {
         Self {
             http,
-            base_url: settings.yahoo_base_url.trim_end_matches('/').to_string(),
+            base_url: settings
+                .yahoo_base_url
+                .trim()
+                .trim_end_matches('/')
+                .to_string(),
+            fallback_base_url: settings
+                .yahoo_fallback_base_url
+                .trim()
+                .trim_end_matches('/')
+                .to_string(),
             timeout_seconds: settings.yfinance_timeout_seconds.max(1.0),
             retries: settings.yfinance_retries.max(0) as usize,
             dividend_period: if settings.yfinance_dividend_period.trim().is_empty() {
@@ -132,9 +142,13 @@ impl HttpYahooFinanceClient {
     ) -> Result<Value, String> {
         let encoded_sym = urlencoding::encode(yahoo_symbol.trim());
         let primary_url = format!("{}/v8/finance/chart/{encoded_sym}", self.base_url);
-        let fallback_url = if self.base_url == "https://query1.finance.yahoo.com" {
+        let fallback_url = if self.base_url == DEFAULT_YAHOO_BASE_URL
+            && !self.fallback_base_url.is_empty()
+            && self.fallback_base_url != self.base_url
+        {
             Some(format!(
-                "https://query2.finance.yahoo.com/v8/finance/chart/{encoded_sym}"
+                "{}/v8/finance/chart/{encoded_sym}",
+                self.fallback_base_url
             ))
         } else {
             None

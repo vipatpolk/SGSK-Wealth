@@ -17,9 +17,9 @@ supabase/
 .vscode/
 .claude/
 
-# Exclude mobile sources/native artifacts while keeping mobile/package.json for root npm workspaces `npm ci`
-mobile/*
-!mobile/package.json
+# Exclude mobile sources/native artifacts while keeping apps/mobile/package.json for root npm workspaces `npm ci`
+apps/mobile/*
+!apps/mobile/package.json
 
 # Build, test, and linter caches
 dist/

@@ -53,6 +53,32 @@ impl AppError {
     pub fn internal(detail: impl Into<String>) -> Self {
         Self::new(StatusCode::INTERNAL_SERVER_ERROR, detail)
     }
+
+    pub fn bad_gateway(detail: impl Into<String>) -> Self {
+        Self::new(StatusCode::BAD_GATEWAY, detail)
+    }
+
+    pub fn service_unavailable(detail: impl Into<String>) -> Self {
+        Self::new(StatusCode::SERVICE_UNAVAILABLE, detail)
+    }
+}
+
+pub fn upstream_json_response<T: Serialize>(body: &T, error: Option<&str>) -> Response {
+    let status = match error {
+        Some(msg) if !msg.is_empty() && !msg.starts_with("Invalid tab id:") => {
+            let lower = msg.to_ascii_lowercase();
+            if lower.contains("timeout")
+                || lower.contains("timed out")
+                || lower.contains("unavailable")
+            {
+                StatusCode::SERVICE_UNAVAILABLE
+            } else {
+                StatusCode::BAD_GATEWAY
+            }
+        }
+        _ => StatusCode::OK,
+    };
+    (status, Json(body)).into_response()
 }
 
 impl IntoResponse for AppError {

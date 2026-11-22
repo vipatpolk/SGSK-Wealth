@@ -3,14 +3,9 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, map, of } from 'rxjs';
 
 import { API_BASE_URL, MAX_BATCH_SIZE } from '../config/api-config.token';
+import type { PriceData } from '../../../packages/contracts/src/common.model';
 
-export interface PriceData {
-  symbol: string;
-  name?: string;
-  nameTh?: string;
-  price: number;
-  currency: string;
-}
+export type { PriceData };
 
 @Injectable({
   providedIn: 'root',

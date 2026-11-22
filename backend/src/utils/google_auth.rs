@@ -18,12 +18,8 @@ const GOOGLE_SHEETS_SCOPES: &str =
 struct ServiceAccountJson {
     client_email: String,
     private_key: String,
-    #[serde(default = "default_token_uri")]
+    #[serde(default)]
     token_uri: String,
-}
-
-fn default_token_uri() -> String {
-    "https://oauth2.googleapis.com/token".to_string()
 }
 
 #[derive(Serialize)]
@@ -81,11 +77,17 @@ pub async fn get_google_auth_headers(
         }
     };
 
+    let token_uri = if sa.token_uri.trim().is_empty() {
+        settings.google_oauth_token_url.trim()
+    } else {
+        sa.token_uri.trim()
+    };
+
     let now = Utc::now().timestamp();
     let claims = GoogleJwtClaims {
         iss: &sa.client_email,
         scope: GOOGLE_SHEETS_SCOPES,
-        aud: &sa.token_uri,
+        aud: token_uri,
         iat: now,
         exp: now + 3600,
     };
@@ -108,7 +110,7 @@ pub async fn get_google_auth_headers(
 
     let res = match http
         .client
-        .post(&sa.token_uri)
+        .post(token_uri)
         .form(&[
             ("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer"),
             ("assertion", assertion.as_str()),

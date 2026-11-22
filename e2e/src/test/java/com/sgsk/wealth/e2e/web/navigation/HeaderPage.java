@@ -30,10 +30,10 @@ public class HeaderPage {
     public final Locator userMenuSignInBtn;
     public final Locator userMenuSignOutBtn;
     public final Locator settingsModal;
-    public final Locator settingsCurrencyUsdBtn;
-    public final Locator settingsCurrencyThbBtn;
-    public final Locator settingsLangEnBtn;
-    public final Locator settingsLangThBtn;
+    public final Locator currencyUsdBtn;
+    public final Locator currencyThbBtn;
+    public final Locator langEnBtn;
+    public final Locator langThBtn;
     public final Locator settingsThemeDarkBtn;
     public final Locator settingsThemeLightBtn;
     public final Locator settingsCloseBtn;
@@ -64,10 +64,10 @@ public class HeaderPage {
         this.userMenuSignInBtn = page.locator("#user-menu-signin-btn");
         this.userMenuSignOutBtn = page.locator("#user-menu-signout-btn");
         this.settingsModal = page.locator("#user-settings-modal");
-        this.settingsCurrencyUsdBtn = page.locator("#settings-currency-usd");
-        this.settingsCurrencyThbBtn = page.locator("#settings-currency-thb");
-        this.settingsLangEnBtn = page.locator("#settings-lang-en");
-        this.settingsLangThBtn = page.locator("#settings-lang-th");
+        this.currencyUsdBtn = page.locator("#currency-btn-usd");
+        this.currencyThbBtn = page.locator("#currency-btn-thb");
+        this.langEnBtn = page.locator("#lang-btn-en");
+        this.langThBtn = page.locator("#lang-btn-th");
         this.settingsThemeDarkBtn = page.locator("#settings-theme-dark");
         this.settingsThemeLightBtn = page.locator("#settings-theme-light");
         this.settingsCloseBtn = page.locator("#settings-close-btn");
@@ -144,27 +144,19 @@ public class HeaderPage {
     }
 
     public void switchToUSD() {
-        openUserSettings();
-        settingsCurrencyUsdBtn.click();
-        closeUserSettings();
+        currencyUsdBtn.click();
     }
 
     public void switchToTHB() {
-        openUserSettings();
-        settingsCurrencyThbBtn.click();
-        closeUserSettings();
+        currencyThbBtn.click();
     }
 
     public void switchToEN() {
-        openUserSettings();
-        settingsLangEnBtn.click();
-        closeUserSettings();
+        langEnBtn.click();
     }
 
     public void switchToTH() {
-        openUserSettings();
-        settingsLangThBtn.click();
-        closeUserSettings();
+        langThBtn.click();
     }
 
     public void toggleTheme() {

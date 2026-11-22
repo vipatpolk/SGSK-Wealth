@@ -70,6 +70,32 @@ jobs:
       - name: Verify Release Binary Compilation
         run: cargo build --release --all-targets
 
+  domain-qa:
+    name: Contracts & Domain QA (Boundaries, Typecheck & Vitest)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 26 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install Workspace Dependencies
+        run: npm ci
+
+      - name: Check Workspace Architectural Boundaries
+        run: npm run lint:boundaries
+
+      - name: Typecheck & Test Contracts Package
+        run: npm --prefix packages/contracts run typecheck && npm run test:contracts
+
+      - name: Typecheck & Test Domain Package
+        run: npm --prefix packages/domain run typecheck && npm run test:domain
+
   frontend-qa:
     name: Web Frontend QA (Vitest & Build)
     runs-on: ubuntu-latest
@@ -92,6 +118,9 @@ jobs:
 
       - name: Build Web Production Bundle
         run: npm run build:web
+
+      - name: Scan Web Bundle for Secret Leaks
+        run: npm run check:secrets
 
   mobile-qa:
     name: Mobile App QA (Ionic Vitest & Build)
@@ -116,9 +145,30 @@ jobs:
       - name: Build Mobile Production Bundle
         run: npm run build:mobile
 
+      - name: Scan Mobile Bundle for Secret Leaks
+        run: npm run check:secrets
+
+  e2e-api:
+    name: API Contract E2E Suite (@api, No Browser)
+    needs: [backend-qa, domain-qa, gherkin-qa]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Run Rest Assured API E2E Scenarios
+        run: mvn -f e2e/pom.xml test -Dcucumber.filter.tags="@api"
+
   e2e-automation:
     name: End-to-End Automation (Java, Playwright, Appium, Rest Assured & Allure)
-    needs: [backend-qa, frontend-qa, mobile-qa, gherkin-qa]
+    needs: [backend-qa, domain-qa, frontend-qa, mobile-qa, gherkin-qa]
     runs-on: ubuntu-latest
     outputs:
       report_generated: ${{ steps.allure_gen.outputs.generated }}

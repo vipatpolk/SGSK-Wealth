@@ -35,6 +35,7 @@ async fn get_icon_metadata(
     Query(query): Query<IconQuery>,
 ) -> Json<IconMetadata> {
     let meta = state
+        .market_data
         .icon_service
         .get_symbol_metadata(&symbol, &query.asset_type, &query.fund_name)
         .await;
@@ -46,6 +47,7 @@ async fn get_icon_by_query(
     Query(query): Query<IconQuery>,
 ) -> Response {
     let (content, media_type) = state
+        .market_data
         .icon_service
         .get_symbol_icon(&query.symbol, &query.asset_type, &query.fund_name)
         .await;
@@ -58,6 +60,7 @@ async fn get_icon_by_path(
     Query(query): Query<IconQuery>,
 ) -> Response {
     let (content, media_type) = state
+        .market_data
         .icon_service
         .get_symbol_icon(&symbol, &query.asset_type, &query.fund_name)
         .await;

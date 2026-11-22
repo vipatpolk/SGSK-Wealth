@@ -36,9 +36,9 @@ yarn-debug.log*
 yarn-error.log*
 
 # Mobile Native Build Outputs
-mobile/android/target/
-mobile/ios/App/build/
-mobile/ios/build/
+apps/mobile/android/target/
+apps/mobile/ios/App/build/
+apps/mobile/ios/build/
 *.apk
 *.aab
 *.ipa

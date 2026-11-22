@@ -4,6 +4,7 @@ use std::sync::OnceLock;
 use regex::Regex;
 use url::Url;
 
+use crate::config::settings::DEFAULT_LOGO_DEV_IMG_BASE_URL;
 use crate::utils::format_utils::{display_symbol, get_asset_type};
 
 const MULTILABEL_SUFFIXES: &[&str] = &[
@@ -123,7 +124,7 @@ pub fn build_logo_dev_url(base_url: &str, path: &str, token: Option<&str>) -> St
 }
 
 pub fn get_symbol_logo_config(symbol: &str, asset_type: &str) -> SymbolLogoConfig {
-    get_symbol_logo_config_with_base(symbol, asset_type, "https://img.logo.dev", None)
+    get_symbol_logo_config_with_base(symbol, asset_type, DEFAULT_LOGO_DEV_IMG_BASE_URL, None)
 }
 
 pub fn get_symbol_logo_config_with_base(

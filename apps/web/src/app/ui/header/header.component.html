@@ -1,0 +1,493 @@
+<header class="header" [class.sidebar-collapsed]="sidebarCollapsed()">
+  <div class="header-content">
+    <aside class="desktop-sidebar" id="desktop-sidebar" [class.collapsed]="sidebarCollapsed()">
+      <div class="header-left">
+        <div class="logo-mark">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="logo-icon"
+          >
+            <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" />
+            <path d="M8 12.5l2.8 2.8 5.2-5.3" />
+          </svg>
+        </div>
+        <div class="logo-text-group">
+          <div class="logo-title-row">
+            <h1 class="logo-text">SGSK Wealth</h1>
+          </div>
+          <p class="logo-subtitle">{{ 'app.tagline' | t }}</p>
+        </div>
+      </div>
+
+      <!-- Main Navigation Bar (Desktop Left Sidebar / Mobile & Tablet Native Bottom Nav) -->
+      @if (!loading() && !error() && result()) {
+        <div class="header-center">
+          <div class="sidebar-section-label desktop-sidebar-only">
+            {{ 'sidebar.workspaceLabel' | t }}
+          </div>
+          <nav class="view-toggle" id="view-toggle" [attr.aria-label]="'header.mainNav' | t">
+          <button
+            class="view-toggle-btn"
+            [class.view-toggle-btn-active]="currentView() === 'dashboard'"
+            (click)="selectView('dashboard')"
+            id="view-toggle-dashboard"
+            type="button"
+            [title]="'nav.dashboard' | t"
+            [attr.aria-label]="'nav.dashboard' | t"
+          >
+            <span class="nav-btn-icon-wrapper">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="view-toggle-icon"
+              >
+                <rect x="3" y="3" width="7" height="9" rx="1.5"></rect>
+                <rect x="14" y="3" width="7" height="5" rx="1.5"></rect>
+                <rect x="14" y="12" width="7" height="9" rx="1.5"></rect>
+                <rect x="3" y="16" width="7" height="5" rx="1.5"></rect>
+              </svg>
+            </span>
+            <span class="view-toggle-label">{{ 'nav.dashboard' | t }}</span>
+          </button>
+
+          <button
+            class="view-toggle-btn"
+            [class.view-toggle-btn-active]="currentView() === 'holdings'"
+            (click)="selectView('holdings')"
+            id="view-toggle-holdings"
+            type="button"
+            [title]="'nav.holdings' | t"
+            [attr.aria-label]="'nav.holdings' | t"
+          >
+            <span class="nav-btn-icon-wrapper">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="view-toggle-icon"
+              >
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+              </svg>
+            </span>
+            <span class="view-toggle-label">{{ 'nav.holdings' | t }}</span>
+          </button>
+
+          <button
+            class="view-toggle-btn"
+            [class.view-toggle-btn-active]="
+              currentView() === 'analytics' ||
+              currentView() === 'allocation' ||
+              currentView() === 'performance'
+            "
+            (click)="selectView('analytics')"
+            id="view-toggle-analytics"
+            type="button"
+            [title]="'nav.analytics' | t"
+            [attr.aria-label]="'nav.analytics' | t"
+          >
+            <span class="nav-btn-icon-wrapper">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="view-toggle-icon"
+              >
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+                <path d="M21 12c0 4.97-4.03 9-9 9a9 9 0 0 1-8.5-6"></path>
+              </svg>
+            </span>
+            <span class="view-toggle-label">{{ 'nav.analytics' | t }}</span>
+          </button>
+
+          <button
+            class="view-toggle-btn"
+            [class.view-toggle-btn-active]="currentView() === 'dividends'"
+            (click)="selectView('dividends')"
+            id="view-toggle-dividends"
+            type="button"
+            [title]="'nav.dividends' | t"
+            [attr.aria-label]="'nav.dividends' | t"
+          >
+            <span class="nav-btn-icon-wrapper">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="view-toggle-icon"
+              >
+                <path
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </span>
+            <span class="view-toggle-label">{{ 'nav.dividends' | t }}</span>
+          </button>
+
+          <button
+            class="view-toggle-btn"
+            [class.view-toggle-btn-active]="currentView() === 'transactions'"
+            (click)="selectView('transactions')"
+            id="view-toggle-transactions"
+            type="button"
+            [title]="'nav.transactions' | t"
+            [attr.aria-label]="'nav.transactions' | t"
+          >
+            <span class="nav-btn-icon-wrapper">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="view-toggle-icon"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 14 14"></polyline>
+              </svg>
+            </span>
+            <span class="view-toggle-label">{{ 'nav.transactions' | t }}</span>
+          </button>
+
+          <button
+            class="view-toggle-btn"
+            [class.view-toggle-btn-active]="currentView() === 'tools'"
+            (click)="selectView('tools')"
+            id="view-toggle-tools"
+            type="button"
+            [title]="'nav.tools' | t"
+            [attr.aria-label]="'nav.tools' | t"
+          >
+            <span class="nav-btn-icon-wrapper">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="view-toggle-icon"
+              >
+                <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+                <line x1="8" y1="6" x2="16" y2="6"></line>
+                <line x1="16" y1="14" x2="16" y2="18"></line>
+                <path d="M16 10h.01"></path>
+                <path d="M12 10h.01"></path>
+                <path d="M8 10h.01"></path>
+                <path d="M12 14h.01"></path>
+                <path d="M8 14h.01"></path>
+                <path d="M12 18h.01"></path>
+                <path d="M8 18h.01"></path>
+              </svg>
+            </span>
+            <span class="view-toggle-label">{{ 'nav.tools' | t }}</span>
+          </button>
+          </nav>
+        </div>
+      }
+
+      <div class="sidebar-footer desktop-sidebar-only">
+        <button
+          type="button"
+          id="sidebar-collapse-btn"
+          class="sidebar-collapse-btn"
+          (click)="sidebarCollapseToggle.emit()"
+          [title]="(sidebarCollapsed() ? 'sidebar.expand' : 'sidebar.collapse') | t"
+          [attr.aria-label]="(sidebarCollapsed() ? 'sidebar.expand' : 'sidebar.collapse') | t"
+          [attr.aria-expanded]="!sidebarCollapsed()"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="sidebar-collapse-icon"
+            [class.rotated]="sidebarCollapsed()"
+            aria-hidden="true"
+          >
+            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+            <polyline points="15 15 12 12 15 9"></polyline>
+          </svg>
+          <span class="sidebar-collapse-label">
+            {{ (sidebarCollapsed() ? 'sidebar.expand' : 'sidebar.collapse') | t }}
+          </span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="desktop-topbar-left desktop-sidebar-only">
+      <span class="desktop-topbar-kicker">{{ 'sidebar.workspaceLabel' | t }}</span>
+      <span class="desktop-topbar-sep" aria-hidden="true">/</span>
+      <span class="desktop-topbar-title" id="desktop-topbar-title">
+        {{ activeViewLabelKey() | t }}
+      </span>
+    </div>
+
+    <div class="header-right">
+      @if (!loading() && !error() && result()) {
+        @if (hasRate()) {
+          <div
+            class="header-rate-badge desktop-only"
+            [title]="'Exchange Rate: 1 USD = ' + (exchangeRate() | number: '1.2-2') + ' THB'"
+          >
+            <span class="rate-badge-label">USD/THB</span>
+            <span class="rate-badge-val font-mono">{{ exchangeRate() | number: '1.2-2' }}</span>
+          </div>
+        }
+      }
+
+      <div class="currency-toggle" id="currency-toggle" role="group" [attr.aria-label]="'settings.currencyLabel' | t">
+        <button
+          type="button"
+          id="currency-btn-thb"
+          class="currency-btn"
+          [class.currency-btn-active]="displayCurrency() === 'THB'"
+          (click)="currencyChange.emit('THB')"
+          [title]="'header.currencyThb' | t"
+          [attr.aria-label]="'header.currencyThb' | t"
+        >
+          THB
+        </button>
+        <button
+          type="button"
+          id="currency-btn-usd"
+          class="currency-btn"
+          [class.currency-btn-active]="displayCurrency() === 'USD'"
+          (click)="currencyChange.emit('USD')"
+          [title]="'header.currencyUsd' | t"
+          [attr.aria-label]="'header.currencyUsd' | t"
+        >
+          USD
+        </button>
+      </div>
+
+      <div class="lang-toggle" id="lang-toggle" role="group" [attr.aria-label]="'header.language' | t">
+        <button
+          type="button"
+          id="lang-btn-en"
+          class="lang-btn"
+          [class.lang-btn-active]="activeLang() === 'en'"
+          (click)="langChange.emit('en')"
+          [title]="'header.langEn' | t"
+          [attr.aria-label]="'header.langEn' | t"
+        >
+          EN
+        </button>
+        <button
+          type="button"
+          id="lang-btn-th"
+          class="lang-btn"
+          [class.lang-btn-active]="activeLang() === 'th'"
+          (click)="langChange.emit('th')"
+          [title]="'header.langTh' | t"
+          [attr.aria-label]="'header.langTh' | t"
+        >
+          ไทย
+        </button>
+      </div>
+
+      <button
+        class="privacy-toggle-btn"
+        [class.privacy-active]="privacyMode()"
+        (click)="privacyChange.emit()"
+        id="privacy-toggle-btn"
+        [title]="privacyMode() ? ('header.privacyShow' | t) : ('header.privacyHide' | t)"
+        [attr.aria-label]="
+          privacyMode() ? ('header.privacyShow' | t) : ('header.privacyHide' | t)
+        "
+        type="button"
+      >
+        @if (privacyMode()) {
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="privacy-icon"
+          >
+            <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+            <path
+              d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"
+            ></path>
+            <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+            <line x1="2" y1="2" x2="22" y2="22"></line>
+          </svg>
+        } @else {
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="privacy-icon"
+          >
+            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        }
+      </button>
+
+      <div class="user-menu-wrapper">
+        <button
+          type="button"
+          id="user-menu-btn"
+          class="user-menu-trigger"
+          [attr.aria-expanded]="isUserMenuOpen()"
+          [attr.aria-label]="'userMenu.ariaLabel' | t"
+          (click)="toggleUserMenu($event)"
+        >
+          <span class="user-avatar-circle" [class.guest]="!authService.isAuthenticated()">
+            @if (authService.avatarUrl(); as avatar) {
+              <img class="user-avatar-img" [src]="avatar" alt="" />
+            } @else {
+              {{ userInitial() }}
+            }
+          </span>
+          <span class="user-trigger-label">
+            {{ authService.isAuthenticated() ? authService.displayName() : ('userMenu.guestName' | t) }}
+          </span>
+          <span
+            class="user-mode-pill"
+            [class.cloud]="authService.activeDataSource() === 'cloud'"
+          >
+            {{
+              authService.activeDataSource() === 'cloud'
+                ? ('userMenu.cloudBadge' | t)
+                : ('userMenu.localBadge' | t)
+            }}
+          </span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="user-menu-chevron"
+            aria-hidden="true"
+          >
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+
+        @if (isUserMenuOpen()) {
+          <div class="user-menu-dropdown" id="user-menu-dropdown" role="menu">
+            <div class="user-menu-profile">
+              <div class="user-menu-name">
+                {{
+                  authService.isAuthenticated()
+                    ? authService.displayName()
+                    : ('userMenu.guestName' | t)
+                }}
+              </div>
+              <div class="user-menu-email">
+                {{
+                  authService.isAuthenticated()
+                    ? authService.userEmail()
+                    : ('userMenu.guestSub' | t)
+                }}
+              </div>
+              <span
+                class="user-menu-role"
+                [class.owner]="authService.canViewCloudPortfolio()"
+              >
+                @if (authService.canViewCloudPortfolio()) {
+                  {{ 'userMenu.ownerRole' | t }}
+                } @else if (authService.isAuthenticated()) {
+                  {{ 'userMenu.standardRole' | t }}
+                } @else {
+                  {{ 'userMenu.guestRole' | t }}
+                }
+              </span>
+            </div>
+
+            <button
+              type="button"
+              id="user-menu-settings-btn"
+              class="user-menu-item"
+              role="menuitem"
+              (click)="triggerOpenSettings()"
+            >
+              {{ 'userMenu.settings' | t }}
+            </button>
+
+            @if (authService.activeDataSource() === 'local') {
+              <button
+                type="button"
+                id="user-menu-local-data-btn"
+                class="user-menu-item"
+                role="menuitem"
+                (click)="triggerOpenLocalPortfolio()"
+              >
+                {{ 'userMenu.manageLocal' | t }}
+              </button>
+            }
+
+            <div class="user-menu-divider"></div>
+
+            @if (!authService.isAuthenticated()) {
+              <button
+                type="button"
+                id="user-menu-signin-btn"
+                class="user-menu-item"
+                role="menuitem"
+                (click)="triggerOpenSignIn()"
+              >
+                {{ 'userMenu.signIn' | t }}
+              </button>
+            } @else {
+              <button
+                type="button"
+                id="user-menu-signout-btn"
+                class="user-menu-item danger"
+                role="menuitem"
+                (click)="triggerSignOut()"
+              >
+                {{ 'userMenu.signOut' | t }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</header>

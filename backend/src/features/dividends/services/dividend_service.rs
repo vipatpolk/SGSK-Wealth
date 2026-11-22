@@ -13,6 +13,7 @@ use crate::features::market_data::services::price_service::{PriceService, StockD
 use crate::features::portfolio::models::portfolio::{ClosedPortfolioPosition, PortfolioPosition};
 use crate::features::portfolio::models::transaction::Transaction;
 use crate::features::portfolio::services::valuation_service::ValuationService;
+use crate::ports::{FundNavPort, MarketPricePort, NavServicePortAdapter, PriceServicePortAdapter};
 use crate::utils::cache::{AsyncSingleflight, TTLCache};
 use crate::utils::format_utils::{
     convert_currency, display_symbol, get_asset_type_label, round_digits,
@@ -179,8 +180,8 @@ struct AssetTypeAcc {
 #[derive(Clone)]
 pub struct DividendService {
     valuation_service: ValuationService,
-    price_service: PriceService,
-    nav_service: NavService,
+    price_port: Arc<dyn MarketPricePort>,
+    nav_port: Arc<dyn FundNavPort>,
     cache: Arc<TTLCache>,
     singleflight: Arc<AsyncSingleflight>,
 }
@@ -193,10 +194,23 @@ impl DividendService {
         cache: Arc<TTLCache>,
         singleflight: Arc<AsyncSingleflight>,
     ) -> Self {
+        let price_port: Arc<dyn MarketPricePort> =
+            Arc::new(PriceServicePortAdapter::new(price_service));
+        let nav_port: Arc<dyn FundNavPort> = Arc::new(NavServicePortAdapter::new(nav_service));
+        Self::with_ports(valuation_service, price_port, nav_port, cache, singleflight)
+    }
+
+    pub fn with_ports(
+        valuation_service: ValuationService,
+        price_port: Arc<dyn MarketPricePort>,
+        nav_port: Arc<dyn FundNavPort>,
+        cache: Arc<TTLCache>,
+        singleflight: Arc<AsyncSingleflight>,
+    ) -> Self {
         Self {
             valuation_service,
-            price_service,
-            nav_service,
+            price_port,
+            nav_port,
             cache,
             singleflight,
         }
@@ -287,8 +301,8 @@ impl DividendService {
                 let fund_symbols: Vec<String> = fund_set.into_iter().collect();
 
                 let (stock_div_data, fund_div_data) = tokio::join!(
-                    this.price_service.fetch_stock_dividends(&stock_symbols),
-                    this.nav_service.fetch_all_fund_dividends(&fund_symbols),
+                    this.price_port.fetch_stock_dividends(&stock_symbols),
+                    this.nav_port.fetch_fund_dividends(&fund_symbols),
                 );
 
                 let div_open_invested: f64 = open_positions.iter().map(|p| p.total_cost).sum();

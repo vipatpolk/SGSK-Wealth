@@ -11,6 +11,9 @@ export const th: Record<TranslationKey, string> = {
   'app.error.unable': 'ไม่สามารถโหลดข้อมูลจากชีตได้',
   'app.error.unableData': 'ไม่สามารถโหลดข้อมูลได้',
   'app.error.failedPortfolio': 'โหลดข้อมูลพอร์ตการลงทุนไม่สำเร็จ',
+  'app.error.sessionExpired': 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่อีกครั้งเพื่อเข้าถึงพอร์ตคลาวด์',
+  'app.error.partialQuotes': 'ไม่สามารถอัปเดตราคาตลาดล่าสุดได้ กำลังแสดงข้อมูลที่แคชไว้หรือราคาทุน',
+  'app.error.signInAgain': 'เข้าสู่ระบบอีกครั้ง',
   'app.error.tryAgain': 'ลองใหม่อีกครั้ง',
   'app.footer': '© 2026 SGSK Wealth — ระบบวิเคราะห์พอร์ตการลงทุนและความมั่งคั่ง',
 

@@ -59,23 +59,11 @@ public class MobileShellScreen {
     }
 
     public void toggleCurrency() {
-        openUserSettings();
-        if (driver.hasClass("#mobile-settings-currency-thb", "active")) {
-            driver.tap("#mobile-settings-currency-usd");
-        } else {
-            driver.tap("#mobile-settings-currency-thb");
-        }
-        closeUserSettings();
+        driver.tap("#mobile-currency-toggle");
     }
 
     public void toggleLanguage() {
-        openUserSettings();
-        if (driver.hasClass("#mobile-settings-lang-en", "active")) {
-            driver.tap("#mobile-settings-lang-th");
-        } else {
-            driver.tap("#mobile-settings-lang-en");
-        }
-        closeUserSettings();
+        driver.tap("#mobile-lang-toggle");
     }
 
     public void togglePrivacyMode() {

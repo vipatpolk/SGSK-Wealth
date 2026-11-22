@@ -51,7 +51,9 @@ async fn simulate_orders(
         req.symbol.as_deref(),
         current_user.as_ref(),
     )?;
-    Ok(Json(state.tools_service.simulate_order(&req).await))
+    Ok(Json(
+        state.portfolio.tools_service.simulate_order(&req).await,
+    ))
 }
 
 async fn solve_target_cost(
@@ -65,7 +67,9 @@ async fn solve_target_cost(
         req.symbol.as_deref(),
         current_user.as_ref(),
     )?;
-    Ok(Json(state.tools_service.solve_target_cost(&req).await))
+    Ok(Json(
+        state.portfolio.tools_service.solve_target_cost(&req).await,
+    ))
 }
 
 async fn calculate_tvm(
@@ -73,7 +77,7 @@ async fn calculate_tvm(
     State(state): State<Arc<AppState>>,
     ValidatedJson(req): ValidatedJson<TvmCalculateRequest>,
 ) -> Json<TvmCalculateResponse> {
-    Json(state.tools_service.calculate_tvm(&req).await)
+    Json(state.portfolio.tools_service.calculate_tvm(&req).await)
 }
 
 async fn calculate_rebalance(
@@ -82,5 +86,11 @@ async fn calculate_rebalance(
     State(state): State<Arc<AppState>>,
     ValidatedJson(req): ValidatedJson<RebalanceCalculateRequest>,
 ) -> Json<RebalanceCalculateResponse> {
-    Json(state.tools_service.calculate_rebalance(&req).await)
+    Json(
+        state
+            .portfolio
+            .tools_service
+            .calculate_rebalance(&req)
+            .await,
+    )
 }

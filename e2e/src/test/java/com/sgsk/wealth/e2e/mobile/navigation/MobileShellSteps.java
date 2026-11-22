@@ -78,28 +78,24 @@ public class MobileShellSteps {
 
     @Then("the mobile display currency should show {string}")
     public void verifyMobileCurrency(String expectedCurrency) {
-        shellScreen.openUserSettings();
-        String selector = "USD".equalsIgnoreCase(expectedCurrency.trim())
-                ? "#mobile-settings-currency-usd"
-                : "#mobile-settings-currency-thb";
+        String expectedClass = "USD".equalsIgnoreCase(expectedCurrency.trim())
+                ? "currency-usd"
+                : "currency-thb";
         org.junit.jupiter.api.Assertions.assertTrue(
-                driver.hasClass(selector, "active"),
+                driver.hasClass("#mobile-currency-toggle", expectedClass),
                 "Expected mobile currency " + expectedCurrency + " to be active"
         );
-        shellScreen.closeUserSettings();
     }
 
     @Then("the mobile application language should be {string}")
     public void verifyMobileLanguage(String expectedLang) {
-        shellScreen.openUserSettings();
-        String selector = "EN".equalsIgnoreCase(expectedLang.trim())
-                ? "#mobile-settings-lang-en"
-                : "#mobile-settings-lang-th";
+        String expectedClass = "EN".equalsIgnoreCase(expectedLang.trim())
+                ? "lang-en"
+                : "lang-th";
         org.junit.jupiter.api.Assertions.assertTrue(
-                driver.hasClass(selector, "active"),
+                driver.hasClass("#mobile-lang-toggle", expectedClass),
                 "Expected mobile language " + expectedLang + " to be active"
         );
-        shellScreen.closeUserSettings();
     }
 
     @Then("mobile privacy masking should be active")

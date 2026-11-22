@@ -52,7 +52,7 @@ public class ServerManager {
             }
             mockBackendServer = new MockBackendServer();
             mockBackendServer.start(properties.backend().port());
-            backendBaseUrl = "http://127.0.0.1:" + mockBackendServer.getPort() + "/api/backend";
+            backendBaseUrl = resolveBackendMockBaseUrl(mockBackendServer.getPort());
             return backendBaseUrl;
         } catch (IOException e) {
             throw new RuntimeException("Failed to start mock backend server", e);
@@ -61,28 +61,42 @@ public class ServerManager {
 
     public synchronized String ensureFrontendServer() {
         frontendBaseUrl = properties.frontend().baseUrl();
+        String fallbackUrl = alternateLoopbackUrl(frontendBaseUrl);
 
-        if (isHttpEndpointAvailable(frontendBaseUrl) || isHttpEndpointAvailable("http://localhost:4200")) {
+        if (isHttpEndpointAvailable(frontendBaseUrl)
+                || (!fallbackUrl.equals(frontendBaseUrl) && isHttpEndpointAvailable(fallbackUrl))) {
             return frontendBaseUrl;
         }
 
-        File webDir = resolveWorkspaceDir("web", "frontend");
+        File webDir = resolveWorkspaceDir("apps/web", "web", "frontend");
         if (webDir != null) {
-            frontendProcess = startAngularServer(webDir, "4200", frontendBaseUrl, "http://localhost:4200");
+            frontendProcess = startAngularServer(
+                    webDir,
+                    resolvePort(frontendBaseUrl, String.valueOf(4200)),
+                    frontendBaseUrl,
+                    fallbackUrl
+            );
         }
         return frontendBaseUrl;
     }
 
     public synchronized String ensureMobileServer() {
         mobileBaseUrl = properties.mobile().baseUrl();
+        String fallbackUrl = alternateLoopbackUrl(mobileBaseUrl);
 
-        if (isHttpEndpointAvailable(mobileBaseUrl) || isHttpEndpointAvailable("http://localhost:4201")) {
+        if (isHttpEndpointAvailable(mobileBaseUrl)
+                || (!fallbackUrl.equals(mobileBaseUrl) && isHttpEndpointAvailable(fallbackUrl))) {
             return mobileBaseUrl;
         }
 
-        File mobileDir = resolveWorkspaceDir("mobile");
+        File mobileDir = resolveWorkspaceDir("apps/mobile", "mobile");
         if (mobileDir != null) {
-            mobileProcess = startAngularServer(mobileDir, "4201", mobileBaseUrl, "http://localhost:4201");
+            mobileProcess = startAngularServer(
+                    mobileDir,
+                    resolvePort(mobileBaseUrl, String.valueOf(4201)),
+                    mobileBaseUrl,
+                    fallbackUrl
+            );
         }
         return mobileBaseUrl;
     }
@@ -103,10 +117,11 @@ public class ServerManager {
 
     private Process startAngularServer(File dir, String port, String primaryUrl, String fallbackUrl) {
         try {
+            String host = resolveHost(primaryUrl, "127.0.0.1");
             boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
             ProcessBuilder pb = isWindows
-                    ? new ProcessBuilder("cmd.exe", "/c", "npx", "ng", "serve", "--host", "127.0.0.1", "--port", port)
-                    : new ProcessBuilder("npx", "ng", "serve", "--host", "127.0.0.1", "--port", port);
+                    ? new ProcessBuilder("cmd.exe", "/c", "npx", "ng", "serve", "--host", host, "--port", port)
+                    : new ProcessBuilder("npx", "ng", "serve", "--host", host, "--port", port);
             pb.directory(dir);
             pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
             pb.redirectError(ProcessBuilder.Redirect.DISCARD);
@@ -114,7 +129,8 @@ public class ServerManager {
 
             for (int i = 0; i < 60; i++) {
                 Thread.sleep(1000);
-                if (isHttpEndpointAvailable(primaryUrl) || isHttpEndpointAvailable(fallbackUrl)) {
+                if (isHttpEndpointAvailable(primaryUrl)
+                        || (!fallbackUrl.equals(primaryUrl) && isHttpEndpointAvailable(fallbackUrl))) {
                     break;
                 }
             }
@@ -122,6 +138,70 @@ public class ServerManager {
         } catch (Exception ignored) {
             return null;
         }
+    }
+
+    private String resolveBackendMockBaseUrl(int port) {
+        String defaultUrl = properties.backend().defaultUrl();
+        try {
+            URI uri = URI.create(defaultUrl);
+            String scheme = (uri.getScheme() != null && !uri.getScheme().isBlank()) ? uri.getScheme() : "http";
+            String host = (uri.getHost() != null && !uri.getHost().isBlank()) ? uri.getHost() : "127.0.0.1";
+            return scheme + "://" + host + ":" + port + "/api/backend";
+        } catch (Exception ignored) {
+            return "http" + "://127.0.0.1:" + port + "/api/backend";
+        }
+    }
+
+    private String resolveHost(String urlString, String fallbackHost) {
+        try {
+            String host = URI.create(urlString).getHost();
+            return (host != null && !host.isBlank()) ? host : fallbackHost;
+        } catch (Exception ignored) {
+            return fallbackHost;
+        }
+    }
+
+    private String resolvePort(String urlString, String fallbackPort) {
+        try {
+            URI uri = URI.create(urlString);
+            if (uri.getPort() > 0) {
+                return String.valueOf(uri.getPort());
+            }
+            if ("https".equalsIgnoreCase(uri.getScheme())) {
+                return "443";
+            }
+            if ("http".equalsIgnoreCase(uri.getScheme())) {
+                return "80";
+            }
+        } catch (Exception ignored) {
+        }
+        return fallbackPort;
+    }
+
+    private String alternateLoopbackUrl(String urlString) {
+        try {
+            URI uri = URI.create(urlString);
+            String host = uri.getHost();
+            String altHost = null;
+            if ("127.0.0.1".equals(host)) {
+                altHost = "localhost";
+            } else if ("localhost".equalsIgnoreCase(host)) {
+                altHost = "127.0.0.1";
+            }
+            if (altHost != null) {
+                return new URI(
+                        uri.getScheme(),
+                        uri.getUserInfo(),
+                        altHost,
+                        uri.getPort(),
+                        uri.getPath(),
+                        uri.getQuery(),
+                        uri.getFragment()
+                ).toString();
+            }
+        } catch (Exception ignored) {
+        }
+        return urlString;
     }
 
     private String resolveOwnerBearerToken() {

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Route;
+import com.sgsk.wealth.e2e.core.config.E2eProperties;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
@@ -14,9 +15,11 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class ApiRouteMocker {
     private final ObjectMapper mapper;
+    private final E2eProperties properties;
 
-    public ApiRouteMocker(ObjectMapper mapper) {
+    public ApiRouteMocker(ObjectMapper mapper, E2eProperties properties) {
         this.mapper = mapper;
+        this.properties = properties;
     }
 
     public void mockPortfolioAPIs(Page page) {
@@ -707,13 +710,13 @@ public class ApiRouteMocker {
                           }]
                         }
                       };
-                      localStorage.setItem('sb-jjdnxifgpbdvntfwhyzz-auth-token', JSON.stringify(sessionPayload));
+                      localStorage.setItem('__SUPABASE_STORAGE_KEY__', JSON.stringify(sessionPayload));
                     } catch (e) {}
-                    """;
+                    """.replace("__SUPABASE_STORAGE_KEY__", "sb-" + properties.supabase().projectRef() + "-auth-token");
             page.addInitScript(initSessionScript);
         }
 
-        page.route("https://jjdnxifgpbdvntfwhyzz.supabase.co/**", route -> {
+        page.route(properties.supabase().routeGlob(), route -> {
             String url = route.request().url();
             String method = route.request().method();
             String authHeader = route.request().headers().getOrDefault("authorization", "");

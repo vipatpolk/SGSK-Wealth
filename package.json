@@ -4,9 +4,9 @@
   "description": "SGSK-Wealth Monorepo - Rust (Axum) Backend, Shared Core, Angular Web SPA & Ionic Capacitor Mobile App",
   "private": true,
   "workspaces": [
+    "packages/*",
     "shared",
-    "web",
-    "mobile"
+    "apps/*"
   ],
   "repository": {
     "type": "git",
@@ -16,18 +16,20 @@
     "start": "node scripts/dev.mjs",
     "dev": "node scripts/dev.mjs",
     "dev:backend": "node scripts/dev.mjs --only=backend",
-    "dev:web": "npm --prefix web start",
-    "dev:frontend": "npm --prefix web start",
-    "dev:mobile": "npm --prefix mobile start",
-    "build": "npm --prefix web run build",
-    "build:web": "npm --prefix web run build",
-    "build:frontend": "npm --prefix web run build",
-    "build:mobile": "npm --prefix mobile run build",
-    "cap:sync": "npm --prefix mobile run cap:sync",
-    "test": "npm run test:web && npm run test:mobile && npm run test:backend",
-    "test:web": "npm --prefix web run test -- --watch=false",
-    "test:frontend": "npm --prefix web run test -- --watch=false",
-    "test:mobile": "npm --prefix mobile run test -- --watch=false",
+    "dev:web": "npm --prefix apps/web start",
+    "dev:frontend": "npm --prefix apps/web start",
+    "dev:mobile": "npm --prefix apps/mobile start",
+    "build": "npm --prefix apps/web run build",
+    "build:web": "npm --prefix apps/web run build",
+    "build:frontend": "npm --prefix apps/web run build",
+    "build:mobile": "npm --prefix apps/mobile run build",
+    "cap:sync": "npm --prefix apps/mobile run cap:sync",
+    "test": "npm run test:contracts && npm run test:domain && npm run test:web && npm run test:mobile && npm run test:backend",
+    "test:contracts": "npm --prefix packages/contracts run test",
+    "test:domain": "npm --prefix packages/domain run test",
+    "test:web": "npm --prefix apps/web run test -- --watch=false",
+    "test:frontend": "npm --prefix apps/web run test -- --watch=false",
+    "test:mobile": "npm --prefix apps/mobile run test -- --watch=false",
     "test:e2e": "node scripts/dev.mjs --e2e",
     "test:e2e:web": "node scripts/dev.mjs --e2e --tags=@web",
     "test:e2e:api": "node scripts/dev.mjs --e2e --tags=@api",
@@ -39,10 +41,12 @@
     "test:e2e:report:build": "mvn -f e2e/pom.xml allure:report",
     "test:backend": "node scripts/dev.mjs --test-backend",
     "lint:backend": "node scripts/dev.mjs --lint-backend",
+    "lint:boundaries": "node scripts/check-boundaries.mjs",
     "lint:gherkin": "node scripts/lint-gherkin.mjs",
+    "check:secrets": "node scripts/check-bundle-secrets.mjs",
     "setup:agents": "node scripts/setup-agents.mjs",
     "prepare": "node scripts/setup-agents.mjs",
-    "check": "npm run lint:gherkin && npm run lint:backend && npm run test:backend && npm run test:web && npm run build:web && npm run test:mobile && npm run build:mobile"
+    "check": "npm run lint:boundaries && npm run lint:gherkin && npm run test:contracts && npm run test:domain && npm run lint:backend && npm run test:backend && npm run test:web && npm run build:web && npm run test:mobile && npm run build:mobile && npm run check:secrets"
   },
   "packageManager": "npm@11.10.1"
 }

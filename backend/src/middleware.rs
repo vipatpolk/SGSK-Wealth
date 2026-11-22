@@ -1,5 +1,7 @@
+use std::sync::Arc;
+
 use axum::body::Body;
-use axum::extract::Request;
+use axum::extract::{Request, State};
 use axum::http::header::{HeaderName, HeaderValue};
 use axum::http::{Method, StatusCode, Uri};
 use axum::middleware::Next;
@@ -7,6 +9,7 @@ use axum::response::{IntoResponse, Response};
 use tower_http::cors::{AllowHeaders, AllowMethods, AllowOrigin, CorsLayer};
 
 use crate::config::settings::Settings;
+use crate::state::AppState;
 
 const VALID_APP_SOURCES: &[&str] = &[
     "ShareLot",
@@ -64,7 +67,11 @@ pub async fn security_headers_middleware(req: Request<Body>, next: Next) -> Resp
     response
 }
 
-pub async fn direct_access_block_middleware(req: Request<Body>, next: Next) -> Response {
+pub async fn direct_access_block_middleware(
+    State(state): State<Arc<AppState>>,
+    req: Request<Body>,
+    next: Next,
+) -> Response {
     if req.method() == Method::OPTIONS {
         return next.run(req).await;
     }
@@ -119,9 +126,14 @@ pub async fn direct_access_block_middleware(req: Request<Body>, next: Next) -> R
             .into_response();
     }
 
-    // 2. Block direct access targeting legacy standalone backend hosts (or preview branches named backend)
-    let is_target_backend_host = host == "api-sgsk-wealth.vercel.app"
-        || host == "sgsk-backend.vercel.app"
+    // 2. Block direct access targeting configured standalone backend hosts (or preview branches named backend)
+    let is_configured_blocked_host = state
+        .infra
+        .settings
+        .blocked_direct_hosts
+        .iter()
+        .any(|h| h.trim().eq_ignore_ascii_case(&host));
+    let is_target_backend_host = is_configured_blocked_host
         || (host.ends_with(".vercel.app")
             && (host.contains("backend") || host.contains("api-sgsk-wealth")));
 

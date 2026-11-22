@@ -10,6 +10,7 @@ use serde_json::Value;
 
 use crate::config::settings::{sha256_hex, Settings};
 use crate::error::AppError;
+use crate::ports::{IdentityProfilePort, SupabaseProfileAdapter};
 use crate::state::AppState;
 use crate::utils::cache::{AsyncSingleflight, TTLCache};
 use crate::utils::http_client::HttpResources;
@@ -29,6 +30,7 @@ pub struct SupabaseTokenVerifier {
     http: Arc<HttpResources>,
     cache: Arc<TTLCache>,
     singleflight: Arc<AsyncSingleflight>,
+    profile_port: Arc<dyn IdentityProfilePort>,
 }
 
 impl SupabaseTokenVerifier {
@@ -37,10 +39,22 @@ impl SupabaseTokenVerifier {
         cache: Arc<TTLCache>,
         singleflight: Arc<AsyncSingleflight>,
     ) -> Self {
+        let profile_port: Arc<dyn IdentityProfilePort> =
+            Arc::new(SupabaseProfileAdapter::new(Arc::clone(&http)));
+        Self::with_profile_port(http, cache, singleflight, profile_port)
+    }
+
+    pub fn with_profile_port(
+        http: Arc<HttpResources>,
+        cache: Arc<TTLCache>,
+        singleflight: Arc<AsyncSingleflight>,
+        profile_port: Arc<dyn IdentityProfilePort>,
+    ) -> Self {
         Self {
             http,
             cache,
             singleflight,
+            profile_port,
         }
     }
 
@@ -209,9 +223,7 @@ impl SupabaseTokenVerifier {
         token: &str,
         settings: &Settings,
     ) -> Option<(String, bool)> {
-        let base_url = settings.supabase_url.trim().trim_end_matches('/');
-        let pub_key = settings.supabase_publishable_key.trim();
-        if base_url.is_empty() || pub_key.is_empty() || user_id.is_empty() {
+        if user_id.is_empty() {
             return None;
         }
 
@@ -220,41 +232,12 @@ impl SupabaseTokenVerifier {
             return Some(cached);
         }
 
-        let url = format!("{base_url}/rest/v1/user_profiles");
-        let res = self
-            .http
-            .client
-            .get(&url)
-            .query(&[
-                ("select", "role,can_view_cloud_portfolio"),
-                ("id", &format!("eq.{user_id}")),
-            ])
-            .header("Authorization", format!("Bearer {token}"))
-            .header("apikey", pub_key)
-            .timeout(std::time::Duration::from_secs(5))
-            .send()
-            .await
-            .ok()?;
-
-        if res.status().as_u16() == 200 {
-            let rows = res.json::<Value>().await.ok()?;
-            if let Some(first) = rows.as_array().and_then(|arr| arr.first()) {
-                let role = first
-                    .get("role")
-                    .and_then(|v| v.as_str())
-                    .filter(|s| !s.is_empty())
-                    .unwrap_or("user")
-                    .to_string();
-                let can_view = first
-                    .get("can_view_cloud_portfolio")
-                    .and_then(|v| v.as_bool())
-                    .unwrap_or(false);
-                let flags = (role, can_view);
-                self.cache.set(cache_key, flags.clone(), Some(60.0));
-                return Some(flags);
-            }
-        }
-        None
+        let flags = self
+            .profile_port
+            .fetch_profile_flags(user_id, token, settings)
+            .await?;
+        self.cache.set(cache_key, flags.clone(), Some(60.0));
+        Some(flags)
     }
 
     pub async fn verify_token(
@@ -369,17 +352,24 @@ impl SupabaseTokenVerifier {
         };
 
         let profile_flags = self.fetch_profile_flags(&user_id, token, settings).await;
-        let mut role = if is_allowlisted_email {
-            "owner".to_string()
+        let (role, can_view_cloud) = if let Some((db_role, db_can_view)) = profile_flags {
+            (
+                db_role,
+                is_allowlisted_email && email_confirmed && db_can_view,
+            )
+        } else if !settings.is_development() {
+            tracing::warn!(
+                "Supabase user_profiles lookup failed or returned no row in non-development mode; denying cloud portfolio access"
+            );
+            ("user".to_string(), false)
         } else {
-            "user".to_string()
+            let dev_role = if is_allowlisted_email {
+                "owner".to_string()
+            } else {
+                "user".to_string()
+            };
+            (dev_role, is_allowlisted_email && email_confirmed)
         };
-        let mut can_view_cloud = is_allowlisted_email && email_confirmed;
-
-        if let Some((db_role, db_can_view)) = profile_flags {
-            role = db_role;
-            can_view_cloud = is_allowlisted_email && email_confirmed && db_can_view;
-        }
 
         Ok(AuthenticatedUser {
             user_id,
@@ -425,8 +415,9 @@ impl FromRequestParts<Arc<AppState>> for OptionalCurrentUser {
         }
 
         let user = state
+            .identity
             .token_verifier
-            .verify_token(credentials, &state.settings)
+            .verify_token(credentials, &state.infra.settings)
             .await?;
         Ok(Self(Some(user)))
     }

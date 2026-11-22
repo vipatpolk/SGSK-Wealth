@@ -11,7 +11,7 @@ use crate::features::tools::models::tools::{
     SolveTargetCostResponse, SymbolRebalanceItemModel, TvmCalculateRequest, TvmCalculateResponse,
     TvmScheduleEntryModel, TvmSolveMode,
 };
-use crate::utils::format_utils::{round_digits, title_case_dash};
+use crate::utils::format_utils::{get_asset_type, round_digits, title_case_dash};
 
 #[derive(Clone)]
 pub struct ToolsService {
@@ -351,6 +351,9 @@ impl ToolsService {
 
         if holdings.error.is_none() {
             for pos in &holdings.open_positions {
+                if get_asset_type(Some(&pos.asset_type), Some(&pos.symbol)) == "provident-fund" {
+                    continue;
+                }
                 if pos.symbol.to_uppercase() == lookup_symbol {
                     return PositionSnapshotModel {
                         symbol: pos.symbol.clone(),

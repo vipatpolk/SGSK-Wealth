@@ -2,17 +2,13 @@ use std::sync::Arc;
 
 use axum::body::Bytes;
 use axum::extract::{Query, State};
+use axum::response::Response;
 use axum::routing::{get, post};
-use axum::{Json, Router};
+use axum::Router;
 use serde::Deserialize;
 
-use crate::error::AppError;
-use crate::features::dividends::models::dividend::PortfolioDividendResponse;
-use crate::features::portfolio::models::allocation::{
-    PortfolioAllocationResponse, TargetAllocationRequest,
-};
-use crate::features::portfolio::models::performance::PortfolioPerformanceResponse;
-use crate::features::portfolio::models::portfolio::PortfolioHoldingsResponse;
+use crate::error::{upstream_json_response, AppError};
+use crate::features::portfolio::models::allocation::TargetAllocationRequest;
 use crate::state::AppState;
 use crate::utils::auth::ApiKeyAuth;
 use crate::utils::supabase_auth::RequirePortfolioAuthorizedUser;
@@ -76,13 +72,13 @@ async fn get_portfolio_holdings(
     _user: RequirePortfolioAuthorizedUser,
     State(state): State<Arc<AppState>>,
     Query(q): Query<HoldingsQuery>,
-) -> Json<PortfolioHoldingsResponse> {
-    Json(
-        state
-            .valuation_service
-            .get_portfolio_holdings(&q.tab_id, &q.currency)
-            .await,
-    )
+) -> Response {
+    let res = state
+        .portfolio
+        .valuation_service
+        .get_portfolio_holdings(&q.tab_id, &q.currency)
+        .await;
+    upstream_json_response(&res, res.error.as_deref())
 }
 
 async fn get_portfolio_performance(
@@ -90,18 +86,18 @@ async fn get_portfolio_performance(
     _user: RequirePortfolioAuthorizedUser,
     State(state): State<Arc<AppState>>,
     Query(q): Query<PerformanceQuery>,
-) -> Json<PortfolioPerformanceResponse> {
-    Json(
-        state
-            .performance_service
-            .get_performance_analytics(
-                &q.timeframe,
-                q.start_date.as_deref(),
-                q.end_date.as_deref(),
-                &q.currency,
-            )
-            .await,
-    )
+) -> Response {
+    let res = state
+        .portfolio
+        .performance_service
+        .get_performance_analytics(
+            &q.timeframe,
+            q.start_date.as_deref(),
+            q.end_date.as_deref(),
+            &q.currency,
+        )
+        .await;
+    upstream_json_response(&res, res.error.as_deref())
 }
 
 async fn get_portfolio_allocation(
@@ -110,7 +106,7 @@ async fn get_portfolio_allocation(
     State(state): State<Arc<AppState>>,
     Query(q): Query<AllocationQuery>,
     body: Bytes,
-) -> Result<Json<PortfolioAllocationResponse>, AppError> {
+) -> Result<Response, AppError> {
     let req: Option<TargetAllocationRequest> = if body.iter().all(|b| b.is_ascii_whitespace()) {
         None
     } else {
@@ -120,12 +116,12 @@ async fn get_portfolio_allocation(
         )
     };
     let targets = req.as_ref().map(|r| &r.target_allocation);
-    Ok(Json(
-        state
-            .allocation_service
-            .calculate_allocation(targets, &q.currency)
-            .await,
-    ))
+    let res = state
+        .portfolio
+        .allocation_service
+        .calculate_allocation(targets, &q.currency)
+        .await;
+    Ok(upstream_json_response(&res, res.error.as_deref()))
 }
 
 async fn get_portfolio_dividend(
@@ -133,11 +129,11 @@ async fn get_portfolio_dividend(
     _user: RequirePortfolioAuthorizedUser,
     State(state): State<Arc<AppState>>,
     Query(q): Query<DividendQuery>,
-) -> Json<PortfolioDividendResponse> {
-    Json(
-        state
-            .dividend_service
-            .get_dividend_analytics(&q.currency, &q.tab_id)
-            .await,
-    )
+) -> Response {
+    let res = state
+        .portfolio
+        .dividend_service
+        .get_dividend_analytics(&q.currency, &q.tab_id)
+        .await;
+    upstream_json_response(&res, res.error.as_deref())
 }

@@ -21,7 +21,7 @@ impl FromRequestParts<Arc<AppState>> for ApiKeyAuth {
             .and_then(|v| v.to_str().ok())
             .map(str::to_string);
 
-        let settings = &state.settings;
+        let settings = &state.infra.settings;
         let is_dev = settings.is_development();
 
         if let Some(key) = api_key {

@@ -13,6 +13,8 @@ e2e:
     api-key: ${E2E_API_KEY:dev_secret_key_change_in_prod}
   playwright:
     headless: ${HEADLESS:true}
+  supabase:
+    url: ${E2E_SUPABASE_URL:https://jjdnxifgpbdvntfwhyzz.supabase.co}
   mobile:
     appium-url: ${E2E_APPIUM_URL:http://127.0.0.1:4723}
     platform: ${E2E_MOBILE_PLATFORM:ANDROID}

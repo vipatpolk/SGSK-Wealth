@@ -6,7 +6,9 @@ use chrono::{DateTime, Duration as ChronoDuration, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::config::settings::Settings;
+use crate::config::settings::{
+    Settings, DEFAULT_LOGO_DEV_API_BASE_URL, DEFAULT_LOGO_DEV_IMG_BASE_URL,
+};
 use crate::features::market_data::services::nav_service::{FundAmcDetails, NavService};
 use crate::utils::cache::{AsyncSingleflight, TTLCache};
 use crate::utils::format_utils::get_asset_type;
@@ -96,7 +98,7 @@ impl IconService {
                 .logo_dev_img_base_url
                 .trim()
                 .trim_end_matches('/')
-                != "https://img.logo.dev"
+                != DEFAULT_LOGO_DEV_IMG_BASE_URL
     }
 
     fn has_logo_dev_search_access(&self) -> bool {
@@ -106,7 +108,7 @@ impl IconService {
                 .logo_dev_api_base_url
                 .trim()
                 .trim_end_matches('/')
-                != "https://api.logo.dev"
+                != DEFAULT_LOGO_DEV_API_BASE_URL
     }
 
     fn supabase_base_url(&self) -> &str {

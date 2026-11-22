@@ -45,6 +45,7 @@ async fn fetch_prices_and_rate(
 ) -> Json<PricesAndRateResponse> {
     Json(
         state
+            .market_data
             .price_service
             .fetch_prices_and_rate(&req.summaries)
             .await,
@@ -57,6 +58,7 @@ async fn fetch_exchange_rate(
     Query(q): Query<ExchangeRateQuery>,
 ) -> Json<ExchangeRateResponse> {
     let rate = state
+        .market_data
         .price_service
         .fetch_exchange_rate(&q.from_currency, &q.to_currency)
         .await;

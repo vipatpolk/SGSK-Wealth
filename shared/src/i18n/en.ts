@@ -9,6 +9,9 @@ export const en = {
   'app.error.unable': 'Unable to load sheet data',
   'app.error.unableData': 'Unable to load data',
   'app.error.failedPortfolio': 'Failed to load portfolio holdings',
+  'app.error.sessionExpired': 'Session expired. Please sign in again to access cloud portfolio data.',
+  'app.error.partialQuotes': 'Live market quotes could not be refreshed. Showing cached or cost-basis values.',
+  'app.error.signInAgain': 'Sign In Again',
   'app.error.tryAgain': 'Try Again',
   'app.footer': '© 2026 SGSK Wealth — Investment Portfolio & Wealth Analytics System',
 

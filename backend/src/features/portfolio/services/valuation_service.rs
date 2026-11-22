@@ -11,6 +11,7 @@ use crate::features::portfolio::models::portfolio::{
 };
 use crate::features::portfolio::models::transaction::{ClosedShareLot, PriceData, SheetResult};
 use crate::features::portfolio::services::share_lot_service::ShareLotService;
+use crate::ports::{FundNavPort, MarketPricePort, NavServicePortAdapter, PriceServicePortAdapter};
 use crate::utils::cache::{AsyncSingleflight, TTLCache};
 use crate::utils::format_utils::{
     convert_currency, display_symbol, get_asset_type, get_asset_type_label,
@@ -28,8 +29,8 @@ struct ValuationBaseData {
 #[derive(Clone)]
 pub struct ValuationService {
     pub share_lot_service: ShareLotService,
-    pub price_service: PriceService,
-    pub nav_service: NavService,
+    price_port: Arc<dyn MarketPricePort>,
+    nav_port: Arc<dyn FundNavPort>,
     cache: Arc<TTLCache>,
     singleflight: Arc<AsyncSingleflight>,
 }
@@ -42,10 +43,23 @@ impl ValuationService {
         cache: Arc<TTLCache>,
         singleflight: Arc<AsyncSingleflight>,
     ) -> Self {
+        let price_port: Arc<dyn MarketPricePort> =
+            Arc::new(PriceServicePortAdapter::new(price_service));
+        let nav_port: Arc<dyn FundNavPort> = Arc::new(NavServicePortAdapter::new(nav_service));
+        Self::with_ports(share_lot_service, price_port, nav_port, cache, singleflight)
+    }
+
+    pub fn with_ports(
+        share_lot_service: ShareLotService,
+        price_port: Arc<dyn MarketPricePort>,
+        nav_port: Arc<dyn FundNavPort>,
+        cache: Arc<TTLCache>,
+        singleflight: Arc<AsyncSingleflight>,
+    ) -> Self {
         Self {
             share_lot_service,
-            price_service,
-            nav_service,
+            price_port,
+            nav_port,
             cache,
             singleflight,
         }
@@ -126,16 +140,14 @@ impl ValuationService {
                     }
 
                     let (mut p_map, ex_rate) = if !candidates.is_empty() {
-                        let market_res =
-                            this.price_service.fetch_prices_and_rate(&candidates).await;
-                        let rate = if market_res.rate > 0.0 {
-                            market_res.rate
-                        } else {
-                            1.0
-                        };
-                        (market_res.prices, rate)
+                        let (prices, rate_raw) = tokio::join!(
+                            this.price_port.fetch_quotes(&candidates),
+                            this.price_port.fetch_fx_rate("USD", "THB"),
+                        );
+                        let rate = if rate_raw > 0.0 { rate_raw } else { 1.0 };
+                        (prices, rate)
                     } else {
-                        let rate = this.price_service.fetch_exchange_rate("USD", "THB").await;
+                        let rate = this.price_port.fetch_fx_rate("USD", "THB").await;
                         (HashMap::new(), if rate > 0.0 { rate } else { 1.0 })
                     };
 
@@ -174,10 +186,7 @@ impl ValuationService {
                         }
 
                         for fn_name in &pvd_fund_names {
-                            let pol = this
-                                .nav_service
-                                .fetch_pvd_policies(None, Some(fn_name))
-                                .await;
+                            let pol = this.nav_port.fetch_pvd_policies(None, Some(fn_name)).await;
                             pvd_policies.extend(pol);
                         }
 

@@ -7,7 +7,7 @@ use chrono::{Duration, Utc};
 use regex::Regex;
 use serde_json::{Map, Value};
 
-use crate::config::settings::Settings;
+use crate::config::settings::{Settings, DEFAULT_SEC_MF_BASE_URL, DEFAULT_SEC_PVD_BASE_URL};
 use crate::features::market_data::models::factsheet::{
     FactsheetAllocationItem, FactsheetFeeItem, FactsheetHoldingItem, FactsheetPerformanceItem,
     FactsheetStatistics, FactsheetTradeConditions, FundFactsheetResponse,
@@ -325,8 +325,8 @@ impl NavService {
 
     fn has_sec_access(&self) -> bool {
         !self.settings.sec_subscription_key.trim().is_empty()
-            || self.sec_mf_base() != "https://api.sec.or.th/v2/fund"
-            || self.sec_pvd_base() != "https://api.sec.or.th/v1/pvd"
+            || self.sec_mf_base() != DEFAULT_SEC_MF_BASE_URL
+            || self.sec_pvd_base() != DEFAULT_SEC_PVD_BASE_URL
     }
 
     async fn sec_get(&self, url: &str) -> Result<(u16, String), String> {

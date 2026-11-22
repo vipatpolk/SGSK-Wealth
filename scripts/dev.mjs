@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 const backendDir = path.join(rootDir, 'backend');
-const webDir = path.join(rootDir, 'web');
+const webDir = path.join(rootDir, 'apps', 'web');
 const e2eTargetDir = path.join(rootDir, 'e2e', 'target');
 const e2eLogPath = path.join(e2eTargetDir, 'e2e-live.log');
 
@@ -267,14 +267,19 @@ if (lintBackend) {
   console.log('\x1b[32m Starting SGSK-Wealth Monorepo Development Servers \x1b[0m');
   console.log('\x1b[32m===================================================\x1b[0m');
 
+  const backendHost = process.env.HOST || '127.0.0.1';
+  const backendPort = process.env.PORT || '8000';
+  const webUrl = process.env.WEB_URL || 'http://localhost:4200';
+  const mobileUrl = process.env.MOBILE_URL || 'http://localhost:4201';
+
   if (!onlyFrontend) {
-    console.log(`\x1b[36m[BACKEND]\x1b[0m Rust Axum starting on http://127.0.0.1:8000 (Cargo: ${cargoCmd})`);
+    console.log(`\x1b[36m[BACKEND]\x1b[0m Rust Axum starting on http://${backendHost}:${backendPort} (Cargo: ${cargoCmd})`);
     const backendProc = spawn(
       cargoCmd,
       ['run', '--bin', 'sgsk-backend'],
       {
         cwd: backendDir,
-        env: getBackendEnv({ HOST: '127.0.0.1', PORT: '8000' }),
+        env: getBackendEnv({ HOST: backendHost, PORT: backendPort }),
       }
     );
     attachPrefixedStream(backendProc.stdout, 'BACKEND', '36');
@@ -285,7 +290,7 @@ if (lintBackend) {
     backendProc.on('close', (code, signal) => {
       if (code !== null && code !== 0) {
         console.error(
-          `\x1b[31m[BACKEND] Rust backend exited with code ${code} (is port 8000 already in use?). Proxy requests at /api/backend will fail until port 8000 is listening.\x1b[0m`
+          `\x1b[31m[BACKEND] Rust backend exited with code ${code} (is port ${backendPort} already in use?). Proxy requests at /api/backend will fail until port ${backendPort} is listening.\x1b[0m`
         );
       } else if (signal) {
         console.log(`\x1b[33m[BACKEND] Rust backend terminated by signal ${signal}\x1b[0m`);
@@ -295,10 +300,10 @@ if (lintBackend) {
   }
 
   if (!onlyBackend) {
-    console.log(`\x1b[35m[WEB]\x1b[0m Angular starting on http://localhost:4200 (Proxying /api/backend -> :8000)`);
+    console.log(`\x1b[35m[WEB]\x1b[0m Angular starting on ${webUrl} (Proxying /api/backend -> :${backendPort})`);
     const frontendProc = spawn(
       npmCmd,
-      ['--prefix', 'web', 'start'],
+      ['--prefix', 'apps/web', 'start'],
       {
         cwd: rootDir,
         env: { ...process.env, FORCE_COLOR: '1' },
@@ -310,10 +315,10 @@ if (lintBackend) {
     children.push(frontendProc);
 
     if (withMobile) {
-      console.log(`\x1b[32m[MOBILE]\x1b[0m Ionic Capacitor starting on http://localhost:4201 (Proxying /api/backend -> :8000)`);
+      console.log(`\x1b[32m[MOBILE]\x1b[0m Ionic Capacitor starting on ${mobileUrl} (Proxying /api/backend -> :${backendPort})`);
       const mobileProc = spawn(
         npmCmd,
-        ['--prefix', 'mobile', 'start'],
+        ['--prefix', 'apps/mobile', 'start'],
         {
           cwd: rootDir,
           env: { ...process.env, FORCE_COLOR: '1' },

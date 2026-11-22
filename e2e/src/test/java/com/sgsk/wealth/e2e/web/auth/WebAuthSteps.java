@@ -98,14 +98,18 @@ public class WebAuthSteps {
 
     @Then("the Google sign-in option and local management menu should be accessible")
     public void verifySettingsControlsAccessible() {
+        assertThat(page().locator("#currency-btn-thb")).isVisible();
+        assertThat(page().locator("#currency-btn-usd")).isVisible();
+        assertThat(page().locator("#lang-btn-en")).isVisible();
+        assertThat(page().locator("#lang-btn-th")).isVisible();
+        assertThat(page().locator("#privacy-toggle-btn")).isVisible();
         headerPage.openUserSettings();
-        assertThat(page().locator("#settings-currency-thb")).isVisible();
-        assertThat(page().locator("#settings-currency-usd")).isVisible();
-        assertThat(page().locator("#settings-lang-en")).isVisible();
-        assertThat(page().locator("#settings-lang-th")).isVisible();
         assertThat(page().locator("#settings-theme-dark")).isVisible();
         assertThat(page().locator("#settings-theme-light")).isVisible();
         assertThat(page().locator("#settings-signin-btn")).isVisible();
+        Assertions.assertEquals(0, page().locator("#settings-currency-thb").count());
+        Assertions.assertEquals(0, page().locator("#settings-lang-en").count());
+        Assertions.assertEquals(0, page().locator("#settings-privacy-toggle").count());
         headerPage.closeUserSettings();
     }
 
