@@ -82,9 +82,12 @@
   flex-shrink: 0;
 }
 
-.auth-logo-mark svg {
-  width: 1.35rem;
-  height: 1.35rem;
+.auth-logo-mark svg,
+.auth-logo-mark .auth-logo-img {
+  width: 1.95rem;
+  height: 1.95rem;
+  object-fit: contain;
+  display: block;
 }
 
 .auth-brand-title {

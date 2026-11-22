@@ -749,15 +749,17 @@ describe('App', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const loadingEl = compiled.querySelector('#loading-state');
     expect(loadingEl).toBeTruthy();
-    expect(loadingEl?.textContent).toContain('SGSK');
-    expect(loadingEl?.textContent).toContain('Wealth');
-    expect(loadingEl?.textContent).toContain('Loading All');
+    expect(loadingEl?.querySelector('img.loader-brand-logo')?.getAttribute('src')).toBe(
+      'brand-logo.png',
+    );
+    expect(loadingEl?.querySelector('.loader-orbit')).toBeTruthy();
+    expect(loadingEl?.getAttribute('aria-label')).toContain('Loading All');
     expect(app.loaderState().tag).toBe('FIFO Engine');
 
     const closedTab = ASSET_TABS.find((t) => t.id === 'closed-position')!;
     app.activeTab.set(closedTab);
     fixture.detectChanges();
-    expect(compiled.querySelector('#loading-state')?.textContent).toContain(
+    expect(compiled.querySelector('#loading-state')?.getAttribute('aria-label')).toContain(
       'Loading Closed Position',
     );
     expect(app.loaderState().tag).toBe('Realized Ledger');

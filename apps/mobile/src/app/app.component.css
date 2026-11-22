@@ -37,9 +37,12 @@
   flex-shrink: 0;
 }
 
-.mobile-logo-mark svg {
-  width: 17px;
-  height: 17px;
+.mobile-logo-mark svg,
+.mobile-logo-mark .mobile-logo-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
 }
 
 .mobile-brand-text {
