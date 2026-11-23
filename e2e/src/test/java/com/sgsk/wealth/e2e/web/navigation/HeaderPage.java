@@ -36,6 +36,7 @@ public class HeaderPage {
     public final Locator langThBtn;
     public final Locator settingsThemeDarkBtn;
     public final Locator settingsThemeLightBtn;
+    public final Locator settingsThemeSystemBtn;
     public final Locator settingsCloseBtn;
     private final Page page;
 
@@ -70,6 +71,7 @@ public class HeaderPage {
         this.langThBtn = page.locator("#lang-btn-th");
         this.settingsThemeDarkBtn = page.locator("#settings-theme-dark");
         this.settingsThemeLightBtn = page.locator("#settings-theme-light");
+        this.settingsThemeSystemBtn = page.locator("#settings-theme-system");
         this.settingsCloseBtn = page.locator("#settings-close-btn");
     }
 

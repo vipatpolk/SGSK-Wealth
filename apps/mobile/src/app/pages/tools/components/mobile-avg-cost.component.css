@@ -10,8 +10,8 @@
   gap: 0.5rem;
   padding: 0.65rem 0.75rem;
   border-radius: 12px;
-  border: 1px solid var(--sgsk-card-border);
-  background: var(--bg-surface-2);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
   color: var(--color-text-primary);
 }
 
@@ -46,8 +46,8 @@
   margin-bottom: 0.75rem;
   padding: 0.7rem;
   border-radius: 12px;
-  background: var(--bg-surface-2);
-  border: 1px dashed var(--sgsk-card-border);
+  background: var(--color-surface-raised);
+  border: 1px dashed var(--color-border);
 }
 
 .avg-subpanel-title {
@@ -83,8 +83,8 @@
 .avg-action-btn {
   padding: 0.55rem 0.65rem;
   border-radius: 10px;
-  border: 1px solid var(--sgsk-card-border);
-  background: var(--bg-surface-2);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
   color: var(--color-text-secondary);
   font-size: 0.76rem;
   font-weight: 700;
@@ -143,8 +143,8 @@
   width: 100%;
   padding: 0.55rem 0.7rem;
   border-radius: 10px;
-  border: 1px solid var(--sgsk-card-border);
-  background: var(--bg-surface-2);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
   color: var(--color-text-primary);
   font-size: 0.9rem;
   font-weight: 600;
@@ -170,8 +170,8 @@
 .avg-secondary-btn {
   padding: 0.7rem 0.75rem;
   border-radius: 12px;
-  border: 1px solid var(--sgsk-card-border);
-  background: var(--bg-surface-2);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
   color: var(--color-text-primary);
   font-size: 0.76rem;
   font-weight: 700;
@@ -181,8 +181,8 @@
   margin-top: 0.75rem;
   padding: 0.65rem;
   border-radius: 12px;
-  background: var(--bg-surface-2);
-  border: 1px solid var(--sgsk-card-border);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
 }
 
 .avg-queue-header {
@@ -208,7 +208,7 @@
   align-items: center;
   gap: 0.45rem;
   padding: 0.35rem 0;
-  border-top: 1px solid var(--sgsk-card-border);
+  border-top: 1px solid var(--color-border);
 }
 
 .avg-remove-step {
@@ -222,7 +222,7 @@
 .avg-result-box {
   margin-top: 0.85rem;
   padding-top: 0.8rem;
-  border-top: 1px solid var(--sgsk-card-border);
+  border-top: 1px solid var(--color-border);
 }
 
 .avg-result-head {
@@ -251,7 +251,7 @@
   margin-top: 0.75rem;
   padding: 0.65rem;
   border-radius: 12px;
-  background: var(--bg-surface-2);
+  background: var(--color-surface-raised);
 }
 
 .avg-gauge-head,
@@ -266,7 +266,7 @@
 .avg-gauge-track {
   height: 8px;
   border-radius: 999px;
-  background: var(--bg-surface-1);
+  background: var(--color-surface);
   overflow: hidden;
   margin: 0.45rem 0;
 }
@@ -355,8 +355,8 @@
   gap: 0.6rem;
   padding: 0.65rem 0.75rem;
   border-radius: 12px;
-  border: 1px solid var(--sgsk-card-border);
-  background: var(--bg-surface-1);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
   color: var(--color-text-primary);
 }
 

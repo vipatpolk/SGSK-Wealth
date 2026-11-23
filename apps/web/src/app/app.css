@@ -1379,58 +1379,58 @@
 }
 
 .asset-filter-pill-us-stock.asset-filter-pill-active {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3b82f6;
-  border-color: rgba(59, 130, 246, 0.4);
+  background: var(--color-asset-us-stocks-soft);
+  color: var(--color-asset-us-stocks);
+  border-color: var(--color-asset-us-stocks-border);
   box-shadow: none;
 }
 .asset-filter-pill-us-stock.asset-filter-pill-active .asset-filter-pill-count {
-  background: rgba(59, 130, 246, 0.2);
-  color: #3b82f6;
+  background: var(--color-asset-us-stocks-soft);
+  color: var(--color-asset-us-stocks);
 }
 
 .asset-filter-pill-thai-stock.asset-filter-pill-active {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10b981;
-  border-color: rgba(16, 185, 129, 0.4);
+  background: var(--color-asset-thai-stocks-soft);
+  color: var(--color-asset-thai-stocks);
+  border-color: var(--color-asset-thai-stocks-border);
   box-shadow: none;
 }
 .asset-filter-pill-thai-stock.asset-filter-pill-active .asset-filter-pill-count {
-  background: rgba(16, 185, 129, 0.2);
-  color: #10b981;
+  background: var(--color-asset-thai-stocks-soft);
+  color: var(--color-asset-thai-stocks);
 }
 
 .asset-filter-pill-crypto.asset-filter-pill-active {
-  background: rgba(245, 158, 11, 0.12);
-  color: #f59e0b;
-  border-color: rgba(245, 158, 11, 0.4);
+  background: var(--color-asset-crypto-soft);
+  color: var(--color-asset-crypto);
+  border-color: var(--color-asset-crypto-border);
   box-shadow: none;
 }
 .asset-filter-pill-crypto.asset-filter-pill-active .asset-filter-pill-count {
-  background: rgba(245, 158, 11, 0.2);
-  color: #f59e0b;
+  background: var(--color-asset-crypto-soft);
+  color: var(--color-asset-crypto);
 }
 
 .asset-filter-pill-mutual-fund.asset-filter-pill-active {
-  background: rgba(168, 85, 247, 0.12);
-  color: #a855f7;
-  border-color: rgba(168, 85, 247, 0.4);
+  background: var(--color-asset-mutual-funds-soft);
+  color: var(--color-asset-mutual-funds);
+  border-color: var(--color-asset-mutual-funds-border);
   box-shadow: none;
 }
 .asset-filter-pill-mutual-fund.asset-filter-pill-active .asset-filter-pill-count {
-  background: rgba(168, 85, 247, 0.2);
-  color: #a855f7;
+  background: var(--color-asset-mutual-funds-soft);
+  color: var(--color-asset-mutual-funds);
 }
 
 .asset-filter-pill-bond.asset-filter-pill-active {
-  background: rgba(6, 182, 212, 0.12);
-  color: #06b6d4;
-  border-color: rgba(6, 182, 212, 0.4);
+  background: var(--color-asset-bond-soft);
+  color: var(--color-asset-bond);
+  border-color: var(--color-asset-bond-border);
   box-shadow: none;
 }
 .asset-filter-pill-bond.asset-filter-pill-active .asset-filter-pill-count {
-  background: #06b6d430;
-  color: #a5f3fc;
+  background: var(--color-asset-bond-soft);
+  color: var(--color-asset-bond);
 }
 
 .search-container {
@@ -2631,15 +2631,15 @@
 }
 
 .lot-note-employee {
-  background: #3b82f618;
-  color: #60a5fa;
-  border: 1px solid #3b82f638;
+  background: var(--color-financial-info-soft);
+  color: var(--color-financial-info);
+  border: 1px solid var(--color-financial-info-border);
 }
 
 .lot-note-employer {
-  background: #10b98118;
-  color: #34d399;
-  border: 1px solid #10b98138;
+  background: var(--color-pl-positive-soft);
+  color: var(--color-pl-positive);
+  border: 1px solid var(--color-pl-positive-border);
 }
 
 .lot-col-date {
@@ -2687,7 +2687,7 @@
   width: 3.5rem;
   height: 3.5rem;
   border-radius: 50%;
-  background: #f43f5e18;
+  background: var(--color-pl-negative-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2697,7 +2697,7 @@
 .error-icon {
   width: 1.75rem;
   height: 1.75rem;
-  color: #f43f5e;
+  color: var(--color-pl-negative);
 }
 
 .error-title {

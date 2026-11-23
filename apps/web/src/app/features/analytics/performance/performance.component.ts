@@ -5,6 +5,7 @@ import { SymbolIconComponent } from '@shared/components/symbol-icon/symbol-icon.
 import { SymbolSummary, ClosedSymbolSummary, SymbolTransactionSummary, Transaction } from '@shared/models/transaction.model';
 import { PriceData } from '@shared/services/price.service';
 import { PortfolioSourceCoordinator } from '@shared/providers/portfolio-source.coordinator';
+import { UserSettingsService } from '@shared/services/user-settings.service';
 import { I18nService } from '@shared/services/i18n.service';
 import { TranslatePipe } from '@shared/pipes/translate.pipe';
 import { PortfolioPerformanceResponse } from '@shared/models/portfolio.model';
@@ -30,6 +31,7 @@ import {
 })
 export class PerformanceComponent {
   private readonly portfolioCoordinator = inject(PortfolioSourceCoordinator);
+  private readonly userSettings = inject(UserSettingsService);
   readonly i18n = inject(I18nService);
 
   summaries = input.required<SymbolSummary[]>();
@@ -66,7 +68,8 @@ export class PerformanceComponent {
     ];
   });
 
-  getAssetColor = getAssetColor;
+  getAssetColor = (assetType?: string, symbol?: string): string =>
+    getAssetColor(assetType, symbol, this.userSettings.resolvedTheme());
 
   private cx(value: number, originalCurrency: string): number {
     if (!this.hasRate()) {

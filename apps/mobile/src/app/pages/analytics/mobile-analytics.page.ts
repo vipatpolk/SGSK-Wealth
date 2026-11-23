@@ -96,7 +96,8 @@ export class MobileAnalyticsPage {
   readonly perfSortDir = signal<'asc' | 'desc'>('desc');
   readonly showAllPerfSymbols = signal<boolean>(false);
 
-  readonly getAssetColorFn = getAssetColor;
+  readonly getAssetColorFn = (assetType?: string, symbol?: string): string =>
+    getAssetColor(assetType, symbol, this.state.userSettings.resolvedTheme());
 
   constructor() {
     effect(() => {
@@ -203,7 +204,7 @@ export class MobileAnalyticsPage {
         label: getAssetTypeLabel(type, undefined, lang),
         value,
         percentage: totalVal > 0 ? (value / totalVal) * 100 : 0,
-        color: getAssetColor(type),
+        color: this.getAssetColorFn(type),
       }))
       .sort((a, b) => b.value - a.value);
   });
@@ -366,7 +367,7 @@ export class MobileAnalyticsPage {
         type: t.assetType,
         label: getAssetTypeLabel(t.assetType, undefined, lang),
         totalReturnPercent: t.totalReturnPercent,
-        color: getAssetColor(t.assetType),
+        color: this.getAssetColorFn(t.assetType),
       }));
     }
     return [];

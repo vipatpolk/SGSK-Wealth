@@ -17,6 +17,7 @@ import {
   getSymbolName as resolveSymbolDisplayName,
 } from '@shared/utils/format.utils';
 import { I18nService } from '@shared/services/i18n.service';
+import { UserSettingsService } from '@shared/services/user-settings.service';
 import { TranslatePipe } from '@shared/pipes/translate.pipe';
 import { LocalizedDatePipe } from '@shared/pipes/localized-date.pipe';
 
@@ -30,6 +31,7 @@ import { LocalizedDatePipe } from '@shared/pipes/localized-date.pipe';
 })
 export class DividendComponent {
   readonly i18n = inject(I18nService);
+  private readonly userSettings = inject(UserSettingsService);
   data = input<PortfolioDividendResponse | null>(null);
   loading = input<boolean>(false);
   error = input<string | null>(null);
@@ -42,7 +44,8 @@ export class DividendComponent {
   getSymbolName = input.required<(symbol: string) => string>();
   getAssetTypeClass = input.required<(type?: string, symbol?: string) => string>();
   getAssetTypeLabel = input.required<(type?: string, symbol?: string) => string>();
-  readonly getAssetColor = getAssetColor;
+  readonly getAssetColor = (assetType?: string, symbol?: string): string =>
+    getAssetColor(assetType, symbol, this.userSettings.resolvedTheme());
 
   // Outputs
   refresh = output<void>();

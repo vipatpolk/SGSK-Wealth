@@ -118,16 +118,16 @@
             </div>
             <div class="div-sm-pills font-mono privacy-mask">
               @if (activeM.usAmount > 0) {
-                <span style="color: #3b82f6;">{{ 'asset.short.usStock' | t }}: {{ activeM.usAmount | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+                <span style="color: var(--color-asset-us-stocks);">{{ 'asset.short.usStock' | t }}: {{ activeM.usAmount | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
               }
               @if (activeM.thaiAmount > 0) {
-                <span style="color: #10b981;">{{ 'asset.short.thaiStock' | t }}: {{ activeM.thaiAmount | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+                <span style="color: var(--color-asset-thai-stocks);">{{ 'asset.short.thaiStock' | t }}: {{ activeM.thaiAmount | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
               }
               @if (activeM.fundAmount > 0) {
-                <span style="color: #f59e0b;">{{ 'asset.short.mutualFund' | t }}: {{ activeM.fundAmount | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+                <span style="color: var(--color-asset-mutual-funds);">{{ 'asset.short.mutualFund' | t }}: {{ activeM.fundAmount | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
               }
               @if (activeM.bondAmount > 0) {
-                <span style="color: #06b6d4;">{{ 'asset.short.bond' | t }}: {{ activeM.bondAmount | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+                <span style="color: var(--color-asset-bond);">{{ 'asset.short.bond' | t }}: {{ activeM.bondAmount | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
               }
             </div>
           </div>
@@ -145,16 +145,16 @@
                 <div class="div-bar-track-wrap">
                   <div class="div-bar-track" [style.height.%]="m.percentHeight">
                     @if (m.thaiAmount > 0) {
-                      <div style="background: #10b981;" [style.height.%]="m.thaiPercent"></div>
+                      <div style="background: var(--color-asset-thai-stocks);" [style.height.%]="m.thaiPercent"></div>
                     }
                     @if (m.usAmount > 0) {
-                      <div style="background: #3b82f6;" [style.height.%]="m.usPercent"></div>
+                      <div style="background: var(--color-asset-us-stocks);" [style.height.%]="m.usPercent"></div>
                     }
                     @if (m.fundAmount > 0) {
-                      <div style="background: #f59e0b;" [style.height.%]="m.fundPercent"></div>
+                      <div style="background: var(--color-asset-mutual-funds);" [style.height.%]="m.fundPercent"></div>
                     }
                     @if (m.bondAmount > 0) {
-                      <div style="background: #06b6d4;" [style.height.%]="m.bondPercent"></div>
+                      <div style="background: var(--color-asset-bond);" [style.height.%]="m.bondPercent"></div>
                     }
                   </div>
                 </div>

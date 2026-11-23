@@ -358,7 +358,7 @@ describe('FormatUtils', () => {
       expect(getAssetType('pvd')).toBe('provident-fund');
     });
 
-    it('should return correct asset type brand color in getAssetColor', () => {
+    it('should return correct asset type brand color in getAssetColor for dark and light themes', () => {
       expect(getAssetColor('us-stock')).toBe('#60A5FA');
       expect(getAssetColor('thai-stock')).toBe('#2DD4BF');
       expect(getAssetColor('crypto')).toBe('#FB923C');
@@ -369,6 +369,14 @@ describe('FormatUtils', () => {
       expect(getAssetColor(undefined, 'PTT.BK')).toBe('#2DD4BF');
       expect(getAssetColor(undefined, 'PVDSP500')).toBe('#FBBF24');
       expect(getAssetColor('unknown-type')).toBe('#9ca3af');
+
+      expect(getAssetColor('us-stock', undefined, 'light')).toBe('#2563EB');
+      expect(getAssetColor('thai-stock', undefined, 'light')).toBe('#0F766E');
+      expect(getAssetColor('crypto', undefined, 'light')).toBe('#C2410C');
+      expect(getAssetColor('mutual-fund', undefined, 'light')).toBe('#7C3AED');
+      expect(getAssetColor('bond', undefined, 'light')).toBe('#475569');
+      expect(getAssetColor('provident-fund', undefined, 'light')).toBe('#A16207');
+      expect(getAssetColor('unknown-type', undefined, 'light')).toBe('#475569');
     });
   });
 

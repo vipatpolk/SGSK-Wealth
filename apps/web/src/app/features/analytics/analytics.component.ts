@@ -22,6 +22,7 @@ import {
 } from '@shared/models/transaction.model';
 import { PriceData } from '@shared/services/price.service';
 import { PortfolioSourceCoordinator } from '@shared/providers/portfolio-source.coordinator';
+import { UserSettingsService } from '@shared/services/user-settings.service';
 import { I18nService } from '@shared/services/i18n.service';
 import { TranslatePipe } from '@shared/pipes/translate.pipe';
 import {
@@ -58,6 +59,7 @@ import {
 })
 export class AnalyticsComponent {
   private readonly portfolioCoordinator = inject(PortfolioSourceCoordinator);
+  private readonly userSettings = inject(UserSettingsService);
   readonly i18n = inject(I18nService);
 
   summaries = input.required<SymbolSummary[]>();
@@ -81,7 +83,8 @@ export class AnalyticsComponent {
     () => this.performanceError() ?? this.allocationError()
   );
 
-  getAssetColor = getAssetColor;
+  getAssetColor = (assetType?: string, symbol?: string): string =>
+    getAssetColor(assetType, symbol, this.userSettings.resolvedTheme());
 
   private defaultTargets: TargetAllocation = {
     'us-stock': 40,
@@ -237,7 +240,7 @@ export class AnalyticsComponent {
         label: getAssetTypeLabel(type, undefined, lang),
         value: val,
         percentage: totalVal > 0 ? (val / totalVal) * 100 : 0,
-        color: getAssetColor(type),
+        color: this.getAssetColor(type),
       });
     }
 

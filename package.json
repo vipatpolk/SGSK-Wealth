@@ -24,9 +24,10 @@
     "build:frontend": "npm --prefix apps/web run build",
     "build:mobile": "npm --prefix apps/mobile run build",
     "cap:sync": "npm --prefix apps/mobile run cap:sync",
-    "test": "npm run test:contracts && npm run test:domain && npm run test:web && npm run test:mobile && npm run test:backend",
+    "test": "npm run test:contracts && npm run test:domain && npm run test:tokens && npm run test:web && npm run test:mobile && npm run test:backend",
     "test:contracts": "npm --prefix packages/contracts run test",
     "test:domain": "npm --prefix packages/domain run test",
+    "test:tokens": "npm --prefix packages/design-tokens run test",
     "test:web": "npm --prefix apps/web run test -- --watch=false",
     "test:frontend": "npm --prefix apps/web run test -- --watch=false",
     "test:mobile": "npm --prefix apps/mobile run test -- --watch=false",
@@ -46,7 +47,7 @@
     "check:secrets": "node scripts/check-bundle-secrets.mjs",
     "setup:agents": "node scripts/setup-agents.mjs",
     "prepare": "node scripts/setup-agents.mjs",
-    "check": "npm run lint:boundaries && npm run lint:gherkin && npm run test:contracts && npm run test:domain && npm run lint:backend && npm run test:backend && npm run test:web && npm run build:web && npm run test:mobile && npm run build:mobile && npm run check:secrets"
+    "check": "npm run lint:boundaries && npm run lint:gherkin && npm run test:contracts && npm run test:domain && npm run test:tokens && npm run lint:backend && npm run test:backend && npm run test:web && npm run build:web && npm run test:mobile && npm run build:mobile && npm run check:secrets"
   },
   "packageManager": "npm@11.10.1"
 }

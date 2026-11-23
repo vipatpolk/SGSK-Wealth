@@ -72,12 +72,18 @@ public class MobileShellScreen {
 
     public void toggleTheme() {
         String current = driver.getHtmlAttribute("data-theme");
+        selectTheme("dark".equalsIgnoreCase(current) ? "light" : "dark");
+    }
+
+    public void selectTheme(String mode) {
         openUserSettings();
-        if ("dark".equalsIgnoreCase(current)) {
-            driver.tap("#mobile-settings-theme-light");
-        } else {
-            driver.tap("#mobile-settings-theme-dark");
-        }
+        String selector = switch (mode.trim().toLowerCase(Locale.ROOT)) {
+            case "light" -> "#mobile-settings-theme-light";
+            case "dark" -> "#mobile-settings-theme-dark";
+            case "system" -> "#mobile-settings-theme-system";
+            default -> throw new IllegalArgumentException("Unsupported mobile theme mode: " + mode);
+        };
+        driver.tap(selector);
         closeUserSettings();
     }
 

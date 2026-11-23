@@ -123,4 +123,44 @@ public class WebAuthSteps {
         Assertions.assertEquals(0, headerPage.userMenuLocalDataBtn.count());
         assertThat(headerPage.userMenuSignOutBtn).isVisible();
     }
+
+    @When("I select the {string} theme in user settings")
+    public void selectThemeInUserSettings(String mode) {
+        headerPage.openUserSettings();
+        switch (mode.trim().toLowerCase()) {
+            case "light" -> headerPage.settingsThemeLightBtn.click();
+            case "dark" -> headerPage.settingsThemeDarkBtn.click();
+            case "system" -> headerPage.settingsThemeSystemBtn.click();
+            default -> throw new IllegalArgumentException("Unsupported theme mode: " + mode);
+        }
+        headerPage.closeUserSettings();
+    }
+
+    @When("I reload the web application")
+    public void reloadWebApplication() {
+        page().reload();
+        assertThat(page().locator("#dashboard-view")).isVisible();
+    }
+
+    @Then("the active theme mode should be {string} with resolved theme {string}")
+    public void verifyThemeModeAndResolved(String expectedMode, String expectedResolved) {
+        String actualMode = page().locator("html").getAttribute("data-theme-mode");
+        String actualResolved = page().locator("html").getAttribute("data-theme");
+        Assertions.assertEquals(expectedMode.toLowerCase(), actualMode);
+        Assertions.assertEquals(expectedResolved.toLowerCase(), actualResolved);
+    }
+
+    @Then("the active theme mode should be {string}")
+    public void verifyThemeMode(String expectedMode) {
+        String mode = expectedMode.toLowerCase();
+        String actualMode = page().locator("html").getAttribute("data-theme-mode");
+        String actualResolved = page().locator("html").getAttribute("data-theme");
+        Assertions.assertEquals(mode, actualMode);
+        if ("light".equals(mode) || "dark".equals(mode)) {
+            Assertions.assertEquals(mode, actualResolved);
+        } else {
+            Assertions.assertTrue("dark".equals(actualResolved) || "light".equals(actualResolved),
+                    "Expected resolved theme to be dark or light, got: " + actualResolved);
+        }
+    }
 }

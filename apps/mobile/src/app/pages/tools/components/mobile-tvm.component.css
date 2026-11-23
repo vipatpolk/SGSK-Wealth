@@ -25,8 +25,8 @@
   width: 100%;
   padding: 0.55rem 0.7rem;
   border-radius: 10px;
-  border: 1px solid var(--sgsk-card-border);
-  background: var(--bg-surface-2);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
   color: var(--color-text-primary);
   font-size: 0.9rem;
   font-weight: 700;
@@ -41,8 +41,8 @@
 .tvm-select {
   padding: 0.15rem 0.65rem;
   border-radius: 10px;
-  border: 1px solid var(--sgsk-card-border);
-  background: var(--bg-surface-2);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
   color: var(--color-text-primary);
   font-size: 0.8rem;
   font-weight: 600;
@@ -51,7 +51,7 @@
 .tvm-result-box {
   margin-top: 0.8rem;
   padding-top: 0.8rem;
-  border-top: 1px solid var(--sgsk-card-border);
+  border-top: 1px solid var(--color-border);
 }
 
 .tvm-hero-banner {
@@ -80,7 +80,7 @@
   margin-top: 0.7rem;
   padding: 0.65rem;
   border-radius: 12px;
-  background: var(--bg-surface-2);
+  background: var(--color-surface-raised);
 }
 
 .tvm-comp-head {
@@ -96,7 +96,7 @@
   height: 10px;
   border-radius: 999px;
   overflow: hidden;
-  background: var(--bg-surface-1);
+  background: var(--color-surface);
 }
 
 .tvm-seg.principal {
@@ -136,7 +136,7 @@
   margin-top: 0.75rem;
   padding: 0.65rem;
   border-radius: 12px;
-  background: var(--bg-surface-2);
+  background: var(--color-surface-raised);
 }
 
 .tvm-chart-head {
@@ -154,7 +154,7 @@
 }
 
 .tvm-grid-line {
-  stroke: var(--sgsk-card-border);
+  stroke: var(--color-border);
   stroke-width: 1;
 }
 
@@ -171,7 +171,7 @@
   margin-top: 0.45rem;
   padding: 0.45rem 0.6rem;
   border-radius: 8px;
-  background: var(--bg-surface-1);
+  background: var(--color-surface);
   font-size: 0.7rem;
 }
 
@@ -183,8 +183,8 @@
   width: 100%;
   padding: 0.55rem 0.75rem;
   border-radius: 10px;
-  border: 1px solid var(--sgsk-card-border);
-  background: var(--bg-surface-2);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
   color: var(--color-text-primary);
   font-size: 0.74rem;
   font-weight: 700;
@@ -205,7 +205,7 @@
   gap: 0.5rem;
   padding: 0.4rem 0.6rem;
   border-radius: 8px;
-  background: var(--bg-surface-2);
+  background: var(--color-surface-raised);
   font-size: 0.72rem;
 }
 

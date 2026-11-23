@@ -31,3 +31,16 @@ Feature: User Authentication, Top-Right User Menu, and Local Portfolio Workspace
     Then the Dashboard view should be visible
     And the local portfolio workspace banner should not be visible
     And the local portfolio menu option should be hidden for owner mode
+
+  @theme @TC-WEB-AUTH-05
+  Scenario Outline: TC-WEB-AUTH-05: Theme preference persists "<mode>" mode across page reload
+    Given I open the SGSK Wealth application
+    When I select the "<mode>" theme in user settings
+    And I reload the web application
+    Then the active theme mode should be "<mode>"
+
+    Examples:
+      | mode   |
+      | light  |
+      | system |
+      | dark   |

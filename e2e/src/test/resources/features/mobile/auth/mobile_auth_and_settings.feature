@@ -27,3 +27,16 @@ Feature: Mobile Authentication, User Settings Sheet, and Local Portfolio Workspa
     When I open mobile user settings
     Then the mobile local management section should be hidden for owner mode
     And the mobile local portfolio banner should not be visible
+
+  @theme @TC-MOB-AUTH-05
+  Scenario Outline: TC-MOB-AUTH-05: Mobile theme preference persists "<mode>" mode across reload
+    Given the SGSK Wealth mobile application is launched
+    When I select the "<mode>" theme in mobile user settings
+    And I reload the mobile application
+    Then the mobile active theme mode should be "<mode>"
+
+    Examples:
+      | mode   |
+      | light  |
+      | system |
+      | dark   |

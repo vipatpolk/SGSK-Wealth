@@ -10,36 +10,41 @@
   --palette-navy-600: #29384D;
   --palette-navy-500: #42536B;
 
-  /* Cool Gray & Light Surfaces */
+  /* Cool Gray & Light Surfaces (strictly light -> dark scale) */
+  --palette-white: #FFFFFF;
   --palette-cool-50: #F3F6FB;
   --palette-cool-100: #F1F5F9;
   --palette-cool-200: #E6ECF4;
   --palette-cool-300: #DCE4EF;
   --palette-cool-400: #B7C5D8;
-  --palette-cool-500: #8795A8;
-  --palette-cool-600: #718096;
-  --palette-cool-700: #52647B;
-  --palette-cool-800: #A0AEC0;
+  --palette-cool-450: #A0AEC0;
+  --palette-cool-500: #8292A8;
+  --palette-cool-600: #5C6D82;
+  --palette-cool-700: #47586E;
+  --palette-cool-800: #334155;
   --palette-cool-900: #14243B;
-  --palette-white: #FFFFFF;
 
   /* Brand & Financial Primitives */
+  --palette-blue-900: #1B3556;
+  --palette-blue-700: #1D4ED8;
   --palette-blue-600: #2563EB;
   --palette-blue-500: #3B82F6;
   --palette-blue-400: #60A5FA;
   --palette-blue-100: #E8F1FF;
-  --palette-blue-900: #1B3556;
 
+  --palette-teal-700: #0F766E;
   --palette-teal-600: #0D9488;
   --palette-teal-400: #2DD4BF;
 
   --palette-emerald-700: #15803D;
   --palette-emerald-400: #34D399;
 
+  --palette-rose-700: #C81E1E;
   --palette-rose-600: #DC2626;
   --palette-rose-400: #FB7185;
 
-  --palette-amber-700: #B7791F;
+  --palette-amber-800: #925C0B;
+  --palette-amber-700: #A16207;
   --palette-amber-600: #D69E36;
   --palette-amber-400: #FBBF24;
 
@@ -49,9 +54,11 @@
   --palette-purple-600: #7C3AED;
   --palette-purple-400: #A78BFA;
 
+  --palette-orange-700: #C2410C;
   --palette-orange-600: #EA580C;
   --palette-orange-400: #FB923C;
 
+  --palette-slate-600: #475569;
   --palette-slate-500: #64748B;
   --palette-slate-400: #94A3B8;
 }

@@ -30,7 +30,7 @@
           (click)="setAssetType('us-stock')"
           class="global-pill-btn"
           [class.active]="selectedAssetType() === 'us-stock'">
-          <span class="color-dot" style="background-color: #3b82f6;"></span>
+          <span class="color-dot" style="background-color: var(--color-asset-us-stocks);"></span>
           {{ 'asset.usStocks' | t }}
         </button>
         <button
@@ -38,7 +38,7 @@
           (click)="setAssetType('thai-stock')"
           class="global-pill-btn"
           [class.active]="selectedAssetType() === 'thai-stock'">
-          <span class="color-dot" style="background-color: #10b981;"></span>
+          <span class="color-dot" style="background-color: var(--color-asset-thai-stocks);"></span>
           {{ 'asset.thaiStocks' | t }}
         </button>
         <button
@@ -46,7 +46,7 @@
           (click)="setAssetType('mutual-fund')"
           class="global-pill-btn"
           [class.active]="selectedAssetType() === 'mutual-fund'">
-          <span class="color-dot" style="background-color: #f59e0b;"></span>
+          <span class="color-dot" style="background-color: var(--color-asset-mutual-funds);"></span>
           {{ 'asset.mutualFunds' | t }}
         </button>
         <button
@@ -54,7 +54,7 @@
           (click)="setAssetType('bond')"
           class="global-pill-btn"
           [class.active]="selectedAssetType() === 'bond'">
-          <span class="color-dot" style="background-color: #06b6d4;"></span>
+          <span class="color-dot" style="background-color: var(--color-asset-bond);"></span>
           {{ 'asset.bonds' | t }}
         </button>
       </div>
@@ -162,19 +162,19 @@
       <!-- Legend -->
       <div class="div-legend">
         <div class="legend-item">
-          <span class="color-dot" style="background-color: #3b82f6;"></span>
+          <span class="color-dot" style="background-color: var(--color-asset-us-stocks);"></span>
           <span>{{ 'asset.usStocks' | t }}</span>
         </div>
         <div class="legend-item">
-          <span class="color-dot" style="background-color: #10b981;"></span>
+          <span class="color-dot" style="background-color: var(--color-asset-thai-stocks);"></span>
           <span>{{ 'asset.thaiStocks' | t }}</span>
         </div>
         <div class="legend-item">
-          <span class="color-dot" style="background-color: #f59e0b;"></span>
+          <span class="color-dot" style="background-color: var(--color-asset-mutual-funds);"></span>
           <span>{{ 'asset.mutualFunds' | t }}</span>
         </div>
         <div class="legend-item">
-          <span class="color-dot" style="background-color: #06b6d4;"></span>
+          <span class="color-dot" style="background-color: var(--color-asset-bond);"></span>
           <span>{{ 'asset.bonds' | t }}</span>
         </div>
       </div>
@@ -189,16 +189,16 @@
               <div class="tooltip-title">{{ m.yearMonth | ldate: 'monthYear' }}</div>
               <div class="tooltip-val">{{ m.netAmount | currency:displayCurrency():'symbol-narrow':'1.2-2' }}</div>
               @if (m.usAmount > 0) {
-                <div class="tooltip-sub" style="color: #3b82f6;">{{ 'asset.short.usStock' | t }}: {{ m.usAmount | currency:displayCurrency():'symbol-narrow':'1.0-0' }}</div>
+                <div class="tooltip-sub" style="color: var(--color-asset-us-stocks);">{{ 'asset.short.usStock' | t }}: {{ m.usAmount | currency:displayCurrency():'symbol-narrow':'1.0-0' }}</div>
               }
               @if (m.thaiAmount > 0) {
-                <div class="tooltip-sub" style="color: #10b981;">{{ 'asset.short.thaiStock' | t }}: {{ m.thaiAmount | currency:displayCurrency():'symbol-narrow':'1.0-0' }}</div>
+                <div class="tooltip-sub" style="color: var(--color-asset-thai-stocks);">{{ 'asset.short.thaiStock' | t }}: {{ m.thaiAmount | currency:displayCurrency():'symbol-narrow':'1.0-0' }}</div>
               }
               @if (m.fundAmount > 0) {
-                <div class="tooltip-sub" style="color: #f59e0b;">{{ 'asset.short.mutualFund' | t }}: {{ m.fundAmount | currency:displayCurrency():'symbol-narrow':'1.0-0' }}</div>
+                <div class="tooltip-sub" style="color: var(--color-asset-mutual-funds);">{{ 'asset.short.mutualFund' | t }}: {{ m.fundAmount | currency:displayCurrency():'symbol-narrow':'1.0-0' }}</div>
               }
               @if (m.bondAmount > 0) {
-                <div class="tooltip-sub" style="color: #06b6d4;">{{ 'asset.short.bond' | t }}: {{ m.bondAmount | currency:displayCurrency():'symbol-narrow':'1.0-0' }}</div>
+                <div class="tooltip-sub" style="color: var(--color-asset-bond);">{{ 'asset.short.bond' | t }}: {{ m.bondAmount | currency:displayCurrency():'symbol-narrow':'1.0-0' }}</div>
               }
             </div>
 
@@ -206,16 +206,16 @@
             <div class="chart-bar-track-wrapper">
               <div class="chart-bar-track" [style.height.%]="m.percentHeight">
                 @if (m.thaiAmount > 0) {
-                  <div class="chart-bar-seg" style="background-color: #10b981;" [style.height.%]="m.thaiPercent"></div>
+                  <div class="chart-bar-seg" style="background-color: var(--color-asset-thai-stocks);" [style.height.%]="m.thaiPercent"></div>
                 }
                 @if (m.usAmount > 0) {
-                  <div class="chart-bar-seg" style="background-color: #3b82f6;" [style.height.%]="m.usPercent"></div>
+                  <div class="chart-bar-seg" style="background-color: var(--color-asset-us-stocks);" [style.height.%]="m.usPercent"></div>
                 }
                 @if (m.fundAmount > 0) {
-                  <div class="chart-bar-seg" style="background-color: #f59e0b;" [style.height.%]="m.fundPercent"></div>
+                  <div class="chart-bar-seg" style="background-color: var(--color-asset-mutual-funds);" [style.height.%]="m.fundPercent"></div>
                 }
                 @if (m.bondAmount > 0) {
-                  <div class="chart-bar-seg" style="background-color: #06b6d4;" [style.height.%]="m.bondPercent"></div>
+                  <div class="chart-bar-seg" style="background-color: var(--color-asset-bond);" [style.height.%]="m.bondPercent"></div>
                 }
               </div>
             </div>

@@ -8,6 +8,7 @@ import { ToolId } from '@shared/models/tools.model';
 import { AppView } from '@shared/config/asset.constants';
 import { SymbolIconComponent } from '@shared/components/symbol-icon/symbol-icon.component';
 import { I18nService } from '@shared/services/i18n.service';
+import { UserSettingsService } from '@shared/services/user-settings.service';
 import { TranslatePipe } from '@shared/pipes/translate.pipe';
 import { LocalizedDatePipe } from '@shared/pipes/localized-date.pipe';
 import {
@@ -56,6 +57,7 @@ export interface RecentTransactionItem {
 })
 export class DashboardComponent {
   readonly i18n = inject(I18nService);
+  private readonly userSettings = inject(UserSettingsService);
   portfolioData = input<PortfolioHoldingsResponse | null>(null);
   dividendData = input<PortfolioDividendResponse | null>(null);
   pricesMap = input<Map<string, PriceData>>(new Map());
@@ -74,7 +76,8 @@ export class DashboardComponent {
   // Formatting helpers
   readonly displaySymbol = displaySymbol;
   readonly getAssetType = getAssetType;
-  readonly getAssetColor = getAssetColor;
+  readonly getAssetColor = (assetType?: string, symbol?: string): string =>
+    getAssetColor(assetType, symbol, this.userSettings.resolvedTheme());
   readonly getQuantityFormat = getQuantityFormat;
 
   getSymbolName(
@@ -238,7 +241,7 @@ export class DashboardComponent {
       result.push({
         type,
         label: this.getAssetTypeLabel(type),
-        color: getAssetColor(type),
+        color: this.getAssetColor(type),
         value: item.value,
         percentage: pct,
         symbolCount: item.count,

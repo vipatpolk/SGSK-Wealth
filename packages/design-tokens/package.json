@@ -2,6 +2,9 @@
   "name": "@sgsk-wealth/design-tokens",
   "version": "1.0.0",
   "private": true,
+  "scripts": {
+    "test": "node scripts/verify-contrast.mjs"
+  },
   "exports": {
     ".": "./src/index.css",
     "./*": "./src/*"

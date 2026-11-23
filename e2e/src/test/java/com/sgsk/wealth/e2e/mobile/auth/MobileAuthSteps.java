@@ -79,4 +79,41 @@ public class MobileAuthSteps {
         driver.assertVisible("#mobile-settings-signout-btn");
         shellScreen.closeUserSettings();
     }
+
+    @When("I select the {string} theme in mobile user settings")
+    public void selectMobileThemeInSettings(String mode) {
+        shellScreen.selectTheme(mode);
+    }
+
+    @When("I reload the mobile application")
+    public void reloadMobileApplication() {
+        if (!driver.isAppiumActive()) {
+            driver.webView().reload();
+            driver.waitForVisible("#mobile-tab-bar");
+        }
+    }
+
+    @Then("the mobile active theme mode should be {string} with resolved theme {string}")
+    public void verifyMobileThemeModeAndResolved(String expectedMode, String expectedResolved) {
+        String actualMode = driver.getHtmlAttribute("data-theme-mode");
+        String actualResolved = driver.getHtmlAttribute("data-theme");
+        org.junit.jupiter.api.Assertions.assertEquals(expectedMode.toLowerCase(), actualMode);
+        org.junit.jupiter.api.Assertions.assertEquals(expectedResolved.toLowerCase(), actualResolved);
+    }
+
+    @Then("the mobile active theme mode should be {string}")
+    public void verifyMobileThemeMode(String expectedMode) {
+        String mode = expectedMode.toLowerCase();
+        String actualMode = driver.getHtmlAttribute("data-theme-mode");
+        String actualResolved = driver.getHtmlAttribute("data-theme");
+        org.junit.jupiter.api.Assertions.assertEquals(mode, actualMode);
+        if ("light".equals(mode) || "dark".equals(mode)) {
+            org.junit.jupiter.api.Assertions.assertEquals(mode, actualResolved);
+        } else {
+            org.junit.jupiter.api.Assertions.assertTrue(
+                    "dark".equals(actualResolved) || "light".equals(actualResolved),
+                    "Expected mobile resolved theme to be dark or light, got: " + actualResolved
+            );
+        }
+    }
 }

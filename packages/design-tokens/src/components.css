@@ -1,34 +1,34 @@
 :root,
 :root[data-theme="dark"] {
-  --color-component-main-bg: #0B1220;
-  --color-component-sidebar: #0E192A;
-  --color-component-header: #0E192A;
-  --color-component-card: #131E30;
-  --color-component-table: #131E30;
-  --color-component-table-hover: #1B2A40;
-  --color-component-primary-btn: #3B82F6;
-  --color-component-primary-btn-hover: #2563EB;
-  --color-component-primary-btn-text: #FFFFFF;
-  --color-component-active-nav: #1B3556;
-  --color-component-modal: #19263A;
-  --color-component-input: #101C2D;
-  --color-component-bottom-nav: #0E192A;
+  --color-component-main-bg: var(--palette-navy-950);
+  --color-component-sidebar: var(--palette-navy-900);
+  --color-component-header: var(--palette-navy-900);
+  --color-component-card: var(--palette-navy-800);
+  --color-component-table: var(--palette-navy-800);
+  --color-component-table-hover: var(--palette-navy-700);
+  --color-component-primary-btn: var(--palette-blue-600);
+  --color-component-primary-btn-hover: var(--palette-blue-700);
+  --color-component-primary-btn-text: var(--palette-white);
+  --color-component-active-nav: var(--palette-blue-900);
+  --color-component-modal: var(--palette-navy-750);
+  --color-component-input: var(--palette-navy-850);
+  --color-component-bottom-nav: var(--palette-navy-900);
 }
 
 :root[data-theme="light"] {
-  --color-component-main-bg: #F3F6FB;
-  --color-component-sidebar: #FFFFFF;
-  --color-component-header: #FFFFFF;
-  --color-component-card: #FFFFFF;
-  --color-component-table: #FFFFFF;
-  --color-component-table-hover: #F1F5F9;
-  --color-component-primary-btn: #2563EB;
-  --color-component-primary-btn-hover: #1D4ED8;
-  --color-component-primary-btn-text: #FFFFFF;
-  --color-component-active-nav: #E8F1FF;
-  --color-component-modal: #FFFFFF;
-  --color-component-input: #FFFFFF;
-  --color-component-bottom-nav: #FFFFFF;
+  --color-component-main-bg: var(--palette-cool-50);
+  --color-component-sidebar: var(--palette-white);
+  --color-component-header: var(--palette-white);
+  --color-component-card: var(--palette-white);
+  --color-component-table: var(--palette-white);
+  --color-component-table-hover: var(--palette-cool-100);
+  --color-component-primary-btn: var(--palette-blue-600);
+  --color-component-primary-btn-hover: var(--palette-blue-700);
+  --color-component-primary-btn-text: var(--palette-white);
+  --color-component-active-nav: var(--palette-blue-100);
+  --color-component-modal: var(--palette-white);
+  --color-component-input: var(--palette-white);
+  --color-component-bottom-nav: var(--palette-white);
 }
 
 :root,

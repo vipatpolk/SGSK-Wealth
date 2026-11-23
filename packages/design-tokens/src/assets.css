@@ -1,26 +1,26 @@
 :root,
 :root[data-theme="dark"] {
-  --color-asset-us-stocks: #60A5FA;
+  --color-asset-us-stocks: var(--palette-blue-400);
   --color-asset-us-stocks-soft: rgba(96, 165, 250, 0.14);
   --color-asset-us-stocks-border: rgba(96, 165, 250, 0.28);
 
-  --color-asset-thai-stocks: #2DD4BF;
+  --color-asset-thai-stocks: var(--palette-teal-400);
   --color-asset-thai-stocks-soft: rgba(45, 212, 191, 0.14);
   --color-asset-thai-stocks-border: rgba(45, 212, 191, 0.28);
 
-  --color-asset-mutual-funds: #A78BFA;
+  --color-asset-mutual-funds: var(--palette-purple-400);
   --color-asset-mutual-funds-soft: rgba(167, 139, 250, 0.14);
   --color-asset-mutual-funds-border: rgba(167, 139, 250, 0.28);
 
-  --color-asset-provident-fund: #FBBF24;
+  --color-asset-provident-fund: var(--palette-amber-400);
   --color-asset-provident-fund-soft: rgba(251, 191, 36, 0.14);
   --color-asset-provident-fund-border: rgba(251, 191, 36, 0.28);
 
-  --color-asset-crypto: #FB923C;
+  --color-asset-crypto: var(--palette-orange-400);
   --color-asset-crypto-soft: rgba(251, 146, 60, 0.14);
   --color-asset-crypto-border: rgba(251, 146, 60, 0.28);
 
-  --color-asset-cash-fixed-income: #94A3B8;
+  --color-asset-cash-fixed-income: var(--palette-slate-400);
   --color-asset-cash-fixed-income-soft: rgba(148, 163, 184, 0.14);
   --color-asset-cash-fixed-income-border: rgba(148, 163, 184, 0.28);
 
@@ -28,41 +28,41 @@
   --color-asset-bond-soft: var(--color-asset-cash-fixed-income-soft);
   --color-asset-bond-border: var(--color-asset-cash-fixed-income-border);
 
-  --color-asset-gold: #FCD34D;
+  --color-asset-gold: var(--palette-gold-300);
   --color-asset-gold-soft: rgba(252, 211, 77, 0.14);
   --color-asset-gold-border: rgba(252, 211, 77, 0.28);
 }
 
 :root[data-theme="light"] {
-  --color-asset-us-stocks: #2563EB;
+  --color-asset-us-stocks: var(--palette-blue-600);
   --color-asset-us-stocks-soft: rgba(37, 99, 235, 0.10);
   --color-asset-us-stocks-border: rgba(37, 99, 235, 0.24);
 
-  --color-asset-thai-stocks: #0D9488;
-  --color-asset-thai-stocks-soft: rgba(13, 148, 136, 0.10);
-  --color-asset-thai-stocks-border: rgba(13, 148, 136, 0.24);
+  --color-asset-thai-stocks: var(--palette-teal-700);
+  --color-asset-thai-stocks-soft: rgba(15, 118, 110, 0.10);
+  --color-asset-thai-stocks-border: rgba(15, 118, 110, 0.24);
 
-  --color-asset-mutual-funds: #7C3AED;
+  --color-asset-mutual-funds: var(--palette-purple-600);
   --color-asset-mutual-funds-soft: rgba(124, 58, 237, 0.10);
   --color-asset-mutual-funds-border: rgba(124, 58, 237, 0.24);
 
-  --color-asset-provident-fund: #D69E36;
-  --color-asset-provident-fund-soft: rgba(214, 158, 54, 0.12);
-  --color-asset-provident-fund-border: rgba(214, 158, 54, 0.28);
+  --color-asset-provident-fund: var(--palette-amber-700);
+  --color-asset-provident-fund-soft: rgba(161, 98, 7, 0.12);
+  --color-asset-provident-fund-border: rgba(161, 98, 7, 0.28);
 
-  --color-asset-crypto: #EA580C;
-  --color-asset-crypto-soft: rgba(234, 88, 12, 0.10);
-  --color-asset-crypto-border: rgba(234, 88, 12, 0.24);
+  --color-asset-crypto: var(--palette-orange-700);
+  --color-asset-crypto-soft: rgba(194, 65, 12, 0.10);
+  --color-asset-crypto-border: rgba(194, 65, 12, 0.24);
 
-  --color-asset-cash-fixed-income: #64748B;
-  --color-asset-cash-fixed-income-soft: rgba(100, 116, 139, 0.10);
-  --color-asset-cash-fixed-income-border: rgba(100, 116, 139, 0.24);
+  --color-asset-cash-fixed-income: var(--palette-slate-600);
+  --color-asset-cash-fixed-income-soft: rgba(71, 85, 105, 0.10);
+  --color-asset-cash-fixed-income-border: rgba(71, 85, 105, 0.24);
 
   --color-asset-bond: var(--color-asset-cash-fixed-income);
   --color-asset-bond-soft: var(--color-asset-cash-fixed-income-soft);
   --color-asset-bond-border: var(--color-asset-cash-fixed-income-border);
 
-  --color-asset-gold: #B45309;
+  --color-asset-gold: var(--palette-gold-700);
   --color-asset-gold-soft: rgba(180, 83, 9, 0.10);
   --color-asset-gold-border: rgba(180, 83, 9, 0.24);
 }

@@ -184,7 +184,7 @@ export class MobileDashboardPage {
       result.push({
         type,
         label: getAssetTypeLabel(type, undefined, lang),
-        color: getAssetColor(type),
+        color: getAssetColor(type, undefined, this.state.userSettings.resolvedTheme()),
         value: item.value,
         percentage: pct,
         symbolCount: item.count,

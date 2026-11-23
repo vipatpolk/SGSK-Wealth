@@ -30,7 +30,7 @@
             cy="21"
             r="15.91549430918954"
             fill="transparent"
-            stroke="var(--bg-card)"
+            stroke="var(--color-surface-raised)"
             stroke-width="6"
           ></circle>
           @for (seg of donutSegments(); track seg.key) {
@@ -99,7 +99,7 @@
                 (click)="selectAssetType(null)"
                 [title]="'alloc.clearFilter' | t"
               >
-                ✕
+                âœ•
               </button>
             </span>
           </div>
@@ -169,7 +169,7 @@
             class="rebalance-item-container total-row-container"
             style="
               background: transparent;
-              border-top: 2px solid var(--border-color);
+              border-top: 2px solid var(--color-border);
               border-bottom: none;
               border-left: none;
               border-right: none;
@@ -252,7 +252,7 @@
 
           <div
             class="symbol-class-item total-row"
-            style="border-top: 2px solid var(--border-color); font-weight: 600"
+            style="border-top: 2px solid var(--color-border); font-weight: 600"
           >
             <div class="symbol-col-info">{{ 'alloc.classTotal' | t }}</div>
             <div class="symbol-mobile-stats">

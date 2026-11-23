@@ -82,7 +82,8 @@ export class MobileDividendsPage {
   } | null>(null);
 
   readonly assetFilterTypes = DIVIDEND_ASSET_TYPES;
-  readonly getAssetColorFn = getAssetColor;
+  readonly getAssetColorFn = (assetType?: string, symbol?: string): string =>
+    getAssetColor(assetType, symbol, this.state.userSettings.resolvedTheme());
   readonly getAssetTypeClassFn = getAssetTypeClass;
 
   private cx(amount: number, fromCurrency?: string): number {

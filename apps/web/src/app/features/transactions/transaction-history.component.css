@@ -458,7 +458,7 @@
 
 .badge-open {
   background-color: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  color: var(--color-pl-positive);
 }
 
 .badge-closed {
@@ -542,7 +542,7 @@
 
 .status-open {
   background-color: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  color: var(--color-pl-positive);
 }
 
 .status-closed {
@@ -557,7 +557,7 @@
 }
 
 .status-dot-open {
-  background-color: #10b981;
+  background-color: var(--color-pl-positive);
 }
 
 .status-dot-closed {
@@ -643,28 +643,28 @@
 
 .tag-buy {
   background-color: rgba(16, 185, 129, 0.12);
-  color: #10b981;
+  color: var(--color-pl-positive);
 }
 
 .tag-sell {
   background-color: rgba(244, 63, 94, 0.12);
-  color: #f43f5e;
+  color: var(--color-pl-negative);
 }
 
 .tag-exchange {
   background-color: rgba(168, 85, 247, 0.14);
-  color: #c084fc;
+  color: var(--color-asset-mutual-funds);
   border: 1px solid rgba(168, 85, 247, 0.25);
 }
 
 .tag-pl-pos {
   background-color: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  color: var(--color-pl-positive);
 }
 
 .tag-pl-neg {
   background-color: rgba(244, 63, 94, 0.15);
-  color: #f43f5e;
+  color: var(--color-pl-negative);
 }
 
 .metric-main-value {
@@ -1004,7 +1004,7 @@
 }
 
 .tag-sell-text {
-  color: #f97316;
+  color: var(--color-asset-crypto);
   font-weight: 600;
 }
 
@@ -1073,17 +1073,17 @@
 
 .type-pill-buy.active {
   background-color: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  color: var(--color-pl-positive);
 }
 
 .type-pill-sell.active {
   background-color: rgba(244, 63, 94, 0.15);
-  color: #f43f5e;
+  color: var(--color-pl-negative);
 }
 
 .type-pill-exchange.active {
   background-color: rgba(168, 85, 247, 0.15);
-  color: #c084fc;
+  color: var(--color-asset-mutual-funds);
 }
 
 .pill-icon {
@@ -1122,8 +1122,8 @@
 }
 
 .btn-export-csv:hover {
-  border-color: #10b981;
-  color: #34d399;
+  border-color: var(--color-pl-positive);
+  color: var(--color-pl-positive);
   background-color: rgba(16, 185, 129, 0.1);
 }
 
@@ -1188,7 +1188,7 @@
 }
 
 .export-grid-card:hover {
-  border-color: #10b981;
+  border-color: var(--color-pl-positive);
   background-color: rgba(16, 185, 129, 0.08);
 }
 
@@ -1289,7 +1289,7 @@
 }
 
 .export-opt-icon.icon-open {
-  color: #10b981;
+  color: var(--color-pl-positive);
 }
 
 .export-dropdown-divider {
@@ -1568,12 +1568,12 @@
 
 .exchange-link-btn:hover {
   background-color: rgba(168, 85, 247, 0.22);
-  border-color: #a855f7;
+  border-color: var(--color-asset-mutual-funds);
 }
 
 .exchange-dir-label {
   font-size: 0.625rem;
-  color: #c084fc;
+  color: var(--color-asset-mutual-funds);
   font-weight: 500;
 }
 
@@ -1716,15 +1716,15 @@
 }
 
 .tx-mobile-card.mobile-card-buy {
-  border-left: 3.5px solid #10b981;
+  border-left: 3.5px solid var(--color-pl-positive);
 }
 
 .tx-mobile-card.mobile-card-sell {
-  border-left: 3.5px solid #f43f5e;
+  border-left: 3.5px solid var(--color-pl-negative);
 }
 
 .tx-mobile-card.mobile-card-exchange {
-  border-left: 3.5px solid #a855f7;
+  border-left: 3.5px solid var(--color-asset-mutual-funds);
 }
 
 .mobile-exchange-bar {
@@ -1743,7 +1743,7 @@
   border-radius: 0.3125rem;
   background-color: rgba(168, 85, 247, 0.12);
   border: 1px solid rgba(168, 85, 247, 0.25);
-  color: #c084fc;
+  color: var(--color-asset-mutual-funds);
   font-size: 0.6875rem;
   font-weight: 500;
   cursor: pointer;
@@ -1754,13 +1754,13 @@
 
 .mobile-exchange-inline-btn:hover {
   background-color: rgba(168, 85, 247, 0.22);
-  border-color: #a855f7;
+  border-color: var(--color-asset-mutual-funds);
 }
 
 .mobile-exchange-prefix {
   font-size: 0.625rem;
   font-weight: 500;
-  color: #c084fc;
+  color: var(--color-asset-mutual-funds);
   opacity: 0.85;
 }
 
@@ -1911,11 +1911,11 @@
 }
 
 .qty-buy {
-  color: #10b981;
+  color: var(--color-pl-positive);
 }
 
 .qty-sell {
-  color: #f43f5e;
+  color: var(--color-pl-negative);
 }
 
 .mobile-metric-unit {
@@ -1952,13 +1952,13 @@
 .mobile-pl-banner.pl-positive {
   background-color: rgba(16, 185, 129, 0.08);
   border-color: rgba(16, 185, 129, 0.2);
-  color: #10b981;
+  color: var(--color-pl-positive);
 }
 
 .mobile-pl-banner.pl-negative {
   background-color: rgba(244, 63, 94, 0.08);
   border-color: rgba(244, 63, 94, 0.2);
-  color: #f43f5e;
+  color: var(--color-pl-negative);
 }
 
 .mobile-pl-banner-left {

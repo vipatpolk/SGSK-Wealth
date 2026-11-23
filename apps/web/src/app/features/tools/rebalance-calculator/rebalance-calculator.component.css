@@ -393,11 +393,11 @@
 }
 
 .text-emerald {
-  color: var(--color-pl-positive, #10b981) !important;
+  color: var(--color-pl-positive) !important;
 }
 
 .text-rose {
-  color: var(--color-pl-negative, #f43f5e) !important;
+  color: var(--color-pl-negative) !important;
 }
 
 /* ================= ASSET CLASS CARDS & TABLES ================= */
@@ -548,13 +548,13 @@
 
 .target-sum-badge.sum-valid {
   background-color: rgba(16, 185, 129, 0.12);
-  color: var(--color-pl-positive, #10b981);
+  color: var(--color-pl-positive);
   border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 .target-sum-badge.sum-invalid {
   background-color: rgba(245, 158, 11, 0.12);
-  color: #f59e0b;
+  color: var(--color-financial-warning);
   border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
@@ -594,7 +594,7 @@
   padding: 0.625rem 1.25rem;
   background-color: rgba(245, 158, 11, 0.1);
   border-bottom: 1px solid rgba(245, 158, 11, 0.2);
-  color: #f59e0b;
+  color: var(--color-financial-warning);
   font-size: 0.8125rem;
 }
 
@@ -958,13 +958,13 @@
 .action-badge.badge-buy {
   background-color: rgba(16, 185, 129, 0.12);
   border: 1px solid rgba(16, 185, 129, 0.25);
-  color: var(--color-pl-positive, #10b981);
+  color: var(--color-pl-positive);
 }
 
 .action-badge.badge-sell {
   background-color: rgba(244, 63, 94, 0.12);
   border: 1px solid rgba(244, 63, 94, 0.25);
-  color: var(--color-pl-negative, #f43f5e);
+  color: var(--color-pl-negative);
 }
 
 .action-badge.badge-balanced {
@@ -1114,11 +1114,11 @@
 }
 
 .order-item-card.order-buy {
-  border-left: 3px solid var(--color-pl-positive, #10b981);
+  border-left: 3px solid var(--color-pl-positive);
 }
 
 .order-item-card.order-sell {
-  border-left: 3px solid var(--color-pl-negative, #f43f5e);
+  border-left: 3px solid var(--color-pl-negative);
 }
 
 .order-num {
@@ -1137,12 +1137,12 @@
 
 .order-action-pill.pill-buy {
   background-color: rgba(16, 185, 129, 0.15);
-  color: var(--color-pl-positive, #10b981);
+  color: var(--color-pl-positive);
 }
 
 .order-action-pill.pill-sell {
   background-color: rgba(244, 63, 94, 0.15);
-  color: var(--color-pl-negative, #f43f5e);
+  color: var(--color-pl-negative);
 }
 
 .order-main-info {
@@ -1175,11 +1175,11 @@
 }
 
 .order-buy .order-amount {
-  color: var(--color-pl-positive, #10b981);
+  color: var(--color-pl-positive);
 }
 
 .order-sell .order-amount {
-  color: var(--color-pl-negative, #f43f5e);
+  color: var(--color-pl-negative);
 }
 
 .empty-rebalance-card {

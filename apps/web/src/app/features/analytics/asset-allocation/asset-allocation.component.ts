@@ -325,7 +325,8 @@ export class AssetAllocationComponent implements OnInit {
     return this.recommendations().reduce((sum, r) => sum + r.actualPercent, 0);
   });
 
-  getAssetColor = getAssetColor;
+  getAssetColor = (assetType?: string, symbol?: string): string =>
+    getAssetColor(assetType, symbol, this.userSettings.resolvedTheme());
 
   getAssetLabel(type: string): string {
     return getAssetTypeLabel(type, undefined, this.i18n.lang());
