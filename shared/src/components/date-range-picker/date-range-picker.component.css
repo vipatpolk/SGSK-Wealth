@@ -34,11 +34,11 @@
 
 .datepicker-trigger-btn.open {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.18);
+  box-shadow: 0 0 0 2px var(--color-accent-soft);
 }
 
 .datepicker-trigger-btn.active {
-  border-color: rgba(99, 102, 241, 0.5);
+  border-color: var(--color-accent);
   background: var(--color-accent-soft);
   color: var(--color-accent);
   font-weight: 600;
@@ -383,30 +383,30 @@
 }
 
 .cal-day-cell.in-hover-range {
-  background-color: rgba(99, 102, 241, 0.1);
+  background-color: var(--color-accent-soft);
   border-radius: 0;
 }
 
 .cal-day-cell.is-start {
-  background-color: var(--color-accent) !important;
-  color: #ffffff !important;
+  background-color: var(--color-component-primary-btn, var(--color-accent)) !important;
+  color: var(--color-component-primary-btn-text, #ffffff) !important;
   font-weight: 700;
   border-top-left-radius: 0.5rem;
   border-bottom-left-radius: 0.5rem;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
-  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 2px 6px var(--color-shadow-sm);
 }
 
 .cal-day-cell.is-end {
-  background-color: var(--color-accent) !important;
-  color: #ffffff !important;
+  background-color: var(--color-component-primary-btn, var(--color-accent)) !important;
+  color: var(--color-component-primary-btn-text, #ffffff) !important;
   font-weight: 700;
   border-top-right-radius: 0.5rem;
   border-bottom-right-radius: 0.5rem;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
-  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 2px 6px var(--color-shadow-sm);
 }
 
 .cal-day-cell.is-start.is-end {
@@ -517,9 +517,9 @@
 }
 
 .btn-footer-apply {
-  background-color: var(--color-accent);
+  background-color: var(--color-component-primary-btn, var(--color-accent));
   border: 1px solid transparent;
-  color: #ffffff;
+  color: var(--color-component-primary-btn-text, #ffffff);
   font-family: inherit;
   font-size: 0.75rem;
   font-weight: 600;
@@ -527,12 +527,12 @@
   padding: 0.35rem 0.875rem;
   border-radius: 0.375rem;
   transition: all 0.15s ease;
-  box-shadow: 0 1px 3px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 1px 3px var(--color-shadow-sm);
 }
 
 .btn-footer-apply:hover {
-  filter: brightness(1.1);
-  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
+  background-color: var(--color-component-primary-btn-hover, var(--color-accent));
+  box-shadow: 0 2px 6px var(--color-shadow-sm);
 }
 
 /* Tablet Screen Sizing */

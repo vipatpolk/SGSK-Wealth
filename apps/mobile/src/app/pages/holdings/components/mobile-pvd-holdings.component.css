@@ -253,21 +253,21 @@
 
 .pvd-risk-pill[data-tier='low'] {
   color: var(--color-pl-positive);
-  background: rgba(16, 185, 129, 0.14);
-  border-color: rgba(16, 185, 129, 0.28);
+  background: var(--color-pl-positive-soft);
+  border-color: var(--color-pl-positive-border);
 }
 
 .pvd-risk-pill[data-tier='moderate'] {
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.14);
-  border-color: rgba(245, 158, 11, 0.28);
+  color: var(--color-financial-warning);
+  background: var(--color-financial-warning-soft);
+  border-color: var(--color-financial-warning-border);
 }
 
 .pvd-risk-pill[data-tier='high'],
 .pvd-risk-pill[data-tier='very-high'] {
   color: var(--color-pl-negative);
-  background: rgba(239, 68, 68, 0.14);
-  border-color: rgba(239, 68, 68, 0.28);
+  background: var(--color-pl-negative-soft);
+  border-color: var(--color-pl-negative-border);
 }
 
 .pvd-risk-meter {
@@ -307,18 +307,18 @@
 }
 
 .pvd-rs-step.step-low.covered {
-  background: rgba(16, 185, 129, 0.18);
+  background: var(--color-pl-positive-soft);
   color: var(--color-pl-positive);
 }
 
 .pvd-rs-step.step-mod.covered {
-  background: rgba(245, 158, 11, 0.18);
-  color: #f59e0b;
+  background: var(--color-financial-warning-soft);
+  color: var(--color-financial-warning);
 }
 
 .pvd-rs-step.step-high.covered,
 .pvd-rs-step.step-vhigh.covered {
-  background: rgba(239, 68, 68, 0.18);
+  background: var(--color-pl-negative-soft);
   color: var(--color-pl-negative);
 }
 
@@ -365,7 +365,7 @@
   background: var(--color-pl-positive);
 }
 .pvd-bucket-fill[data-tier='moderate'] {
-  background: #f59e0b;
+  background: var(--color-financial-warning);
 }
 .pvd-bucket-fill[data-tier='high'],
 .pvd-bucket-fill[data-tier='very-high'] {

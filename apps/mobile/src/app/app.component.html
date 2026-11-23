@@ -59,7 +59,11 @@
           (click)="state.togglePrivacyMode()"
           [attr.aria-label]="state.privacyMode() ? ('header.privacyShow' | t) : ('header.privacyHide' | t)"
         >
-          <ion-icon [name]="state.privacyMode() ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+          <app-nav-icon
+            [name]="state.privacyMode() ? 'eye-off' : 'eye'"
+            [active]="state.privacyMode()"
+            class="hdr-action-svg"
+          ></app-nav-icon>
         </button>
 
         <button
@@ -69,10 +73,11 @@
           (click)="state.refresh()"
           [attr.aria-label]="'app.refresh' | t"
         >
-          <ion-icon
-            name="refresh-outline"
+          <app-nav-icon
+            name="refresh"
+            class="hdr-action-svg"
             [class.spin-icon]="state.loading() || state.pricesLoading()"
-          ></ion-icon>
+          ></app-nav-icon>
         </button>
 
         <button
@@ -131,42 +136,42 @@
     <ion-tab-bar slot="bottom" id="mobile-tab-bar" class="sgsk-tab-bar">
       <ion-tab-button tab="dashboard" id="mobile-tab-dashboard" data-tab="dashboard" class="sgsk-tab-btn">
         <div class="tab-icon-pill">
-          <ion-icon name="grid-outline"></ion-icon>
+          <app-nav-icon name="dashboard" class="mobile-nav-svg"></app-nav-icon>
         </div>
         <ion-label>{{ 'nav.dashboard' | t }}</ion-label>
       </ion-tab-button>
 
       <ion-tab-button tab="holdings" id="mobile-tab-holdings" data-tab="holdings" class="sgsk-tab-btn">
         <div class="tab-icon-pill">
-          <ion-icon name="layers-outline"></ion-icon>
+          <app-nav-icon name="holdings" class="mobile-nav-svg"></app-nav-icon>
         </div>
         <ion-label>{{ 'nav.holdings' | t }}</ion-label>
       </ion-tab-button>
 
       <ion-tab-button tab="analytics" id="mobile-tab-analytics" data-tab="analytics" class="sgsk-tab-btn">
         <div class="tab-icon-pill">
-          <ion-icon name="bar-chart-outline"></ion-icon>
+          <app-nav-icon name="analytics" class="mobile-nav-svg"></app-nav-icon>
         </div>
         <ion-label>{{ 'nav.analytics' | t }}</ion-label>
       </ion-tab-button>
 
       <ion-tab-button tab="dividends" id="mobile-tab-dividends" data-tab="dividends" class="sgsk-tab-btn">
         <div class="tab-icon-pill">
-          <ion-icon name="cash-outline"></ion-icon>
+          <app-nav-icon name="dividends" class="mobile-nav-svg"></app-nav-icon>
         </div>
         <ion-label>{{ 'nav.dividends' | t }}</ion-label>
       </ion-tab-button>
 
       <ion-tab-button tab="transactions" id="mobile-tab-transactions" data-tab="transactions" class="sgsk-tab-btn">
         <div class="tab-icon-pill">
-          <ion-icon name="time-outline"></ion-icon>
+          <app-nav-icon name="transactions" class="mobile-nav-svg"></app-nav-icon>
         </div>
         <ion-label>{{ 'nav.transactions' | t }}</ion-label>
       </ion-tab-button>
 
       <ion-tab-button tab="tools" id="mobile-tab-tools" data-tab="tools" class="sgsk-tab-btn">
         <div class="tab-icon-pill">
-          <ion-icon name="calculator-outline"></ion-icon>
+          <app-nav-icon name="tools" class="mobile-nav-svg"></app-nav-icon>
         </div>
         <ion-label>{{ 'nav.tools' | t }}</ion-label>
       </ion-tab-button>

@@ -60,8 +60,8 @@
   gap: 0.2rem;
   padding: 0.8rem;
   border-radius: 14px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.16), rgba(16, 185, 129, 0.1));
-  border: 1px solid rgba(99, 102, 241, 0.35);
+  background: linear-gradient(135deg, var(--color-accent-soft), var(--color-pl-positive-soft));
+  border: 1px solid var(--color-border-hover);
 }
 
 .tvm-hero-val {
@@ -100,15 +100,15 @@
 }
 
 .tvm-seg.principal {
-  background: #6366f1;
+  background: var(--color-accent);
 }
 
 .tvm-seg.contrib {
-  background: #06b6d4;
+  background: var(--color-asset-mutual-funds);
 }
 
 .tvm-seg.interest {
-  background: #10b981;
+  background: var(--color-pl-positive);
 }
 
 .tvm-comp-legend {
@@ -128,9 +128,9 @@
   margin-right: 0.2rem;
 }
 
-.dot.principal { background: #6366f1; }
-.dot.contrib { background: #06b6d4; }
-.dot.interest { background: #10b981; }
+.dot.principal { background: var(--color-accent); }
+.dot.contrib { background: var(--color-asset-mutual-funds); }
+.dot.interest { background: var(--color-pl-positive); }
 
 .tvm-chart-card {
   margin-top: 0.75rem;

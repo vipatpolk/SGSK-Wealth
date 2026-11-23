@@ -1156,6 +1156,7 @@ export const en = {
   'settings.themeLabel': 'Appearance Theme',
   'settings.themeDark': 'Dark',
   'settings.themeLight': 'Light',
+  'settings.themeSystem': 'System',
   'settings.privacyLabel': 'Privacy Mode',
   'settings.privacyDesc': 'Mask monetary amounts and share counts across the interface',
   'settings.syncLocal': 'Saved on this device',

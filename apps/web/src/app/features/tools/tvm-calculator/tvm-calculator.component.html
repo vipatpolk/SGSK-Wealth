@@ -604,14 +604,14 @@
           <defs>
             <!-- Emerald Gradient for Balance Area -->
             <linearGradient id="tvmBalanceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#10b981" stop-opacity="0.3" />
-              <stop offset="100%" stop-color="#10b981" stop-opacity="0.0" />
+              <stop offset="0%" stop-color="var(--color-pl-positive)" stop-opacity="0.3" />
+              <stop offset="100%" stop-color="var(--color-pl-positive)" stop-opacity="0.0" />
             </linearGradient>
 
             <!-- Purple Gradient for Invested Area -->
             <linearGradient id="tvmInvestedGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.25" />
-              <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.0" />
+              <stop offset="0%" stop-color="var(--color-asset-mutual-funds)" stop-opacity="0.25" />
+              <stop offset="100%" stop-color="var(--color-asset-mutual-funds)" stop-opacity="0.0" />
             </linearGradient>
           </defs>
 
@@ -654,7 +654,7 @@
           <path
             [attr.d]="growthChartData().pathInvestedCapital"
             fill="none"
-            stroke="#8b5cf6"
+            stroke="var(--color-asset-mutual-funds)"
             stroke-width="2.5"
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -665,7 +665,7 @@
           <path
             [attr.d]="growthChartData().pathTotalBalance"
             fill="none"
-            stroke="#10b981"
+            stroke="var(--color-pl-positive)"
             stroke-width="3"
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -702,7 +702,7 @@
               [attr.cx]="hp.x"
               [attr.cy]="hp.yInvested"
               r="4.5"
-              fill="#8b5cf6"
+              fill="var(--color-asset-mutual-funds)"
               stroke="#ffffff"
               stroke-width="2"
               class="hover-circle"
@@ -713,7 +713,7 @@
               [attr.cx]="hp.x"
               [attr.cy]="hp.yBalance"
               r="6"
-              fill="#10b981"
+              fill="var(--color-pl-positive)"
               stroke="#ffffff"
               stroke-width="2.5"
               class="hover-circle-main"

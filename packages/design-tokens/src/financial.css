@@ -1,0 +1,69 @@
+:root,
+:root[data-theme="dark"] {
+  --color-pl-positive: #34D399;
+  --color-pl-positive-soft: rgba(52, 211, 153, 0.14);
+  --color-pl-positive-border: rgba(52, 211, 153, 0.28);
+
+  --color-pl-negative: #FB7185;
+  --color-pl-negative-soft: rgba(251, 113, 133, 0.14);
+  --color-pl-negative-border: rgba(251, 113, 133, 0.28);
+
+  --color-financial-positive: var(--color-pl-positive);
+  --color-financial-negative: var(--color-pl-negative);
+
+  --color-financial-warning: #FBBF24;
+  --color-financial-warning-soft: rgba(251, 191, 36, 0.14);
+  --color-financial-warning-border: rgba(251, 191, 36, 0.28);
+
+  --color-financial-info: #60A5FA;
+  --color-financial-info-soft: rgba(96, 165, 250, 0.14);
+  --color-financial-info-border: rgba(96, 165, 250, 0.28);
+
+  --color-financial-dividend: #2DD4BF;
+  --color-financial-dividend-soft: rgba(45, 212, 191, 0.14);
+  --color-financial-dividend-border: rgba(45, 212, 191, 0.28);
+
+  --color-financial-neutral: #94A3B8;
+  --color-financial-neutral-soft: rgba(148, 163, 184, 0.14);
+}
+
+:root[data-theme="light"] {
+  --color-pl-positive: #15803D;
+  --color-pl-positive-soft: rgba(21, 128, 61, 0.10);
+  --color-pl-positive-border: rgba(21, 128, 61, 0.24);
+
+  --color-pl-negative: #DC2626;
+  --color-pl-negative-soft: rgba(220, 38, 38, 0.10);
+  --color-pl-negative-border: rgba(220, 38, 38, 0.24);
+
+  --color-financial-positive: var(--color-pl-positive);
+  --color-financial-negative: var(--color-pl-negative);
+
+  --color-financial-warning: #B7791F;
+  --color-financial-warning-soft: rgba(183, 121, 31, 0.12);
+  --color-financial-warning-border: rgba(183, 121, 31, 0.26);
+
+  --color-financial-info: #2563EB;
+  --color-financial-info-soft: rgba(37, 99, 235, 0.10);
+  --color-financial-info-border: rgba(37, 99, 235, 0.24);
+
+  --color-financial-dividend: #0D9488;
+  --color-financial-dividend-soft: rgba(13, 148, 136, 0.10);
+  --color-financial-dividend-border: rgba(13, 148, 136, 0.24);
+
+  --color-financial-neutral: #64748B;
+  --color-financial-neutral-soft: rgba(100, 116, 139, 0.10);
+}
+
+:root,
+:root[data-theme="dark"],
+:root[data-theme="light"] {
+  --color-success: var(--color-pl-positive);
+  --color-danger: var(--color-pl-negative);
+  --color-warning: var(--color-financial-warning);
+  --color-info: var(--color-financial-info);
+  --color-positive: var(--color-pl-positive);
+  --color-positive-bg: var(--color-pl-positive-soft);
+  --color-negative: var(--color-pl-negative);
+  --color-negative-bg: var(--color-pl-negative-soft);
+}

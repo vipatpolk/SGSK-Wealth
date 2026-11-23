@@ -53,6 +53,15 @@
             >
               {{ 'settings.themeLight' | t }}
             </button>
+            <button
+              type="button"
+              id="settings-theme-system"
+              class="seg-btn"
+              [class.active]="settingsService.theme() === 'system'"
+              (click)="settingsService.setTheme('system')"
+            >
+              {{ 'settings.themeSystem' | t }}
+            </button>
           </div>
         </div>
       </section>

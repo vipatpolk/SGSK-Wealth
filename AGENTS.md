@@ -3,6 +3,7 @@
 This repository is a monorepo consisting of:
 - **`backend/`**: Rust (Axum + Tokio) backend service
 - **`packages/contracts/`**: Framework-free TypeScript API & DTO contracts (`@sgsk-wealth/contracts`)
+- **`packages/design-tokens/`**: Layered CSS design tokens (`primitives`, `semantic`, `financial`, `assets`, `components`) for Web & Mobile (`@sgsk-wealth/design-tokens`)
 - **`packages/domain/`**: Framework-free financial domain logic, FIFO calculator, TVM, rebalance & CSV utilities (`@sgsk-wealth/domain`)
 - **`shared/`**: Shared Angular core UI components, HTTP services, pipes, i18n dictionaries, and DOM helpers (`@shared/*`) with compatibility re-exports from `packages/*`
 - **`apps/web/`**: Angular 22 Web Single Page Application
@@ -98,8 +99,8 @@ From root:
 
 ### 3. Cross-Platform Mobile Standards (iOS & Android)
 Whenever implementing or enhancing features, UI flows, APIs, or shared utilities, explicitly evaluate and maintain parity across **Web (`apps/web/`)**, **iOS (`apps/mobile/ios/`)**, and **Android (`apps/mobile/android/`)**:
-- **Shared-First Architecture**: Keep framework-free DTOs in `packages/contracts/` (`@sgsk-wealth/contracts`), pure financial logic in `packages/domain/` (`@sgsk-wealth/domain`), and Angular/Ionic shared UI services/components/pipes/i18n keys (`en.ts`/`th.ts`) inside `shared/` (`@shared/*`). Never hardcode relative `/api/backend/...` paths inside `@shared/*` UI components or utilities—inject `API_BASE_URL` so Capacitor iOS (`capacitor://`) and Android (`http://10.0.2.2:8000`) resolve endpoints cleanly.
-- **Native UX & Adaptive Behavior**: Preserve platform-adaptive Ionic `mode` (`'md'` on Android, `'ios'` on iOS/Web), shared dark/light theme tokens, safe-area insets (`env(safe-area-inset-*)`), `@capacitor/status-bar` theme syncing, `@capacitor/haptics` feedback, `@capacitor/preferences` persistence, Android hardware `backButton` handling, and native controls (`ion-header`, `ion-tabs`, `ion-modal` sheets, `ion-refresher`, `ion-segment`).
+- **Shared-First Architecture**: Keep framework-free DTOs in `packages/contracts/` (`@sgsk-wealth/contracts`), layered CSS color tokens in `packages/design-tokens/` (`@sgsk-wealth/design-tokens`), pure financial logic in `packages/domain/` (`@sgsk-wealth/domain`), and Angular/Ionic shared UI services/components/pipes/i18n keys (`en.ts`/`th.ts`) inside `shared/` (`@shared/*`). Never hardcode relative `/api/backend/...` paths inside `@shared/*` UI components or utilities—inject `API_BASE_URL` so Capacitor iOS (`capacitor://`) and Android (`http://10.0.2.2:8000`) resolve endpoints cleanly.
+- **Native UX & Adaptive Behavior**: Preserve platform-adaptive Ionic `mode` (`'md'` on Android, `'ios'` on iOS/Web), shared `Dark` / `Light` / `System` theme tokens from `@sgsk-wealth/design-tokens` (`UserSettingsService.resolvedTheme()`, `#0B1220` dark / `#FFFFFF` light status bar syncing), safe-area insets (`env(safe-area-inset-*)`), `@capacitor/status-bar` theme syncing, `@capacitor/haptics` feedback, `@capacitor/preferences` persistence, Android hardware `backButton` handling, and native controls (`ion-header`, `ion-tabs`, `ion-modal` sheets, `ion-refresher`, `ion-segment`).
 - **Native Packaging & Selectors**: When shipping mobile UI changes, keep `e2e/` selectors (`#mobile-*`, `[data-symbol-lots]`), sync the built bundle to native assets (`npm run cap:sync`, or copy `apps/mobile/dist/sgsk-wealth-mobile/browser` into `apps/mobile/android/app/src/main/assets/public` for the Maven Android project), and verify Android APK compilation (`mvn -f apps/mobile/android/pom.xml package`, overriding `-Dandroid.compileSdk=<installed-sdk>` if needed) alongside iOS sync.
 
 ### 4. E2E & BDD Verification (`e2e/`)

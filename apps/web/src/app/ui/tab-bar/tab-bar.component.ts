@@ -1,13 +1,14 @@
 import { Component, input, output, inject, ChangeDetectionStrategy } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { AssetTab, AppView } from '@shared/config/asset.constants';
+import { NavIconComponent, NavIconName } from '@shared/components/nav-icon/nav-icon.component';
 import { I18nService } from '@shared/services/i18n.service';
 
 @Component({
   selector: 'app-tab-bar',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgTemplateOutlet],
+  imports: [NgTemplateOutlet, NavIconComponent],
   templateUrl: './tab-bar.component.html'
 })
 export class TabBarComponent {
@@ -21,6 +22,31 @@ export class TabBarComponent {
 
   tabSelect = output<AssetTab>();
   toggleDropdown = output<void>();
+
+  resolveTabIconName(icon: string): NavIconName {
+    switch (icon) {
+      case 'flag-us':
+        return 'flag-us';
+      case 'flag-th':
+        return 'flag-th';
+      case 'bitcoin':
+      case 'crypto':
+        return 'crypto';
+      case 'pie-chart':
+      case 'fund':
+        return 'fund';
+      case 'landmark':
+      case 'bond':
+        return 'bond';
+      case 'briefcase':
+      case 'provident-fund':
+        return 'pvd';
+      case 'check-circle':
+        return 'check-circle';
+      default:
+        return 'globe';
+    }
+  }
 
   getTabLabel(tab: AssetTab): string {
     switch (tab.id) {

@@ -6,7 +6,6 @@ import {
   IonApp,
   IonButtons,
   IonHeader,
-  IonIcon,
   IonLabel,
   IonTabBar,
   IonTabButton,
@@ -14,22 +13,8 @@ import {
   IonToolbar,
 } from '@ionic/angular';
 import { LoadingScreenComponent } from '@shared/components/loading-screen/loading-screen.component';
+import { NavIconComponent } from '@shared/components/nav-icon/nav-icon.component';
 import { TranslatePipe } from '@shared/pipes/translate.pipe';
-import { addIcons } from 'ionicons';
-import {
-  barChartOutline,
-  calculatorOutline,
-  cashOutline,
-  eyeOffOutline,
-  eyeOutline,
-  gridOutline,
-  layersOutline,
-  moonOutline,
-  personCircleOutline,
-  refreshOutline,
-  sunnyOutline,
-  timeOutline,
-} from 'ionicons/icons';
 import { MobileAuthModalComponent } from './modals/auth-modal/mobile-auth-modal.component';
 import { MobileFactsheetModalComponent } from './modals/fund-factsheet-modal/mobile-factsheet-modal.component';
 import { MobileLocalPortfolioModalComponent } from './modals/local-portfolio-modal/mobile-local-portfolio-modal.component';
@@ -44,11 +29,11 @@ import { MobileStateService } from './services/mobile-state.service';
     DecimalPipe,
     TranslatePipe,
     LoadingScreenComponent,
+    NavIconComponent,
     IonApp,
     IonHeader,
     IonToolbar,
     IonButtons,
-    IonIcon,
     IonTabs,
     IonTabBar,
     IonTabButton,
@@ -82,21 +67,6 @@ export class AppComponent implements OnDestroy {
   });
 
   constructor() {
-    addIcons({
-      gridOutline,
-      layersOutline,
-      barChartOutline,
-      cashOutline,
-      timeOutline,
-      calculatorOutline,
-      eyeOutline,
-      eyeOffOutline,
-      sunnyOutline,
-      moonOutline,
-      refreshOutline,
-      personCircleOutline,
-    });
-
     void this.initHardwareBackHandler();
   }
 

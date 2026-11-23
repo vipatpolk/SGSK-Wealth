@@ -11,8 +11,8 @@
     <meta name="format-detection" content="telephone=no" />
     <meta name="msapplication-tap-highlight" content="no" />
     <meta name="color-scheme" content="dark light" />
-    <meta name="theme-color" content="#0b0d14" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#f5f7fa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F3F6FB" media="(prefers-color-scheme: light)" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -24,9 +24,13 @@
     <script>
       (function () {
         try {
-          var theme = localStorage.getItem('sgsk_wealth_theme') || 'dark';
-          document.documentElement.setAttribute('data-theme', theme);
-          document.documentElement.classList.toggle('ion-palette-dark', theme === 'dark');
+          var mode = localStorage.getItem('sgsk_wealth_theme') || 'dark';
+          var resolved = mode === 'system'
+            ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : (mode === 'light' ? 'light' : 'dark');
+          document.documentElement.setAttribute('data-theme', resolved);
+          document.documentElement.setAttribute('data-theme-mode', mode === 'system' || mode === 'light' || mode === 'dark' ? mode : 'dark');
+          document.documentElement.classList.toggle('ion-palette-dark', resolved === 'dark');
           var lang = localStorage.getItem('sgsk_wealth_lang');
           document.documentElement.setAttribute('lang', lang === 'th' ? 'th' : 'en');
         } catch (e) {}

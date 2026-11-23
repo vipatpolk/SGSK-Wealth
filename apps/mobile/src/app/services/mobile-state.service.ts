@@ -26,6 +26,7 @@ import { I18nService } from '@shared/services/i18n.service';
 import { LocalPortfolioService } from '@shared/services/local-portfolio.service';
 import { PortfolioSourceCoordinator } from '@shared/providers/portfolio-source.coordinator';
 import { PriceData, PriceService } from '@shared/services/price.service';
+import { AppTheme } from '@sgsk-wealth/contracts';
 import { UserSettingsService } from '@shared/services/user-settings.service';
 import { convertCurrency, getAssetTypeLabel, getSymbolName } from '@shared/utils/format.utils';
 import { NativePlatformService } from './native-platform.service';
@@ -351,12 +352,14 @@ export class MobileStateService {
     });
 
     effect(() => {
-      const currentTheme = this.theme();
+      const resolvedTheme = this.userSettings.resolvedTheme();
+      const themeMode = this.theme();
       if (typeof document !== 'undefined') {
-        document.documentElement.setAttribute('data-theme', currentTheme);
-        document.documentElement.classList.toggle('ion-palette-dark', currentTheme === 'dark');
+        document.documentElement.setAttribute('data-theme', resolvedTheme);
+        document.documentElement.setAttribute('data-theme-mode', themeMode);
+        document.documentElement.classList.toggle('ion-palette-dark', resolvedTheme === 'dark');
       }
-      void this.nativePlatform.syncStatusBar(currentTheme);
+      void this.nativePlatform.syncStatusBar(resolvedTheme);
     });
 
     effect(() => {
@@ -535,7 +538,7 @@ export class MobileStateService {
     }
   }
 
-  setTheme(theme: 'dark' | 'light'): void {
+  setTheme(theme: AppTheme): void {
     this.userSettings.setTheme(theme);
   }
 

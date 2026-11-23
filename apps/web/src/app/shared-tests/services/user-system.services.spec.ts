@@ -288,8 +288,42 @@ describe('User System Shared Services', () => {
 
       settings.setTheme('light', false);
       expect(settings.theme()).toBe('light');
+      expect(settings.resolvedTheme()).toBe('light');
       expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+      expect(document.documentElement.getAttribute('data-theme-mode')).toBe('light');
       expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('light');
+
+      // System theme resolves from prefers-color-scheme and reacts live
+      let changeListener: ((ev: MediaQueryListEvent) => void) | undefined;
+      let prefersDark = false;
+      vi.stubGlobal('matchMedia', vi.fn().mockImplementation(() => ({
+        get matches() {
+          return prefersDark;
+        },
+        media: '(prefers-color-scheme: dark)',
+        addEventListener: (_ev: string, cb: (ev: MediaQueryListEvent) => void) => {
+          changeListener = cb;
+        },
+        removeEventListener: vi.fn(),
+      })));
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({});
+      const systemSettings = TestBed.inject(UserSettingsService);
+      systemSettings.setTheme('system', false);
+      expect(systemSettings.theme()).toBe('system');
+      expect(systemSettings.resolvedTheme()).toBe('light');
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+      expect(document.documentElement.getAttribute('data-theme-mode')).toBe('system');
+
+      prefersDark = true;
+      changeListener?.({ matches: true } as MediaQueryListEvent);
+      expect(systemSettings.resolvedTheme()).toBe('dark');
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+
+      systemSettings.toggleTheme();
+      expect(systemSettings.theme()).toBe('light');
+      expect(systemSettings.resolvedTheme()).toBe('light');
 
       settings.setPrivacyMode(true, false);
       expect(settings.privacyMode()).toBe(true);

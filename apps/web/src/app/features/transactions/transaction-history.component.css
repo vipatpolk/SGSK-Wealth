@@ -389,39 +389,39 @@
 }
 
 .asset-type-us-stock {
-  background: #3b82f618;
-  color: #60a5fa;
-  border-color: #3b82f638;
+  background: var(--color-asset-us-stocks-soft);
+  color: var(--color-asset-us-stocks);
+  border-color: var(--color-asset-us-stocks-border);
 }
 
 .asset-type-thai-stock {
-  background: #10b98118;
-  color: #34d399;
-  border-color: #10b98138;
+  background: var(--color-asset-thai-stocks-soft);
+  color: var(--color-asset-thai-stocks);
+  border-color: var(--color-asset-thai-stocks-border);
 }
 
 .asset-type-crypto {
-  background: #f59e0b18;
-  color: #fbbf24;
-  border-color: #f59e0b38;
+  background: var(--color-asset-crypto-soft);
+  color: var(--color-asset-crypto);
+  border-color: var(--color-asset-crypto-border);
 }
 
 .asset-type-mutual-fund {
-  background: #a855f718;
-  color: #c084fc;
-  border-color: #a855f738;
+  background: var(--color-asset-mutual-funds-soft);
+  color: var(--color-asset-mutual-funds);
+  border-color: var(--color-asset-mutual-funds-border);
 }
 
 .asset-type-bond {
-  background: #06b6d418;
-  color: #22d3ee;
-  border-color: #06b6d438;
+  background: var(--color-asset-cash-fixed-income-soft);
+  color: var(--color-asset-cash-fixed-income);
+  border-color: var(--color-asset-cash-fixed-income-border);
 }
 
 .asset-type-provident-fund {
-  background: #6366f118;
-  color: #818cf8;
-  border-color: #6366f138;
+  background: var(--color-asset-provident-fund-soft);
+  color: var(--color-asset-provident-fund);
+  border-color: var(--color-asset-provident-fund-border);
 }
 
 .dropdown-item-name {
@@ -845,63 +845,63 @@
 }
 
 .asset-filter-pill-all.asset-filter-pill-active {
-  background: #6366f118;
-  color: #818cf8;
-  border-color: #6366f150;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 .asset-filter-pill-all.asset-filter-pill-active .asset-filter-pill-count {
-  background: #6366f130;
-  color: #c7d2fe;
+  background: var(--color-accent);
+  color: #ffffff;
 }
 
 .asset-filter-pill-us-stock.asset-filter-pill-active {
-  background: #3b82f618;
-  color: #60a5fa;
-  border-color: #3b82f650;
+  background: var(--color-asset-us-stocks-soft);
+  color: var(--color-asset-us-stocks);
+  border-color: var(--color-asset-us-stocks-border);
 }
 .asset-filter-pill-us-stock.asset-filter-pill-active .asset-filter-pill-count {
-  background: #3b82f630;
-  color: #93c5fd;
+  background: var(--color-asset-us-stocks-soft);
+  color: var(--color-asset-us-stocks);
 }
 
 .asset-filter-pill-thai-stock.asset-filter-pill-active {
-  background: #10b98118;
-  color: #34d399;
-  border-color: #10b98150;
+  background: var(--color-asset-thai-stocks-soft);
+  color: var(--color-asset-thai-stocks);
+  border-color: var(--color-asset-thai-stocks-border);
 }
 .asset-filter-pill-thai-stock.asset-filter-pill-active .asset-filter-pill-count {
-  background: #10b98130;
-  color: #a7f3d0;
+  background: var(--color-asset-thai-stocks-soft);
+  color: var(--color-asset-thai-stocks);
 }
 
 .asset-filter-pill-crypto.asset-filter-pill-active {
-  background: #f59e0b18;
-  color: #fbbf24;
-  border-color: #f59e0b50;
+  background: var(--color-asset-crypto-soft);
+  color: var(--color-asset-crypto);
+  border-color: var(--color-asset-crypto-border);
 }
 .asset-filter-pill-crypto.asset-filter-pill-active .asset-filter-pill-count {
-  background: #f59e0b30;
-  color: #fde68a;
+  background: var(--color-asset-crypto-soft);
+  color: var(--color-asset-crypto);
 }
 
 .asset-filter-pill-mutual-fund.asset-filter-pill-active {
-  background: #a855f718;
-  color: #c084fc;
-  border-color: #a855f750;
+  background: var(--color-asset-mutual-funds-soft);
+  color: var(--color-asset-mutual-funds);
+  border-color: var(--color-asset-mutual-funds-border);
 }
 .asset-filter-pill-mutual-fund.asset-filter-pill-active .asset-filter-pill-count {
-  background: #a855f730;
-  color: #e9d5ff;
+  background: var(--color-asset-mutual-funds-soft);
+  color: var(--color-asset-mutual-funds);
 }
 
 .asset-filter-pill-bond.asset-filter-pill-active {
-  background: #06b6d418;
-  color: #22d3ee;
-  border-color: #06b6d450;
+  background: var(--color-asset-cash-fixed-income-soft);
+  color: var(--color-asset-cash-fixed-income);
+  border-color: var(--color-asset-cash-fixed-income-border);
 }
 .asset-filter-pill-bond.asset-filter-pill-active .asset-filter-pill-count {
-  background: #06b6d430;
-  color: #a5f3fc;
+  background: var(--color-asset-cash-fixed-income-soft);
+  color: var(--color-asset-cash-fixed-income);
 }
 
 /* Mobile Controls & Dropdown Filter (Matching Closed Positions style) */
@@ -925,8 +925,8 @@
 }
 
 .mobile-control-field:focus-within {
-  border-color: #6366f180;
-  box-shadow: 0 0 0 2px #6366f115;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-accent-soft);
 }
 
 .mobile-control-icon-wrap {
@@ -1529,21 +1529,21 @@
 }
 
 .qty-buy {
-  color: #10b981;
+  color: var(--color-pl-positive);
 }
 
 .qty-sell {
-  color: #f43f5e;
+  color: var(--color-pl-negative);
 }
 
 .qty-exchange {
-  color: #c084fc;
+  color: var(--color-asset-mutual-funds);
 }
 
 .type-exchange {
-  background-color: rgba(168, 85, 247, 0.14) !important;
-  color: #c084fc !important;
-  border-color: rgba(168, 85, 247, 0.3) !important;
+  background-color: var(--color-asset-mutual-funds-soft) !important;
+  color: var(--color-asset-mutual-funds) !important;
+  border-color: var(--color-asset-mutual-funds-border) !important;
 }
 
 .exchange-connected-wrap {
@@ -1839,13 +1839,13 @@
 }
 
 .type-buy {
-  background-color: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  background-color: var(--color-pl-positive-soft);
+  color: var(--color-pl-positive);
 }
 
 .type-sell {
-  background-color: rgba(244, 63, 94, 0.15);
-  color: #f43f5e;
+  background-color: var(--color-pl-negative-soft);
+  color: var(--color-pl-negative);
 }
 
 .mobile-tx-date {

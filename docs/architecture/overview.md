@@ -5,7 +5,8 @@
 ```text
 SGSK-Wealth/
 ├── packages/
-│   ├── contracts/          # @sgsk-wealth/contracts: Framework-free DTOs, ApiResult<T>, AppLang
+│   ├── contracts/          # @sgsk-wealth/contracts: Framework-free DTOs, ApiResult<T>, AppLang, AppTheme
+│   ├── design-tokens/      # @sgsk-wealth/design-tokens: Layered CSS tokens (primitives, semantic, financial, assets, components)
 │   └── domain/             # @sgsk-wealth/domain: FIFO calculator, TVM, rebalance, CSV, filters & pure formatters
 ├── shared/                 # @shared/*: Angular services, PortfolioDataProvider / PortfolioSourceCoordinator, KeyValueStorageAdapter, i18n, UI components & pipes
 ├── apps/

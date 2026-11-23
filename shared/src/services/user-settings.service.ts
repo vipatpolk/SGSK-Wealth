@@ -5,6 +5,7 @@ import {
   AppCurrency,
   AppTheme,
   DEFAULT_USER_SETTINGS,
+  ResolvedTheme,
   SettingsSyncStatus,
 } from '../models/user-settings.model';
 import { AuthService } from './auth.service';
@@ -30,6 +31,7 @@ export class UserSettingsService implements OnDestroy {
 
   readonly displayCurrency = signal<AppCurrency>(this.loadInitialCurrency());
   readonly theme = signal<AppTheme>(this.loadInitialTheme());
+  readonly resolvedTheme = signal<ResolvedTheme>(this.resolveTheme(this.theme()));
   readonly privacyMode = signal<boolean>(this.loadInitialPrivacy());
   readonly targetAllocations = signal<TargetAllocation>(this.loadInitialTargetAllocations());
   readonly rebalanceTargets = signal<Record<string, number>>(this.loadInitialRebalanceTargets());
@@ -38,8 +40,15 @@ export class UserSettingsService implements OnDestroy {
   private syncDebounceHandle: ReturnType<typeof setTimeout> | null = null;
   private lastHydratedUserId: string | null = null;
   private isHydratingFromRemote = false;
+  private mediaQueryList: MediaQueryList | null = null;
+  private readonly handleSystemThemeChange = (): void => {
+    if (this.theme() === 'system') {
+      this.applyThemeDom('system');
+    }
+  };
 
   constructor() {
+    this.registerSystemThemeListener();
     this.applyThemeDom(this.theme());
     this.applyPrivacyDom(this.privacyMode());
     void this.hydrateNativePreferences();
@@ -71,7 +80,7 @@ export class UserSettingsService implements OnDestroy {
       ]);
 
       if (!this.authService.isAuthenticated()) {
-        if (savedTheme === 'dark' || savedTheme === 'light') {
+        if (this.isValidTheme(savedTheme)) {
           this.setTheme(savedTheme, false);
         }
         if (savedCurrency === 'THB' || savedCurrency === 'USD') {
@@ -124,7 +133,7 @@ export class UserSettingsService implements OnDestroy {
   }
 
   toggleTheme(): void {
-    this.setTheme(this.theme() === 'dark' ? 'light' : 'dark');
+    this.setTheme(this.resolvedTheme() === 'dark' ? 'light' : 'dark');
   }
 
   setPrivacyMode(privacy: boolean, scheduleCloudSync = true): void {
@@ -199,7 +208,7 @@ export class UserSettingsService implements OnDestroy {
           this.setLang(remoteLang, false);
         }
         const remoteTheme = data['theme'];
-        if (remoteTheme === 'dark' || remoteTheme === 'light') {
+        if (this.isValidTheme(remoteTheme)) {
           this.setTheme(remoteTheme, false);
         }
         if (typeof data['privacy_mode'] === 'boolean') {
@@ -249,28 +258,62 @@ export class UserSettingsService implements OnDestroy {
       this.authService.getSupabaseClient() ?? (await this.authService.getSupabaseClientAsync());
     if (!client) return;
     try {
-      const { error } = await client.from('user_settings').upsert(
-        {
-          user_id: userId,
-          currency: this.displayCurrency(),
-          language: this.i18n.lang(),
-          theme: this.theme(),
-          privacy_mode: this.privacyMode(),
-          target_allocations: this.targetAllocations(),
-          rebalance_targets: this.rebalanceTargets(),
-        },
-        { onConflict: 'user_id' }
-      );
+      const payload = {
+        user_id: userId,
+        currency: this.displayCurrency(),
+        language: this.i18n.lang(),
+        theme: this.theme(),
+        privacy_mode: this.privacyMode(),
+        target_allocations: this.targetAllocations(),
+        rebalance_targets: this.rebalanceTargets(),
+      };
+      let { error } = await client
+        .from('user_settings')
+        .upsert(payload, { onConflict: 'user_id' });
+      if (error && payload.theme === 'system') {
+        // Fallback if remote schema still restricts theme to ('dark', 'light')
+        const fallbackRes = await client
+          .from('user_settings')
+          .upsert({ ...payload, theme: this.resolvedTheme() }, { onConflict: 'user_id' });
+        error = fallbackRes.error;
+      }
       this.syncStatus.set(error ? 'error' : 'synced');
     } catch {
       this.syncStatus.set('error');
     }
   }
 
+  private resolveTheme(mode: AppTheme): ResolvedTheme {
+    if (mode === 'light' || mode === 'dark') {
+      return mode;
+    }
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'dark';
+  }
+
+  private isValidTheme(val: unknown): val is AppTheme {
+    return val === 'dark' || val === 'light' || val === 'system';
+  }
+
+  private registerSystemThemeListener(): void {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    this.mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
+    if (typeof this.mediaQueryList.addEventListener === 'function') {
+      this.mediaQueryList.addEventListener('change', this.handleSystemThemeChange);
+    } else if (typeof this.mediaQueryList.addListener === 'function') {
+      this.mediaQueryList.addListener(this.handleSystemThemeChange);
+    }
+  }
+
   private applyThemeDom(theme: AppTheme): void {
+    const resolved = this.resolveTheme(theme);
+    this.resolvedTheme.set(resolved);
     if (typeof document !== 'undefined' && document.documentElement) {
-      document.documentElement.setAttribute('data-theme', theme);
-      document.documentElement.classList.toggle('ion-palette-dark', theme === 'dark');
+      document.documentElement.setAttribute('data-theme', resolved);
+      document.documentElement.setAttribute('data-theme-mode', theme);
+      document.documentElement.classList.toggle('ion-palette-dark', resolved === 'dark');
     }
   }
 
@@ -287,7 +330,7 @@ export class UserSettingsService implements OnDestroy {
 
   private loadInitialTheme(): AppTheme {
     const saved = this.readLocal(THEME_STORAGE_KEY) || this.readLocal(LEGACY_THEME_STORAGE_KEY);
-    return saved === 'light' || saved === 'dark' ? saved : DEFAULT_USER_SETTINGS.theme;
+    return this.isValidTheme(saved) ? saved : DEFAULT_USER_SETTINGS.theme;
   }
 
   private loadInitialPrivacy(): boolean {
@@ -356,6 +399,14 @@ export class UserSettingsService implements OnDestroy {
   ngOnDestroy(): void {
     if (this.syncDebounceHandle !== null) {
       clearTimeout(this.syncDebounceHandle);
+    }
+    if (this.mediaQueryList) {
+      if (typeof this.mediaQueryList.removeEventListener === 'function') {
+        this.mediaQueryList.removeEventListener('change', this.handleSystemThemeChange);
+      } else if (typeof this.mediaQueryList.removeListener === 'function') {
+        this.mediaQueryList.removeListener(this.handleSystemThemeChange);
+      }
+      this.mediaQueryList = null;
     }
   }
 }

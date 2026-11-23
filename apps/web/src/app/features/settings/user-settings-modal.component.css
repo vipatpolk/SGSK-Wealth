@@ -14,7 +14,7 @@
   width: 100%;
   max-width: 560px;
   max-height: 90vh;
-  background: var(--color-surface-raised);
+  background: var(--color-component-modal, var(--color-surface-raised));
   border: 1px solid var(--color-border);
   border-radius: 1rem;
   box-shadow: 0 24px 60px var(--color-shadow);
@@ -157,8 +157,8 @@
 }
 
 .seg-btn.active {
-  background: var(--color-accent);
-  color: #ffffff;
+  background: var(--color-component-primary-btn, var(--color-accent));
+  color: var(--color-component-primary-btn-text, #ffffff);
 }
 
 .toggle-switch {
@@ -231,7 +231,7 @@
   padding: 0.55rem 0.75rem;
   border-radius: 0.55rem;
   border: 1px solid var(--color-border);
-  background: var(--color-surface);
+  background: var(--color-component-input, var(--color-surface));
   color: var(--color-text-primary);
   font-family: inherit;
   font-size: 0.85rem;

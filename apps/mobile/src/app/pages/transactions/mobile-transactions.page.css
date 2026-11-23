@@ -130,18 +130,18 @@
 }
 
 .tx-buy {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  background: var(--color-pl-positive-soft);
+  color: var(--color-pl-positive);
 }
 
 .tx-sell {
-  background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
+  background: var(--color-pl-negative-soft);
+  color: var(--color-pl-negative);
 }
 
 .tx-ex {
-  background: rgba(168, 85, 247, 0.15);
-  color: #a855f7;
+  background: var(--color-asset-mutual-funds-soft);
+  color: var(--color-asset-mutual-funds);
 }
 
 .tx-card-mid {

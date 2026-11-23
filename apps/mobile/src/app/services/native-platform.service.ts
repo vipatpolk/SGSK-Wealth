@@ -66,7 +66,7 @@ export class NativePlatformService {
       });
       if (this.getPlatform() === 'android') {
         await StatusBar.setBackgroundColor({
-          color: theme === 'dark' ? '#0b0d14' : '#ffffff',
+          color: theme === 'dark' ? '#0B1220' : '#FFFFFF',
         });
       }
     } catch {

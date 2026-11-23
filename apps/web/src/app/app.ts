@@ -17,6 +17,7 @@ import { FundFactsheetModalComponent } from '@app/features/factsheets/fund-facts
 import { AuthScreenComponent } from '@app/features/auth/auth-screen.component';
 import { UserSettingsModalComponent } from '@app/features/settings/user-settings-modal.component';
 import { LocalPortfolioModalComponent } from '@app/features/local-portfolio/local-portfolio-modal.component';
+import { NavIconComponent } from '@shared/components/nav-icon/nav-icon.component';
 import { TranslatePipe } from '@shared/pipes/translate.pipe';
 
 @Component({
@@ -43,6 +44,7 @@ import { TranslatePipe } from '@shared/pipes/translate.pipe';
     AuthScreenComponent,
     UserSettingsModalComponent,
     LocalPortfolioModalComponent,
+    NavIconComponent,
     TranslatePipe,
   ],
   templateUrl: './app.html',

@@ -35,7 +35,7 @@
 
 ## What This Repository Does
 
-**SGSK-Wealth** is a production-grade wealth management monorepo designed to solve the complexity of multi-asset, multi-currency portfolio tracking and tax accounting. It automates **First-In, First-Out (FIFO)** transaction matching, reconciles cost bases, calculates unrealized and realized capital gains, and streams live market quotes and foreign exchange rates across both a **Web SPA (`apps/web/`)** and a **Native iOS & Android Mobile App (`apps/mobile/`)** powered by framework-free domain packages (`packages/contracts/`, `packages/domain/`) and shared Angular services/UI (`shared/`).
+**SGSK-Wealth** is a production-grade wealth management monorepo designed to solve the complexity of multi-asset, multi-currency portfolio tracking and tax accounting. It automates **First-In, First-Out (FIFO)** transaction matching, reconciles cost bases, calculates unrealized and realized capital gains, and streams live market quotes and foreign exchange rates across both a **Web SPA (`apps/web/`)** and a **Native iOS & Android Mobile App (`apps/mobile/`)** powered by framework-free workspace packages (`packages/contracts/`, `packages/design-tokens/`, `packages/domain/`) and shared Angular services/UI (`shared/`).
 
 The platform supports **multi-tier authentication and portfolio data isolation** via **Supabase Auth** (Email/Password, Google OAuth 2.0 PKCE, and Account Linking): the authorized owner account syncs live trading transaction logs from **Cloud Google Sheets**, while Guest and standard signed-in users operate a full-featured **On-Device Local Portfolio Workspace** enriched with live market prices and dividends from Yahoo Finance, Binance TH, SET Thailand, and SEC Thailand Mutual Fund & PVD APIs.
 
@@ -45,7 +45,7 @@ The platform supports **multi-tier authentication and portfolio data isolation**
 flowchart LR
     DataSources["Google Sheets\n(Owner Cloud CSVs)"] --> Backend["Rust Axum Backend\n(FIFO Engine, Owner Guard & Ports)"]
     Supabase["Supabase Auth & Postgres\n(JWT/JWKS, profiles, user_settings)"] --> Backend
-    Supabase --> Shared["packages/* & shared/\n(Contracts, Domain Math, Providers, i18n)"]
+    Supabase --> Shared["packages/* & shared/\n(Contracts, Design Tokens, Domain Math, i18n)"]
     MarketData["Yahoo Finance / Binance TH / SET / SEC TH"] --> Backend
     Shared --> Web["apps/web/\nAngular 22 Web SPA\n(Desktop Left Sidebar / Mobile Bottom Nav)"]
     Shared --> Mobile["apps/mobile/\nIonic 9 + Capacitor 8\n(iOS & Android Maven)"]
@@ -73,7 +73,7 @@ flowchart LR
   - Fixed left sidebar (`248px` expanded, collapsible to a `72px` icon-only rail via `#sidebar-collapse-btn` persisted in `localStorage`) housing the brand identity and 6 vertical workspace links (`Dashboard`, `Holdings`, `Analytics`, `Dividends`, `Transactions`, `Tools`).
   - Slim `56px` sticky top utility bar displaying the active workspace breadcrumb on the left and the `USD/THB` exchange rate pill, Privacy Mode toggle (`#privacy-toggle-btn`), and top-right User Menu (`#user-menu-btn`) on the right.
 - **Mobile & Tablet Responsive Dock (`<= 1200px` Web & Native iOS/Android)**: Single-DOM responsive layout that transforms into a sticky top header and a fixed 6-tab bottom dock without duplicating DOM IDs.
-- **Unified User Settings Modal**: Accessible from the top-right User Menu on both Web and Mobile, consolidating Display Currency (`THB` / `USD`), Language (`English` / `ไทย`), Appearance Theme (`Dark` / `Light`), Privacy Mode switch, real-time Supabase preference sync status, display name management, and connected sign-in methods.
+- **Unified User Settings Modal**: Accessible from the top-right User Menu on both Web and Mobile, consolidating Display Currency (`THB` / `USD`), Language (`English` / `ไทย`), Appearance Theme (`Dark` / `Light` / `System` via `#settings-theme-dark`, `#settings-theme-light`, `#settings-theme-system` and mobile equivalents backed by the **Modern Wealth Terminal** tokens in `packages/design-tokens/`), Privacy Mode switch, real-time Supabase preference sync status, display name management, and connected sign-in methods.
 
 ### 📊 Executive Dashboard Landing Page
 - **Root Landing View**: Direct landing at `/` with zero navigation friction.
@@ -141,7 +141,8 @@ flowchart LR
 
 | Technology | Version / Spec | Purpose & Architectural Role |
 |:---|:---|:---|
-| **`@sgsk-wealth/contracts`** | `TypeScript ~6.0` | Framework-free DTO contracts, `ApiResult<T>` helpers (`apiOk`, `apiErr`, `mapHttpErrorToApiFailure`), `AppLang`, and Rust/TS JSON contract tests (`packages/contracts/`). |
+| **`@sgsk-wealth/contracts`** | `TypeScript ~6.0` | Framework-free DTO contracts, `ApiResult<T>` helpers (`apiOk`, `apiErr`, `mapHttpErrorToApiFailure`), `AppLang`, `AppTheme`, and Rust/TS JSON contract tests (`packages/contracts/`). |
+| **`@sgsk-wealth/design-tokens`** | `CSS Custom Properties` | Layered **Modern Wealth Terminal** token system (`primitives`, `semantic`, `financial`, `assets`, `components`) driving `Dark`, `Light`, and `System` themes across Web (Tailwind CSS v4) and Mobile (Ionic 9) (`packages/design-tokens/`). |
 | **`@sgsk-wealth/domain`** | `TypeScript ~6.0` | Framework-free financial math, FIFO lot matching, TVM/rebalance/avg-cost calculators, pure CSV export, holdings/ledger filters & formatters, and shared Rust parity fixtures (`packages/domain/`). |
 | **Shared Core (`shared/`)** | `Angular 22.2+` | Platform-agnostic UI components (`SymbolIconComponent`, `LoadingScreenComponent`, `DateRangePickerComponent`), `PortfolioDataProvider` / `PortfolioSourceCoordinator`, `KeyValueStorageAdapter`, API services, Supabase Auth/Settings, bilingual i18n dictionaries, and DI tokens. |
 
@@ -203,6 +204,7 @@ SGSK-Wealth/
 │
 ├── packages/                   # Framework-free pure workspace packages
 │   ├── contracts/              # @sgsk-wealth/contracts DTOs, ApiResult<T>, AppLang & contract tests
+│   ├── design-tokens/          # @sgsk-wealth/design-tokens Modern Wealth Terminal CSS token layers
 │   └── domain/                 # @sgsk-wealth/domain pure FIFO/TVM/rebalance/filter logic & unit specs
 │
 ├── shared/                     # Shared Angular core library (@shared/*)

@@ -12,6 +12,7 @@ import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { AssetAllocationComponent } from './asset-allocation/asset-allocation.component';
 import { PerformanceComponent } from './performance/performance.component';
 import { SymbolIconComponent } from '@shared/components/symbol-icon/symbol-icon.component';
+import { NavIconComponent } from '@shared/components/nav-icon/nav-icon.component';
 import {
   SymbolSummary,
   ClosedSymbolSummary,
@@ -49,6 +50,7 @@ import {
     AssetAllocationComponent,
     PerformanceComponent,
     SymbolIconComponent,
+    NavIconComponent,
     TranslatePipe,
   ],
   templateUrl: './analytics.component.html',

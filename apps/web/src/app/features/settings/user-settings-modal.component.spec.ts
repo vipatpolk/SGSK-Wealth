@@ -56,6 +56,9 @@ describe('UserSettingsModalComponent', () => {
     (el.querySelector('#settings-theme-light') as HTMLButtonElement).click();
     expect(settingsService.theme()).toBe('light');
 
+    (el.querySelector('#settings-theme-system') as HTMLButtonElement).click();
+    expect(settingsService.theme()).toBe('system');
+
     (el.querySelector('#settings-theme-dark') as HTMLButtonElement).click();
     expect(settingsService.theme()).toBe('dark');
   });

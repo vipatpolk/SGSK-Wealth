@@ -60,6 +60,15 @@
               >
                 {{ 'settings.themeLight' | t }}
               </button>
+              <button
+                type="button"
+                id="mobile-settings-theme-system"
+                class="m-seg-btn"
+                [class.active]="settingsService.theme() === 'system'"
+                (click)="onThemeSelect('system')"
+              >
+                {{ 'settings.themeSystem' | t }}
+              </button>
             </div>
           </div>
         </section>

@@ -63,6 +63,11 @@ describe('HeaderComponent', () => {
     componentRef.setInput('result', { totalSymbols: 5, totalLots: 12, error: null } as any);
     fixture.detectChanges();
 
+    for (const view of ['dashboard', 'holdings', 'analytics', 'dividends', 'transactions', 'tools']) {
+      const navBtn = fixture.nativeElement.querySelector(`#view-toggle-${view}`);
+      expect(navBtn?.querySelector('app-nav-icon svg.nav-icon-svg')).toBeTruthy();
+    }
+
     let emittedView = '';
     component.viewChange.subscribe((v) => (emittedView = v));
 
@@ -268,9 +273,9 @@ describe('HeaderComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('#user-menu-dropdown')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('#user-menu-settings-btn')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('#user-menu-local-data-btn')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('#user-menu-signin-btn')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('#user-menu-settings-btn svg.nav-icon-svg')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('#user-menu-local-data-btn svg.nav-icon-svg')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('#user-menu-signin-btn svg.nav-icon-svg')).toBeTruthy();
     expect(fixture.nativeElement.querySelector('#user-menu-signout-btn')).toBeNull();
   });
 

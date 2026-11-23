@@ -301,15 +301,15 @@
 }
 
 .target-input:hover {
-  border-color: #6366f180;
+  border-color: var(--color-border-hover);
   background: var(--bg-main);
 }
 
 .target-input:focus {
   outline: none;
-  border-color: #6366f1;
+  border-color: var(--color-accent);
   background: var(--bg-main);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
 }
 
 .edit-target-btn,
@@ -335,14 +335,14 @@
 }
 
 .save-target-btn {
-  background: #6366f1;
-  color: white;
-  border-color: #6366f1;
+  background: var(--color-component-primary-btn, var(--color-accent));
+  color: var(--color-component-primary-btn-text, #ffffff);
+  border-color: var(--color-component-primary-btn, var(--color-accent));
   margin-left: 0.5rem;
 }
 
 .save-target-btn:hover {
-  background: #4f46e5;
+  background: var(--color-component-primary-btn-hover, var(--color-accent));
 }
 
 .disabled-btn {
@@ -507,7 +507,7 @@
 }
 
 .active-rebalance-row {
-  border-left: 3px solid #6366f1 !important;
+  border-left: 3px solid var(--color-accent) !important;
   background-color: var(--bg-hover) !important;
 }
 

@@ -8,12 +8,13 @@ import { AppView } from '@shared/config/asset.constants';
 import { AppLang, I18nService } from '@shared/services/i18n.service';
 import { TranslatePipe } from '@shared/pipes/translate.pipe';
 import { TranslationKey } from '@shared/i18n/en';
+import { NavIconComponent } from '@shared/components/nav-icon/nav-icon.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe, TranslatePipe],
+  imports: [DecimalPipe, TranslatePipe, NavIconComponent],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css',
 })

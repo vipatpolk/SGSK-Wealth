@@ -14,6 +14,7 @@ import { PortfolioPosition, PortfolioSummary } from '@shared/models/portfolio.mo
 import { PriceData } from '@shared/services/price.service';
 import { I18nService } from '@shared/services/i18n.service';
 import { TranslatePipe } from '@shared/pipes/translate.pipe';
+import { NavIconComponent, NavIconName } from '@shared/components/nav-icon/nav-icon.component';
 import { AvgCostSimulationResult, ToolDefinition, ToolId } from '@shared/models/tools.model';
 import { AvgCostCalculatorComponent } from './avg-cost-calculator/avg-cost-calculator.component';
 import { TvmCalculatorComponent } from './tvm-calculator/tvm-calculator.component';
@@ -26,6 +27,7 @@ import { RebalanceCalculatorComponent } from '@app/features/tools/rebalance-calc
   imports: [
     CommonModule,
     TranslatePipe,
+    NavIconComponent,
     AvgCostCalculatorComponent,
     TvmCalculatorComponent,
     RebalanceCalculatorComponent,
@@ -58,6 +60,17 @@ export class ToolsComponent {
         untracked(() => this.selectTool(tool));
       }
     });
+  }
+
+  getToolIconName(toolId: ToolId): NavIconName {
+    switch (toolId) {
+      case 'avg-cost-calculator':
+        return 'tools';
+      case 'tvm-calculator':
+        return 'performance';
+      case 'rebalance-planner':
+        return 'allocation';
+    }
   }
 
   private readonly localizedToolsList = computed<ToolDefinition[]>(() => {

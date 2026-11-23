@@ -96,8 +96,8 @@
 }
 
 .custom-badge {
-  background-color: rgba(99, 102, 241, 0.15);
-  border-color: rgba(99, 102, 241, 0.3);
+  background-color: var(--color-accent-soft);
+  border-color: var(--color-border-hover);
 }
 
 .custom-badge .badge-tag {
@@ -237,7 +237,7 @@
 .dropdown-asset-pill.active {
   background-color: var(--color-accent-soft);
   color: var(--color-accent);
-  border-color: rgba(99, 102, 241, 0.3);
+  border-color: var(--color-border-hover);
   font-weight: 600;
 }
 
@@ -274,12 +274,12 @@
 
 .dropdown-option-item.active {
   background-color: var(--color-accent-soft);
-  border: 1px solid rgba(99, 102, 241, 0.25);
+  border: 1px solid var(--color-border-hover);
 }
 
 .custom-option {
   border: 1px dashed var(--color-border-hover);
-  background-color: rgba(99, 102, 241, 0.04);
+  background-color: var(--color-accent-soft);
 }
 
 .custom-icon-chip {
@@ -706,7 +706,7 @@
 .input-mode-pill.active {
   background-color: var(--color-surface-overlay);
   color: var(--color-accent);
-  border: 1px solid rgba(99, 102, 241, 0.25);
+  border: 1px solid var(--color-border-hover);
   font-weight: 700;
 }
 
@@ -814,8 +814,8 @@
 }
 
 .chip-btn.chip-max {
-  color: #f59e0b;
-  border-color: rgba(245, 158, 11, 0.25);
+  color: var(--color-financial-warning);
+  border-color: var(--color-financial-warning-border);
 }
 
 /* Primary Calculate Action Bar */
@@ -1488,18 +1488,18 @@
   gap: 0.5rem;
   padding: 0.875rem 1.5rem;
   border-radius: 0.75rem;
-  background-color: var(--color-accent);
-  color: #ffffff;
+  background-color: var(--color-component-primary-btn, var(--color-accent));
+  color: var(--color-component-primary-btn-text, #ffffff);
   border: none;
   font-weight: 600;
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 6px rgba(99, 102, 241, 0.25);
+  box-shadow: 0 4px 6px var(--color-shadow-sm);
 }
 
 .btn-apply-solver:hover {
-  background-color: #4f46e5;
+  background-color: var(--color-component-primary-btn-hover, var(--color-accent));
   transform: translateY(-1px);
 }
 

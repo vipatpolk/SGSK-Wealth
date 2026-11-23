@@ -325,19 +325,19 @@
             }
 
             @if (isAreaChartMode()) {
-              <path [attr.d]="chart.pathTotalBalanceArea" fill="rgba(99, 102, 241, 0.18)" />
-              <path [attr.d]="chart.pathInvestedCapitalArea" fill="rgba(16, 185, 129, 0.16)" />
+              <path [attr.d]="chart.pathTotalBalanceArea" fill="var(--color-accent-soft)" />
+              <path [attr.d]="chart.pathInvestedCapitalArea" fill="var(--color-pl-positive-soft)" />
             }
 
-            <path [attr.d]="chart.pathInvestedCapital" fill="none" stroke="#10b981" stroke-width="2.5" stroke-dasharray="5 3" />
-            <path [attr.d]="chart.pathTotalBalance" fill="none" stroke="#6366f1" stroke-width="3" />
+            <path [attr.d]="chart.pathInvestedCapital" fill="none" stroke="var(--color-pl-positive)" stroke-width="2.5" stroke-dasharray="5 3" />
+            <path [attr.d]="chart.pathTotalBalance" fill="none" stroke="var(--color-accent)" stroke-width="3" />
 
             @for (pt of chart.points; track pt.year) {
               <circle
                 [attr.cx]="pt.x"
                 [attr.cy]="pt.yBalance"
                 [attr.r]="hoveredPoint()?.year === pt.year ? 6.5 : 4"
-                fill="#6366f1"
+                fill="var(--color-accent)"
                 stroke="#ffffff"
                 stroke-width="1.5"
                 (click)="setHoveredPoint(pt)"

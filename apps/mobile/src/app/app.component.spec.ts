@@ -64,20 +64,20 @@ describe('SGSK Wealth Mobile App', () => {
     expect(fixture.componentInstance).toBeTruthy();
     expect(el.querySelector('#mobile-header')).toBeTruthy();
     expect(el.querySelector('#mobile-tab-bar')).toBeTruthy();
-    expect(el.querySelector('#mobile-tab-dashboard')).toBeTruthy();
-    expect(el.querySelector('#mobile-tab-holdings')).toBeTruthy();
-    expect(el.querySelector('#mobile-tab-analytics')).toBeTruthy();
-    expect(el.querySelector('#mobile-tab-dividends')).toBeTruthy();
-    expect(el.querySelector('#mobile-tab-transactions')).toBeTruthy();
-    expect(el.querySelector('#mobile-tab-tools')).toBeTruthy();
+    expect(el.querySelector('#mobile-tab-dashboard svg.nav-icon-svg')).toBeTruthy();
+    expect(el.querySelector('#mobile-tab-holdings svg.nav-icon-svg')).toBeTruthy();
+    expect(el.querySelector('#mobile-tab-analytics svg.nav-icon-svg')).toBeTruthy();
+    expect(el.querySelector('#mobile-tab-dividends svg.nav-icon-svg')).toBeTruthy();
+    expect(el.querySelector('#mobile-tab-transactions svg.nav-icon-svg')).toBeTruthy();
+    expect(el.querySelector('#mobile-tab-tools svg.nav-icon-svg')).toBeTruthy();
 
     const currencyBtn = el.querySelector('#mobile-currency-toggle') as HTMLButtonElement;
     const langBtn = el.querySelector('#mobile-lang-toggle') as HTMLButtonElement;
     expect(currencyBtn).toBeTruthy();
     expect(langBtn).toBeTruthy();
     expect(el.querySelector('#mobile-theme-toggle')).toBeNull();
-    expect(el.querySelector('#mobile-privacy-toggle')).toBeTruthy();
-    expect(el.querySelector('#mobile-refresh-btn')).toBeTruthy();
+    expect(el.querySelector('#mobile-privacy-toggle svg.nav-icon-svg')).toBeTruthy();
+    expect(el.querySelector('#mobile-refresh-btn svg.nav-icon-svg')).toBeTruthy();
     expect(el.querySelector('#mobile-user-menu-btn')).toBeTruthy();
     expect(el.querySelector('#mobile-local-banner')).toBeTruthy();
 

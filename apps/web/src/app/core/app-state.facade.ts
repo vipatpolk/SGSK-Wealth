@@ -20,6 +20,7 @@ import {
 import { AssetTab, ASSET_TABS, AppView, AnalyticsSubTab, HoldingsSubTab } from '@shared/config/asset.constants';
 import { FactsheetRequestTarget } from '@shared/models/factsheet.model';
 import { AuthService } from '@shared/services/auth.service';
+import { AppTheme } from '@sgsk-wealth/contracts';
 import { UserSettingsService } from '@shared/services/user-settings.service';
 import { LocalPortfolioService } from '@shared/services/local-portfolio.service';
 import { AppLang, I18nService } from '@shared/services/i18n.service';
@@ -762,7 +763,7 @@ export class AppStateFacade {
     this.userSettings.toggleTheme();
   }
 
-  setTheme(theme: 'dark' | 'light'): void {
+  setTheme(theme: AppTheme): void {
     this.userSettings.setTheme(theme);
   }
 

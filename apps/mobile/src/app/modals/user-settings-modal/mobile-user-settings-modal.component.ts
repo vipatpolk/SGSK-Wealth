@@ -20,6 +20,7 @@ import {
 import { TranslatePipe } from '@shared/pipes/translate.pipe';
 import { AuthService } from '@shared/services/auth.service';
 import { LocalPortfolioService } from '@shared/services/local-portfolio.service';
+import { AppTheme } from '@sgsk-wealth/contracts';
 import { UserSettingsService } from '@shared/services/user-settings.service';
 import { NativePlatformService } from '../../services/native-platform.service';
 
@@ -66,7 +67,7 @@ export class MobileUserSettingsModalComponent {
     });
   }
 
-  onThemeSelect(theme: 'dark' | 'light'): void {
+  onThemeSelect(theme: AppTheme): void {
     void this.nativePlatform.triggerHapticSelection();
     this.settingsService.setTheme(theme);
   }

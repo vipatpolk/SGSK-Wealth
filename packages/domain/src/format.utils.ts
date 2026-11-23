@@ -230,12 +230,12 @@ export function getAssetType(assetType?: string, symbol?: string): string {
 }
 
 const ASSET_TYPE_CONFIG: Record<string, { label: string; cssClass: string; color: string }> = {
-  'us-stock': { label: 'U.S. Stock', cssClass: 'asset-type-tag asset-type-us-stock', color: '#3b82f6' },
-  'thai-stock': { label: 'Thai Stock', cssClass: 'asset-type-tag asset-type-thai-stock', color: '#10b981' },
-  crypto: { label: 'Cryptocurrency', cssClass: 'asset-type-tag asset-type-crypto', color: '#f59e0b' },
-  'mutual-fund': { label: 'Mutual Fund', cssClass: 'asset-type-tag asset-type-mutual-fund', color: '#8b5cf6' },
-  bond: { label: 'Bond', cssClass: 'asset-type-tag asset-type-bond', color: '#06b6d4' },
-  'provident-fund': { label: 'Provident Fund', cssClass: 'asset-type-tag asset-type-provident-fund', color: '#6366f1' },
+  'us-stock': { label: 'U.S. Stock', cssClass: 'asset-type-tag asset-type-us-stock', color: '#60A5FA' },
+  'thai-stock': { label: 'Thai Stock', cssClass: 'asset-type-tag asset-type-thai-stock', color: '#2DD4BF' },
+  crypto: { label: 'Cryptocurrency', cssClass: 'asset-type-tag asset-type-crypto', color: '#FB923C' },
+  'mutual-fund': { label: 'Mutual Fund', cssClass: 'asset-type-tag asset-type-mutual-fund', color: '#A78BFA' },
+  bond: { label: 'Bond', cssClass: 'asset-type-tag asset-type-bond', color: '#94A3B8' },
+  'provident-fund': { label: 'Provident Fund', cssClass: 'asset-type-tag asset-type-provident-fund', color: '#FBBF24' },
 };
 
 const ASSET_TYPE_LABELS: Record<AppLang, Record<string, string>> = {

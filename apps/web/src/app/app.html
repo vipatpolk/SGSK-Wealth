@@ -285,6 +285,7 @@
             [class.active]="!isPvdTab()"
             (click)="selectHoldingsSubTab('market')"
           >
+            <app-nav-icon name="market" [active]="!isPvdTab()" class="holdings-subtab-icon"></app-nav-icon>
             <span>{{ 'holdings.subtabMarket' | t }}</span>
           </button>
           <button
@@ -296,6 +297,7 @@
             [class.active]="isPvdTab()"
             (click)="selectHoldingsSubTab('pvd')"
           >
+            <app-nav-icon name="pvd" [active]="isPvdTab()" class="holdings-subtab-icon"></app-nav-icon>
             <span>{{ 'holdings.subtabPvd' | t }}</span>
             @if (tabCounts()['provident-fund']; as pvdCount) {
               <span class="holdings-subtab-badge">{{ pvdCount }}</span>

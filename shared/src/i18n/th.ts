@@ -1157,6 +1157,7 @@ export const th: Record<TranslationKey, string> = {
   'settings.themeLabel': 'ธีมสีหน้าจอ',
   'settings.themeDark': 'โหมดมืด',
   'settings.themeLight': 'โหมดสว่าง',
+  'settings.themeSystem': 'ตามระบบ',
   'settings.privacyLabel': 'โหมดความเป็นส่วนตัว',
   'settings.privacyDesc': 'ซ่อนตัวเลขมูลค่าเงินและจำนวนหน่วยลงทุนบนหน้าจอ',
   'settings.syncLocal': 'บันทึกบนอุปกรณ์นี้',

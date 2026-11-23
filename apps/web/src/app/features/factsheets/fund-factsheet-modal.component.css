@@ -77,32 +77,32 @@
 
 .factsheet-tax-pill {
   color: var(--color-pl-positive);
-  background: rgba(76, 195, 138, 0.12);
-  border-color: rgba(76, 195, 138, 0.3);
+  background: var(--color-pl-positive-soft);
+  border-color: var(--color-pl-positive-border);
 }
 
 .factsheet-risk-pill[data-tier='low'] {
-  color: #4cc38a;
-  background: rgba(76, 195, 138, 0.12);
-  border-color: rgba(76, 195, 138, 0.3);
+  color: var(--color-pl-positive);
+  background: var(--color-pl-positive-soft);
+  border-color: var(--color-pl-positive-border);
 }
 
 .factsheet-risk-pill[data-tier='moderate'] {
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.12);
-  border-color: rgba(245, 158, 11, 0.3);
+  color: var(--color-financial-warning);
+  background: var(--color-financial-warning-soft);
+  border-color: var(--color-financial-warning-border);
 }
 
 .factsheet-risk-pill[data-tier='high'] {
-  color: #f97316;
-  background: rgba(249, 115, 22, 0.12);
-  border-color: rgba(249, 115, 22, 0.3);
+  color: var(--color-asset-crypto);
+  background: var(--color-asset-crypto-soft);
+  border-color: var(--color-asset-crypto-border);
 }
 
 .factsheet-risk-pill[data-tier='very-high'] {
-  color: #e5484d;
-  background: rgba(229, 72, 77, 0.12);
-  border-color: rgba(229, 72, 77, 0.3);
+  color: var(--color-pl-negative);
+  background: var(--color-pl-negative-soft);
+  border-color: var(--color-pl-negative-border);
 }
 
 .factsheet-fund-title {
@@ -150,15 +150,15 @@
 }
 
 .factsheet-pdf-btn {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: #ffffff;
+  background: var(--color-component-primary-btn, var(--color-accent));
+  border-color: var(--color-component-primary-btn, var(--color-accent));
+  color: var(--color-component-primary-btn-text, #ffffff);
 }
 
 .factsheet-pdf-btn:hover {
-  background: #2563eb;
-  border-color: #2563eb;
-  color: #ffffff;
+  background: var(--color-component-primary-btn-hover, var(--color-accent));
+  border-color: var(--color-component-primary-btn-hover, var(--color-accent));
+  color: var(--color-component-primary-btn-text, #ffffff);
 }
 
 .factsheet-btn-svg {

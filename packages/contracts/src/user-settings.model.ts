@@ -2,7 +2,8 @@ import { AppLang } from './common.model';
 import { TargetAllocation } from './transaction.model';
 
 export type AppCurrency = 'THB' | 'USD';
-export type AppTheme = 'dark' | 'light';
+export type AppTheme = 'dark' | 'light' | 'system';
+export type ResolvedTheme = 'dark' | 'light';
 export type SettingsSyncStatus = 'local' | 'syncing' | 'synced' | 'error';
 
 export interface UserSettings {

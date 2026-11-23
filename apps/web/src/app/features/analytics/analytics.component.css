@@ -76,9 +76,14 @@
 }
 
 .analytics-tab-btn.active {
-  background: var(--color-accent);
-  color: #ffffff !important;
+  background: var(--color-component-primary-btn, var(--color-accent));
+  color: var(--color-component-primary-btn-text, #ffffff) !important;
   box-shadow: none;
+}
+
+.analytics-tab-btn.active .tab-btn-icon {
+  --nav-icon-tone-opacity: 0.24;
+  --nav-icon-stroke-width: 1.95;
 }
 
 /* Tab Pane Wrapper */

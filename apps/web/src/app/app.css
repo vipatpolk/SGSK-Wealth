@@ -10,7 +10,7 @@
 }
 
 .header {
-  background: var(--color-surface);
+  background: var(--color-component-header, var(--color-surface));
   border-bottom: 1px solid var(--color-border);
   padding: 0.75rem 1.5rem;
 }
@@ -160,8 +160,8 @@
 }
 
 .view-toggle-btn-active {
-  background: var(--color-accent);
-  color: #ffffff !important;
+  background: var(--color-component-primary-btn, var(--color-accent));
+  color: var(--color-component-primary-btn-text, #ffffff) !important;
   box-shadow: none;
   font-weight: 600;
 }
@@ -170,6 +170,12 @@
   width: 0.875rem;
   height: 0.875rem;
   flex-shrink: 0;
+  transition: transform 180ms var(--ease-out), color 180ms var(--ease-out);
+}
+
+.view-toggle-btn-active .view-toggle-icon {
+  --nav-icon-tone-opacity: 0.22;
+  --nav-icon-stroke-width: 1.95;
 }
 
 .nav-btn-icon-wrapper {
@@ -194,7 +200,7 @@
     padding: 0 1.75rem;
     display: flex;
     align-items: center;
-    background: var(--color-surface);
+    background: var(--color-component-header, var(--color-surface));
     border-bottom: 1px solid var(--color-border);
     transition: margin-left 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   }
@@ -222,7 +228,7 @@
     z-index: 900;
     display: flex;
     flex-direction: column;
-    background: var(--color-surface-raised);
+    background: var(--color-component-sidebar, var(--color-surface-raised));
     border-right: 1px solid var(--color-border);
     box-shadow: 4px 0 24px var(--color-shadow-sm);
     transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1);
@@ -364,7 +370,7 @@
   }
 
   .desktop-sidebar .view-toggle-btn.view-toggle-btn-active {
-    background: var(--color-accent-soft);
+    background: var(--color-component-active-nav, var(--color-accent-soft));
     color: var(--color-accent) !important;
     font-weight: 600;
   }
@@ -532,19 +538,19 @@
     grid-template-columns: repeat(6, 1fr) !important;
     align-items: center !important;
     justify-items: center !important;
-    background: rgba(10, 16, 29, 0.92) !important;
+    background: var(--color-component-bottom-nav, rgba(14, 25, 42, 0.94)) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
     border: none !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-top: 1px solid var(--color-border) !important;
     border-radius: 0 !important;
-    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: 0 -4px 24px var(--color-shadow) !important;
   }
 
   [data-theme='light'] .view-toggle {
-    background: rgba(255, 255, 255, 0.92) !important;
-    border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08) !important;
+    background: var(--color-component-bottom-nav, rgba(255, 255, 255, 0.94)) !important;
+    border-top: 1px solid var(--color-border) !important;
+    box-shadow: 0 -4px 20px var(--color-shadow) !important;
   }
 
   /* Native Bottom Nav Tab Buttons */
@@ -985,6 +991,11 @@
   flex-shrink: 0;
 }
 
+.tab-button.tab-active .tab-icon {
+  --nav-icon-tone-opacity: 0.22;
+  --nav-icon-stroke-width: 1.95;
+}
+
 .tab-label {
   letter-spacing: -0.01em;
 }
@@ -1204,7 +1215,7 @@
 .price-loading-bar-inner {
   height: 100%;
   width: 40%;
-  background: linear-gradient(90deg, #6366f1, #10b981);
+  background: linear-gradient(90deg, var(--color-accent), var(--color-pl-positive));
   border-radius: 1px;
   animation: priceLoadSlide 1.2s ease-in-out infinite;
 }
@@ -1467,8 +1478,8 @@
 }
 
 .search-input:focus {
-  border-color: #6366f180;
-  box-shadow: 0 0 0 3px #6366f118;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
 }
 
 .btn-search-clear {
@@ -1662,7 +1673,7 @@
 .autocomplete-footer-btn {
   background: transparent;
   border: none;
-  color: #6366f1;
+  color: var(--color-accent);
   font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
@@ -1673,7 +1684,7 @@
 }
 
 .autocomplete-footer-btn:hover {
-  background-color: rgba(99, 102, 241, 0.1);
+  background-color: var(--color-accent-soft);
 }
 
 .toolbar-actions {
@@ -1749,15 +1760,15 @@
 }
 
 .open-pill {
-  background: #10b98115;
-  color: #34d399;
-  border: 1px solid #10b98130;
+  background: var(--color-pl-positive-soft);
+  color: var(--color-pl-positive);
+  border: 1px solid var(--color-pl-positive-border);
 }
 
 .closed-pill {
-  background: #6366f115;
-  color: #818cf8;
-  border: 1px solid #6366f130;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  border: 1px solid var(--color-border-hover);
 }
 
 .section-icon {
@@ -1897,9 +1908,9 @@
   font-size: 0.6875rem;
   font-weight: 500;
   line-height: 1.25;
-  color: #818cf8;
-  background: #6366f118;
-  border: 1px solid #6366f138;
+  color: var(--color-asset-provident-fund);
+  background: var(--color-asset-provident-fund-soft);
+  border: 1px solid var(--color-asset-provident-fund-border);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1932,39 +1943,39 @@
 }
 
 .asset-type-us-stock {
-  background: #3b82f618;
-  color: #60a5fa;
-  border-color: #3b82f638;
+  background: var(--color-asset-us-stocks-soft);
+  color: var(--color-asset-us-stocks);
+  border-color: var(--color-asset-us-stocks-border);
 }
 
 .asset-type-thai-stock {
-  background: #10b98118;
-  color: #34d399;
-  border-color: #10b98138;
+  background: var(--color-asset-thai-stocks-soft);
+  color: var(--color-asset-thai-stocks);
+  border-color: var(--color-asset-thai-stocks-border);
 }
 
 .asset-type-crypto {
-  background: #f59e0b18;
-  color: #fbbf24;
-  border-color: #f59e0b38;
+  background: var(--color-asset-crypto-soft);
+  color: var(--color-asset-crypto);
+  border-color: var(--color-asset-crypto-border);
 }
 
 .asset-type-mutual-fund {
-  background: #a855f718;
-  color: #c084fc;
-  border-color: #a855f738;
+  background: var(--color-asset-mutual-funds-soft);
+  color: var(--color-asset-mutual-funds);
+  border-color: var(--color-asset-mutual-funds-border);
 }
 
 .asset-type-bond {
-  background: #06b6d418;
-  color: #22d3ee;
-  border-color: #06b6d438;
+  background: var(--color-asset-cash-fixed-income-soft);
+  color: var(--color-asset-cash-fixed-income);
+  border-color: var(--color-asset-cash-fixed-income-border);
 }
 
 .asset-type-provident-fund {
-  background: #6366f118;
-  color: #818cf8;
-  border-color: #6366f138;
+  background: var(--color-asset-provident-fund-soft);
+  color: var(--color-asset-provident-fund);
+  border-color: var(--color-asset-provident-fund-border);
 }
 
 .card-shares {
@@ -2704,16 +2715,16 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  color: white;
+  background: var(--color-component-primary-btn, var(--color-accent));
+  color: var(--color-component-primary-btn-text, #ffffff);
   border: none;
   margin-top: 0.5rem;
-  box-shadow: 0 2px 12px #6366f140;
+  box-shadow: 0 2px 12px var(--color-accent-soft);
 }
 
 .btn-primary:hover {
-  box-shadow: 0 4px 20px #6366f160;
-  filter: brightness(1.1);
+  background: var(--color-component-primary-btn-hover, var(--color-accent));
+  box-shadow: 0 4px 20px var(--color-accent-soft);
 }
 
 /* ===== EMPTY STATE ===== */
@@ -3348,8 +3359,8 @@
   }
 
   .mobile-control-field:focus-within {
-    border-color: #6366f180;
-    box-shadow: 0 0 0 2px #6366f115;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 2px var(--color-accent-soft);
   }
 
   .mobile-control-icon-wrap {
@@ -3427,7 +3438,7 @@
     border: 1px solid var(--color-border);
     border-radius: 0.375rem;
     padding: 0.25rem 0.45rem;
-    color: #818cf8;
+    color: var(--color-accent);
     font-family: inherit;
     font-size: 0.625rem;
     font-weight: 600;
@@ -3438,8 +3449,8 @@
 
   .mobile-sort-dir-btn:hover,
   .mobile-sort-dir-btn:active {
-    background: #6366f120;
-    border-color: #6366f150;
+    background: var(--color-accent-soft);
+    border-color: var(--color-accent);
   }
 
   .mobile-sort-dir-btn .sort-arrow {
@@ -4038,10 +4049,15 @@
 }
 
 .holdings-subtab-btn.active {
-  background: var(--color-accent);
-  color: #ffffff;
+  background: var(--color-component-primary-btn, var(--color-accent));
+  color: var(--color-component-primary-btn-text, #ffffff);
   font-weight: 600;
   box-shadow: none;
+}
+
+.holdings-subtab-icon {
+  width: 0.95rem;
+  height: 0.95rem;
 }
 
 .holdings-subtab-badge {

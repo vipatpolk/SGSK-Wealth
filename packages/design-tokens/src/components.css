@@ -1,0 +1,64 @@
+:root,
+:root[data-theme="dark"] {
+  --color-component-main-bg: #0B1220;
+  --color-component-sidebar: #0E192A;
+  --color-component-header: #0E192A;
+  --color-component-card: #131E30;
+  --color-component-table: #131E30;
+  --color-component-table-hover: #1B2A40;
+  --color-component-primary-btn: #3B82F6;
+  --color-component-primary-btn-hover: #2563EB;
+  --color-component-primary-btn-text: #FFFFFF;
+  --color-component-active-nav: #1B3556;
+  --color-component-modal: #19263A;
+  --color-component-input: #101C2D;
+  --color-component-bottom-nav: #0E192A;
+}
+
+:root[data-theme="light"] {
+  --color-component-main-bg: #F3F6FB;
+  --color-component-sidebar: #FFFFFF;
+  --color-component-header: #FFFFFF;
+  --color-component-card: #FFFFFF;
+  --color-component-table: #FFFFFF;
+  --color-component-table-hover: #F1F5F9;
+  --color-component-primary-btn: #2563EB;
+  --color-component-primary-btn-hover: #1D4ED8;
+  --color-component-primary-btn-text: #FFFFFF;
+  --color-component-active-nav: #E8F1FF;
+  --color-component-modal: #FFFFFF;
+  --color-component-input: #FFFFFF;
+  --color-component-bottom-nav: #FFFFFF;
+}
+
+:root,
+:root[data-theme="dark"],
+:root[data-theme="light"] {
+  /* Legacy Web & Shared Aliases */
+  --bg-main: var(--color-surface);
+  --bg-card: var(--color-surface-raised);
+  --bg-card-secondary: var(--color-surface-overlay);
+  --bg-hover: var(--color-surface-overlay);
+  --bg-track: var(--color-surface-overlay);
+  --bg-surface-1: var(--color-surface);
+  --bg-surface-2: var(--color-surface-raised);
+  --border-color: var(--color-border);
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-muted: var(--color-text-muted);
+  --color-accent-primary: var(--color-accent);
+  --color-accent-primary-glow: var(--color-accent-soft);
+
+  /* Legacy Mobile Aliases */
+  --sgsk-surface: var(--color-surface);
+  --sgsk-surface-raised: var(--color-surface-raised);
+  --sgsk-surface-overlay: var(--color-surface-overlay);
+  --sgsk-border: var(--color-border);
+  --sgsk-card-border: var(--color-border);
+  --sgsk-text-primary: var(--color-text-primary);
+  --sgsk-text-secondary: var(--color-text-secondary);
+  --sgsk-text-muted: var(--color-text-muted);
+  --sgsk-accent: var(--color-accent);
+  --sgsk-positive: var(--color-pl-positive);
+  --sgsk-negative: var(--color-pl-negative);
+}
