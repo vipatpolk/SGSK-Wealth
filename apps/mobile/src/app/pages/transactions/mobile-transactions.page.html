@@ -58,12 +58,14 @@
             <span class="sgsk-kpi-val">
               {{ state.cx(sym.averageBuyPrice, sym.currency) | currency: state.dc() : 'symbol-narrow' : getPriceFormatFn(sym.symbol, sym.assetType) }}
             </span>
+            <app-secondary-currency [amount]="state.cx(sym.averageBuyPrice, sym.currency)" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" [digitsInfo]="getPriceFormatFn(sym.symbol, sym.assetType)" variant="kpi" [privacy]="false"></app-secondary-currency>
           </div>
           <div class="sgsk-kpi-box">
             <span class="sgsk-kpi-label">{{ 'summary.holdingValue' | t }}</span>
             <span class="sgsk-kpi-val privacy-mask">
               {{ activeHoldingValueConverted() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
             </span>
+            <app-secondary-currency [amount]="activeHoldingValueConverted()" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi"></app-secondary-currency>
           </div>
           <div class="sgsk-kpi-box">
             <span class="sgsk-kpi-label">{{ 'common.realizedPL' | t }}</span>
@@ -74,6 +76,7 @@
             >
               {{ sym.realizedPL >= 0 ? '+' : '' }}{{ state.cx(sym.realizedPL, sym.currency) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
             </span>
+            <app-secondary-currency [amount]="state.cx(sym.realizedPL, sym.currency)" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi" [signed]="true"></app-secondary-currency>
           </div>
         </div>
       </section>
@@ -93,6 +96,7 @@
             >
               {{ allSymbolsRealizedPL() >= 0 ? '+' : '' }}{{ allSymbolsRealizedPL() | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
             </span>
+            <app-secondary-currency [amount]="allSymbolsRealizedPL()" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi" [signed]="true" digitsInfo="1.0-0"></app-secondary-currency>
           </div>
         </div>
       </section>
@@ -163,6 +167,7 @@
               <span class="privacy-mask" style="font-weight: 700;">
                 {{ state.cx(tx.totalAmount, tx.currency) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
               </span>
+              <app-secondary-currency [amount]="state.cx(tx.totalAmount, tx.currency)" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact"></app-secondary-currency>
             </div>
           </div>
 
@@ -172,14 +177,17 @@
               {{ state.cx(tx.price, tx.currency) | currency: state.dc() : 'symbol-narrow' : getPriceFormatFn(tx.symbol, tx.assetType) }}
             </span>
             @if (tx.realizedPL != null && tx.realizedPL !== 0) {
-              <span
-                class="privacy-mask"
-                [class.pl-positive]="tx.realizedPL >= 0"
-                [class.pl-negative]="tx.realizedPL < 0"
-                style="font-weight: 700;"
-              >
-                {{ tx.realizedPL >= 0 ? '+' : '' }}{{ state.cx(tx.realizedPL, tx.currency) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
-              </span>
+              <div style="text-align: right;">
+                <span
+                  class="privacy-mask"
+                  [class.pl-positive]="tx.realizedPL >= 0"
+                  [class.pl-negative]="tx.realizedPL < 0"
+                  style="font-weight: 700;"
+                >
+                  {{ tx.realizedPL >= 0 ? '+' : '' }}{{ state.cx(tx.realizedPL, tx.currency) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+                </span>
+                <app-secondary-currency [amount]="state.cx(tx.realizedPL, tx.currency)" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" [signed]="true"></app-secondary-currency>
+              </div>
             }
           </div>
 

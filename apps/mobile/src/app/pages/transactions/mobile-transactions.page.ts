@@ -14,6 +14,7 @@ import {
 } from '@ionic/angular';
 import { DateRange, DateRangePickerComponent } from '@shared/components/date-range-picker/date-range-picker.component';
 import { SymbolIconComponent } from '@shared/components/symbol-icon/symbol-icon.component';
+import { SecondaryCurrencyComponent } from '@shared/components/secondary-currency/secondary-currency.component';
 import { SymbolTransaction, SymbolTransactionSummary } from '@shared/models/transaction.model';
 import { LocalizedDatePipe } from '@shared/pipes/localized-date.pipe';
 import { TranslatePipe } from '@shared/pipes/translate.pipe';
@@ -42,6 +43,7 @@ export type MobileTxTypeFilter = 'all' | 'buy' | 'sell' | 'exchange';
     TranslatePipe,
     LocalizedDatePipe,
     SymbolIconComponent,
+    SecondaryCurrencyComponent,
     DateRangePickerComponent,
     IonContent,
     IonRefresher,

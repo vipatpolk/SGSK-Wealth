@@ -33,12 +33,14 @@
         <span class="sgsk-kpi-val">
           {{ snap.averageCost | currency: snap.currency : 'symbol-narrow' : getPriceFormat(snap.symbol, snap.assetType) }}
         </span>
+        <app-secondary-currency [amount]="snap.averageCost" [displayCurrency]="snap.currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" [digitsInfo]="getPriceFormat(snap.symbol, snap.assetType)" variant="compact" [privacy]="false"></app-secondary-currency>
       </div>
       <div class="sgsk-kpi-box">
         <span class="sgsk-kpi-label">{{ 'tools.avg.liveMarketPrice' | t }}</span>
         <span class="sgsk-kpi-val">
           {{ snap.currentPrice | currency: snap.currency : 'symbol-narrow' : getPriceFormat(snap.symbol, snap.assetType) }}
         </span>
+        <app-secondary-currency [amount]="snap.currentPrice" [displayCurrency]="snap.currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" [digitsInfo]="getPriceFormat(snap.symbol, snap.assetType)" variant="compact" [privacy]="false"></app-secondary-currency>
       </div>
       <div class="sgsk-kpi-box">
         <span class="sgsk-kpi-label">{{ 'tools.avg.currentUnrealizedPL' | t }}</span>
@@ -50,6 +52,7 @@
           {{ snap.unrealizedPL >= 0 ? '+' : '' }}{{ snap.unrealizedPL | currency: snap.currency : 'symbol-narrow' : '1.0-0' }}
           ({{ snap.unrealizedPLPercent >= 0 ? '+' : '' }}{{ snap.unrealizedPLPercent | number: '1.1-1' }}%)
         </span>
+        <app-secondary-currency [amount]="snap.unrealizedPL" [displayCurrency]="snap.currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" [signed]="true" digitsInfo="1.0-0"></app-secondary-currency>
       </div>
     </div>
 
@@ -352,6 +355,7 @@
             <span class="sgsk-kpi-val">
               {{ sim.simulated.averageCost | currency: snap.currency : 'symbol-narrow' : getPriceFormat(snap.symbol, snap.assetType) }}
             </span>
+            <app-secondary-currency [amount]="sim.simulated.averageCost" [displayCurrency]="snap.currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" [digitsInfo]="getPriceFormat(snap.symbol, snap.assetType)" variant="compact" [privacy]="false"></app-secondary-currency>
             <span
               class="avg-delta-sub font-mono"
               [class.pl-positive]="sim.delta.averageCost <= 0"
@@ -375,6 +379,7 @@
             <span class="sgsk-kpi-val privacy-mask">
               {{ sim.simulated.totalOutlay | currency: snap.currency : 'symbol-narrow' : '1.0-2' }}
             </span>
+            <app-secondary-currency [amount]="sim.simulated.totalOutlay" [displayCurrency]="snap.currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact"></app-secondary-currency>
             <span class="avg-delta-sub font-mono">
               {{ 'tools.avg.feesColon' | t }} {{ sim.simulated.totalFees | currency: snap.currency : 'symbol-narrow' : '1.0-2' }}
             </span>
@@ -388,6 +393,7 @@
             >
               {{ sim.simulated.unrealizedPL >= 0 ? '+' : '' }}{{ sim.simulated.unrealizedPL | currency: snap.currency : 'symbol-narrow' : '1.0-0' }}
             </span>
+            <app-secondary-currency [amount]="sim.simulated.unrealizedPL" [displayCurrency]="snap.currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" [signed]="true" digitsInfo="1.0-0"></app-secondary-currency>
             <span class="avg-delta-sub font-mono">
               {{ sim.simulated.unrealizedPLPercent >= 0 ? '+' : '' }}{{ sim.simulated.unrealizedPLPercent | number: '1.2-2' }}%
             </span>
@@ -474,6 +480,7 @@
               <span class="sgsk-kpi-val privacy-mask">
                 {{ rev.totalOutlay | currency: snap.currency : 'symbol-narrow' : '1.0-2' }}
               </span>
+              <app-secondary-currency [amount]="rev.totalOutlay" [displayCurrency]="snap.currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact"></app-secondary-currency>
             </div>
             <div class="sgsk-kpi-box">
               <span class="sgsk-kpi-label">{{ 'tools.avg.newTotalShares' | t }}</span>

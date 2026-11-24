@@ -12,6 +12,7 @@ import {
   IonToolbar,
 } from '@ionic/angular';
 import { SymbolIconComponent } from '@shared/components/symbol-icon/symbol-icon.component';
+import { SecondaryCurrencyComponent } from '@shared/components/secondary-currency/secondary-currency.component';
 import { TranslationKey } from '@shared/i18n/en';
 import { PortfolioPosition } from '@shared/models/portfolio.model';
 import {
@@ -69,6 +70,7 @@ export interface MobileSymbolOption {
     FormsModule,
     TranslatePipe,
     SymbolIconComponent,
+    SecondaryCurrencyComponent,
     IonModal,
     IonHeader,
     IonToolbar,

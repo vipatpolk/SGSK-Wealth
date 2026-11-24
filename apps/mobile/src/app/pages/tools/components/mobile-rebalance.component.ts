@@ -2,6 +2,7 @@ import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SymbolIconComponent } from '@shared/components/symbol-icon/symbol-icon.component';
+import { SecondaryCurrencyComponent } from '@shared/components/secondary-currency/secondary-currency.component';
 import { PortfolioPosition } from '@shared/models/portfolio.model';
 import {
   AssetClassRebalanceGroup,
@@ -25,7 +26,7 @@ import { NativePlatformService } from '../../../services/native-platform.service
   selector: 'app-mobile-rebalance',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe, FormsModule, TranslatePipe, SymbolIconComponent],
+  imports: [CurrencyPipe, DecimalPipe, FormsModule, TranslatePipe, SymbolIconComponent, SecondaryCurrencyComponent],
   templateUrl: './mobile-rebalance.component.html',
   styleUrl: './mobile-rebalance.component.css',
 })

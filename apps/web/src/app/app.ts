@@ -18,6 +18,7 @@ import { AuthScreenComponent } from '@app/features/auth/auth-screen.component';
 import { UserSettingsModalComponent } from '@app/features/settings/user-settings-modal.component';
 import { LocalPortfolioModalComponent } from '@app/features/local-portfolio/local-portfolio-modal.component';
 import { NavIconComponent } from '@shared/components/nav-icon/nav-icon.component';
+import { SecondaryCurrencyComponent } from '@shared/components/secondary-currency/secondary-currency.component';
 import { TranslatePipe } from '@shared/pipes/translate.pipe';
 
 @Component({
@@ -45,6 +46,7 @@ import { TranslatePipe } from '@shared/pipes/translate.pipe';
     UserSettingsModalComponent,
     LocalPortfolioModalComponent,
     NavIconComponent,
+    SecondaryCurrencyComponent,
     TranslatePipe,
   ],
   templateUrl: './app.html',

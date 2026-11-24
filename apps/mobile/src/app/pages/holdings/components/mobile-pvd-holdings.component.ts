@@ -2,6 +2,7 @@ import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { IonSearchbar } from '@ionic/angular';
 import { SymbolIconComponent } from '@shared/components/symbol-icon/symbol-icon.component';
+import { SecondaryCurrencyComponent } from '@shared/components/secondary-currency/secondary-currency.component';
 import { TranslationKey } from '@shared/i18n/en';
 import { FactsheetRequestTarget } from '@shared/models/factsheet.model';
 import { PortfolioPosition } from '@shared/models/portfolio.model';
@@ -98,7 +99,7 @@ function parseRiskInfo(riskLevel?: string | null): MobilePvdRiskInfo {
   selector: 'app-mobile-pvd-holdings',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe, TranslatePipe, SymbolIconComponent, IonSearchbar],
+  imports: [DecimalPipe, TranslatePipe, SymbolIconComponent, SecondaryCurrencyComponent, IonSearchbar],
   templateUrl: './mobile-pvd-holdings.component.html',
   styleUrl: './mobile-pvd-holdings.component.css',
 })

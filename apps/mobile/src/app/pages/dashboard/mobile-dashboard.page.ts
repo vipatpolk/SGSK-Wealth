@@ -9,6 +9,7 @@ import {
   IonSpinner,
 } from '@ionic/angular';
 import { SymbolIconComponent } from '@shared/components/symbol-icon/symbol-icon.component';
+import { SecondaryCurrencyComponent } from '@shared/components/secondary-currency/secondary-currency.component';
 import { PortfolioPosition } from '@shared/models/portfolio.model';
 import { ToolId } from '@shared/models/tools.model';
 import { LocalizedDatePipe } from '@shared/pipes/localized-date.pipe';
@@ -60,6 +61,7 @@ export interface MobileRecentTxItem {
     TranslatePipe,
     LocalizedDatePipe,
     SymbolIconComponent,
+    SecondaryCurrencyComponent,
     IonContent,
     IonRefresher,
     IonRefresherContent,

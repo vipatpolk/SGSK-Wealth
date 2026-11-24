@@ -17,6 +17,8 @@ import {
   getUnitLabel,
   getUnitLabelSingular,
   generateAssetTypeOptions,
+  getSecondaryCurrency,
+  convertToSecondaryCurrency,
 } from '../format.utils';
 
 describe('FormatUtils', () => {
@@ -434,6 +436,33 @@ describe('FormatUtils', () => {
       const thOptions = generateAssetTypeOptions(items, 'th');
       expect(thOptions[0].label).toBe('ทุกประเภท');
       expect(thOptions[1].label).toBe('หุ้นสหรัฐฯ');
+    });
+  });
+
+  describe('getSecondaryCurrency', () => {
+    it('returns USD when displayCurrency is THB and THB when USD', () => {
+      expect(getSecondaryCurrency('THB')).toBe('USD');
+      expect(getSecondaryCurrency('USD')).toBe('THB');
+    });
+  });
+
+  describe('convertToSecondaryCurrency', () => {
+    it('converts THB amounts to USD and USD amounts to THB', () => {
+      expect(convertToSecondaryCurrency(3500, 'THB', 35)).toBeCloseTo(100, 6);
+      expect(convertToSecondaryCurrency(100, 'USD', 35)).toBeCloseTo(3500, 6);
+      expect(convertToSecondaryCurrency(-700, 'THB', 35)).toBeCloseTo(-20, 6);
+      expect(convertToSecondaryCurrency(-20, 'USD', 35)).toBeCloseTo(-700, 6);
+      expect(convertToSecondaryCurrency(0, 'THB', 35)).toBe(0);
+      expect(convertToSecondaryCurrency(0, 'USD', 35)).toBe(0);
+    });
+
+    it('returns null when exchangeRate is <= 0 or inputs are non-finite', () => {
+      expect(convertToSecondaryCurrency(100, 'THB', 0)).toBeNull();
+      expect(convertToSecondaryCurrency(100, 'THB', -35)).toBeNull();
+      expect(convertToSecondaryCurrency(100, 'USD', Number.NaN)).toBeNull();
+      expect(convertToSecondaryCurrency(100, 'USD', Number.POSITIVE_INFINITY)).toBeNull();
+      expect(convertToSecondaryCurrency(Number.NaN, 'THB', 35)).toBeNull();
+      expect(convertToSecondaryCurrency(Number.POSITIVE_INFINITY, 'THB', 35)).toBeNull();
     });
   });
 });

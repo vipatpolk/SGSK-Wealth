@@ -31,6 +31,13 @@
           </div>
           <div class="pvd-balance-row">
             <span class="pvd-total-balance font-mono pvd-privacy-val">{{ formatMoney(m.totalBalance) }}</span>
+            <app-secondary-currency
+              [amount]="m.totalBalance"
+              [displayCurrency]="displayCurrency()"
+              [exchangeRate]="exchangeRate()"
+              [hasRate]="hasRate()"
+              variant="hero"
+            ></app-secondary-currency>
             <span
               class="pvd-return-badge font-mono"
               [class.positive]="m.totalEarnings >= 0"
@@ -38,6 +45,15 @@
             >
               <span class="pvd-privacy-val">{{ formatMoney(m.totalEarnings, true) }}</span>
               <span>({{ formatSignedPct(m.returnPct) }})</span>
+              <app-secondary-currency
+                [amount]="m.totalEarnings"
+                [displayCurrency]="displayCurrency()"
+                [exchangeRate]="exchangeRate()"
+                [hasRate]="hasRate()"
+                variant="inline"
+                [signed]="true"
+                [parens]="true"
+              ></app-secondary-currency>
             </span>
           </div>
           <p class="pvd-balance-sub">
@@ -74,6 +90,7 @@
         <div class="pvd-kpi-tile">
           <span class="pvd-kpi-label">{{ 'pvd.totalPrincipal' | t }}</span>
           <span class="pvd-kpi-val font-mono pvd-privacy-val">{{ formatMoney(m.totalPrincipal) }}</span>
+          <app-secondary-currency [amount]="m.totalPrincipal" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi"></app-secondary-currency>
           <span class="pvd-kpi-hint">{{ 'pvd.totalPrincipalHint' | t }}</span>
         </div>
 
@@ -86,6 +103,7 @@
           >
             {{ formatMoney(m.totalEarnings, true) }}
           </span>
+          <app-secondary-currency [amount]="m.totalEarnings" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi" [signed]="true"></app-secondary-currency>
           <span class="pvd-kpi-hint" [class.pos-text]="m.returnPct >= 0" [class.neg-text]="m.returnPct < 0">
             {{ 'pvd.returnOnCost' | t: { pct: formatSignedPct(m.returnPct) } }}
           </span>
@@ -96,6 +114,7 @@
             'pvd.empPoolLabel' | t: { pct: (m.employeeSharePct | number: '1.1-1') || '0.0' }
           }}</span>
           <span class="pvd-kpi-val font-mono pvd-privacy-val">{{ formatMoney(m.totalEmployeeValue) }}</span>
+          <app-secondary-currency [amount]="m.totalEmployeeValue" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi"></app-secondary-currency>
           <span class="pvd-kpi-hint pvd-privacy-val">
             {{ 'pvd.principalShort' | t }} {{ formatMoney(m.totalEmployeePrincipal) }} ·
             {{ 'pvd.earningsShort' | t }} {{ formatMoney(m.totalEmployeeEarnings, true) }}
@@ -107,6 +126,7 @@
             'pvd.emprPoolLabel' | t: { pct: (m.employerSharePct | number: '1.1-1') || '0.0' }
           }}</span>
           <span class="pvd-kpi-val font-mono pvd-privacy-val">{{ formatMoney(m.totalEmployerValue) }}</span>
+          <app-secondary-currency [amount]="m.totalEmployerValue" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi"></app-secondary-currency>
           <span class="pvd-kpi-hint pvd-privacy-val">
             {{ 'pvd.principalShort' | t }} {{ formatMoney(m.totalEmployerPrincipal) }} ·
             {{ 'pvd.earningsShort' | t }} {{ formatMoney(m.totalEmployerEarnings, true) }}
@@ -265,7 +285,10 @@
                 </div>
                 <div class="pvd-alloc-right">
                   <span class="pvd-alloc-pct font-mono">{{ slice.weightPct | number: '1.1-1' }}%</span>
-                  <span class="pvd-alloc-val font-mono pvd-privacy-val">{{ formatMoney(slice.holdingValue) }}</span>
+                  <div style="text-align: right;">
+                    <span class="pvd-alloc-val font-mono pvd-privacy-val">{{ formatMoney(slice.holdingValue) }}</span>
+                    <app-secondary-currency [amount]="slice.holdingValue" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact"></app-secondary-currency>
+                  </div>
                 </div>
               </div>
             }
@@ -506,6 +529,7 @@
 
                 <div class="pvd-policy-val-block">
                   <span class="pvd-policy-val font-mono pvd-privacy-val">{{ formatMoney(policy.holdingValue) }}</span>
+                  <app-secondary-currency [amount]="policy.holdingValue" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="table"></app-secondary-currency>
                   <span
                     class="pvd-policy-return font-mono"
                     [class.pos-text]="policy.earnings >= 0"
@@ -544,14 +568,17 @@
                 <div class="pvd-metric-cell">
                   <span class="pvd-m-label">{{ 'pvd.currentNav' | t }}</span>
                   <span class="pvd-m-val font-mono">{{ currencySymbol() }}{{ policy.currentPrice | number: getNavFormat() }}</span>
+                  <app-secondary-currency [amount]="policy.currentPrice" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" [digitsInfo]="getNavFormat()" variant="compact" [privacy]="false"></app-secondary-currency>
                 </div>
                 <div class="pvd-metric-cell">
                   <span class="pvd-m-label">{{ 'pvd.principalCost' | t }}</span>
                   <span class="pvd-m-val font-mono pvd-privacy-val">{{ formatMoney(policy.principal) }}</span>
+                  <app-secondary-currency [amount]="policy.principal" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact"></app-secondary-currency>
                 </div>
                 <div class="pvd-metric-cell">
                   <span class="pvd-m-label">{{ 'pvd.avgUnitCost' | t }}</span>
                   <span class="pvd-m-val font-mono">{{ currencySymbol() }}{{ policy.averageCost | number: getNavFormat() }}</span>
+                  <app-secondary-currency [amount]="policy.averageCost" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" [digitsInfo]="getNavFormat()" variant="compact" [privacy]="false"></app-secondary-currency>
                 </div>
               </div>
 
@@ -560,7 +587,10 @@
                 <div class="pvd-pool-box emp">
                   <div class="pvd-pool-head">
                     <span class="pvd-pool-title">{{ 'pvd.empPoolTitle' | t }}</span>
-                    <span class="pvd-pool-total font-mono pvd-privacy-val">{{ formatMoney(policy.employeeTotal) }}</span>
+                    <div style="text-align: right;">
+                      <span class="pvd-pool-total font-mono pvd-privacy-val">{{ formatMoney(policy.employeeTotal) }}</span>
+                      <app-secondary-currency [amount]="policy.employeeTotal" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact"></app-secondary-currency>
+                    </div>
                   </div>
                   <div class="pvd-pool-rows">
                     <div>
@@ -587,7 +617,10 @@
                 <div class="pvd-pool-box empr">
                   <div class="pvd-pool-head">
                     <span class="pvd-pool-title">{{ 'pvd.emprPoolTitle' | t }}</span>
-                    <span class="pvd-pool-total font-mono pvd-privacy-val">{{ formatMoney(policy.employerTotal) }}</span>
+                    <div style="text-align: right;">
+                      <span class="pvd-pool-total font-mono pvd-privacy-val">{{ formatMoney(policy.employerTotal) }}</span>
+                      <app-secondary-currency [amount]="policy.employerTotal" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact"></app-secondary-currency>
+                    </div>
                   </div>
                   <div class="pvd-pool-rows">
                     <div>

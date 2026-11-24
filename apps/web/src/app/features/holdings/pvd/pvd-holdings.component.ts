@@ -14,6 +14,7 @@ import { I18nService } from '@shared/services/i18n.service';
 import { TranslatePipe } from '@shared/pipes/translate.pipe';
 import { TranslationKey } from '@shared/i18n/en';
 import { SymbolIconComponent } from '@shared/components/symbol-icon/symbol-icon.component';
+import { SecondaryCurrencyComponent } from '@shared/components/secondary-currency/secondary-currency.component';
 import {
   convertCurrency,
   displaySymbol,
@@ -150,7 +151,7 @@ export function parseRiskInfo(riskLevel?: string | null): PvdRiskInfo {
 @Component({
   selector: 'app-pvd-holdings',
   standalone: true,
-  imports: [CommonModule, SymbolIconComponent, TranslatePipe],
+  imports: [CommonModule, SymbolIconComponent, SecondaryCurrencyComponent, TranslatePipe],
   templateUrl: './pvd-holdings.component.html',
   styleUrl: './pvd-holdings.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

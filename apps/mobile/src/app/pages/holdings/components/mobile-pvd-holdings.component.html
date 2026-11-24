@@ -30,6 +30,7 @@
 
       <div class="pvd-balance-block">
         <span class="pvd-balance-val font-mono privacy-mask">{{ formatMoney(m.totalBalance) }}</span>
+        <app-secondary-currency [amount]="m.totalBalance" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="hero"></app-secondary-currency>
         <span
           class="pvd-return-pill font-mono"
           [class.badge-positive]="m.totalEarnings >= 0"
@@ -37,6 +38,7 @@
         >
           <span class="privacy-mask">{{ formatMoney(m.totalEarnings, true) }}</span>
           ({{ formatSignedPct(m.returnPct) }})
+          <app-secondary-currency [amount]="m.totalEarnings" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="inline" [signed]="true" [parens]="true"></app-secondary-currency>
         </span>
       </div>
       <p class="pvd-sub-line">
@@ -54,6 +56,7 @@
         <div class="sgsk-kpi-box">
           <span class="sgsk-kpi-label">{{ 'pvd.totalPrincipal' | t }}</span>
           <span class="sgsk-kpi-val privacy-mask">{{ formatMoney(m.totalPrincipal) }}</span>
+          <app-secondary-currency [amount]="m.totalPrincipal" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi"></app-secondary-currency>
           <span class="sgsk-kpi-sub">{{ 'pvd.totalPrincipalHint' | t }}</span>
         </div>
 
@@ -66,6 +69,7 @@
           >
             {{ formatMoney(m.totalEarnings, true) }}
           </span>
+          <app-secondary-currency [amount]="m.totalEarnings" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi" [signed]="true"></app-secondary-currency>
           <span class="sgsk-kpi-sub font-mono" [class.pl-positive]="m.returnPct >= 0" [class.pl-negative]="m.returnPct < 0">
             {{ 'pvd.returnOnCost' | t: { pct: formatSignedPct(m.returnPct) } }}
           </span>
@@ -76,6 +80,7 @@
             {{ 'pvd.empPoolLabel' | t: { pct: (m.employeeSharePct | number: '1.1-1') || '0.0' } }}
           </span>
           <span class="sgsk-kpi-val privacy-mask">{{ formatMoney(m.totalEmployeeValue) }}</span>
+          <app-secondary-currency [amount]="m.totalEmployeeValue" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi"></app-secondary-currency>
           <span class="sgsk-kpi-sub font-mono privacy-mask">
             {{ 'pvd.principalShort' | t }} {{ formatMoney(m.totalEmployeePrincipal) }}
           </span>
@@ -86,6 +91,7 @@
             {{ 'pvd.emprPoolLabel' | t: { pct: (m.employerSharePct | number: '1.1-1') || '0.0' } }}
           </span>
           <span class="sgsk-kpi-val privacy-mask">{{ formatMoney(m.totalEmployerValue) }}</span>
+          <app-secondary-currency [amount]="m.totalEmployerValue" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi"></app-secondary-currency>
           <span class="sgsk-kpi-sub font-mono privacy-mask">
             {{ 'pvd.principalShort' | t }} {{ formatMoney(m.totalEmployerPrincipal) }}
           </span>
@@ -206,6 +212,7 @@
               <div class="pvd-alloc-right font-mono">
                 <span>{{ slice.weightPct | number: '1.1-1' }}%</span>
                 <span class="text-muted privacy-mask">{{ formatMoney(slice.holdingValue) }}</span>
+                <app-secondary-currency [amount]="slice.holdingValue" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact"></app-secondary-currency>
               </div>
             </button>
           }
@@ -351,6 +358,7 @@
 
           <div class="pvd-policy-val-col font-mono">
             <span class="pvd-policy-val privacy-mask">{{ formatMoney(policy.holdingValue) }}</span>
+            <app-secondary-currency [amount]="policy.holdingValue" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact"></app-secondary-currency>
             <span
               class="pvd-policy-ret"
               [class.pl-positive]="policy.earnings >= 0"
@@ -384,14 +392,17 @@
           <div class="sgsk-kpi-box">
             <span class="sgsk-kpi-label">{{ 'pvd.currentNav' | t }}</span>
             <span class="sgsk-kpi-val">{{ currencySymbol() }}{{ policy.currentPrice | number: getNavFormat() }}</span>
+            <app-secondary-currency [amount]="policy.currentPrice" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" [digitsInfo]="getNavFormat()" variant="compact" [privacy]="false"></app-secondary-currency>
           </div>
           <div class="sgsk-kpi-box">
             <span class="sgsk-kpi-label">{{ 'pvd.principalCost' | t }}</span>
             <span class="sgsk-kpi-val privacy-mask">{{ formatMoney(policy.principal) }}</span>
+            <app-secondary-currency [amount]="policy.principal" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact"></app-secondary-currency>
           </div>
           <div class="sgsk-kpi-box">
             <span class="sgsk-kpi-label">{{ 'pvd.avgUnitCost' | t }}</span>
             <span class="sgsk-kpi-val">{{ currencySymbol() }}{{ policy.averageCost | number: getNavFormat() }}</span>
+            <app-secondary-currency [amount]="policy.averageCost" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" [digitsInfo]="getNavFormat()" variant="compact" [privacy]="false"></app-secondary-currency>
           </div>
         </div>
 

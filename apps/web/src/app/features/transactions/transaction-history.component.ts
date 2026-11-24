@@ -15,6 +15,7 @@ import {
 } from '@angular/common';
 import { DateRangePickerComponent, DateRange } from '@shared/components/date-range-picker/date-range-picker.component';
 import { SymbolIconComponent } from '@shared/components/symbol-icon/symbol-icon.component';
+import { SecondaryCurrencyComponent } from '@shared/components/secondary-currency/secondary-currency.component';
 import { I18nService } from '@shared/services/i18n.service';
 import { TranslatePipe } from '@shared/pipes/translate.pipe';
 import { LocalizedDatePipe } from '@shared/pipes/localized-date.pipe';
@@ -62,7 +63,7 @@ export type SortOrder = TxSortOrder;
   selector: 'app-transaction-history',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe, CurrencyPipe, NgIf, DateRangePickerComponent, SymbolIconComponent, TranslatePipe, LocalizedDatePipe],
+  imports: [DecimalPipe, CurrencyPipe, NgIf, DateRangePickerComponent, SymbolIconComponent, SecondaryCurrencyComponent, TranslatePipe, LocalizedDatePipe],
   templateUrl: './transaction-history.component.html',
   styleUrl: './transaction-history.component.css',
 })

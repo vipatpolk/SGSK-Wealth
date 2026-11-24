@@ -7,21 +7,26 @@ SGSK-Wealth/
 ├── packages/
 │   ├── contracts/          # @sgsk-wealth/contracts: Framework-free DTOs, ApiResult<T>, AppLang, AppTheme
 │   ├── design-tokens/      # @sgsk-wealth/design-tokens: Layered CSS tokens (primitives, semantic, financial, assets, components)
-│   └── domain/             # @sgsk-wealth/domain: FIFO calculator, TVM, rebalance, CSV, filters & pure formatters
-├── shared/                 # @shared/*: Angular services, PortfolioDataProvider / PortfolioSourceCoordinator, KeyValueStorageAdapter, i18n, UI components & pipes
+│   └── domain/             # @sgsk-wealth/domain: FIFO calculator, TVM, rebalance, CSV, filters & pure formatters (incl. getSecondaryCurrency / convertToSecondaryCurrency)
+├── shared/                 # @shared/*: Angular services, PortfolioDataProvider / PortfolioSourceCoordinator, KeyValueStorageAdapter, i18n, UI components (SymbolIcon, SecondaryCurrency, LoadingScreen, DateRangePicker) & pipes
 ├── apps/
 │   ├── web/                # @sgsk-wealth/web: Angular 22 Web SPA (Tailwind v4, desktop sidebar + mobile dock)
 │   └── mobile/             # @sgsk-wealth/mobile: Angular 22 + Ionic 9 + Capacitor 8 (iOS Xcode + Android Maven)
 ├── backend/                # sgsk-backend: Rust Axum 0.8 REST API, FIFO engine, market data & Supabase JWT/JWKS guard
 ├── e2e/                    # sgsk-wealth-e2e: Spring Boot 4.1, Cucumber-JVM, Playwright, Appium, Rest Assured & Allure
 ├── fixtures/accounting/    # Language-neutral FIFO & CSV parity fixtures shared across Rust and TypeScript
-└── docs/                   # architecture/, decisions/, operations/, specs/
+└── docs/                   # architecture/, decisions/, operations/
 ```
 
 Architectural boundaries are enforced automatically by `npm run lint:boundaries` ([scripts/check-boundaries.mjs](../../scripts/check-boundaries.mjs)):
 - `packages/contracts/src` and `packages/domain/src` cannot import Angular, Ionic, Capacitor, Supabase, RxJS, `shared/`, `apps/`, or `backend/`, nor reference DOM globals (`window.`, `document.`, `localStorage.`, `sessionStorage.`).
 - `packages/contracts/src` cannot depend on `packages/domain`.
 - Neither `apps/`, `packages/`, nor `shared/` can import from `backend/`.
+
+### Shared Cross-Platform UI & Brand Assets
+
+- **Dual-Currency Display (`@sgsk-wealth/domain` + `@shared/*`)**: `getSecondaryCurrency` and `convertToSecondaryCurrency` in `packages/domain/src/format.utils.ts` compute converted `THB` ↔ `USD` equivalents without UI dependencies, while `SecondaryCurrencyComponent` (`<app-secondary-currency>`) renders consistent, `.privacy-mask`-aware secondary values across all Web and Mobile screens.
+- **Unified Brand Logo Favicons**: Both `apps/web/public/` and `apps/mobile/public/` ship matching `brand-logo.png`, `favicon.svg`, and multi-size `favicon.ico` (16×16, 32×32, 48×48) assets referenced by `index.html`.
 
 ---
 

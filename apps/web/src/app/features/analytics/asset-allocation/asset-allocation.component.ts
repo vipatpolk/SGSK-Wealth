@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { SymbolIconComponent } from '@shared/components/symbol-icon/symbol-icon.component';
+import { SecondaryCurrencyComponent } from '@shared/components/secondary-currency/secondary-currency.component';
 import {
   SymbolSummary,
   TargetAllocation,
@@ -35,7 +36,7 @@ import {
   selector: 'app-asset-allocation',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe, SymbolIconComponent, TranslatePipe],
+  imports: [CurrencyPipe, DecimalPipe, SymbolIconComponent, SecondaryCurrencyComponent, TranslatePipe],
   templateUrl: './asset-allocation.component.html',
   styleUrls: ['./asset-allocation.component.css'],
 })

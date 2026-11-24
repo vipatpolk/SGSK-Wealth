@@ -225,14 +225,17 @@
           <strong class="tvm-hero-val font-mono privacy-mask">
             {{ res.futureValue | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
           </strong>
+          <app-secondary-currency [amount]="res.futureValue" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="hero" digitsInfo="1.0-0"></app-secondary-currency>
         } @else if (solveMode() === 'PMT') {
           <strong class="tvm-hero-val font-mono privacy-mask">
             {{ res.payment | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
           </strong>
+          <app-secondary-currency [amount]="res.payment" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="hero" digitsInfo="1.0-0"></app-secondary-currency>
         } @else if (solveMode() === 'PV') {
           <strong class="tvm-hero-val font-mono privacy-mask">
             {{ res.presentValue | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
           </strong>
+          <app-secondary-currency [amount]="res.presentValue" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="hero" digitsInfo="1.0-0"></app-secondary-currency>
         } @else if (solveMode() === 'N') {
           <strong class="tvm-hero-val font-mono">
             {{ res.years | number: '1.1-1' }} {{ 'tools.tvm.yearsUnit' | t }}
@@ -274,24 +277,28 @@
           <span class="sgsk-kpi-val privacy-mask">
             {{ res.totalPrincipal | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
           </span>
+          <app-secondary-currency [amount]="res.totalPrincipal" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi" digitsInfo="1.0-0"></app-secondary-currency>
         </div>
         <div class="sgsk-kpi-box">
           <span class="sgsk-kpi-label">{{ 'tools.tvm.kpiPMTLabel' | t }}</span>
           <span class="sgsk-kpi-val privacy-mask">
             {{ res.totalContributions | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
           </span>
+          <app-secondary-currency [amount]="res.totalContributions" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi" digitsInfo="1.0-0"></app-secondary-currency>
         </div>
         <div class="sgsk-kpi-box">
           <span class="sgsk-kpi-label">{{ 'tools.tvm.kpiInvestedLabel' | t }}</span>
           <span class="sgsk-kpi-val privacy-mask">
             {{ res.totalInvested | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
           </span>
+          <app-secondary-currency [amount]="res.totalInvested" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi" digitsInfo="1.0-0"></app-secondary-currency>
         </div>
         <div class="sgsk-kpi-box">
           <span class="sgsk-kpi-label">{{ 'tools.tvm.kpiInterestLabel' | t }}</span>
           <span class="sgsk-kpi-val pl-positive privacy-mask">
             +{{ res.totalInterestEarned | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
           </span>
+          <app-secondary-currency [amount]="res.totalInterestEarned" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi" [signed]="true" digitsInfo="1.0-0"></app-secondary-currency>
         </div>
         <div class="sgsk-kpi-box">
           <span class="sgsk-kpi-label">{{ 'tools.tvm.kpiEffectiveApy' | t }}</span>
@@ -373,8 +380,14 @@
               @for (row of res.schedule; track row.year) {
                 <div class="tvm-sched-row font-mono">
                   <span>Y{{ row.year }}</span>
-                  <span class="privacy-mask">{{ row.endBalance | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
-                  <span class="pl-positive privacy-mask">+{{ row.interestEarned | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+                  <div>
+                    <span class="privacy-mask">{{ row.endBalance | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+                    <app-secondary-currency [amount]="row.endBalance" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" digitsInfo="1.0-0"></app-secondary-currency>
+                  </div>
+                  <div style="text-align: right;">
+                    <span class="pl-positive privacy-mask">+{{ row.interestEarned | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+                    <app-secondary-currency [amount]="row.interestEarned" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" [signed]="true" digitsInfo="1.0-0"></app-secondary-currency>
+                  </div>
                 </div>
               }
             </div>

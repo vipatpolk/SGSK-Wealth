@@ -1,6 +1,8 @@
 import { Component, input, output, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { SymbolIconComponent } from '@shared/components/symbol-icon/symbol-icon.component';
+import { SecondaryCurrencyComponent } from '@shared/components/secondary-currency/secondary-currency.component';
+import { AppCurrency } from '@sgsk-wealth/contracts';
 import { I18nService } from '@shared/services/i18n.service';
 import { TranslatePipe } from '@shared/pipes/translate.pipe';
 import { LocalizedDatePipe } from '@shared/pipes/localized-date.pipe';
@@ -11,7 +13,7 @@ import { getAssetType, getUnitLabel } from '@shared/utils/format.utils';
   selector: 'app-summary-card',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe, SymbolIconComponent, TranslatePipe, LocalizedDatePipe],
+  imports: [CurrencyPipe, DecimalPipe, SymbolIconComponent, SecondaryCurrencyComponent, TranslatePipe, LocalizedDatePipe],
   templateUrl: './summary-card.component.html'
 })
 export class SummaryCardComponent {
@@ -41,6 +43,9 @@ export class SummaryCardComponent {
   // Currency handling
   cx = input.required<(amount: number, currency: string) => number>();
   dc = input.required<(currency?: string) => string>();
+  displayCurrency = input<AppCurrency>('THB');
+  exchangeRate = input<number>(0);
+  hasRate = input<boolean>(false);
   
   // Metrics for open positions
   getCurrentPriceConverted = input.required<(summary: any) => number>();

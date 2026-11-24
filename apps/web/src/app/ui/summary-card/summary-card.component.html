@@ -91,19 +91,23 @@
             <div class="card-metric">
               <span class="card-metric-label">{{ 'common.avgCost' | t }}</span>
               <span class="card-metric-value">{{ cx()(summary().averageCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</span>
+              <app-secondary-currency [amount]="cx()(summary().averageCost, summary().currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" [digitsInfo]="getPriceFormat()(summary().symbol)" variant="table" [privacy]="false"></app-secondary-currency>
             </div>
             <div class="card-metric">
               <span class="card-metric-label">{{ 'common.totalCost' | t }}</span>
               <span class="card-metric-value">{{ cx()(summary().totalCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
+              <app-secondary-currency [amount]="cx()(summary().totalCost, summary().currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="table"></app-secondary-currency>
             </div>
             @if (hasPriceData()) {
               <div class="card-metric">
                 <span class="card-metric-label">{{ summary().assetType === 'mutual-fund' || summary().assetType === 'provident-fund' ? ('summary.nav' | t) : ('summary.mktPrice' | t) }}</span>
                 <span class="card-metric-value">{{ getCurrentPriceConverted()(summary()) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</span>
+                <app-secondary-currency [amount]="getCurrentPriceConverted()(summary())" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" [digitsInfo]="getPriceFormat()(summary().symbol)" variant="table" [privacy]="false"></app-secondary-currency>
               </div>
               <div class="card-metric">
                 <span class="card-metric-label">{{ 'summary.holdingValue' | t }}</span>
                 <span class="card-metric-value">{{ cx()(getHoldingValue()(summary()), summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
+                <app-secondary-currency [amount]="cx()(getHoldingValue()(summary()), summary().currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="table"></app-secondary-currency>
               </div>
               <div class="card-metric">
                 <span class="card-metric-label">{{ 'common.pl' | t }}</span>
@@ -115,6 +119,7 @@
                   <span class="metric-amount">{{ getUnrealizedPL()(summary()) >= 0 ? '+' : '' }}{{ cx()(getUnrealizedPL()(summary()), summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
                   <span class="pl-percent">({{ getUnrealizedPL()(summary()) >= 0 ? '+' : '' }}{{ getUnrealizedPLPercent()(summary()) | number:'1.2-2' }}%)</span>
                 </span>
+                <app-secondary-currency [amount]="cx()(getUnrealizedPL()(summary()), summary().currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="table" [signed]="true"></app-secondary-currency>
               </div>
             } @else if (pricesLoading()) {
               <div class="card-metric">
@@ -353,15 +358,25 @@
                       }
                     </td>
                     <td class="lot-col-qty" [attr.data-label]="'common.quantity' | t"><span class="lot-cell-val">{{ lot.quantity | number:getQuantityFormat()(summary().symbol) }}</span></td>
-                    <td class="lot-col-cost" [attr.data-label]="'summary.costBasis' | t"><span class="lot-cell-val">{{ cx()(lot.costBasis, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</span></td>
-                    <td class="lot-col-total" [attr.data-label]="'common.totalCost' | t"><span class="lot-cell-val">{{ cx()(lot.totalCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span></td>
+                    <td class="lot-col-cost" [attr.data-label]="'summary.costBasis' | t">
+                      <span class="lot-cell-val">{{ cx()(lot.costBasis, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</span>
+                      <app-secondary-currency [amount]="cx()(lot.costBasis, summary().currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" [digitsInfo]="getPriceFormat()(summary().symbol)" variant="compact" [privacy]="false"></app-secondary-currency>
+                    </td>
+                    <td class="lot-col-total" [attr.data-label]="'common.totalCost' | t">
+                      <span class="lot-cell-val">{{ cx()(lot.totalCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
+                      <app-secondary-currency [amount]="cx()(lot.totalCost, summary().currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact"></app-secondary-currency>
+                    </td>
                     @if (hasPriceData()) {
-                      <td class="lot-col-total" [attr.data-label]="'summary.holdingValue' | t"><span class="lot-cell-val">{{ cx()(getLotHoldingValue()(lot, summary()), summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span></td>
+                      <td class="lot-col-total" [attr.data-label]="'summary.holdingValue' | t">
+                        <span class="lot-cell-val">{{ cx()(getLotHoldingValue()(lot, summary()), summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
+                        <app-secondary-currency [amount]="cx()(getLotHoldingValue()(lot, summary()), summary().currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact"></app-secondary-currency>
+                      </td>
                       <td class="lot-col-pl" [attr.data-label]="'common.pl' | t"
                         [class.pl-positive]="getLotUnrealizedPL()(lot, summary()) >= 0"
                         [class.pl-negative]="getLotUnrealizedPL()(lot, summary()) < 0"
                       >
                         <span class="lot-amount">{{ getLotUnrealizedPL()(lot, summary()) >= 0 ? '+' : '' }}{{ cx()(getLotUnrealizedPL()(lot, summary()), summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
+                        <app-secondary-currency [amount]="cx()(getLotUnrealizedPL()(lot, summary()), summary().currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [signed]="true"></app-secondary-currency>
                       </td>
                     }
                   </tr>
@@ -462,18 +477,22 @@
           <div class="card-metric">
             <span class="card-metric-label">{{ 'summary.avgBuy' | t }}</span>
             <span class="card-metric-value">{{ cx()(summary().averageBuyPrice, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</span>
+            <app-secondary-currency [amount]="cx()(summary().averageBuyPrice, summary().currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" [digitsInfo]="getPriceFormat()(summary().symbol)" variant="table" [privacy]="false"></app-secondary-currency>
           </div>
           <div class="card-metric">
             <span class="card-metric-label">{{ 'summary.avgSell' | t }}</span>
             <span class="card-metric-value">{{ cx()(summary().averageSellPrice, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</span>
+            <app-secondary-currency [amount]="cx()(summary().averageSellPrice, summary().currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" [digitsInfo]="getPriceFormat()(summary().symbol)" variant="table" [privacy]="false"></app-secondary-currency>
           </div>
           <div class="card-metric">
             <span class="card-metric-label">{{ 'common.totalCost' | t }}</span>
             <span class="card-metric-value">{{ cx()(summary().totalCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
+            <app-secondary-currency [amount]="cx()(summary().totalCost, summary().currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="table"></app-secondary-currency>
           </div>
           <div class="card-metric">
             <span class="card-metric-label">{{ 'summary.proceeds' | t }}</span>
             <span class="card-metric-value">{{ cx()(summary().totalProceeds, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
+            <app-secondary-currency [amount]="cx()(summary().totalProceeds, summary().currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="table"></app-secondary-currency>
           </div>
           <div class="card-metric">
             <span class="card-metric-label">{{ 'common.realizedPL' | t }}</span>
@@ -485,6 +504,7 @@
               <span class="metric-amount">{{ summary().realizedPL >= 0 ? '+' : '' }}{{ cx()(summary().realizedPL, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
               <span class="pl-percent">({{ summary().realizedPLPercent >= 0 ? '+' : '' }}{{ summary().realizedPLPercent | number:'1.2-2' }}%)</span>
             </span>
+            <app-secondary-currency [amount]="cx()(summary().realizedPL, summary().currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="table" [signed]="true"></app-secondary-currency>
           </div>
         </div>
         <svg
@@ -525,16 +545,29 @@
                   <td class="lot-col-date" [attr.data-label]="'summary.buyDate' | t"><span class="lot-cell-val">{{ lot.purchaseDate | ldate }}</span></td>
                   <td class="lot-col-date" [attr.data-label]="'summary.sellDate' | t"><span class="lot-cell-val">{{ lot.closeDate | ldate }}</span></td>
                   <td class="lot-col-qty" [attr.data-label]="'common.quantity' | t"><span class="lot-cell-val">{{ lot.quantity | number:getQuantityFormat()(summary().symbol) }}</span></td>
-                  <td class="lot-col-cost" [attr.data-label]="'summary.avgBuy' | t"><span class="lot-cell-val">{{ cx()(lot.costBasis, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</span></td>
-                  <td class="lot-col-cost" [attr.data-label]="'summary.sellPrice' | t"><span class="lot-cell-val">{{ cx()(lot.sellPrice, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</span></td>
-                  <td class="lot-col-total" [attr.data-label]="'common.totalCost' | t"><span class="lot-cell-val">{{ cx()(lot.totalCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span></td>
-                  <td class="lot-col-total" [attr.data-label]="'summary.proceeds' | t"><span class="lot-cell-val">{{ cx()(lot.totalProceeds, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span></td>
+                  <td class="lot-col-cost" [attr.data-label]="'summary.avgBuy' | t">
+                    <span class="lot-cell-val">{{ cx()(lot.costBasis, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</span>
+                    <app-secondary-currency [amount]="cx()(lot.costBasis, summary().currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" [digitsInfo]="getPriceFormat()(summary().symbol)" variant="compact" [privacy]="false"></app-secondary-currency>
+                  </td>
+                  <td class="lot-col-cost" [attr.data-label]="'summary.sellPrice' | t">
+                    <span class="lot-cell-val">{{ cx()(lot.sellPrice, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':getPriceFormat()(summary().symbol) }}</span>
+                    <app-secondary-currency [amount]="cx()(lot.sellPrice, summary().currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" [digitsInfo]="getPriceFormat()(summary().symbol)" variant="compact" [privacy]="false"></app-secondary-currency>
+                  </td>
+                  <td class="lot-col-total" [attr.data-label]="'common.totalCost' | t">
+                    <span class="lot-cell-val">{{ cx()(lot.totalCost, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
+                    <app-secondary-currency [amount]="cx()(lot.totalCost, summary().currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact"></app-secondary-currency>
+                  </td>
+                  <td class="lot-col-total" [attr.data-label]="'summary.proceeds' | t">
+                    <span class="lot-cell-val">{{ cx()(lot.totalProceeds, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
+                    <app-secondary-currency [amount]="cx()(lot.totalProceeds, summary().currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact"></app-secondary-currency>
+                  </td>
                   <td class="lot-col-pl" [attr.data-label]="'common.realizedPL' | t"
                     [class.pl-positive]="lot.realizedPL >= 0"
                     [class.pl-negative]="lot.realizedPL < 0"
                   >
                     <span class="lot-amount">{{ lot.realizedPL >= 0 ? '+' : '' }}{{ cx()(lot.realizedPL, summary().currency) | currency:dc()(summary().currency):'symbol-narrow':'1.2-2' }}</span>
                     <span class="pl-percent">({{ lot.realizedPLPercent >= 0 ? '+' : '' }}{{ lot.realizedPLPercent | number:'1.2-2' }}%)</span>
+                    <app-secondary-currency [amount]="cx()(lot.realizedPL, summary().currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [signed]="true"></app-secondary-currency>
                   </td>
                 </tr>
               }

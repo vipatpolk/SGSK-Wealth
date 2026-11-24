@@ -1,4 +1,4 @@
-import type { AppLang } from '@sgsk-wealth/contracts';
+import type { AppCurrency, AppLang } from '@sgsk-wealth/contracts';
 import { KNOWN_ASSET_TYPES } from './asset.constants';
 
 export function getQuantityFormat(symbol: string, assetType?: string): string {
@@ -180,6 +180,28 @@ export function convertCurrency(
   if (normFrom === 'THB' && normTo === 'USD') return amount / exchangeRate;
 
   return amount;
+}
+
+/**
+ * Returns the opposite display currency ('USD' when viewing 'THB', 'THB' when viewing 'USD').
+ */
+export function getSecondaryCurrency(displayCurrency: AppCurrency): AppCurrency {
+  return displayCurrency === 'THB' ? 'USD' : 'THB';
+}
+
+/**
+ * Converts an amount already expressed in `displayCurrency` to its secondary currency equivalent.
+ * Returns `null` when the amount or exchange rate is invalid/unavailable.
+ */
+export function convertToSecondaryCurrency(
+  amount: number,
+  displayCurrency: AppCurrency,
+  exchangeRate: number
+): number | null {
+  if (!Number.isFinite(amount) || !Number.isFinite(exchangeRate) || exchangeRate <= 0) {
+    return null;
+  }
+  return displayCurrency === 'THB' ? amount / exchangeRate : amount * exchangeRate;
 }
 
 export function normalizeAssetType(rawType?: string): string | null {

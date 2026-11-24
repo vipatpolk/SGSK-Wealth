@@ -77,7 +77,8 @@ flowchart LR
 
 ### 📊 Executive Dashboard Landing Page
 - **Root Landing View**: Direct landing at `/` with zero navigation friction.
-- **Executive Net Worth Banner**: High-contrast headline portfolio valuation with dual-currency display (USD $\leftrightarrow$ THB), live FX badge, and a 4-card metric strip (*Invested Capital*, *Unrealized P&L*, *Realized Gains*, and *Projected Dividends*).
+- **Executive Net Worth Banner**: High-contrast headline portfolio valuation with live FX badge and a 4-card metric strip (*Invested Capital*, *Unrealized P&L*, *Realized Gains*, and *Projected Dividends*).
+- **Universal Dual-Currency Display (`THB` $\leftrightarrow$ `USD`)**: Displays converted secondary currency equivalents (`≈ USD` / `≈ THB`) across every page—Hero banners, primary KPI cards, and list/table/card rows across Dashboard, Holdings, PVD, Transactions, Analytics, Dividends, and Tools—powered by `<app-secondary-currency>` and pure conversion helpers (`getSecondaryCurrency`, `convertToSecondaryCurrency`) in `@sgsk-wealth/domain`.
 - **Asset Allocation Snapshot**: Interactive SVG Donut Chart with asset category legends and direct drill-down into detailed allocation analytics.
 - **Top Movers Leaderboard**: Highlights top gainers and lagging positions with brand iconography and return indicators.
 - **Forward Dividend Cashflow & Yield**: Trailing/forward annual dividend income, Yield on Cost (YOC %), and Market Yield %.
@@ -87,7 +88,7 @@ flowchart LR
 
 ### 🔒 Privacy Protection Mode
 - **Instant Masking**: One-click toggle in the navigation header (persisted in `localStorage` on web and Capacitor `Preferences` on mobile).
-- **Selective Blurring**: Automatically blurs sensitive monetary figures (Net Worth, values, costs, proceeds, shares, dividends) using SVG/CSS filter backdrops.
+- **Selective Blurring**: Automatically blurs sensitive monetary figures (Net Worth, values, costs, proceeds, shares, dividends, and their secondary currency equivalents) using SVG/CSS filter backdrops (`.privacy-mask`).
 - **Percentage Visibility**: Keeps performance percentages (`P/L %`, `Realized %`, `Yield on Cost %`, `Target %`, `Return %`) unblurred for safe public demonstrations or screen sharing.
 
 ### 🌐 Bilingual Localization (`EN` / `TH`)
@@ -129,7 +130,7 @@ flowchart LR
 
 ### 📱 Native iOS & Android Mobile App (`apps/mobile/`)
 - **Ionic 9 Standalone Shell**: 6-tab bottom navigation (`Dashboard`, `Holdings`, `Analytics`, `Dividends`, `Transactions`, `Tools`), platform-adaptive Ionic `mode` (`'md'` on Android, `'ios'` on iOS/Web), pull-to-refresh (`<ion-refresher>`), native-styled segment switches, searchable cards, Android hardware back-button handling, and `<ion-modal>` sheet drawers (SEC factsheet, dividend ledger, symbol selectors).
-- **Web Responsive Feature Parity**: Shared `<app-symbol-icon>`, `<app-loading-screen>`, and `<app-date-range-picker>` components from `@shared/*`, Interactive SVG Allocation Donut, Executive PVD analytics, Forward/Reverse Average Cost simulator, No-Sell/Standard Rebalance planner, and TVM trajectory chart.
+- **Web Responsive Feature Parity**: Shared `<app-symbol-icon>`, `<app-secondary-currency>`, `<app-loading-screen>`, and `<app-date-range-picker>` components from `@shared/*`, Interactive SVG Allocation Donut, Executive PVD analytics, Forward/Reverse Average Cost simulator, No-Sell/Standard Rebalance planner, and TVM trajectory chart.
 - **Capacitor 8 Native Bridge**: Integrated `@capacitor/haptics`, `@capacitor/status-bar`, `@capacitor/splash-screen`, `@capacitor/preferences`, and `@capacitor/app` with platform-aware API routing (`10.0.2.2:8000` on Android emulator, `127.0.0.1:8000` on iOS simulator, `/api/backend` on web dev proxy).
 - **Maven Android Build (`apps/mobile/android/pom.xml`)**: Packages the Capacitor Android `.apk` using Apache Maven + Android SDK (`aapt2`, `javac`, `d8`, `zipalign`, `apksigner`) without Gradle.
 
@@ -143,8 +144,8 @@ flowchart LR
 |:---|:---|:---|
 | **`@sgsk-wealth/contracts`** | `TypeScript ~6.0` | Framework-free DTO contracts, `ApiResult<T>` helpers (`apiOk`, `apiErr`, `mapHttpErrorToApiFailure`), `AppLang`, `AppTheme`, and Rust/TS JSON contract tests (`packages/contracts/`). |
 | **`@sgsk-wealth/design-tokens`** | `CSS Custom Properties` | Layered **Modern Wealth Terminal** token system (`primitives`, `semantic`, `financial`, `assets`, `components`) driving `Dark`, `Light`, and `System` themes across Web (Tailwind CSS v4) and Mobile (Ionic 9) (`packages/design-tokens/`). |
-| **`@sgsk-wealth/domain`** | `TypeScript ~6.0` | Framework-free financial math, FIFO lot matching, TVM/rebalance/avg-cost calculators, pure CSV export, holdings/ledger filters & formatters, and shared Rust parity fixtures (`packages/domain/`). |
-| **Shared Core (`shared/`)** | `Angular 22.2+` | Platform-agnostic UI components (`SymbolIconComponent`, `LoadingScreenComponent`, `DateRangePickerComponent`), `PortfolioDataProvider` / `PortfolioSourceCoordinator`, `KeyValueStorageAdapter`, API services, Supabase Auth/Settings, bilingual i18n dictionaries, and DI tokens. |
+| **`@sgsk-wealth/domain`** | `TypeScript ~6.0` | Framework-free financial math, FIFO lot matching, TVM/rebalance/avg-cost calculators, pure CSV export, holdings/ledger filters & formatters (including `getSecondaryCurrency` & `convertToSecondaryCurrency`), and shared Rust parity fixtures (`packages/domain/`). |
+| **Shared Core (`shared/`)** | `Angular 22.2+` | Platform-agnostic UI components (`SymbolIconComponent`, `SecondaryCurrencyComponent`, `LoadingScreenComponent`, `DateRangePickerComponent`), `PortfolioDataProvider` / `PortfolioSourceCoordinator`, `KeyValueStorageAdapter`, API services, Supabase Auth/Settings, bilingual i18n dictionaries, and DI tokens. |
 
 ### 2. Web Single Page Application (`apps/web/`)
 
@@ -215,12 +216,13 @@ SGSK-Wealth/
 │
 ├── apps/
 │   ├── web/                    # Angular 22 Web Single Page Application (@sgsk-wealth/web)
-│   │   ├── public/             # Static assets, SVG icons, and favicons
+│   │   ├── public/             # Static assets, SVG icons, and brand logo favicons (brand-logo.png, favicon.svg, multi-size favicon.ico)
 │   │   ├── src/app/{core,features,ui,interceptors,shared-tests}/
 │   │   └── angular.json, tsconfig.json, package.json
 │   └── mobile/                 # Angular 22 + Ionic 9 + Capacitor 8 Mobile App (@sgsk-wealth/mobile)
 │       ├── android/            # Native Android Capacitor project built with Maven (pom.xml)
 │       ├── ios/                # Native iOS Xcode project (Swift + SPM Capacitor plugins)
+│       ├── public/             # Mobile static assets & brand logo favicons (brand-logo.png, favicon.svg, multi-size favicon.ico)
 │       ├── src/app/{modals,pages,services}/
 │       └── capacitor.config.ts, angular.json, package.json
 │
@@ -231,8 +233,7 @@ SGSK-Wealth/
 ├── docs/
 │   ├── architecture/overview.md
 │   ├── decisions/              # ADR-001 through ADR-004
-│   ├── operations/runbook.md
-│   └── specs/sgsk-wealth-improvement-spec.md
+│   └── operations/runbook.md
 │
 ├── fixtures/accounting/        # Shared language-neutral FIFO & CSV parity fixtures
 ├── .agent/skills/              # Canonical AI agent skills (synced to .claude/skills/)

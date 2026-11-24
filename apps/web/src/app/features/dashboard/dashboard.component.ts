@@ -7,6 +7,7 @@ import { PriceData } from '@shared/services/price.service';
 import { ToolId } from '@shared/models/tools.model';
 import { AppView } from '@shared/config/asset.constants';
 import { SymbolIconComponent } from '@shared/components/symbol-icon/symbol-icon.component';
+import { SecondaryCurrencyComponent } from '@shared/components/secondary-currency/secondary-currency.component';
 import { I18nService } from '@shared/services/i18n.service';
 import { UserSettingsService } from '@shared/services/user-settings.service';
 import { TranslatePipe } from '@shared/pipes/translate.pipe';
@@ -51,7 +52,7 @@ export interface RecentTransactionItem {
   selector: 'app-dashboard',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, CurrencyPipe, DecimalPipe, SymbolIconComponent, TranslatePipe, LocalizedDatePipe],
+  imports: [CommonModule, CurrencyPipe, DecimalPipe, SymbolIconComponent, SecondaryCurrencyComponent, TranslatePipe, LocalizedDatePipe],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
 })

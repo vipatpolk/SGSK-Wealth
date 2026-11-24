@@ -54,12 +54,14 @@
           <span class="sgsk-kpi-val privacy-mask">
             {{ kpi.totalInvested | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
           </span>
+          <app-secondary-currency [amount]="kpi.totalInvested" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi"></app-secondary-currency>
         </div>
         <div class="sgsk-kpi-box">
           <span class="sgsk-kpi-label">{{ 'common.totalValue' | t }}</span>
           <span class="sgsk-kpi-val privacy-mask">
             {{ kpi.totalCurrentValue | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
           </span>
+          <app-secondary-currency [amount]="kpi.totalCurrentValue" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi"></app-secondary-currency>
         </div>
         <div class="sgsk-kpi-box">
           <span class="sgsk-kpi-label">{{ 'common.unrealizedPL' | t }}</span>
@@ -70,6 +72,7 @@
           >
             {{ kpi.totalUnrealizedPL >= 0 ? '+' : '' }}{{ kpi.totalUnrealizedPL | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
           </span>
+          <app-secondary-currency [amount]="kpi.totalUnrealizedPL" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi" [signed]="true" digitsInfo="1.0-0"></app-secondary-currency>
           <span class="sgsk-kpi-sub font-mono" [class.pl-positive]="kpi.totalUnrealizedPLPercent >= 0" [class.pl-negative]="kpi.totalUnrealizedPLPercent < 0">
             {{ kpi.totalUnrealizedPLPercent >= 0 ? '+' : '' }}{{ kpi.totalUnrealizedPLPercent | number: '1.2-2' }}%
           </span>
@@ -83,6 +86,7 @@
           >
             {{ kpi.totalRealizedPL >= 0 ? '+' : '' }}{{ kpi.totalRealizedPL | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
           </span>
+          <app-secondary-currency [amount]="kpi.totalRealizedPL" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi" [signed]="true" digitsInfo="1.0-0"></app-secondary-currency>
           <span class="sgsk-kpi-sub font-mono" [class.pl-positive]="kpi.totalRealizedPLPercent >= 0" [class.pl-negative]="kpi.totalRealizedPLPercent < 0">
             {{ kpi.totalRealizedPLPercent >= 0 ? '+' : '' }}{{ kpi.totalRealizedPLPercent | number: '1.2-2' }}%
           </span>
@@ -96,6 +100,7 @@
           >
             {{ kpi.totalReturn >= 0 ? '+' : '' }}{{ kpi.totalReturn | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
           </span>
+          <app-secondary-currency [amount]="kpi.totalReturn" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi" [signed]="true"></app-secondary-currency>
           <span class="sgsk-kpi-sub font-mono" [class.pl-positive]="kpi.totalReturnPercent >= 0" [class.pl-negative]="kpi.totalReturnPercent < 0">
             {{ kpi.totalReturnPercent >= 0 ? '+' : '' }}{{ kpi.totalReturnPercent | number: '1.2-2' }}%
           </span>
@@ -131,6 +136,7 @@
             <span class="anal-donut-val font-mono privacy-mask">
               {{ totalPortfolioValue() | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
             </span>
+            <app-secondary-currency [amount]="totalPortfolioValue()" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" digitsInfo="1.0-0"></app-secondary-currency>
             <span class="anal-donut-lbl">{{ 'common.totalValue' | t }}</span>
           </div>
         </div>
@@ -204,7 +210,10 @@
                   <span class="font-mono" style="font-weight: 700; font-size: 0.78rem;">{{ h.displaySymbol }}</span>
                 </div>
                 <div class="conc-stats font-mono">
-                  <span class="privacy-mask text-muted">{{ h.value | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+                  <div style="text-align: right;">
+                    <span class="privacy-mask text-muted">{{ h.value | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+                    <app-secondary-currency [amount]="h.value" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" digitsInfo="1.0-0"></app-secondary-currency>
+                  </div>
                   <strong>{{ h.percent | number: '1.1-1' }}%</strong>
                 </div>
               </div>
@@ -282,6 +291,7 @@
             <span class="anal-donut-val font-mono privacy-mask">
               {{ (selectedAssetType() ? classTotalValue() : totalPortfolioValue()) | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
             </span>
+            <app-secondary-currency [amount]="selectedAssetType() ? classTotalValue() : totalPortfolioValue()" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" digitsInfo="1.0-0"></app-secondary-currency>
             <span class="anal-donut-lbl">
               {{ selectedAssetType() ? selectedAssetLabel() : ('common.totalValue' | t) }}
             </span>
@@ -298,6 +308,7 @@
                 </div>
                 <div class="alloc-row-right font-mono">
                   <span class="privacy-mask">{{ c.value | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+                  <app-secondary-currency [amount]="c.value" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" digitsInfo="1.0-0"></app-secondary-currency>
                   <strong>{{ c.percentage | number: '1.1-1' }}%</strong>
                 </div>
               </button>
@@ -316,6 +327,7 @@
                 </div>
                 <div class="alloc-row-right font-mono">
                   <span class="privacy-mask">{{ h.value | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+                  <app-secondary-currency [amount]="h.value" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" digitsInfo="1.0-0"></app-secondary-currency>
                   <strong>{{ h.classPercent | number: '1.1-1' }}% ({{ h.portfolioPercent | number: '1.1-1' }}%)</strong>
                 </div>
               </div>
@@ -342,10 +354,12 @@
             <div class="sgsk-kpi-box">
               <span class="sgsk-kpi-label">USD</span>
               <span class="sgsk-kpi-val privacy-mask">{{ curr.usd | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+              <app-secondary-currency [amount]="curr.usd" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" digitsInfo="1.0-0"></app-secondary-currency>
             </div>
             <div class="sgsk-kpi-box">
               <span class="sgsk-kpi-label">THB</span>
               <span class="sgsk-kpi-val privacy-mask">{{ curr.thb | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+              <app-secondary-currency [amount]="curr.thb" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" digitsInfo="1.0-0"></app-secondary-currency>
             </div>
           </div>
         </section>
@@ -412,28 +426,33 @@
           <div class="sgsk-kpi-box">
             <span class="sgsk-kpi-label">{{ 'common.totalInvested' | t }}</span>
             <span class="sgsk-kpi-val privacy-mask">{{ pkpi.totalInvested | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+            <app-secondary-currency [amount]="pkpi.totalInvested" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi" digitsInfo="1.0-0"></app-secondary-currency>
           </div>
           <div class="sgsk-kpi-box">
             <span class="sgsk-kpi-label">{{ 'common.totalValue' | t }}</span>
             <span class="sgsk-kpi-val privacy-mask">{{ pkpi.totalCurrentValue | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+            <app-secondary-currency [amount]="pkpi.totalCurrentValue" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi" digitsInfo="1.0-0"></app-secondary-currency>
           </div>
           <div class="sgsk-kpi-box">
             <span class="sgsk-kpi-label">{{ 'common.unrealizedPL' | t }}</span>
             <span class="sgsk-kpi-val privacy-mask" [class.pl-positive]="pkpi.totalUnrealizedPL >= 0" [class.pl-negative]="pkpi.totalUnrealizedPL < 0">
               {{ pkpi.totalUnrealizedPL >= 0 ? '+' : '' }}{{ pkpi.totalUnrealizedPL | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
             </span>
+            <app-secondary-currency [amount]="pkpi.totalUnrealizedPL" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi" [signed]="true" digitsInfo="1.0-0"></app-secondary-currency>
           </div>
           <div class="sgsk-kpi-box">
             <span class="sgsk-kpi-label">{{ 'common.realizedPL' | t }}</span>
             <span class="sgsk-kpi-val privacy-mask" [class.pl-positive]="pkpi.totalRealizedPL >= 0" [class.pl-negative]="pkpi.totalRealizedPL < 0">
               {{ pkpi.totalRealizedPL >= 0 ? '+' : '' }}{{ pkpi.totalRealizedPL | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
             </span>
+            <app-secondary-currency [amount]="pkpi.totalRealizedPL" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi" [signed]="true" digitsInfo="1.0-0"></app-secondary-currency>
           </div>
           <div class="sgsk-kpi-box anal-kpi-highlight">
             <span class="sgsk-kpi-label">{{ 'common.totalReturn' | t }}</span>
             <span class="sgsk-kpi-val privacy-mask" [class.pl-positive]="pkpi.totalReturn >= 0" [class.pl-negative]="pkpi.totalReturn < 0">
               {{ pkpi.totalReturn >= 0 ? '+' : '' }}{{ pkpi.totalReturn | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
             </span>
+            <app-secondary-currency [amount]="pkpi.totalReturn" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi" [signed]="true" digitsInfo="1.0-0"></app-secondary-currency>
             <span class="sgsk-kpi-sub font-mono" [class.pl-positive]="pkpi.totalReturnPercent >= 0" [class.pl-negative]="pkpi.totalReturnPercent < 0">
               {{ pkpi.totalReturnPercent >= 0 ? '+' : '' }}{{ pkpi.totalReturnPercent | number: '1.2-2' }}%
             </span>
@@ -554,6 +573,7 @@
               <div class="perf-sym-ret font-mono" [class.pl-positive]="sym.totalReturn >= 0" [class.pl-negative]="sym.totalReturn < 0">
                 <span class="privacy-mask">{{ sym.totalReturn >= 0 ? '+' : '' }}{{ sym.totalReturn | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
                 <span class="perf-return-pct">({{ sym.totalReturnPercent >= 0 ? '+' : '' }}{{ sym.totalReturnPercent | number: '1.2-2' }}%)</span>
+                <app-secondary-currency [amount]="sym.totalReturn" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" [signed]="true" digitsInfo="1.0-0"></app-secondary-currency>
               </div>
             </div>
 
@@ -561,22 +581,26 @@
               <div class="sgsk-kpi-box">
                 <span class="sgsk-kpi-label">{{ 'common.invested' | t }}</span>
                 <span class="sgsk-kpi-val privacy-mask">{{ sym.investedCost | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+                <app-secondary-currency [amount]="sym.investedCost" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" digitsInfo="1.0-0"></app-secondary-currency>
               </div>
               <div class="sgsk-kpi-box">
                 <span class="sgsk-kpi-label">{{ 'common.currentValue' | t }}</span>
                 <span class="sgsk-kpi-val privacy-mask">{{ sym.currentValue | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}</span>
+                <app-secondary-currency [amount]="sym.currentValue" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" digitsInfo="1.0-0"></app-secondary-currency>
               </div>
               <div class="sgsk-kpi-box">
                 <span class="sgsk-kpi-label">{{ 'common.realizedPL' | t }}</span>
                 <span class="sgsk-kpi-val privacy-mask" [class.pl-positive]="sym.realizedPL > 0" [class.pl-negative]="sym.realizedPL < 0">
                   {{ sym.realizedPL > 0 ? '+' : '' }}{{ sym.realizedPL | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
                 </span>
+                <app-secondary-currency [amount]="sym.realizedPL" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" [signed]="true" digitsInfo="1.0-0"></app-secondary-currency>
               </div>
               <div class="sgsk-kpi-box">
                 <span class="sgsk-kpi-label">{{ 'common.unrealizedPL' | t }}</span>
                 <span class="sgsk-kpi-val privacy-mask" [class.pl-positive]="sym.unrealizedPL > 0" [class.pl-negative]="sym.unrealizedPL < 0">
                   {{ sym.unrealizedPL > 0 ? '+' : '' }}{{ sym.unrealizedPL | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
                 </span>
+                <app-secondary-currency [amount]="sym.unrealizedPL" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" [signed]="true" digitsInfo="1.0-0"></app-secondary-currency>
               </div>
             </div>
           </article>

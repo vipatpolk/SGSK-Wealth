@@ -15,6 +15,7 @@ import { PortfolioPosition } from '@shared/models/portfolio.model';
 import { PriceData } from '@shared/services/price.service';
 import { I18nService } from '@shared/services/i18n.service';
 import { TranslatePipe } from '@shared/pipes/translate.pipe';
+import { SecondaryCurrencyComponent } from '@shared/components/secondary-currency/secondary-currency.component';
 import {
   AssetClassRebalanceGroup,
   NoSellSubMode,
@@ -42,7 +43,7 @@ import {
   selector: 'app-rebalance-calculator',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, CurrencyPipe, DecimalPipe, FormsModule, TranslatePipe],
+  imports: [CommonModule, CurrencyPipe, DecimalPipe, FormsModule, SecondaryCurrencyComponent, TranslatePipe],
   templateUrl: './rebalance-calculator.component.html',
   styleUrls: ['./rebalance-calculator.component.css'],
 })

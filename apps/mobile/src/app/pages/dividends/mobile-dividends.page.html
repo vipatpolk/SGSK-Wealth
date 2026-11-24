@@ -56,6 +56,7 @@
         <span class="div-kpi-eyebrow">{{ 'div.netDividends' | t }}</span>
         <div class="div-hero-val font-mono pl-positive privacy-mask">
           {{ activeNetTotal() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+          <app-secondary-currency [amount]="activeNetTotal()" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="hero"></app-secondary-currency>
         </div>
         <div class="div-hero-sub font-mono privacy-mask">
           {{ 'div.grossShort' | t }}: {{ activeGrossTotal() | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
@@ -68,6 +69,7 @@
             <span class="sgsk-kpi-val text-accent privacy-mask">
               {{ activeProjectedAnnualDividends() | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
             </span>
+            <app-secondary-currency [amount]="activeProjectedAnnualDividends()" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi" digitsInfo="1.0-0"></app-secondary-currency>
             <span class="sgsk-kpi-sub font-mono privacy-mask">
               ~{{ (activeProjectedAnnualDividends() / 12) | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}{{ 'div.perMoEstimated' | t }}
             </span>
@@ -86,6 +88,7 @@
             <span class="sgsk-kpi-val pl-negative privacy-mask">
               {{ activeWhtTotal() | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
             </span>
+            <app-secondary-currency [amount]="activeWhtTotal()" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi" digitsInfo="1.0-0"></app-secondary-currency>
             <span class="sgsk-kpi-sub font-mono">
               {{ 'div.effectiveRateShort' | t }} {{ activeEffectiveTaxRate() | number: '1.1-1' }}%
             </span>
@@ -112,9 +115,12 @@
           <div class="div-selected-month-bar">
             <div class="div-sm-head">
               <strong>{{ activeM.yearMonth | ldate: 'monthYear' }}</strong>
-              <span class="font-mono pl-positive privacy-mask" style="font-weight: 700;">
-                {{ activeM.netAmount | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
-              </span>
+              <div style="text-align: right;">
+                <span class="font-mono pl-positive privacy-mask" style="font-weight: 700;">
+                  {{ activeM.netAmount | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+                </span>
+                <app-secondary-currency [amount]="activeM.netAmount" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact"></app-secondary-currency>
+              </div>
             </div>
             <div class="div-sm-pills font-mono privacy-mask">
               @if (activeM.usAmount > 0) {
@@ -187,6 +193,7 @@
             </div>
             <div class="div-at-val font-mono privacy-mask">
               {{ at.totalNetDividends | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+              <app-secondary-currency [amount]="at.totalNetDividends" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" digitsInfo="1.0-0"></app-secondary-currency>
             </div>
             <div class="div-at-meta font-mono">
               <span>YoC {{ (at.yieldOnCostPercent || 0) | number: '1.2-2' }}%</span>
@@ -243,8 +250,9 @@
                   </div>
                 </div>
               </div>
-              <div class="font-mono pl-positive privacy-mask" style="font-weight: 700; font-size: 0.9rem; flex-shrink: 0;">
+              <div class="font-mono pl-positive privacy-mask" style="font-weight: 700; font-size: 0.9rem; flex-shrink: 0; text-align: right;">
                 {{ sym.convertedNetDividends | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+                <app-secondary-currency [amount]="sym.convertedNetDividends" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact"></app-secondary-currency>
               </div>
             </div>
 
@@ -272,6 +280,9 @@
                 <span class="sgsk-kpi-val text-accent privacy-mask">
                   {{ sym.projectedAnnualIncome > 0 ? (sym.projectedAnnualIncome | currency: state.dc() : 'symbol-narrow' : '1.2-2') : '—' }}
                 </span>
+                @if (sym.projectedAnnualIncome > 0) {
+                  <app-secondary-currency [amount]="sym.projectedAnnualIncome" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact"></app-secondary-currency>
+                }
               </div>
             </div>
 
@@ -303,9 +314,12 @@
                   {{ rec.assetTypeLabel }}
                 </span>
               </div>
-              <span class="font-mono pl-positive privacy-mask" style="font-weight: 700;">
-                +{{ rec.convertedNetAmount | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
-              </span>
+              <div style="text-align: right;">
+                <span class="font-mono pl-positive privacy-mask" style="font-weight: 700;">
+                  +{{ rec.convertedNetAmount | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+                </span>
+                <app-secondary-currency [amount]="rec.convertedNetAmount" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" [signed]="true"></app-secondary-currency>
+              </div>
             </div>
 
             <div class="div-rec-meta font-mono">
@@ -366,6 +380,7 @@
                   <span class="sgsk-kpi-val pl-positive privacy-mask">
                     {{ holding.totalNet | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
                   </span>
+                  <app-secondary-currency [amount]="holding.totalNet" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact"></app-secondary-currency>
                 </div>
                 <div class="sgsk-kpi-box">
                   <span class="sgsk-kpi-label">{{ 'div.grossWht' | t }}</span>
@@ -373,6 +388,7 @@
                     {{ holding.totalGross | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
                     <span class="pl-negative">(-{{ holding.totalWht | currency: state.dc() : 'symbol-narrow' : '1.0-0' }})</span>
                   </span>
+                  <app-secondary-currency [amount]="holding.totalGross" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" digitsInfo="1.0-0"></app-secondary-currency>
                 </div>
               </div>
             </div>
@@ -381,9 +397,12 @@
               <div class="sgsk-card div-rec-card">
                 <div class="div-rec-top">
                   <span class="font-mono" style="font-size: 0.76rem;">{{ rec.date | ldate: 'medium' }}</span>
-                  <span class="font-mono pl-positive privacy-mask" style="font-weight: 700;">
-                    +{{ rec.convertedNetAmount | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
-                  </span>
+                  <div style="text-align: right;">
+                    <span class="font-mono pl-positive privacy-mask" style="font-weight: 700;">
+                      +{{ rec.convertedNetAmount | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+                    </span>
+                    <app-secondary-currency [amount]="rec.convertedNetAmount" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" [signed]="true"></app-secondary-currency>
+                  </div>
                 </div>
                 <div class="div-rec-meta font-mono">
                   <span class="privacy-mask">{{ rec.shares | number: '1.0-4' }} @ {{ rec.dividendPerShare | number: '1.2-4' }} {{ rec.currency }}</span>

@@ -96,18 +96,21 @@
       <span class="sgsk-kpi-val privacy-mask">
         {{ filteredCurrentValue() | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
       </span>
+      <app-secondary-currency [amount]="filteredCurrentValue()" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi" digitsInfo="1.0-0"></app-secondary-currency>
     </div>
     <div class="sgsk-kpi-box">
       <span class="sgsk-kpi-label">{{ targetValueLabel() }}</span>
       <span class="sgsk-kpi-val privacy-mask">
         {{ filteredTargetValue() | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
       </span>
+      <app-secondary-currency [amount]="filteredTargetValue()" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi" digitsInfo="1.0-0"></app-secondary-currency>
     </div>
     <div class="sgsk-kpi-box">
       <span class="sgsk-kpi-label">{{ 'tools.reb.totalBuyOrders' | t }}</span>
       <span class="sgsk-kpi-val pl-positive privacy-mask">
         +{{ filteredBuyAmount() | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
       </span>
+      <app-secondary-currency [amount]="filteredBuyAmount()" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi" [signed]="true" digitsInfo="1.0-0"></app-secondary-currency>
     </div>
     <div class="sgsk-kpi-box">
       <span class="sgsk-kpi-label">
@@ -120,6 +123,7 @@
           +{{ filteredCashContribution() | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
         }
       </span>
+      <app-secondary-currency [amount]="mode() === 'standard' ? -filteredSellAmount() : filteredCashContribution()" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi" [signed]="mode() !== 'standard'" digitsInfo="1.0-0"></app-secondary-currency>
     </div>
   </div>
 
@@ -171,19 +175,25 @@
                       <span class="reb-sym-val privacy-mask font-mono">
                         {{ sym.currentValue | currency: state.dc() : 'symbol-narrow' : '1.0-0' }} ({{ sym.currentClassPercent | number: '1.1-1' }}%)
                       </span>
+                      <app-secondary-currency [amount]="sym.currentValue" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" digitsInfo="1.0-0"></app-secondary-currency>
                     </div>
                   </div>
-                  <span
-                    class="badge font-mono"
-                    [class.badge-positive]="sym.action === 'BUY'"
-                    [class.badge-negative]="sym.action === 'SELL'"
-                  >
-                    @if (sym.action === 'BALANCED') {
-                      {{ 'tools.reb.balanced' | t }}
-                    } @else {
-                      {{ sym.action }} {{ (sym.deltaValue < 0 ? -sym.deltaValue : sym.deltaValue) | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+                  <div style="text-align: right;">
+                    <span
+                      class="badge font-mono"
+                      [class.badge-positive]="sym.action === 'BUY'"
+                      [class.badge-negative]="sym.action === 'SELL'"
+                    >
+                      @if (sym.action === 'BALANCED') {
+                        {{ 'tools.reb.balanced' | t }}
+                      } @else {
+                        {{ sym.action }} {{ (sym.deltaValue < 0 ? -sym.deltaValue : sym.deltaValue) | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+                      }
+                    </span>
+                    @if (sym.action !== 'BALANCED') {
+                      <app-secondary-currency [amount]="sym.deltaValue < 0 ? -sym.deltaValue : sym.deltaValue" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" digitsInfo="1.0-0"></app-secondary-currency>
                     }
-                  </span>
+                  </div>
                 </div>
 
                 <div class="reb-stepper-row">
@@ -244,9 +254,12 @@
                   {{ order.shares | number: '1.2-2' }} @ {{ order.price | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
                 </p>
               </div>
-              <strong class="font-mono privacy-mask" style="font-size: 0.82rem;">
-                {{ order.amount | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
-              </strong>
+              <div style="text-align: right;">
+                <strong class="font-mono privacy-mask" style="font-size: 0.82rem;">
+                  {{ order.amount | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+                </strong>
+                <app-secondary-currency [amount]="order.amount" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" digitsInfo="1.0-0"></app-secondary-currency>
+              </div>
             </div>
           }
         </div>

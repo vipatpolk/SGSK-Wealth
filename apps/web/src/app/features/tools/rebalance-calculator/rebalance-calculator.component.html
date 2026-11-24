@@ -122,6 +122,7 @@
           {{ filteredCurrentValue() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
         </span>
       </div>
+      <app-secondary-currency [amount]="filteredCurrentValue()" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi" [privacy]="privacyMode()"></app-secondary-currency>
     </div>
 
     @if (mode() === 'no-sell') {
@@ -132,6 +133,7 @@
             +{{ filteredCashContribution() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
           </span>
         </div>
+        <app-secondary-currency [amount]="filteredCashContribution()" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi" [signed]="true" [privacy]="privacyMode()"></app-secondary-currency>
       </div>
     }
 
@@ -142,6 +144,7 @@
           {{ filteredBuyAmount() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
         </span>
       </div>
+      <app-secondary-currency [amount]="filteredBuyAmount()" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi" [privacy]="privacyMode()"></app-secondary-currency>
     </div>
 
     @if (mode() === 'standard') {
@@ -152,6 +155,7 @@
             {{ filteredSellAmount() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
           </span>
         </div>
+        <app-secondary-currency [amount]="filteredSellAmount()" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi" [privacy]="privacyMode()"></app-secondary-currency>
       </div>
     }
 
@@ -162,6 +166,7 @@
           {{ filteredTargetValue() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
         </span>
       </div>
+      <app-secondary-currency [amount]="filteredTargetValue()" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi" [privacy]="privacyMode()"></app-secondary-currency>
     </div>
   </div>
 
@@ -280,6 +285,7 @@
                       <span class="holding-val" [class.privacy-blur]="privacyMode()">
                         {{ item.currentValue | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
                       </span>
+                      <app-secondary-currency [amount]="item.currentValue" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [privacy]="privacyMode()"></app-secondary-currency>
                       <span class="holding-shares" [class.privacy-blur]="privacyMode()">
                         {{ item.currentShares | number:'1.0-4' }} {{ 'tools.avg.unitShort' | t }}
                       </span>
@@ -331,6 +337,7 @@
                     <span class="target-val-text" [class.privacy-blur]="privacyMode()">
                       {{ item.targetValue | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
                     </span>
+                    <app-secondary-currency [amount]="item.targetValue" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [privacy]="privacyMode()"></app-secondary-currency>
                   </td>
 
                   <!-- Action Needed Badge -->
@@ -342,6 +349,7 @@
                           <span class="action-amount" [class.privacy-blur]="privacyMode()">
                             +{{ item.deltaValue | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
                           </span>
+                          <app-secondary-currency [amount]="item.deltaValue" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [signed]="true" [privacy]="privacyMode()"></app-secondary-currency>
                           <span class="action-shares" [class.privacy-blur]="privacyMode()">
                             (+{{ item.deltaShares | number:'1.0-4' }} {{ 'tools.avg.unitShort' | t }})
                           </span>
@@ -354,6 +362,7 @@
                           <span class="action-amount" [class.privacy-blur]="privacyMode()">
                             -{{ (item.deltaValue < 0 ? -item.deltaValue : item.deltaValue) | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
                           </span>
+                          <app-secondary-currency [amount]="item.deltaValue < 0 ? item.deltaValue : -item.deltaValue" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [privacy]="privacyMode()"></app-secondary-currency>
                           <span class="action-shares" [class.privacy-blur]="privacyMode()">
                             (-{{ (item.deltaShares < 0 ? -item.deltaShares : item.deltaShares) | number:'1.0-4' }} {{ 'tools.avg.unitShort' | t }})
                           </span>
@@ -436,6 +445,7 @@
                   <span class="m-metric-val" [class.privacy-blur]="privacyMode()">
                     {{ item.currentValue | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
                   </span>
+                  <app-secondary-currency [amount]="item.currentValue" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [privacy]="privacyMode()"></app-secondary-currency>
                   <span class="m-metric-sub" [class.privacy-blur]="privacyMode()">
                     {{ item.currentShares | number:'1.0-4' }} {{ 'tools.avg.unitShort' | t }}
                   </span>
@@ -456,6 +466,7 @@
                   <span class="m-metric-val" [class.privacy-blur]="privacyMode()">
                     {{ item.targetValue | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
                   </span>
+                  <app-secondary-currency [amount]="item.targetValue" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [privacy]="privacyMode()"></app-secondary-currency>
                 </div>
               </div>
 

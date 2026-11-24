@@ -406,11 +406,14 @@
           <div class="hero-main-value" [class.privacy-mask]="privacyMode() && solveMode() !== 'N' && solveMode() !== 'RATE'">
             @if (solveMode() === 'FV') {
               {{ calculationResult().futureValue | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+              <app-secondary-currency [amount]="calculationResult().futureValue" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="hero" [privacy]="privacyMode()"></app-secondary-currency>
             } @else if (solveMode() === 'PMT') {
               {{ calculationResult().payment | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
               <span class="hero-unit">/ {{ compoundingUnitLabel() }}</span>
+              <app-secondary-currency [amount]="calculationResult().payment" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="hero" [privacy]="privacyMode()"></app-secondary-currency>
             } @else if (solveMode() === 'PV') {
               {{ calculationResult().presentValue | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+              <app-secondary-currency [amount]="calculationResult().presentValue" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="hero" [privacy]="privacyMode()"></app-secondary-currency>
             } @else if (solveMode() === 'N') {
               {{ calculationResult().years | number:'1.1-1' }}
               <span class="hero-unit">{{ 'tools.tvm.yearsPeriods' | t:{ periods: calculationResult().totalPeriods } }}</span>
@@ -501,6 +504,7 @@
           <span class="kpi-cell-val" [class.privacy-mask]="privacyMode()">
             {{ calculationResult().totalPrincipal | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
           </span>
+          <app-secondary-currency [amount]="calculationResult().totalPrincipal" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi" [privacy]="privacyMode()"></app-secondary-currency>
           <span class="kpi-cell-sub">{{ 'tools.tvm.pctOfTotal' | t:{ pct: (principalPercent() | number:'1.1-1') ?? '0.0' } }}</span>
         </div>
 
@@ -509,6 +513,7 @@
           <span class="kpi-cell-val" [class.privacy-mask]="privacyMode()">
             {{ calculationResult().totalContributions | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
           </span>
+          <app-secondary-currency [amount]="calculationResult().totalContributions" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi" [privacy]="privacyMode()"></app-secondary-currency>
           <span class="kpi-cell-sub">{{ 'tools.tvm.depositsOf' | t:{ periods: calculationResult().totalPeriods, amount: (calculationResult().payment | currency:displayCurrency():'symbol-narrow':'1.0-0') ?? '' } }}</span>
         </div>
 
@@ -517,6 +522,7 @@
           <span class="kpi-cell-val" [class.privacy-mask]="privacyMode()">
             {{ calculationResult().totalInvested | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
           </span>
+          <app-secondary-currency [amount]="calculationResult().totalInvested" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi" [privacy]="privacyMode()"></app-secondary-currency>
           <span class="kpi-cell-sub">{{ 'tools.tvm.principalPlusDeposits' | t }}</span>
         </div>
 
@@ -525,6 +531,7 @@
           <span class="kpi-cell-val pl-positive" [class.privacy-mask]="privacyMode()">
             +{{ calculationResult().totalInterestEarned | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
           </span>
+          <app-secondary-currency [amount]="calculationResult().totalInterestEarned" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi" [signed]="true" [privacy]="privacyMode()"></app-secondary-currency>
           <span class="kpi-cell-sub">{{ 'tools.tvm.pctOfTotal' | t:{ pct: (interestPercent() | number:'1.1-1') ?? '0.0' } }}</span>
         </div>
 
@@ -818,18 +825,23 @@
                   </td>
                   <td class="td-start" [class.privacy-mask]="privacyMode()">
                     {{ row.startBalance | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+                    <app-secondary-currency [amount]="row.startBalance" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [privacy]="privacyMode()"></app-secondary-currency>
                   </td>
                   <td class="td-deposits" [class.privacy-mask]="privacyMode()">
                     +{{ row.contributions | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+                    <app-secondary-currency [amount]="row.contributions" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [signed]="true" [privacy]="privacyMode()"></app-secondary-currency>
                   </td>
                   <td class="td-interest pl-positive" [class.privacy-mask]="privacyMode()">
                     +{{ row.interestEarned | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+                    <app-secondary-currency [amount]="row.interestEarned" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [signed]="true" [privacy]="privacyMode()"></app-secondary-currency>
                   </td>
                   <td class="td-end bold-col" [class.privacy-mask]="privacyMode()">
                     {{ row.endBalance | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+                    <app-secondary-currency [amount]="row.endBalance" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [privacy]="privacyMode()"></app-secondary-currency>
                   </td>
                   <td class="td-cum-interest" [class.privacy-mask]="privacyMode()">
                     +{{ row.totalInterestToDate | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+                    <app-secondary-currency [amount]="row.totalInterestToDate" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [signed]="true" [privacy]="privacyMode()"></app-secondary-currency>
                   </td>
                 </tr>
               }

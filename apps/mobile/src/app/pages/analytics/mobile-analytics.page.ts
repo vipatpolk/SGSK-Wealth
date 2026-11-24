@@ -16,6 +16,7 @@ import {
 } from '@ionic/angular';
 import { DateRange, DateRangePickerComponent } from '@shared/components/date-range-picker/date-range-picker.component';
 import { SymbolIconComponent } from '@shared/components/symbol-icon/symbol-icon.component';
+import { SecondaryCurrencyComponent } from '@shared/components/secondary-currency/secondary-currency.component';
 import { AnalyticsSubTab } from '@shared/config/asset.constants';
 import {
   PortfolioAllocationResponse,
@@ -44,6 +45,7 @@ import { MobileStateService } from '../../services/mobile-state.service';
     DecimalPipe,
     TranslatePipe,
     SymbolIconComponent,
+    SecondaryCurrencyComponent,
     DateRangePickerComponent,
     IonContent,
     IonRefresher,

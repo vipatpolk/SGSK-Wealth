@@ -1,6 +1,7 @@
 import { Component, input, output, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CurrencyPipe, DecimalPipe, NgClass } from '@angular/common';
 import { SymbolIconComponent } from '@shared/components/symbol-icon/symbol-icon.component';
+import { SecondaryCurrencyComponent } from '@shared/components/secondary-currency/secondary-currency.component';
 import {
   PortfolioDividendResponse,
   DividendRecord,
@@ -25,7 +26,7 @@ import { LocalizedDatePipe } from '@shared/pipes/localized-date.pipe';
   selector: 'app-dividend',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe, NgClass, SymbolIconComponent, TranslatePipe, LocalizedDatePipe],
+  imports: [CurrencyPipe, DecimalPipe, NgClass, SymbolIconComponent, SecondaryCurrencyComponent, TranslatePipe, LocalizedDatePipe],
   templateUrl: './dividend.component.html',
   styleUrl: './dividend.component.css'
 })

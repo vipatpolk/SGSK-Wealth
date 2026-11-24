@@ -248,6 +248,7 @@
         <span class="snapshot-val font-mono">
           @if (hasSelectedSymbol()) {
             {{ positionSnapshot().averageCost | currency:positionSnapshot().currency:'symbol-narrow':'1.2-4' }}
+            <app-secondary-currency [amount]="positionSnapshot().averageCost" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" digitsInfo="1.2-4" variant="compact" [privacy]="false"></app-secondary-currency>
           } @else {
             &mdash;
           }
@@ -259,6 +260,7 @@
         <span class="snapshot-val font-mono highlight">
           @if (hasSelectedSymbol()) {
             {{ positionSnapshot().currentPrice | currency:positionSnapshot().currency:'symbol-narrow':'1.2-4' }}
+            <app-secondary-currency [amount]="positionSnapshot().currentPrice" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" digitsInfo="1.2-4" variant="compact" [privacy]="false"></app-secondary-currency>
           } @else {
             &mdash;
           }
@@ -270,6 +272,7 @@
         <span class="snapshot-val font-mono privacy-mask">
           @if (hasSelectedSymbol()) {
             {{ positionSnapshot().totalCost | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}
+            <app-secondary-currency [amount]="positionSnapshot().totalCost" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [privacy]="privacyMode()"></app-secondary-currency>
           } @else {
             &mdash;
           }
@@ -286,6 +289,7 @@
           >
             <span class="privacy-mask">{{ positionSnapshot().unrealizedPL >= 0 ? '+' : '' }}{{ positionSnapshot().unrealizedPL | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}</span>
             <span class="pl-pct"> ({{ positionSnapshot().unrealizedPLPercent >= 0 ? '+' : '' }}{{ positionSnapshot().unrealizedPLPercent | number:'1.2-2' }}%)</span>
+            <app-secondary-currency [amount]="positionSnapshot().unrealizedPL" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [signed]="true" [privacy]="privacyMode()"></app-secondary-currency>
           </span>
         } @else {
           <span class="snapshot-val font-mono text-muted">&mdash;</span>
@@ -594,6 +598,7 @@
             <span class="kpi-label">{{ 'tools.avg.projectedAvgCost' | t }}</span>
             <div class="kpi-main-val font-mono">
               {{ simulationResult().simulated.averageCost | currency:positionSnapshot().currency:'symbol-narrow':'1.2-4' }}
+              <app-secondary-currency [amount]="simulationResult().simulated.averageCost" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" digitsInfo="1.2-4" variant="kpi" [privacy]="false"></app-secondary-currency>
             </div>
             <div
               class="kpi-sub-val font-mono"
@@ -623,8 +628,10 @@
             <div class="kpi-main-val font-mono privacy-mask">
               @if (simulationResult().simulated.totalOutlay >= simulationResult().simulated.totalProceeds) {
                 {{ simulationResult().simulated.totalOutlay | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}
+                <app-secondary-currency [amount]="simulationResult().simulated.totalOutlay" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi" [privacy]="privacyMode()"></app-secondary-currency>
               } @else {
                 {{ simulationResult().simulated.totalProceeds | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}
+                <app-secondary-currency [amount]="simulationResult().simulated.totalProceeds" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi" [privacy]="privacyMode()"></app-secondary-currency>
               }
             </div>
             <div class="kpi-sub-val font-mono text-muted">
@@ -642,6 +649,7 @@
             >
               <span class="privacy-mask">{{ simulationResult().simulated.unrealizedPL >= 0 ? '+' : '' }}{{ simulationResult().simulated.unrealizedPL | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}</span>
               <span class="pl-pct"> ({{ simulationResult().simulated.unrealizedPLPercent >= 0 ? '+' : '' }}{{ simulationResult().simulated.unrealizedPLPercent | number:'1.2-2' }}%)</span>
+              <app-secondary-currency [amount]="simulationResult().simulated.unrealizedPL" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi" [signed]="true" [privacy]="privacyMode()"></app-secondary-currency>
             </div>
             @if (simulationResult().simulated.realizedPL !== 0) {
               <div class="kpi-sub-val font-mono" [class.pl-positive]="simulationResult().simulated.realizedPL > 0" [class.pl-negative]="simulationResult().simulated.realizedPL < 0">
@@ -693,11 +701,12 @@
             <tbody>
               <tr>
                 <td class="metric-name font-medium">{{ 'tools.avg.metricAvgCost' | t }}</td>
-                <td class="text-right font-mono">{{ simulationResult().initial.averageCost | currency:positionSnapshot().currency:'symbol-narrow':'1.2-4' }}</td>
-                <td class="text-right font-mono font-bold text-accent">{{ simulationResult().simulated.averageCost | currency:positionSnapshot().currency:'symbol-narrow':'1.2-4' }}</td>
+                <td class="text-right font-mono">{{ simulationResult().initial.averageCost | currency:positionSnapshot().currency:'symbol-narrow':'1.2-4' }}<app-secondary-currency [amount]="simulationResult().initial.averageCost" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" digitsInfo="1.2-4" variant="compact" [privacy]="false"></app-secondary-currency></td>
+                <td class="text-right font-mono font-bold text-accent">{{ simulationResult().simulated.averageCost | currency:positionSnapshot().currency:'symbol-narrow':'1.2-4' }}<app-secondary-currency [amount]="simulationResult().simulated.averageCost" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" digitsInfo="1.2-4" variant="compact" [privacy]="false"></app-secondary-currency></td>
                 <td class="text-right font-mono" [class.pl-positive]="simulationResult().delta.averageCost < 0" [class.pl-negative]="simulationResult().delta.averageCost > 0">
                   {{ simulationResult().delta.averageCost >= 0 ? '+' : '' }}{{ simulationResult().delta.averageCost | currency:positionSnapshot().currency:'symbol-narrow':'1.2-4' }}
                   <span class="pl-pct">({{ simulationResult().delta.averageCostPercent >= 0 ? '+' : '' }}{{ simulationResult().delta.averageCostPercent | number:'1.2-2' }}%)</span>
+                  <app-secondary-currency [amount]="simulationResult().delta.averageCost" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" digitsInfo="1.2-4" variant="compact" [signed]="true" [privacy]="false"></app-secondary-currency>
                 </td>
               </tr>
               <tr>
@@ -710,18 +719,20 @@
               </tr>
               <tr>
                 <td class="metric-name">{{ 'tools.avg.metricTotalCost' | t }}</td>
-                <td class="text-right font-mono privacy-mask">{{ simulationResult().initial.totalCost | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}</td>
-                <td class="text-right font-mono font-bold privacy-mask">{{ simulationResult().simulated.totalCost | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}</td>
+                <td class="text-right font-mono privacy-mask">{{ simulationResult().initial.totalCost | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}<app-secondary-currency [amount]="simulationResult().initial.totalCost" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [privacy]="privacyMode()"></app-secondary-currency></td>
+                <td class="text-right font-mono font-bold privacy-mask">{{ simulationResult().simulated.totalCost | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}<app-secondary-currency [amount]="simulationResult().simulated.totalCost" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [privacy]="privacyMode()"></app-secondary-currency></td>
                 <td class="text-right font-mono privacy-mask">
                   {{ simulationResult().delta.totalCost >= 0 ? '+' : '' }}{{ simulationResult().delta.totalCost | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}
+                  <app-secondary-currency [amount]="simulationResult().delta.totalCost" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [signed]="true" [privacy]="privacyMode()"></app-secondary-currency>
                 </td>
               </tr>
               <tr>
                 <td class="metric-name">{{ 'tools.avg.metricHoldingValue' | t }}</td>
-                <td class="text-right font-mono privacy-mask">{{ simulationResult().initial.holdingValue | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}</td>
-                <td class="text-right font-mono font-bold privacy-mask">{{ simulationResult().simulated.holdingValue | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}</td>
+                <td class="text-right font-mono privacy-mask">{{ simulationResult().initial.holdingValue | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}<app-secondary-currency [amount]="simulationResult().initial.holdingValue" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [privacy]="privacyMode()"></app-secondary-currency></td>
+                <td class="text-right font-mono font-bold privacy-mask">{{ simulationResult().simulated.holdingValue | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}<app-secondary-currency [amount]="simulationResult().simulated.holdingValue" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [privacy]="privacyMode()"></app-secondary-currency></td>
                 <td class="text-right font-mono privacy-mask">
                   {{ simulationResult().delta.holdingValue >= 0 ? '+' : '' }}{{ simulationResult().delta.holdingValue | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}
+                  <app-secondary-currency [amount]="simulationResult().delta.holdingValue" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [signed]="true" [privacy]="privacyMode()"></app-secondary-currency>
                 </td>
               </tr>
               <tr>
@@ -729,14 +740,17 @@
                 <td class="text-right font-mono" [class.pl-positive]="simulationResult().initial.unrealizedPL >= 0" [class.pl-negative]="simulationResult().initial.unrealizedPL < 0">
                   <span class="privacy-mask">{{ simulationResult().initial.unrealizedPL >= 0 ? '+' : '' }}{{ simulationResult().initial.unrealizedPL | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}</span>
                   <span class="pl-pct"> ({{ simulationResult().initial.unrealizedPLPercent >= 0 ? '+' : '' }}{{ simulationResult().initial.unrealizedPLPercent | number:'1.2-2' }}%)</span>
+                  <app-secondary-currency [amount]="simulationResult().initial.unrealizedPL" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [signed]="true" [privacy]="privacyMode()"></app-secondary-currency>
                 </td>
                 <td class="text-right font-mono font-bold" [class.pl-positive]="simulationResult().simulated.unrealizedPL >= 0" [class.pl-negative]="simulationResult().simulated.unrealizedPL < 0">
                   <span class="privacy-mask">{{ simulationResult().simulated.unrealizedPL >= 0 ? '+' : '' }}{{ simulationResult().simulated.unrealizedPL | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}</span>
                   <span class="pl-pct"> ({{ simulationResult().simulated.unrealizedPLPercent >= 0 ? '+' : '' }}{{ simulationResult().simulated.unrealizedPLPercent | number:'1.2-2' }}%)</span>
+                  <app-secondary-currency [amount]="simulationResult().simulated.unrealizedPL" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [signed]="true" [privacy]="privacyMode()"></app-secondary-currency>
                 </td>
                 <td class="text-right font-mono" [class.pl-positive]="simulationResult().delta.unrealizedPL >= 0" [class.pl-negative]="simulationResult().delta.unrealizedPL < 0">
                   <span class="privacy-mask">{{ simulationResult().delta.unrealizedPL >= 0 ? '+' : '' }}{{ simulationResult().delta.unrealizedPL | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}</span>
                   <span class="pl-pct"> ({{ simulationResult().delta.unrealizedPLPercent >= 0 ? '+' : '' }}{{ simulationResult().delta.unrealizedPLPercent | number:'1.2-2' }}%)</span>
+                  <app-secondary-currency [amount]="simulationResult().delta.unrealizedPL" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [signed]="true" [privacy]="privacyMode()"></app-secondary-currency>
                 </td>
               </tr>
             </tbody>
@@ -1012,14 +1026,17 @@
               <div class="breakdown-item">
                 <span class="bd-label">{{ 'tools.avg.capitalRequired' | t }}</span>
                 <span class="bd-val font-mono privacy-mask">{{ reverseGoalResult().requiredCapital | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}</span>
+                <app-secondary-currency [amount]="reverseGoalResult().requiredCapital" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [privacy]="privacyMode()"></app-secondary-currency>
               </div>
               <div class="breakdown-item">
                 <span class="bd-label">{{ 'tools.avg.estimatedFees' | t }}</span>
                 <span class="bd-val font-mono privacy-mask">{{ reverseGoalResult().feeAmount | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}</span>
+                <app-secondary-currency [amount]="reverseGoalResult().feeAmount" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [privacy]="privacyMode()"></app-secondary-currency>
               </div>
               <div class="breakdown-item">
                 <span class="bd-label">{{ 'tools.avg.totalCashOutlay' | t }}</span>
                 <span class="bd-val font-mono font-bold text-accent privacy-mask">{{ reverseGoalResult().totalOutlay | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}</span>
+                <app-secondary-currency [amount]="reverseGoalResult().totalOutlay" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [privacy]="privacyMode()"></app-secondary-currency>
               </div>
               <div class="breakdown-item">
                 <span class="bd-label">{{ 'tools.avg.newTotalShares' | t }}</span>
@@ -1028,6 +1045,7 @@
               <div class="breakdown-item">
                 <span class="bd-label">{{ 'tools.avg.newTotalCostBasis' | t }}</span>
                 <span class="bd-val font-mono privacy-mask">{{ reverseGoalResult().newTotalCost | currency:positionSnapshot().currency:'symbol-narrow':'1.2-2' }}</span>
+                <app-secondary-currency [amount]="reverseGoalResult().newTotalCost" [displayCurrency]="positionSnapshot().currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="compact" [privacy]="privacyMode()"></app-secondary-currency>
               </div>
             </div>
 

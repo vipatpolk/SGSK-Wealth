@@ -11,6 +11,7 @@ import {
   TvmSolveMode,
 } from '@shared/models/tools.model';
 import { TranslatePipe } from '@shared/pipes/translate.pipe';
+import { SecondaryCurrencyComponent } from '@shared/components/secondary-currency/secondary-currency.component';
 import { getAssetColor, getAssetType, getAssetTypeLabel } from '@shared/utils/format.utils';
 import { calculateTVM, COMPOUNDING_FREQUENCIES } from '@shared/utils/tvm-calculator.utils';
 import { MobileStateService } from '../../../services/mobile-state.service';
@@ -68,7 +69,7 @@ export interface MobileTvmGrowthChartData {
   selector: 'app-mobile-tvm',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe, FormsModule, TranslatePipe, IonRange, IonSelect, IonSelectOption],
+  imports: [CurrencyPipe, DecimalPipe, FormsModule, TranslatePipe, SecondaryCurrencyComponent, IonRange, IonSelect, IonSelectOption],
   templateUrl: './mobile-tvm.component.html',
   styleUrl: './mobile-tvm.component.css',
 })

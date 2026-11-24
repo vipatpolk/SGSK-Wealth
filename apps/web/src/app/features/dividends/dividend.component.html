@@ -100,6 +100,7 @@
       <div class="div-summary-value font-mono" style="color: var(--color-pl-positive);">
         {{ activeNetTotal() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
       </div>
+      <app-secondary-currency [amount]="activeNetTotal()" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="kpi"></app-secondary-currency>
       <div class="div-summary-sub font-mono">
         <span>{{ 'div.grossShort' | t }}: {{ activeGrossTotal() | currency:displayCurrency():'symbol-narrow':'1.0-0' }}</span>
         <span>{{ 'div.whtShort' | t }}: {{ activeWhtTotal() | currency:displayCurrency():'symbol-narrow':'1.0-0' }}</span>
@@ -112,6 +113,7 @@
       <div class="div-summary-value font-mono" style="color: var(--color-accent);">
         {{ activeProjectedAnnualDividends() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
       </div>
+      <app-secondary-currency [amount]="activeProjectedAnnualDividends()" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="kpi"></app-secondary-currency>
       <div class="div-summary-sub font-mono">
         ~{{ (activeProjectedAnnualDividends() / 12) | currency:displayCurrency():'symbol-narrow':'1.0-0' }}{{ 'div.perMoEstimated' | t }}
       </div>
@@ -134,6 +136,7 @@
       <div class="div-summary-value font-mono" style="color: var(--color-text-secondary);">
         {{ activeWhtTotal() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
       </div>
+      <app-secondary-currency [amount]="activeWhtTotal()" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="kpi"></app-secondary-currency>
       <div class="div-summary-sub font-mono">
         {{ 'div.effectiveRateShort' | t }} {{ activeEffectiveTaxRate() | number:'1.1-1' }}%
       </div>
@@ -188,6 +191,7 @@
             <div class="chart-tooltip">
               <div class="tooltip-title">{{ m.yearMonth | ldate: 'monthYear' }}</div>
               <div class="tooltip-val">{{ m.netAmount | currency:displayCurrency():'symbol-narrow':'1.2-2' }}</div>
+              <app-secondary-currency [amount]="m.netAmount" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="compact"></app-secondary-currency>
               @if (m.usAmount > 0) {
                 <div class="tooltip-sub" style="color: var(--color-asset-us-stocks);">{{ 'asset.short.usStock' | t }}: {{ m.usAmount | currency:displayCurrency():'symbol-narrow':'1.0-0' }}</div>
               }
@@ -249,6 +253,7 @@
 
         <div class="asset-card-value font-mono">
           {{ at.totalNetDividends | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+          <app-secondary-currency [amount]="at.totalNetDividends" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="table"></app-secondary-currency>
         </div>
 
         <div class="asset-card-sub font-mono">
@@ -371,6 +376,7 @@
 
               <td class="text-right font-mono" style="color: var(--color-pl-positive); font-weight: 700;">
                 {{ s.convertedNetDividends | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+                <app-secondary-currency [amount]="s.convertedNetDividends" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="table"></app-secondary-currency>
               </td>
 
               <td class="text-right font-mono">
@@ -400,6 +406,7 @@
               <td class="text-right font-mono" style="color: var(--color-accent); font-weight: 700;">
                 @if (s.projectedAnnualIncome > 0) {
                   {{ s.projectedAnnualIncome | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+                  <app-secondary-currency [amount]="s.projectedAnnualIncome" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="table"></app-secondary-currency>
                 } @else {
                   <span class="empty-cell">—</span>
                 }
@@ -451,6 +458,7 @@
             </div>
             <div class="mobile-card-primary-val font-mono">
               {{ s.convertedNetDividends | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+              <app-secondary-currency [amount]="s.convertedNetDividends" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="compact"></app-secondary-currency>
             </div>
           </div>
 
@@ -543,12 +551,14 @@
               </td>
               <td class="text-right font-mono">{{ r.shares | number:'1.0-4' }}</td>
               <td class="text-right font-mono">{{ r.dividendPerShare | number:'1.2-4' }} {{ r.currency }}</td>
-              <td class="text-right font-mono">{{ r.grossAmount | currency:r.currency:'symbol-narrow':'1.2-2' }}</td>
+              <td class="text-right font-mono">{{ r.grossAmount | currency:r.currency:'symbol-narrow':'1.2-2' }}<app-secondary-currency [amount]="r.grossAmount" [displayCurrency]="r.currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="compact"></app-secondary-currency></td>
               <td class="text-right font-mono" style="color: var(--color-pl-negative);">
                 -{{ r.withholdingTax | currency:r.currency:'symbol-narrow':'1.2-2' }} ({{ r.withholdingTaxRate }}%)
+                <app-secondary-currency [amount]="-r.withholdingTax" [displayCurrency]="r.currency === 'USD' ? 'USD' : 'THB'" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="compact"></app-secondary-currency>
               </td>
               <td class="text-right font-mono" style="color: var(--color-pl-positive); font-weight: 700;">
                 {{ r.convertedNetAmount | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+                <app-secondary-currency [amount]="r.convertedNetAmount" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="table"></app-secondary-currency>
               </td>
             </tr>
           } @empty {
@@ -576,6 +586,7 @@
             </div>
             <div class="mobile-card-primary-val font-mono" style="color: var(--color-pl-positive);">
               {{ r.convertedNetAmount | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+              <app-secondary-currency [amount]="r.convertedNetAmount" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="compact"></app-secondary-currency>
             </div>
           </div>
 
@@ -786,6 +797,7 @@
             <span class="modal-stat-val font-mono" style="color: var(--color-pl-positive);">
               {{ holding.totalNet | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
             </span>
+            <app-secondary-currency [amount]="holding.totalNet" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="compact"></app-secondary-currency>
           </div>
           <div class="modal-summary-stat">
             <span class="modal-stat-label">{{ 'div.grossWht' | t }}</span>
@@ -793,6 +805,7 @@
               {{ holding.totalGross | currency:displayCurrency():'symbol-narrow':'1.0-0' }}
               <span style="color: var(--color-pl-negative); font-size: 0.75rem;">(-{{ holding.totalWht | currency:displayCurrency():'symbol-narrow':'1.0-0' }})</span>
             </span>
+            <app-secondary-currency [amount]="holding.totalGross" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="compact" digitsInfo="1.0-0"></app-secondary-currency>
           </div>
           <div class="modal-summary-stat">
             <span class="modal-stat-label">{{ 'div.distributions' | t }}</span>
@@ -834,6 +847,7 @@
                   </td>
                   <td class="text-right font-mono" style="color: var(--color-pl-positive); font-weight: 700;">
                     {{ r.convertedNetAmount | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+                    <app-secondary-currency [amount]="r.convertedNetAmount" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="compact"></app-secondary-currency>
                   </td>
                 </tr>
               } @empty {

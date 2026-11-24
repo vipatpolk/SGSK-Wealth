@@ -60,12 +60,13 @@ export interface SymbolOption {
 }
 
 import { SymbolIconComponent } from '@shared/components/symbol-icon/symbol-icon.component';
+import { SecondaryCurrencyComponent } from '@shared/components/secondary-currency/secondary-currency.component';
 
 @Component({
   selector: 'app-avg-cost-calculator',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, CurrencyPipe, DecimalPipe, FormsModule, SymbolIconComponent, TranslatePipe],
+  imports: [CommonModule, CurrencyPipe, DecimalPipe, FormsModule, SymbolIconComponent, SecondaryCurrencyComponent, TranslatePipe],
   templateUrl: './avg-cost-calculator.component.html',
   styleUrls: ['./avg-cost-calculator.component.css'],
 })
@@ -74,8 +75,8 @@ export class AvgCostCalculatorComponent {
   portfolioPositions = input.required<PortfolioPosition[]>();
   pricesMap = input.required<Map<string, PriceData>>();
   displayCurrency = input.required<'USD' | 'THB'>();
-  exchangeRate = input.required<number>();
-  hasRate = input.required<boolean>();
+  exchangeRate = input<number>(0);
+  hasRate = input<boolean>(false);
   privacyMode = input<boolean>(false);
   initialSymbol = input<string>('');
 

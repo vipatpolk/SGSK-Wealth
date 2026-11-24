@@ -295,10 +295,12 @@
                   ({{ activeUnrealizedPL() >= 0 ? '+' : '' }}{{ activeUnrealizedPLPercent() | number:'1.2-2' }}%)
                 </span>
               }
+              <app-secondary-currency [amount]="activeHoldingValueConverted()" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="kpi"></app-secondary-currency>
             </div>
           } @else {
             <div class="metric-sub-value muted-text">
               {{ 'tx.costBasisLabel' | t }} {{ cx(activeSummary()!.netInvested, activeSummary()!.currency) | currency:dc(activeSummary()!.currency):'symbol-narrow':'1.2-2' }}
+              <app-secondary-currency [amount]="cx(activeSummary()!.netInvested, activeSummary()!.currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="kpi"></app-secondary-currency>
             </div>
           }
         </div>
@@ -311,6 +313,7 @@
           </div>
           <div class="metric-main-value">
             {{ cx(activeSummary()!.averageBuyPrice, activeSummary()!.currency) | currency:dc(activeSummary()!.currency):'symbol-narrow':getPriceFormat(activeSummary()!.symbol, activeSummary()!.assetType) }}
+            <app-secondary-currency [amount]="cx(activeSummary()!.averageBuyPrice, activeSummary()!.currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" [digitsInfo]="getPriceFormat(activeSummary()!.symbol, activeSummary()!.assetType)" variant="kpi" [privacy]="false"></app-secondary-currency>
           </div>
           <div class="metric-sub-value">
             {{ 'tx.totalBought' | t }} {{ activeSummary()!.totalBuyShares | number:getQuantityFormat(activeSummary()!.symbol, activeSummary()!.assetType) }} {{ getUnitLabel(activeSummary()!.symbol, activeSummary()!.assetType) }}
@@ -326,6 +329,7 @@
           <div class="metric-main-value">
             @if (activeSummary()!.sellCount > 0) {
               {{ cx(activeSummary()!.averageSellPrice, activeSummary()!.currency) | currency:dc(activeSummary()!.currency):'symbol-narrow':getPriceFormat(activeSummary()!.symbol, activeSummary()!.assetType) }}
+              <app-secondary-currency [amount]="cx(activeSummary()!.averageSellPrice, activeSummary()!.currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" [digitsInfo]="getPriceFormat(activeSummary()!.symbol, activeSummary()!.assetType)" variant="kpi" [privacy]="false"></app-secondary-currency>
             } @else {
               <span class="muted-text">—</span>
             }
@@ -346,6 +350,7 @@
           </div>
           <div class="metric-main-value">
             {{ cx(activeSummary()!.totalBuyAmount, activeSummary()!.currency) | currency:dc(activeSummary()!.currency):'symbol-narrow':'1.2-2' }}
+            <app-secondary-currency [amount]="cx(activeSummary()!.totalBuyAmount, activeSummary()!.currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="kpi"></app-secondary-currency>
           </div>
           <div class="metric-sub-value">
             {{ 'tx.cumulativeBuyVol' | t }}
@@ -359,6 +364,7 @@
           </div>
           <div class="metric-main-value">
             {{ cx(activeSummary()!.totalSellAmount, activeSummary()!.currency) | currency:dc(activeSummary()!.currency):'symbol-narrow':'1.2-2' }}
+            <app-secondary-currency [amount]="cx(activeSummary()!.totalSellAmount, activeSummary()!.currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="kpi"></app-secondary-currency>
           </div>
           <div class="metric-sub-value">
             {{ 'tx.cumulativeSellVol' | t }}
@@ -378,6 +384,7 @@
           <div class="metric-main-value" [class.pl-positive]="activeSummary()!.realizedPL >= 0" [class.pl-negative]="activeSummary()!.realizedPL < 0">
             @if (activeSummary()!.sellCount > 0) {
               {{ activeSummary()!.realizedPL >= 0 ? '+' : '' }}{{ cx(activeSummary()!.realizedPL, activeSummary()!.currency) | currency:dc(activeSummary()!.currency):'symbol-narrow':'1.2-2' }}
+              <app-secondary-currency [amount]="cx(activeSummary()!.realizedPL, activeSummary()!.currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="kpi" [signed]="true"></app-secondary-currency>
             } @else {
               <span class="muted-text">—</span>
             }
@@ -504,6 +511,7 @@
           </div>
           <div class="metric-main-value">
             {{ allSymbolsTradedVolume() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+            <app-secondary-currency [amount]="allSymbolsTradedVolume()" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="kpi"></app-secondary-currency>
           </div>
           <div class="metric-sub-value muted-text">
             {{ 'tx.grossBuysSells' | t }}
@@ -520,6 +528,7 @@
           </div>
           <div class="metric-main-value" [class.pl-positive]="allSymbolsRealizedPL() >= 0" [class.pl-negative]="allSymbolsRealizedPL() < 0">
             {{ allSymbolsRealizedPL() >= 0 ? '+' : '' }}{{ allSymbolsRealizedPL() | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+            <app-secondary-currency [amount]="allSymbolsRealizedPL()" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="kpi" [signed]="true"></app-secondary-currency>
           </div>
           <div class="metric-sub-value">
             {{ 'tx.cumulativeClosedPL' | t }}
@@ -891,11 +900,13 @@
                 <!-- Price / Unit -->
                 <td class="col-price">
                   {{ cx(tx.price, tx.currency) | currency:dc(tx.currency):'symbol-narrow':getPriceFormat(tx.symbol, tx.assetType) }}
+                  <app-secondary-currency [amount]="cx(tx.price, tx.currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" [digitsInfo]="getPriceFormat(tx.symbol, tx.assetType)" variant="table" [privacy]="false"></app-secondary-currency>
                 </td>
 
                 <!-- Total Amount -->
                 <td class="col-amount">
                   <span class="amount-val">{{ cx(tx.totalAmount, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }}</span>
+                  <app-secondary-currency [amount]="cx(tx.totalAmount, tx.currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="table"></app-secondary-currency>
                 </td>
 
                 <!-- Realized P/L (for Sells & Exchange Out trades) -->
@@ -909,6 +920,7 @@
                       <span class="tx-pl-amount">{{ tx.realizedPL >= 0 ? '+' : '' }}{{ cx(tx.realizedPL, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }}</span>
                       <span class="pl-percent-sub">({{ tx.realizedPL >= 0 ? '+' : '' }}{{ tx.realizedPLPercent | number:'1.2-2' }}%)</span>
                     </span>
+                    <app-secondary-currency [amount]="cx(tx.realizedPL, tx.currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="table" [signed]="true"></app-secondary-currency>
                   } @else {
                     <span class="muted-text">—</span>
                   }
@@ -927,6 +939,7 @@
                 <!-- Cumulative Invested Cost Basis -->
                 <td class="col-running-cost">
                   <span class="running-cost-num">{{ cx(tx.runningTotalCost, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }}</span>
+                  <app-secondary-currency [amount]="cx(tx.runningTotalCost, tx.currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="table"></app-secondary-currency>
                 </td>
               </tr>
             } @empty {
@@ -1087,6 +1100,7 @@
                 <div class="mobile-metric-amount">
                   {{ cx(tx.totalAmount, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }}
                 </div>
+                <app-secondary-currency [amount]="cx(tx.totalAmount, tx.currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="compact"></app-secondary-currency>
               </div>
             </div>
 
@@ -1120,6 +1134,7 @@
                 <div class="mobile-pl-banner-val">
                   <span class="tx-pl-amount">{{ tx.realizedPL >= 0 ? '+' : '' }}{{ cx(tx.realizedPL, tx.currency) | currency:dc(tx.currency):'symbol-narrow':'1.2-2' }}</span>
                   <span class="pl-pct">({{ tx.realizedPL >= 0 ? '+' : '' }}{{ tx.realizedPLPercent | number:'1.2-2' }}%)</span>
+                  <app-secondary-currency [amount]="cx(tx.realizedPL, tx.currency)" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="exchangeRate() > 0" variant="compact" [signed]="true"></app-secondary-currency>
                 </div>
               </div>
             }

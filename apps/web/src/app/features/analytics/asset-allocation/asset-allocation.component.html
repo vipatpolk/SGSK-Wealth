@@ -55,6 +55,14 @@
           <div class="donut-center-val">
             {{ displayTotalValue() | currency: displayCurrency() : 'symbol-narrow' : '1.0-0' }}
           </div>
+          <app-secondary-currency
+            [amount]="displayTotalValue()"
+            [displayCurrency]="displayCurrency()"
+            [exchangeRate]="exchangeRate()"
+            [hasRate]="hasRate()"
+            variant="compact"
+            digitsInfo="1.0-0"
+          ></app-secondary-currency>
           <div class="donut-center-label">
             {{ selectedAssetType() ? selectedAssetLabel() : ('common.totalValue' | t) }}
           </div>
@@ -151,9 +159,19 @@
                 <div class="rebalance-mobile-stats">
                   <div class="rebalance-col-value text-right">
                     <span class="mobile-label">{{ 'common.value' | t }}:</span>
-                    <span class="font-mono">{{
-                      rec.currentValue | currency: displayCurrency() : 'symbol-narrow' : '1.0-0'
-                    }}</span>
+                    <div>
+                      <span class="font-mono">{{
+                        rec.currentValue | currency: displayCurrency() : 'symbol-narrow' : '1.0-0'
+                      }}</span>
+                      <app-secondary-currency
+                        [amount]="rec.currentValue"
+                        [displayCurrency]="displayCurrency()"
+                        [exchangeRate]="exchangeRate()"
+                        [hasRate]="hasRate()"
+                        variant="table"
+                        digitsInfo="1.0-0"
+                      ></app-secondary-currency>
+                    </div>
                   </div>
 
                   <div class="rebalance-col-actual text-right">
@@ -183,9 +201,19 @@
               <div class="rebalance-mobile-stats">
                 <div class="rebalance-col-value text-right" style="font-weight: 600">
                   <span class="mobile-label">{{ 'common.value' | t }}:</span>
-                  <span class="font-mono">{{
-                    totalValue() | currency: displayCurrency() : 'symbol-narrow' : '1.0-0'
-                  }}</span>
+                  <div>
+                    <span class="font-mono">{{
+                      totalValue() | currency: displayCurrency() : 'symbol-narrow' : '1.0-0'
+                    }}</span>
+                    <app-secondary-currency
+                      [amount]="totalValue()"
+                      [displayCurrency]="displayCurrency()"
+                      [exchangeRate]="exchangeRate()"
+                      [hasRate]="hasRate()"
+                      variant="table"
+                      digitsInfo="1.0-0"
+                    ></app-secondary-currency>
+                  </div>
                 </div>
                 <div class="rebalance-col-actual text-right" style="font-weight: 600">
                   <span class="mobile-label">{{ 'alloc.allocation' | t }}:</span>
@@ -230,9 +258,19 @@
                 </div>
                 <div class="symbol-col-value text-right font-mono">
                   <span class="mobile-label">{{ 'common.value' | t }}:</span>
-                  <span>{{
-                    item.value | currency: displayCurrency() : 'symbol-narrow' : '1.0-0'
-                  }}</span>
+                  <div>
+                    <span>{{
+                      item.value | currency: displayCurrency() : 'symbol-narrow' : '1.0-0'
+                    }}</span>
+                    <app-secondary-currency
+                      [amount]="item.value"
+                      [displayCurrency]="displayCurrency()"
+                      [exchangeRate]="exchangeRate()"
+                      [hasRate]="hasRate()"
+                      variant="table"
+                      digitsInfo="1.0-0"
+                    ></app-secondary-currency>
+                  </div>
                 </div>
                 <div class="symbol-col-class-pct text-right font-mono font-semibold">
                   <span class="mobile-label">{{ 'alloc.classPct' | t }}:</span>
@@ -259,6 +297,14 @@
               <div class="symbol-col-shares text-right"></div>
               <div class="symbol-col-value text-right font-mono">
                 {{ classTotalValue() | currency: displayCurrency() : 'symbol-narrow' : '1.0-0' }}
+                <app-secondary-currency
+                  [amount]="classTotalValue()"
+                  [displayCurrency]="displayCurrency()"
+                  [exchangeRate]="exchangeRate()"
+                  [hasRate]="hasRate()"
+                  variant="table"
+                  digitsInfo="1.0-0"
+                ></app-secondary-currency>
               </div>
               <div class="symbol-col-class-pct text-right font-mono">100.0%</div>
               <div class="symbol-col-port-pct text-right font-mono text-muted">
@@ -305,8 +351,28 @@
             ></div>
           </div>
           <div class="currency-values">
-            <span>{{ currencyExposure().usd | currency: 'USD' : 'symbol-narrow' : '1.0-0' }}</span>
-            <span>{{ currencyExposure().thb | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}</span>
+            <div>
+              <span>{{ currencyExposure().usd | currency: 'USD' : 'symbol-narrow' : '1.0-0' }}</span>
+              <app-secondary-currency
+                [amount]="currencyExposure().usd"
+                displayCurrency="USD"
+                [exchangeRate]="exchangeRate()"
+                [hasRate]="hasRate()"
+                variant="compact"
+                digitsInfo="1.0-0"
+              ></app-secondary-currency>
+            </div>
+            <div style="text-align: right;">
+              <span>{{ currencyExposure().thb | currency: 'THB' : 'symbol-narrow' : '1.0-0' }}</span>
+              <app-secondary-currency
+                [amount]="currencyExposure().thb"
+                displayCurrency="THB"
+                [exchangeRate]="exchangeRate()"
+                [hasRate]="hasRate()"
+                variant="compact"
+                digitsInfo="1.0-0"
+              ></app-secondary-currency>
+            </div>
           </div>
         </div>
       </div>
@@ -336,9 +402,19 @@
                   </span>
                 </div>
                 <div class="concentration-stats">
-                  <span class="concentration-val font-mono">{{
-                    holding.value | currency: displayCurrency() : 'symbol-narrow' : '1.0-0'
-                  }}</span>
+                  <div style="text-align: right;">
+                    <span class="concentration-val font-mono">{{
+                      holding.value | currency: displayCurrency() : 'symbol-narrow' : '1.0-0'
+                    }}</span>
+                    <app-secondary-currency
+                      [amount]="holding.value"
+                      [displayCurrency]="displayCurrency()"
+                      [exchangeRate]="exchangeRate()"
+                      [hasRate]="hasRate()"
+                      variant="compact"
+                      digitsInfo="1.0-0"
+                    ></app-secondary-currency>
+                  </div>
                   <span class="concentration-pct font-mono" [class.text-red]="holding.percent > 15"
                     >{{ holding.percent | number: '1.1-1' }}%</span
                   >

@@ -98,6 +98,15 @@
             <span class="privacy-mask">
               ({{ state.totalPL() >= 0 ? '+' : '' }}{{ state.totalPL() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }})
             </span>
+            <app-secondary-currency
+              [amount]="state.totalPL()"
+              [displayCurrency]="state.displayCurrency()"
+              [exchangeRate]="state.exchangeRate()"
+              [hasRate]="state.hasRate()"
+              variant="inline"
+              [signed]="true"
+              [parens]="true"
+            ></app-secondary-currency>
           </div>
         }
 
@@ -107,6 +116,7 @@
             <span class="sgsk-kpi-val privacy-mask">
               {{ state.totalCostConverted() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
             </span>
+            <app-secondary-currency [amount]="state.totalCostConverted()" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi"></app-secondary-currency>
           </div>
           <div class="sgsk-kpi-box">
             <span class="sgsk-kpi-label">{{ 'holdings.realizedReturn' | t }}</span>
@@ -118,6 +128,7 @@
               {{ state.totalRealizedPLConverted() >= 0 ? '+' : ''
               }}{{ state.totalRealizedPLConverted() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
             </span>
+            <app-secondary-currency [amount]="state.totalRealizedPLConverted()" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="kpi" [signed]="true"></app-secondary-currency>
           </div>
           <div class="sgsk-kpi-box">
             <span class="sgsk-kpi-label">{{ 'holdings.openPositions' | t }}</span>
@@ -290,6 +301,7 @@
           <span class="pos-holding-val privacy-mask">
             {{ state.cx(pos.holdingValue || pos.totalCost, pos.currency) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
           </span>
+          <app-secondary-currency [amount]="state.cx(pos.holdingValue || pos.totalCost, pos.currency)" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact"></app-secondary-currency>
           <span
             class="pos-pl-badge"
             [class.badge-positive]="pos.unrealizedPL >= 0"
@@ -306,12 +318,14 @@
           <span class="pos-m-val font-mono">
             {{ state.cx(pos.averageCost, pos.currency) | currency: state.dc() : 'symbol-narrow' : priceFmt(pos.symbol, pos.assetType) }}
           </span>
+          <app-secondary-currency [amount]="state.cx(pos.averageCost, pos.currency)" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" [digitsInfo]="priceFmt(pos.symbol, pos.assetType)" variant="compact" [privacy]="false"></app-secondary-currency>
         </div>
         <div class="pos-m-cell">
           <span class="pos-m-lbl">{{ 'common.totalCost' | t }}</span>
           <span class="pos-m-val font-mono privacy-mask">
             {{ state.cx(pos.totalCost, pos.currency) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
           </span>
+          <app-secondary-currency [amount]="state.cx(pos.totalCost, pos.currency)" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact"></app-secondary-currency>
         </div>
         <div class="pos-m-cell">
           <span class="pos-m-lbl">
@@ -320,6 +334,7 @@
           <span class="pos-m-val font-mono">
             {{ state.cx(pos.currentPrice, pos.currency) | currency: state.dc() : 'symbol-narrow' : priceFmt(pos.symbol, pos.assetType) }}
           </span>
+          <app-secondary-currency [amount]="state.cx(pos.currentPrice, pos.currency)" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" [digitsInfo]="priceFmt(pos.symbol, pos.assetType)" variant="compact" [privacy]="false"></app-secondary-currency>
         </div>
         <div class="pos-m-cell">
           <span class="pos-m-lbl">{{ 'common.pl' | t }}</span>
@@ -331,6 +346,7 @@
             {{ pos.unrealizedPL >= 0 ? '+' : ''
             }}{{ state.cx(pos.unrealizedPL, pos.currency) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
           </span>
+          <app-secondary-currency [amount]="state.cx(pos.unrealizedPL, pos.currency)" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" [signed]="true"></app-secondary-currency>
         </div>
       </div>
 
@@ -364,6 +380,7 @@
                 <span class="lot-cost privacy-mask">
                   {{ state.cx(lot.holdingValue || lot.totalCost, lot.currency) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
                 </span>
+                <app-secondary-currency [amount]="state.cx(lot.holdingValue || lot.totalCost, lot.currency)" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact"></app-secondary-currency>
                 <span
                   class="lot-pl"
                   [class.pl-positive]="lot.unrealizedPL >= 0"
@@ -412,6 +429,7 @@
             {{ pos.realizedPL >= 0 ? '+' : ''
             }}{{ state.cx(pos.realizedPL, pos.currency) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
           </span>
+          <app-secondary-currency [amount]="state.cx(pos.realizedPL, pos.currency)" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact" [signed]="true"></app-secondary-currency>
           <span
             class="pos-pl-badge"
             [class.badge-positive]="pos.realizedPL >= 0"
@@ -428,12 +446,14 @@
           <span class="pos-m-val font-mono privacy-mask">
             {{ state.cx(pos.totalProceeds, pos.currency) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
           </span>
+          <app-secondary-currency [amount]="state.cx(pos.totalProceeds, pos.currency)" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact"></app-secondary-currency>
         </div>
         <div class="pos-m-cell">
           <span class="pos-m-lbl">{{ 'common.totalCost' | t }}</span>
           <span class="pos-m-val font-mono privacy-mask">
             {{ state.cx(pos.totalCost, pos.currency) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
           </span>
+          <app-secondary-currency [amount]="state.cx(pos.totalCost, pos.currency)" [displayCurrency]="state.displayCurrency()" [exchangeRate]="state.exchangeRate()" [hasRate]="state.hasRate()" variant="compact"></app-secondary-currency>
         </div>
         <div class="pos-m-cell">
           <span class="pos-m-lbl">{{ 'holdings.sort.closedShares' | t }}</span>

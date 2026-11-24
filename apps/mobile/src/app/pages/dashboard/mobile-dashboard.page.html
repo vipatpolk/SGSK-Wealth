@@ -78,6 +78,15 @@
               <span class="privacy-mask">
                 ({{ totalReturn() >= 0 ? '+' : '' }}{{ totalReturn() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }})
               </span>
+              <app-secondary-currency
+                [amount]="totalReturn()"
+                [displayCurrency]="state.displayCurrency()"
+                [exchangeRate]="state.exchangeRate()"
+                [hasRate]="state.hasRate()"
+                variant="inline"
+                [signed]="true"
+                [parens]="true"
+              ></app-secondary-currency>
             </div>
           }
         </div>
@@ -89,6 +98,13 @@
             <span class="sgsk-kpi-val privacy-mask">
               {{ totalInvested() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
             </span>
+            <app-secondary-currency
+              [amount]="totalInvested()"
+              [displayCurrency]="state.displayCurrency()"
+              [exchangeRate]="state.exchangeRate()"
+              [hasRate]="state.hasRate()"
+              variant="kpi"
+            ></app-secondary-currency>
             <span class="sgsk-kpi-sub font-mono">
               {{ 'dash.openPosCount' | t: { count: openPositions().length } }}
             </span>
@@ -103,6 +119,14 @@
             >
               {{ unrealizedPL() >= 0 ? '+' : '' }}{{ unrealizedPL() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
             </span>
+            <app-secondary-currency
+              [amount]="unrealizedPL()"
+              [displayCurrency]="state.displayCurrency()"
+              [exchangeRate]="state.exchangeRate()"
+              [hasRate]="state.hasRate()"
+              variant="kpi"
+              [signed]="true"
+            ></app-secondary-currency>
             <span
               class="sgsk-kpi-sub font-mono"
               [class.pl-positive]="unrealizedPLPercent() >= 0"
@@ -121,6 +145,14 @@
             >
               {{ realizedPL() >= 0 ? '+' : '' }}{{ realizedPL() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
             </span>
+            <app-secondary-currency
+              [amount]="realizedPL()"
+              [displayCurrency]="state.displayCurrency()"
+              [exchangeRate]="state.exchangeRate()"
+              [hasRate]="state.hasRate()"
+              variant="kpi"
+              [signed]="true"
+            ></app-secondary-currency>
             <span class="sgsk-kpi-sub font-mono">
               @if (realizedPLPercent() !== 0) {
                 <span [class.pl-positive]="realizedPLPercent() > 0" [class.pl-negative]="realizedPLPercent() < 0">
@@ -137,6 +169,13 @@
             <span class="sgsk-kpi-val pl-positive privacy-mask">
               {{ annualProjectedDividendConverted() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
             </span>
+            <app-secondary-currency
+              [amount]="annualProjectedDividendConverted()"
+              [displayCurrency]="state.displayCurrency()"
+              [exchangeRate]="state.exchangeRate()"
+              [hasRate]="state.hasRate()"
+              variant="kpi"
+            ></app-secondary-currency>
             <span class="sgsk-kpi-sub font-mono">
               <span class="text-accent">{{ portfolioYieldOnCost() | number: '1.2-2' }}% {{ 'dash.yocShort' | t }}</span>
               @if (portfolioCurrentYield() > 0) {
@@ -225,9 +264,19 @@
                   <span class="dash-legend-count font-mono">({{ item.symbolCount }})</span>
                 </div>
                 <div class="dash-legend-right font-mono">
-                  <span class="dash-legend-amt privacy-mask">
-                    {{ item.value | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
-                  </span>
+                  <div style="text-align: right;">
+                    <span class="dash-legend-amt privacy-mask">
+                      {{ item.value | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
+                    </span>
+                    <app-secondary-currency
+                      [amount]="item.value"
+                      [displayCurrency]="state.displayCurrency()"
+                      [exchangeRate]="state.exchangeRate()"
+                      [hasRate]="state.hasRate()"
+                      variant="compact"
+                      digitsInfo="1.0-0"
+                    ></app-secondary-currency>
+                  </div>
                   <span class="dash-legend-pct">{{ item.percentage | number: '1.1-1' }}%</span>
                 </div>
               </div>
@@ -287,6 +336,13 @@
                   <span class="dash-mover-price privacy-mask">
                     {{ convertedPrice(pos) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
                   </span>
+                  <app-secondary-currency
+                    [amount]="convertedPrice(pos)"
+                    [displayCurrency]="state.displayCurrency()"
+                    [exchangeRate]="state.exchangeRate()"
+                    [hasRate]="state.hasRate()"
+                    variant="compact"
+                  ></app-secondary-currency>
                   <span class="dash-pct-badge badge-positive">+{{ pos.unrealizedPLPercent | number: '1.2-2' }}%</span>
                 </div>
               </button>
@@ -315,6 +371,13 @@
                   <span class="dash-mover-price privacy-mask">
                     {{ convertedPrice(pos) | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
                   </span>
+                  <app-secondary-currency
+                    [amount]="convertedPrice(pos)"
+                    [displayCurrency]="state.displayCurrency()"
+                    [exchangeRate]="state.exchangeRate()"
+                    [hasRate]="state.hasRate()"
+                    variant="compact"
+                  ></app-secondary-currency>
                   <span class="dash-pct-badge badge-negative">{{ pos.unrealizedPLPercent | number: '1.2-2' }}%</span>
                 </div>
               </button>
@@ -355,6 +418,14 @@
             <span class="dash-div-val font-mono pl-positive privacy-mask">
               {{ annualProjectedDividendConverted() | currency: state.dc() : 'symbol-narrow' : '1.0-0' }}
             </span>
+            <app-secondary-currency
+              [amount]="annualProjectedDividendConverted()"
+              [displayCurrency]="state.displayCurrency()"
+              [exchangeRate]="state.exchangeRate()"
+              [hasRate]="state.hasRate()"
+              variant="compact"
+              digitsInfo="1.0-0"
+            ></app-secondary-currency>
             <span class="sgsk-kpi-sub">{{ 'dash.forward12m' | t }}</span>
           </div>
           <div class="dash-div-box">
@@ -408,9 +479,18 @@
 
           <div class="dash-pvd-balance-row">
             <span class="sgsk-kpi-label">{{ 'dash.pvdBalance' | t }}</span>
-            <span class="dash-pvd-total font-mono privacy-mask">
-              {{ pvdTotalValue() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
-            </span>
+            <div style="text-align: right;">
+              <span class="dash-pvd-total font-mono privacy-mask">
+                {{ pvdTotalValue() | currency: state.dc() : 'symbol-narrow' : '1.2-2' }}
+              </span>
+              <app-secondary-currency
+                [amount]="pvdTotalValue()"
+                [displayCurrency]="state.displayCurrency()"
+                [exchangeRate]="state.exchangeRate()"
+                [hasRate]="state.hasRate()"
+                variant="kpi"
+              ></app-secondary-currency>
+            </div>
           </div>
 
           @if (pvdEmployeeContribution() + pvdEmployerMatching() > 0) {
@@ -450,9 +530,18 @@
                     </svg>
                   </button>
                 </div>
-                <span class="font-mono dash-pvd-mini-val privacy-mask">
-                  {{ (pos.holdingValue || pos.totalCost) | currency: pos.currency : 'symbol-narrow' : '1.2-2' }}
-                </span>
+                <div style="text-align: right;">
+                  <span class="font-mono dash-pvd-mini-val privacy-mask">
+                    {{ (pos.holdingValue || pos.totalCost) | currency: pos.currency : 'symbol-narrow' : '1.2-2' }}
+                  </span>
+                  <app-secondary-currency
+                    [amount]="pos.holdingValue || pos.totalCost"
+                    [displayCurrency]="pos.currency === 'USD' ? 'USD' : 'THB'"
+                    [exchangeRate]="state.exchangeRate()"
+                    [hasRate]="state.hasRate()"
+                    variant="compact"
+                  ></app-secondary-currency>
+                </div>
               </div>
             }
           </div>
@@ -542,6 +631,13 @@
                 <span class="dash-activity-total privacy-mask">
                   {{ tx.totalAmount | currency: tx.currency : 'symbol-narrow' : '1.2-2' }}
                 </span>
+                <app-secondary-currency
+                  [amount]="tx.totalAmount"
+                  [displayCurrency]="tx.currency === 'USD' ? 'USD' : 'THB'"
+                  [exchangeRate]="state.exchangeRate()"
+                  [hasRate]="state.hasRate()"
+                  variant="compact"
+                ></app-secondary-currency>
               </div>
             </button>
           } @empty {

@@ -12,16 +12,19 @@
     <div class="perf-summary-card">
       <div class="perf-summary-label">{{ 'common.totalInvested' | t }}</div>
       <div class="perf-summary-value font-mono">{{ portfolioSummary().totalInvested | currency:displayCurrency():'symbol-narrow':'1.2-2' }}</div>
+      <app-secondary-currency [amount]="portfolioSummary().totalInvested" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi"></app-secondary-currency>
     </div>
     <div class="perf-summary-card">
       <div class="perf-summary-label">{{ 'common.totalValue' | t }}</div>
       <div class="perf-summary-value font-mono">{{ portfolioSummary().totalCurrentValue | currency:displayCurrency():'symbol-narrow':'1.2-2' }}</div>
+      <app-secondary-currency [amount]="portfolioSummary().totalCurrentValue" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi"></app-secondary-currency>
     </div>
     <div class="perf-summary-card">
       <div class="perf-summary-label">{{ 'common.pl' | t }}</div>
       <div class="perf-summary-value font-mono" [class.pl-positive]="portfolioSummary().totalUnrealizedPL >= 0" [class.pl-negative]="portfolioSummary().totalUnrealizedPL < 0">
         {{ portfolioSummary().totalUnrealizedPL >= 0 ? '+' : '' }}{{ portfolioSummary().totalUnrealizedPL | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
       </div>
+      <app-secondary-currency [amount]="portfolioSummary().totalUnrealizedPL" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi" [signed]="true"></app-secondary-currency>
       <div class="perf-summary-sub font-mono" [class.pl-positive]="portfolioSummary().totalUnrealizedPLPercent >= 0" [class.pl-negative]="portfolioSummary().totalUnrealizedPLPercent < 0">
         {{ portfolioSummary().totalUnrealizedPLPercent >= 0 ? '+' : '' }}{{ portfolioSummary().totalUnrealizedPLPercent | number:'1.2-2' }}%
       </div>
@@ -31,6 +34,7 @@
       <div class="perf-summary-value font-mono" [class.pl-positive]="portfolioSummary().totalRealizedPL >= 0" [class.pl-negative]="portfolioSummary().totalRealizedPL < 0">
         {{ portfolioSummary().totalRealizedPL >= 0 ? '+' : '' }}{{ portfolioSummary().totalRealizedPL | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
       </div>
+      <app-secondary-currency [amount]="portfolioSummary().totalRealizedPL" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi" [signed]="true"></app-secondary-currency>
       <div class="perf-summary-sub font-mono" [class.pl-positive]="portfolioSummary().totalRealizedPLPercent >= 0" [class.pl-negative]="portfolioSummary().totalRealizedPLPercent < 0">
         {{ portfolioSummary().totalRealizedPLPercent >= 0 ? '+' : '' }}{{ portfolioSummary().totalRealizedPLPercent | number:'1.2-2' }}%
       </div>
@@ -40,6 +44,7 @@
       <div class="perf-summary-value font-mono" [class.pl-positive]="portfolioSummary().totalReturn >= 0" [class.pl-negative]="portfolioSummary().totalReturn < 0">
         {{ portfolioSummary().totalReturn >= 0 ? '+' : '' }}{{ portfolioSummary().totalReturn | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
       </div>
+      <app-secondary-currency [amount]="portfolioSummary().totalReturn" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="kpi" [signed]="true"></app-secondary-currency>
       <div class="perf-summary-sub font-mono" [class.pl-positive]="portfolioSummary().totalReturnPercent >= 0" [class.pl-negative]="portfolioSummary().totalReturnPercent < 0">
         {{ portfolioSummary().totalReturnPercent >= 0 ? '+' : '' }}{{ portfolioSummary().totalReturnPercent | number:'1.2-2' }}%
       </div>
@@ -288,26 +293,38 @@
             <div class="perf-mobile-stats-grid">
               <div class="perf-stat-cell">
                 <span class="perf-mobile-label">{{ 'common.invested' | t }}</span>
-                <span class="font-mono font-semibold">{{ sym.investedCost | currency:displayCurrency():'symbol-narrow':'1.2-2' }}</span>
+                <div>
+                  <span class="font-mono font-semibold">{{ sym.investedCost | currency:displayCurrency():'symbol-narrow':'1.2-2' }}</span>
+                  <app-secondary-currency [amount]="sym.investedCost" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="table"></app-secondary-currency>
+                </div>
               </div>
               
               <div class="perf-stat-cell">
                 <span class="perf-mobile-label">{{ 'common.currentValue' | t }}</span>
-                <span class="font-mono font-semibold">{{ sym.currentValue | currency:displayCurrency():'symbol-narrow':'1.2-2' }}</span>
+                <div>
+                  <span class="font-mono font-semibold">{{ sym.currentValue | currency:displayCurrency():'symbol-narrow':'1.2-2' }}</span>
+                  <app-secondary-currency [amount]="sym.currentValue" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="table"></app-secondary-currency>
+                </div>
               </div>
               
               <div class="perf-stat-cell">
                 <span class="perf-mobile-label">{{ 'common.realizedPL' | t }}</span>
-                <span class="font-mono font-semibold" [class.pl-positive]="sym.realizedPL > 0" [class.pl-negative]="sym.realizedPL < 0">
-                  {{ sym.realizedPL > 0 ? '+' : '' }}{{ sym.realizedPL | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
-                </span>
+                <div>
+                  <span class="font-mono font-semibold" [class.pl-positive]="sym.realizedPL > 0" [class.pl-negative]="sym.realizedPL < 0">
+                    {{ sym.realizedPL > 0 ? '+' : '' }}{{ sym.realizedPL | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+                  </span>
+                  <app-secondary-currency [amount]="sym.realizedPL" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="table" [signed]="true"></app-secondary-currency>
+                </div>
               </div>
               
               <div class="perf-stat-cell">
                 <span class="perf-mobile-label">{{ 'common.unrealizedPL' | t }}</span>
-                <span class="font-mono font-semibold" [class.pl-positive]="sym.unrealizedPL > 0" [class.pl-negative]="sym.unrealizedPL < 0">
-                  {{ sym.unrealizedPL > 0 ? '+' : '' }}{{ sym.unrealizedPL | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
-                </span>
+                <div>
+                  <span class="font-mono font-semibold" [class.pl-positive]="sym.unrealizedPL > 0" [class.pl-negative]="sym.unrealizedPL < 0">
+                    {{ sym.unrealizedPL > 0 ? '+' : '' }}{{ sym.unrealizedPL | currency:displayCurrency():'symbol-narrow':'1.2-2' }}
+                  </span>
+                  <app-secondary-currency [amount]="sym.unrealizedPL" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="table" [signed]="true"></app-secondary-currency>
+                </div>
               </div>
               
               <div class="perf-stat-cell perf-stat-cell-full">
@@ -315,6 +332,7 @@
                 <div class="font-mono font-bold perf-total-return-val" [class.pl-positive]="sym.totalReturn > 0" [class.pl-negative]="sym.totalReturn < 0">
                   <span class="perf-amount">{{ sym.totalReturn > 0 ? '+' : '' }}{{ sym.totalReturn | currency:displayCurrency():'symbol-narrow':'1.2-2' }}</span>
                   <span class="perf-return-pct">({{ sym.totalReturnPercent > 0 ? '+' : '' }}{{ sym.totalReturnPercent | number:'1.2-2' }}%)</span>
+                  <app-secondary-currency [amount]="sym.totalReturn" [displayCurrency]="displayCurrency()" [exchangeRate]="exchangeRate()" [hasRate]="hasRate()" variant="table" [signed]="true"></app-secondary-currency>
                 </div>
               </div>
             </div>

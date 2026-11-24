@@ -14,6 +14,7 @@ import {
   IonToolbar,
 } from '@ionic/angular';
 import { SymbolIconComponent } from '@shared/components/symbol-icon/symbol-icon.component';
+import { SecondaryCurrencyComponent } from '@shared/components/secondary-currency/secondary-currency.component';
 import { DIVIDEND_ASSET_TYPES } from '@shared/config/asset.constants';
 import {
   AssetTypeDividendSummary,
@@ -43,6 +44,7 @@ import { MobileStateService } from '../../services/mobile-state.service';
     TranslatePipe,
     LocalizedDatePipe,
     SymbolIconComponent,
+    SecondaryCurrencyComponent,
     IonContent,
     IonRefresher,
     IonRefresherContent,

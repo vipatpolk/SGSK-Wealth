@@ -14,6 +14,7 @@ import {
   IonSelectOption,
 } from '@ionic/angular';
 import { SymbolIconComponent } from '@shared/components/symbol-icon/symbol-icon.component';
+import { SecondaryCurrencyComponent } from '@shared/components/secondary-currency/secondary-currency.component';
 import { AssetTab, HoldingsSubTab } from '@shared/config/asset.constants';
 import { ClosedPortfolioPosition, PortfolioPosition } from '@shared/models/portfolio.model';
 import { LocalizedDatePipe } from '@shared/pipes/localized-date.pipe';
@@ -41,6 +42,7 @@ import { MobilePvdHoldingsComponent } from './components/mobile-pvd-holdings.com
     TranslatePipe,
     LocalizedDatePipe,
     SymbolIconComponent,
+    SecondaryCurrencyComponent,
     MobilePvdHoldingsComponent,
     IonContent,
     IonRefresher,

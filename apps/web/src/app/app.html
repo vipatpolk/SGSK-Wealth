@@ -385,6 +385,15 @@
                 >({{ totalPL() >= 0 ? '+' : ''
                 }}{{ totalPL() | currency: dc() : 'symbol-narrow' : '1.2-2' }})</span
               >
+              <app-secondary-currency
+                [amount]="totalPL()"
+                [displayCurrency]="displayCurrency()"
+                [exchangeRate]="exchangeRate()"
+                [hasRate]="hasRate()"
+                variant="inline"
+                [signed]="true"
+                [parens]="true"
+              ></app-secondary-currency>
             </div>
           }
         </div>
@@ -395,6 +404,13 @@
             <span class="hero-metric-val privacy-mask font-mono">{{
               totalCostConverted() | currency: dc() : 'symbol-narrow' : '1.2-2'
             }}</span>
+            <app-secondary-currency
+              [amount]="totalCostConverted()"
+              [displayCurrency]="displayCurrency()"
+              [exchangeRate]="exchangeRate()"
+              [hasRate]="hasRate()"
+              variant="kpi"
+            ></app-secondary-currency>
           </div>
           <div class="hero-metric-item">
             <span class="hero-metric-label">{{ 'holdings.realizedReturn' | t }}</span>
@@ -412,6 +428,14 @@
                 >
               }
             </span>
+            <app-secondary-currency
+              [amount]="totalRealizedPLConverted()"
+              [displayCurrency]="displayCurrency()"
+              [exchangeRate]="exchangeRate()"
+              [hasRate]="hasRate()"
+              variant="kpi"
+              [signed]="true"
+            ></app-secondary-currency>
           </div>
           <div class="hero-metric-item">
             <span class="hero-metric-label">{{ 'holdings.openPositions' | t }}</span>
@@ -549,6 +573,14 @@
                   totalRealizedPLPercent() >= 0 ? '+' : ''
                 }}{{ totalRealizedPLPercent() | number: '1.2-2' }}%)
               </span>
+              <app-secondary-currency
+                [amount]="totalRealizedPLConverted()"
+                [displayCurrency]="displayCurrency()"
+                [exchangeRate]="exchangeRate()"
+                [hasRate]="hasRate()"
+                variant="inline"
+                [signed]="true"
+              ></app-secondary-currency>
             </div>
           }
         </div>
@@ -638,6 +670,9 @@
         [getPriceFormat]="getPriceFormatFn"
         [cx]="cxFn"
         [dc]="dcFn"
+        [displayCurrency]="displayCurrency()"
+        [exchangeRate]="exchangeRate()"
+        [hasRate]="hasRate()"
         [getCurrentPriceConverted]="getCurrentPriceConvertedFn"
         [getHoldingValue]="getHoldingValueFn"
         [getUnrealizedPL]="getUnrealizedPLFn"
@@ -669,6 +704,9 @@
         [getPriceFormat]="getPriceFormatFn"
         [cx]="cxFn"
         [dc]="dcFn"
+        [displayCurrency]="displayCurrency()"
+        [exchangeRate]="exchangeRate()"
+        [hasRate]="hasRate()"
         [getCurrentPriceConverted]="getCurrentPriceConvertedFn"
         [getHoldingValue]="getHoldingValueFn"
         [getUnrealizedPL]="getUnrealizedPLFn"

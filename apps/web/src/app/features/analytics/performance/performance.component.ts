@@ -2,6 +2,7 @@ import { Component, input, signal, computed, inject, effect, ChangeDetectionStra
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { DateRangePickerComponent, DateRange } from '@shared/components/date-range-picker/date-range-picker.component';
 import { SymbolIconComponent } from '@shared/components/symbol-icon/symbol-icon.component';
+import { SecondaryCurrencyComponent } from '@shared/components/secondary-currency/secondary-currency.component';
 import { SymbolSummary, ClosedSymbolSummary, SymbolTransactionSummary, Transaction } from '@shared/models/transaction.model';
 import { PriceData } from '@shared/services/price.service';
 import { PortfolioSourceCoordinator } from '@shared/providers/portfolio-source.coordinator';
@@ -25,7 +26,7 @@ import {
   selector: 'app-performance',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe, DateRangePickerComponent, SymbolIconComponent, TranslatePipe],
+  imports: [CurrencyPipe, DecimalPipe, DateRangePickerComponent, SymbolIconComponent, SecondaryCurrencyComponent, TranslatePipe],
   templateUrl: './performance.component.html',
   styleUrls: ['./performance.component.css']
 })

@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { PortfolioPosition, PortfolioSummary } from '@shared/models/portfolio.model';
 import { I18nService } from '@shared/services/i18n.service';
 import { TranslatePipe } from '@shared/pipes/translate.pipe';
+import { SecondaryCurrencyComponent } from '@shared/components/secondary-currency/secondary-currency.component';
 import { TranslationKey } from '@shared/i18n/en';
 import {
   CompoundingFrequency,
@@ -83,7 +84,7 @@ export interface TvmGrowthChartData {
   selector: 'app-tvm-calculator',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, CurrencyPipe, DecimalPipe, FormsModule, TranslatePipe],
+  imports: [CommonModule, CurrencyPipe, DecimalPipe, FormsModule, SecondaryCurrencyComponent, TranslatePipe],
   templateUrl: './tvm-calculator.component.html',
   styleUrls: ['./tvm-calculator.component.css'],
 })
