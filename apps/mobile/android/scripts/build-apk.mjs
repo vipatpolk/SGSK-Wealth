@@ -647,6 +647,15 @@ async function main() {
   for (const dir of assetDirs) {
     fs.cpSync(dir, stagedAssetsDir, { recursive: true, force: true });
   }
+  for (const reqAsset of [
+    path.join(stagedAssetsDir, 'public', 'index.html'),
+    path.join(stagedAssetsDir, 'capacitor.config.json'),
+    path.join(stagedAssetsDir, 'capacitor.plugins.json'),
+  ]) {
+    if (!fs.existsSync(reqAsset)) {
+      throw new Error(`Missing required Capacitor Android asset: ${reqAsset}. Run "npm run cap:sync" from the workspace root first.`);
+    }
+  }
   run('jar', ['uf', unalignedApk, '-C', stagedRoot, 'assets']);
 
   const javaSources = [
