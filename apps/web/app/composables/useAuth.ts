@@ -48,6 +48,13 @@ function setGuestModePreferred(enabled: boolean): void {
   }
 }
 
+function resolveAuthRedirectUrl(): string | undefined {
+  if (useNativePlatform().isNative()) {
+    return 'com.sgsk.wealth.mobile://auth/callback';
+  }
+  return typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined;
+}
+
 let supabaseInstance: SupabaseClient | null = null;
 let authListenerBound = false;
 
@@ -141,89 +148,97 @@ export function useAuth() {
     let displayName = 'Guest';
     let avatarUrl: string | null = null;
 
-    if (client) {
-      const { data } = await client.auth.getSession();
-      const user = data.session?.user;
-      token = data.session?.access_token ?? null;
-      userId = user?.id ?? null;
-      email = user?.email ?? null;
-      displayName =
-        (user?.user_metadata?.full_name as string) ||
-        (user?.user_metadata?.name as string) ||
-        email?.split('@')[0] ||
-        'Guest';
-      avatarUrl =
-        (user?.user_metadata?.avatar_url as string) ||
-        (user?.user_metadata?.picture as string) ||
-        null;
-
-      if (userId) {
-        try {
-          const { data: prof } = await client
-            .from('user_profiles')
-            .select('display_name, avatar_url, role')
-            .eq('id', userId)
-            .maybeSingle();
-          if (prof?.display_name) displayName = prof.display_name;
-          if (prof?.avatar_url) avatarUrl = prof.avatar_url;
-        } catch {
-          // Fallback to user_metadata
-        }
-        await refreshIdentities();
-      } else {
-        applyIdentities([]);
-      }
-    }
-
     try {
-      const me = await request<{
-        authenticated: boolean;
-        userId: string | null;
-        role: string;
-        canViewCloudPortfolio: boolean;
-        portfolioSource: 'google_sheets' | 'local';
-      }>('/auth/me', {
-        bearerToken: token,
-        userId,
-      });
+      if (client) {
+        try {
+          const { data } = await client.auth.getSession();
+          const user = data.session?.user;
+          token = data.session?.access_token ?? null;
+          userId = user?.id ?? null;
+          email = user?.email ?? null;
+          displayName =
+            (user?.user_metadata?.full_name as string) ||
+            (user?.user_metadata?.name as string) ||
+            email?.split('@')[0] ||
+            'Guest';
+          avatarUrl =
+            (user?.user_metadata?.avatar_url as string) ||
+            (user?.user_metadata?.picture as string) ||
+            null;
 
-      if (!me || typeof me.authenticated !== 'boolean') {
-        throw new Error('Invalid /auth/me response');
+          if (userId) {
+            try {
+              const { data: prof } = await client
+                .from('user_profiles')
+                .select('display_name, avatar_url, role')
+                .eq('id', userId)
+                .maybeSingle();
+              if (prof?.display_name) displayName = prof.display_name;
+              if (prof?.avatar_url) avatarUrl = prof.avatar_url;
+            } catch {
+              // Fallback to user_metadata
+            }
+            await refreshIdentities();
+          } else {
+            applyIdentities([]);
+          }
+        } catch {
+          applyIdentities([]);
+        }
       }
 
-      const authenticated = me.authenticated;
-      authState.value = {
-        ...authState.value,
-        initialized: true,
-        authenticated,
-        userId: me.userId ?? userId,
-        email,
-        displayName: authenticated ? displayName : 'Guest',
-        avatarUrl,
-        role: me.role,
-        canViewCloudPortfolio: me.canViewCloudPortfolio,
-        portfolioSource: me.portfolioSource,
-        accessToken: token,
-        showAuthModal: !authenticated && !isGuestModePreferred(),
-        backendError: null,
-      };
-    } catch (err) {
-      const authenticated = Boolean(token);
-      authState.value = {
-        ...authState.value,
-        initialized: true,
-        authenticated,
-        userId,
-        email,
-        displayName: token ? displayName : 'Guest',
-        avatarUrl,
-        role: 'guest',
-        canViewCloudPortfolio: false,
-        portfolioSource: 'local',
-        accessToken: token,
-        showAuthModal: !authenticated && !isGuestModePreferred(),
-        backendError: err instanceof Error ? err.message : 'Unable to load data',
-      };
+      try {
+        const me = await request<{
+          authenticated: boolean;
+          userId: string | null;
+          role: string;
+          canViewCloudPortfolio: boolean;
+          portfolioSource: 'google_sheets' | 'local';
+        }>('/auth/me', {
+          bearerToken: token,
+          userId,
+        });
+
+        if (!me || typeof me.authenticated !== 'boolean') {
+          throw new Error('Invalid /auth/me response');
+        }
+
+        const authenticated = me.authenticated;
+        authState.value = {
+          ...authState.value,
+          initialized: true,
+          authenticated,
+          userId: me.userId ?? userId,
+          email,
+          displayName: authenticated ? displayName : 'Guest',
+          avatarUrl,
+          role: me.role,
+          canViewCloudPortfolio: me.canViewCloudPortfolio,
+          portfolioSource: me.portfolioSource,
+          accessToken: token,
+          showAuthModal: !authenticated && !isGuestModePreferred(),
+          backendError: null,
+        };
+      } catch (err) {
+        const authenticated = Boolean(token);
+        authState.value = {
+          ...authState.value,
+          initialized: true,
+          authenticated,
+          userId,
+          email,
+          displayName: token ? displayName : 'Guest',
+          avatarUrl,
+          role: 'guest',
+          canViewCloudPortfolio: false,
+          portfolioSource: 'local',
+          accessToken: token,
+          showAuthModal: !authenticated && !isGuestModePreferred(),
+          backendError: err instanceof Error ? err.message : 'Unable to load data',
+        };
+      }
+    } finally {
+      authState.value.initialized = true;
     }
   }
 
@@ -236,8 +251,7 @@ export function useAuth() {
     }
     authState.value.loading = true;
     try {
-      const redirectTo =
-        typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined;
+      const redirectTo = resolveAuthRedirectUrl();
       const { error } = await client.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo },
@@ -365,8 +379,7 @@ export function useAuth() {
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(AUTH_LINK_PENDING_KEY, '1');
       }
-      const redirectTo =
-        typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined;
+      const redirectTo = resolveAuthRedirectUrl();
       const { error } = await client.auth.linkIdentity({
         provider: 'google',
         options: { redirectTo },

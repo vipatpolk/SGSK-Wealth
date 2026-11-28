@@ -7,21 +7,30 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 
 export type NativePlatform = 'ios' | 'android' | 'web';
 
+export const DEFAULT_NATIVE_PROD_API_BASE_URL = 'https://sgsk-wealth.vercel.app/api/backend';
+
 export function resolveNativeApiBaseUrl(
   platform: NativePlatform,
   configuredBaseUrl: string = '/api/v1',
   isProd: boolean = false,
+  nativeProdApiBaseUrl: string = DEFAULT_NATIVE_PROD_API_BASE_URL,
 ): string {
   const trimmed = configuredBaseUrl.trim().replace(/\/$/, '');
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
     return trimmed;
   }
   const suffix = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
-  if (platform === 'android' && !isProd) {
-    return `http://10.0.2.2:8000${suffix}`;
-  }
-  if (platform === 'ios' && !isProd) {
-    return `http://127.0.0.1:8000${suffix}`;
+  if (platform === 'android' || platform === 'ios') {
+    if (isProd) {
+      const prodBase = nativeProdApiBaseUrl.trim().replace(/\/$/, '');
+      if (prodBase.startsWith('http://') || prodBase.startsWith('https://')) {
+        return prodBase;
+      }
+      return DEFAULT_NATIVE_PROD_API_BASE_URL;
+    }
+    return platform === 'android'
+      ? `http://10.0.2.2:8000${suffix}`
+      : `http://127.0.0.1:8000${suffix}`;
   }
   return suffix || '/api/v1';
 }
@@ -41,8 +50,15 @@ export function useNativePlatform() {
     return Capacitor.isNativePlatform();
   }
 
-  function resolveApiBaseUrl(configuredBaseUrl: string = '/api/v1'): string {
-    return resolveNativeApiBaseUrl(getPlatform(), configuredBaseUrl, !import.meta.dev);
+  function resolveApiBaseUrl(
+    configuredBaseUrl: string = '/api/v1',
+    nativeProdApiBaseUrl?: string,
+  ): string {
+    const config = useRuntimeConfig();
+    const prodNativeUrl =
+      nativeProdApiBaseUrl ||
+      String(config.public.nativeApiBaseUrl || DEFAULT_NATIVE_PROD_API_BASE_URL);
+    return resolveNativeApiBaseUrl(getPlatform(), configuredBaseUrl, !import.meta.dev, prodNativeUrl);
   }
 
   async function hideSplashScreen(): Promise<void> {

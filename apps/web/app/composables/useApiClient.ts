@@ -28,6 +28,7 @@ export function useApiClient() {
       query: options.query,
       body: options.body as Record<string, unknown> | undefined,
       headers,
+      timeout: 15000,
     });
   }
 

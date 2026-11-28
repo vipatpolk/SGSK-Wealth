@@ -38,7 +38,11 @@ export default defineNuxtConfig({
   ssr: false,
   compatibilityDate: '2025-07-15',
   devtools: { enabled: false },
+  experimental: {
+    appManifest: false,
+  },
   app: {
+    buildAssetsDir: 'assets',
     head: {
       title: 'SGSK Wealth — Investment Portfolio & Wealth Analytics',
       meta: [
@@ -93,13 +97,19 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBaseUrl: pickPublicEnv('NUXT_PUBLIC_API_BASE_URL') || '/api/v1',
-      supabaseUrl: pickPublicEnv('NUXT_PUBLIC_SUPABASE_URL', 'SUPABASE_URL'),
-      supabaseAnonKey: pickPublicEnv(
-        'NUXT_PUBLIC_SUPABASE_ANON_KEY',
-        'NUXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
-        'SUPABASE_PUBLISHABLE_KEY',
-        'SUPABASE_ANON_KEY',
-      ),
+      nativeApiBaseUrl:
+        pickPublicEnv('NUXT_PUBLIC_NATIVE_API_BASE_URL') ||
+        'https://sgsk-wealth.vercel.app/api/backend',
+      supabaseUrl:
+        pickPublicEnv('NUXT_PUBLIC_SUPABASE_URL', 'SUPABASE_URL') ||
+        'https://jjdnxifgpbdvntfwhyzz.supabase.co',
+      supabaseAnonKey:
+        pickPublicEnv(
+          'NUXT_PUBLIC_SUPABASE_ANON_KEY',
+          'NUXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+          'SUPABASE_PUBLISHABLE_KEY',
+          'SUPABASE_ANON_KEY',
+        ) || 'sb_publishable_CcbbcpbL-tOqtOLHk63tkQ_JfPPsz_w', // gitleaks:allow
     },
   },
 });

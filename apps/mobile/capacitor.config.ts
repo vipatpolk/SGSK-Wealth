@@ -8,11 +8,11 @@ const config: CapacitorConfig = {
     androidScheme: 'http',
     iosScheme: 'capacitor',
     cleartext: true,
-    allowNavigation: ['10.0.2.2', '127.0.0.1', 'localhost'],
+    allowNavigation: ['10.0.2.2', '127.0.0.1', 'localhost', 'sgsk-wealth.vercel.app', '*.supabase.co'],
   },
   plugins: {
     CapacitorHttp: {
-      enabled: true,
+      enabled: false,
     },
     SplashScreen: {
       launchShowDuration: 1200,
