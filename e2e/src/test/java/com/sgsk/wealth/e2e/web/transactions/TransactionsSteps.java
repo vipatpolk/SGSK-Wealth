@@ -121,8 +121,28 @@ public class TransactionsSteps {
         transactionsPage.clearSymbolSelection();
     }
 
+    @When("I change the transaction page size to {string}")
+    public void changeTransactionPageSize(String size) {
+        context.getPage().locator("#tx-page-size-select").selectOption(size);
+    }
+
+    @Then("the transaction page size should be {string}")
+    public void verifyTransactionPageSize(String expectedSize) {
+        assertThat(context.getPage().locator("#tx-page-size-select")).hasValue(expectedSize);
+    }
+
     @Then("the transaction hero card subtitle should be {string}")
     public void verifyTransactionHeroSubtitle(String expectedSubtitle) {
         assertThat(transactionsPage.heroSubtitle()).containsText(expectedSubtitle);
+    }
+
+    @Then("the transaction asset filter bar should exclude {string}")
+    public void verifyTransactionAssetFilterBarExcludes(String label) {
+        assertThat(context.getPage().locator("#history-asset-filter-bar")).not().containsText(label);
+    }
+
+    @Then("the transaction ledger should exclude {string}")
+    public void verifyTransactionLedgerExcludes(String text) {
+        assertThat(transactionsPage.container).not().containsText(text);
     }
 }

@@ -1,0 +1,40 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/common",
+    "crates/domain",
+    "crates/financial-engine",
+    "crates/application",
+    "crates/database",
+    "crates/integrations",
+    "crates/api",
+]
+exclude = ["backend"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+
+[workspace.dependencies]
+axum = "0.8"
+tokio = { version = "1", features = ["full"] }
+tower = { version = "0.5", features = ["util"] }
+http = "1"
+http-body-util = "0.1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "gzip"] }
+wiremock = "0.6"
+thiserror = "2"
+chrono = { version = "0.4", features = ["serde"] }
+csv = "1.3"
+rust_decimal = { version = "1", features = ["serde-with-str"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+sgsk-common = { path = "crates/common" }
+sgsk-domain = { path = "crates/domain" }
+sgsk-financial-engine = { path = "crates/financial-engine" }
+sgsk-application = { path = "crates/application" }
+sgsk-database = { path = "crates/database" }
+sgsk-integrations = { path = "crates/integrations" }

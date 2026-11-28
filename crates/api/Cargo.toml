@@ -1,0 +1,23 @@
+[package]
+name = "sgsk-api"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+axum.workspace = true
+tokio.workspace = true
+http.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+rust_decimal.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+sgsk-common.workspace = true
+sgsk-domain.workspace = true
+sgsk-application.workspace = true
+sgsk-database.workspace = true
+sgsk-integrations.workspace = true
+
+[dev-dependencies]
+tower.workspace = true
+http-body-util.workspace = true

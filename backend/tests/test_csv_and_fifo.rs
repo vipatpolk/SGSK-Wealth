@@ -249,3 +249,19 @@ async fn test_fetch_sheet_and_fetch_all_sheets_with_mock() {
     assert!(all.error.is_none());
     assert_eq!(all.summaries.len(), 2);
 }
+
+#[test]
+fn test_process_transactions_excludes_pvd_from_transaction_summaries() {
+    let svc = make_share_lot_service(None);
+    let mut pvd_tx = make_tx("PVDSP500", "2026-01-15", 100.0, 12.0);
+    pvd_tx.currency = "THB".to_string();
+    pvd_tx.asset_type = "provident-fund".to_string();
+
+    let (open_summaries, _, tx_summaries) =
+        svc.process_transactions(&[make_tx("AAPL", "2026-01-10", 10.0, 150.0), pvd_tx]);
+    assert!(open_summaries.iter().any(|s| s.symbol == "AAPL"));
+    assert!(open_summaries.iter().any(|s| s.symbol == "PVDSP500"));
+    assert_eq!(tx_summaries.len(), 1);
+    assert_eq!(tx_summaries[0].symbol, "AAPL");
+    assert!(!tx_summaries.iter().any(|s| s.symbol == "PVDSP500"));
+}

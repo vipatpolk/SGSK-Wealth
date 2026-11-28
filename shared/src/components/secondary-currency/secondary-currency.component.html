@@ -1,8 +1,0 @@
-@if (secondaryAmount() !== null) {
-  @let val = secondaryAmount()!;
-  <span
-    class="sec-curr font-mono"
-    [class]="'sec-curr sec-curr-' + variant() + ' font-mono'"
-    [class.privacy-mask]="privacy()"
-  >@if (parens()) {(}≈ {{ signed() && val >= 0 ? '+' : '' }}{{ val | currency: secondaryCurrency() : 'symbol-narrow' : digitsInfo() }}@if (parens()) {)}</span>
-}

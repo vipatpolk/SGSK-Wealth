@@ -79,3 +79,14 @@ Feature: Investment Performance & Analytics Engine
       | EN       | PTT   | PTT    | PTT Public Company Limited   |
       | EN       | K-USA | K-USA  | Kasikorn US Equity Fund      |
       | EN       | AAPL  | AAPL   | Apple Inc.                   |
+
+  @TC-PRF-08
+  Scenario: TC-PRF-08: Performance table renders sortable symbol performance rows
+    When I sort the performance table by "Symbol"
+    Then the performance table should display at least 1 symbol row
+
+  @TC-PRF-09
+  Scenario: TC-PRF-09: Performance toolbar sort controls and 7-column status pills work cleanly
+    When I select performance sort field "totalReturnPercent"
+    And I toggle performance sort direction
+    Then the performance table should display status pills and realized PL values

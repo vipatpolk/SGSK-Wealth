@@ -631,29 +631,31 @@ export function processLocalTransactionsFifo(transactions: LocalTransaction[]): 
     const overallRealizedPct =
       totalRealizedCostBasis > 0 ? (totalRealizedPL / totalRealizedCostBasis) * 100 : 0;
 
-    transactionSummaries.push({
-      symbol,
-      assetType,
-      currency,
-      totalTransactions: sorted.length,
-      buyCount,
-      sellCount,
-      exchangeCount,
-      totalBuyShares,
-      totalSellShares,
-      totalBuyAmount,
-      totalSellAmount,
-      averageBuyPrice: avgBuy,
-      averageSellPrice: avgSell,
-      netShares: runningShares,
-      netInvested: runningTotalCost,
-      currentStatus: runningShares > EPSILON ? 'OPEN' : 'CLOSED',
-      realizedPL: totalRealizedPL,
-      realizedPLPercent: overallRealizedPct,
-      firstTradeDate: sorted[0].date,
-      lastTradeDate: sorted[sorted.length - 1].date,
-      transactions: processedTx,
-    });
+    if (assetType !== 'provident-fund') {
+      transactionSummaries.push({
+        symbol,
+        assetType,
+        currency,
+        totalTransactions: sorted.length,
+        buyCount,
+        sellCount,
+        exchangeCount,
+        totalBuyShares,
+        totalSellShares,
+        totalBuyAmount,
+        totalSellAmount,
+        averageBuyPrice: avgBuy,
+        averageSellPrice: avgSell,
+        netShares: runningShares,
+        netInvested: runningTotalCost,
+        currentStatus: runningShares > EPSILON ? 'OPEN' : 'CLOSED',
+        realizedPL: totalRealizedPL,
+        realizedPLPercent: overallRealizedPct,
+        firstTradeDate: sorted[0].date,
+        lastTradeDate: sorted[sorted.length - 1].date,
+        transactions: processedTx,
+      });
+    }
   }
 
   openSummaries.sort((a, b) => b.totalCost - a.totalCost);

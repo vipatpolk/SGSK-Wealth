@@ -16,7 +16,7 @@ Feature: Target Asset Allocation & Rebalancing Engine
   @TC-ALC-02
   Scenario: TC-ALC-02: Filtering to asset class displays symbol breakdown
     When I filter allocation to "U.S. Stock"
-    Then the asset class breakdown table and rebalance list should be visible
+    Then the symbol allocation breakdown for "U.S. Stock" should be visible
 
   @TC-ALC-03
   Scenario: TC-ALC-03: Resetting allocation filter restores all asset classes
@@ -47,3 +47,9 @@ Feature: Target Asset Allocation & Rebalancing Engine
       | Language | ThaiClass  | MfClass     | UsClass    | CrypClass        | PttName                    | KusaName                     |
       | TH       | หุ้นไทย    | กองทุนรวม   | หุ้นสหรัฐฯ  | คริปโตเคอร์เรนซี | บริษัท ปตท. จำกัด (มหาชน) | กองทุนเปิดเค ยูเอสเอ หุ้นทุน |
       | EN       | Thai Stock | Mutual Fund | U.S. Stock | Cryptocurrency   | PTT Public Company Limited | Kasikorn US Equity Fund      |
+
+  @TC-ALC-07
+  Scenario: TC-ALC-07: Allocation bottom row displays Currency Exposure and Top Holdings Concentration and hides on drill-down
+    Given the allocation currency exposure and concentration cards should be visible
+    When I filter allocation to "U.S. Stock"
+    Then the allocation bottom row should be hidden

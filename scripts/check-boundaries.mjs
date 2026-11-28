@@ -31,6 +31,7 @@ const FORBIDDEN_PACKAGE_IMPORTS = [
   '../../shared',
   'apps/',
   'backend/',
+  'crates/',
 ];
 
 const FORBIDDEN_DOM_GLOBALS_REGEX = /\b(window|document|localStorage|sessionStorage)\./g;
@@ -42,7 +43,11 @@ function walkSourceFiles(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      if (['node_modules', 'dist', '.angular', 'out-tsc', 'android', 'ios'].includes(entry.name)) {
+      if (
+        ['node_modules', 'dist', '.angular', 'out-tsc', 'android', 'ios', '.nuxt', '.output', '.nitro'].includes(
+          entry.name
+        )
+      ) {
         continue;
       }
       results.push(...walkSourceFiles(full));
@@ -116,7 +121,7 @@ function checkPurePackage(pkgName, extraForbidden = []) {
 }
 
 function checkNoBackendImports() {
-  const roots = ['apps', 'packages', 'shared'];
+  const roots = ['apps', 'packages'];
   const violations = [];
   let fileCount = 0;
 
@@ -131,7 +136,10 @@ function checkNoBackendImports() {
           spec === 'backend' ||
           spec.startsWith('backend/') ||
           spec.includes('/backend/') ||
-          spec.startsWith('@backend/')
+          spec.startsWith('@backend/') ||
+          spec === 'crates' ||
+          spec.startsWith('crates/') ||
+          spec.includes('/crates/')
         ) {
           violations.push(`[backend-boundary] Forbidden backend import '${spec}' in ${rel}`);
         }

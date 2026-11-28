@@ -33,8 +33,8 @@ public class ApiRouteMocker {
         String priceFetch = loadResource("/fixtures/price-fetch.json");
         String exchangeRate = loadResource("/fixtures/exchange-rate.json");
 
-        // Mock /api/backend/auth/me
-        page.route("**/api/backend/auth/me**", route -> {
+        // Mock /api/backend/auth/me & /api/v1/auth/me
+        routeApi(page, "/auth/me**", route -> {
             String auth = route.request().headers().getOrDefault("authorization", "");
             if (auth.contains("mock-standard-jwt")) {
                 fulfillJson(route, 200,
@@ -48,28 +48,28 @@ public class ApiRouteMocker {
             }
         });
 
-        // Mock /api/backend/share-lot/sheets
-        page.route("**/api/backend/share-lot/sheets**", route -> {
+        // Mock /api/backend/share-lot/sheets & /api/v1/share-lot/sheets
+        routeApi(page, "/share-lot/sheets**", route -> {
             fulfillJson(route, 200, sheetsAll);
         });
 
-        // Mock /api/backend/share-lot/sheet/*
-        page.route("**/api/backend/share-lot/sheet/**", route -> {
+        // Mock /api/backend/share-lot/sheet/* & /api/v1/share-lot/sheet/*
+        routeApi(page, "/share-lot/sheet/**", route -> {
             fulfillJson(route, 200, sheetsAll);
         });
 
-        // Mock /api/backend/price/fetch-prices
-        page.route("**/api/backend/price/fetch-prices**", route -> {
+        // Mock /api/backend/price/fetch-prices & /api/v1/price/fetch-prices
+        routeApi(page, "/price/fetch-prices**", route -> {
             fulfillJson(route, 200, priceFetch);
         });
 
-        // Mock /api/backend/price/exchange-rate
-        page.route("**/api/backend/price/exchange-rate**", route -> {
+        // Mock /api/backend/price/exchange-rate & /api/v1/price/exchange-rate
+        routeApi(page, "/price/exchange-rate**", route -> {
             fulfillJson(route, 200, exchangeRate);
         });
 
-        // Mock /api/backend/portfolio/holdings
-        page.route("**/api/backend/portfolio/holdings**", route -> {
+        // Mock /api/backend/portfolio/holdings & /api/v1/portfolio/holdings
+        routeApi(page, "/portfolio/holdings**", route -> {
             try {
                 String url = route.request().url();
                 String curr = url.contains("currency=USD") ? "USD" : "THB";
@@ -216,8 +216,8 @@ public class ApiRouteMocker {
             }
         });
 
-        // Mock /api/backend/portfolio/performance
-        page.route("**/api/backend/portfolio/performance**", route -> {
+        // Mock /api/backend/portfolio/performance & /api/v1/portfolio/performance
+        routeApi(page, "/portfolio/performance**", route -> {
             String json = """
                 {
                   "timeframe": "ALL",
@@ -318,8 +318,8 @@ public class ApiRouteMocker {
             fulfillJson(route, 200, json);
         });
 
-        // Mock /api/backend/portfolio/allocation
-        page.route("**/api/backend/portfolio/allocation**", route -> {
+        // Mock /api/backend/portfolio/allocation & /api/v1/portfolio/allocation
+        routeApi(page, "/portfolio/allocation**", route -> {
             String json = """
                 {
                   "currency": "THB",
@@ -380,8 +380,8 @@ public class ApiRouteMocker {
             fulfillJson(route, 200, json);
         });
 
-        // Mock /api/backend/portfolio/dividend
-        page.route("**/api/backend/portfolio/dividend**", route -> {
+        // Mock /api/backend/portfolio/dividend & /api/v1/portfolio/dividend
+        routeApi(page, "/portfolio/dividend**", route -> {
             String json = """
                 {
                   "currency": "THB",
@@ -553,8 +553,8 @@ public class ApiRouteMocker {
             fulfillJson(route, 200, json);
         });
 
-        // Mock /api/backend/portfolio/tools/**
-        page.route("**/api/backend/portfolio/tools/**", route -> {
+        // Mock /api/backend/portfolio/tools/** & /api/v1/portfolio/tools/**
+        routeApi(page, "/portfolio/tools/**", route -> {
             String url = route.request().url();
             if (url.contains("solve-target")) {
                 fulfillJson(route, 200, "{\"is_feasible\":true,\"required_shares\":25.0,\"required_amount\":4500.0,\"resulting_avg_cost\":195.0}");
@@ -567,8 +567,8 @@ public class ApiRouteMocker {
             }
         });
 
-        // Mock /api/backend/nav/factsheet
-        page.route("**/api/backend/nav/factsheet**", route -> {
+        // Mock /api/backend/nav/factsheet & /api/v1/nav/factsheet
+        routeApi(page, "/nav/factsheet**", route -> {
             String url = route.request().url();
             String symbol = extractQueryParam(url, "symbol", "K-USA").toUpperCase();
             String assetType = extractQueryParam(url, "asset_type", "mutual-fund");
@@ -666,8 +666,8 @@ public class ApiRouteMocker {
             }
         });
 
-        // Mock /api/backend/icon/meta/* and /api/backend/icon/*
-        page.route("**/api/backend/icon/**", route -> {
+        // Mock /api/backend/icon/** & /api/v1/icon/**
+        routeApi(page, "/icon/**", route -> {
             String url = route.request().url();
             if (url.contains("/icon/meta/")) {
                 fulfillJson(route, 200,
@@ -796,14 +796,23 @@ public class ApiRouteMocker {
         });
     }
 
+    private void routeApi(Page page, String suffix, java.util.function.Consumer<Route> handler) {
+        page.route("**/api/backend" + suffix, handler);
+        page.route("**/api/v1" + suffix, handler);
+    }
+
     public void mockPortfolioAPIError(Page page, int statusCode) {
         page.route("**/api/backend/**", route -> {
+            fulfillJson(route, statusCode, "{\"error\":\"Internal Server Error\"}");
+        });
+        page.route("**/api/v1/**", route -> {
             fulfillJson(route, statusCode, "{\"error\":\"Internal Server Error\"}");
         });
     }
 
     public void recoverPortfolioAPIs(Page page) {
         page.unroute("**/api/backend/**");
+        page.unroute("**/api/v1/**");
         mockPortfolioAPIs(page);
     }
 

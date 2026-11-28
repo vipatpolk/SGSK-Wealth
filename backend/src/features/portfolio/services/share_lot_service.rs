@@ -1052,29 +1052,32 @@ impl ShareLotService {
                 "CLOSED".to_string()
             };
 
-            transaction_summaries.push(SymbolTransactionSummary {
-                symbol,
-                asset_type,
-                currency,
-                total_transactions: txs.len(),
-                buy_count,
-                sell_count,
-                exchange_count,
-                total_buy_shares,
-                total_sell_shares,
-                total_buy_amount,
-                total_sell_amount,
-                average_buy_price: avg_buy,
-                average_sell_price: avg_sell,
-                net_shares: running_shares,
-                net_invested: running_total_cost,
-                current_status,
-                realized_pl: total_realized_pl,
-                realized_pl_percent: overall_realized_pl_percent,
-                first_trade_date: txs.first().map(|t| t.date.clone()).unwrap_or_default(),
-                last_trade_date: txs.last().map(|t| t.date.clone()).unwrap_or_default(),
-                transactions: processed_tx_list,
-            });
+            let is_pvd = asset_type == "provident-fund" || symbol.to_uppercase().starts_with("PVD");
+            if !is_pvd {
+                transaction_summaries.push(SymbolTransactionSummary {
+                    symbol,
+                    asset_type,
+                    currency,
+                    total_transactions: txs.len(),
+                    buy_count,
+                    sell_count,
+                    exchange_count,
+                    total_buy_shares,
+                    total_sell_shares,
+                    total_buy_amount,
+                    total_sell_amount,
+                    average_buy_price: avg_buy,
+                    average_sell_price: avg_sell,
+                    net_shares: running_shares,
+                    net_invested: running_total_cost,
+                    current_status,
+                    realized_pl: total_realized_pl,
+                    realized_pl_percent: overall_realized_pl_percent,
+                    first_trade_date: txs.first().map(|t| t.date.clone()).unwrap_or_default(),
+                    last_trade_date: txs.last().map(|t| t.date.clone()).unwrap_or_default(),
+                    transactions: processed_tx_list,
+                });
+            }
         }
 
         summaries.sort_by(|a, b| b.total_cost.total_cmp(&a.total_cost));

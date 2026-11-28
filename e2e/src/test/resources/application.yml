@@ -4,6 +4,7 @@ spring:
     banner-mode: off
 
 e2e:
+  target: ${E2E_TARGET:api}
   frontend:
     base-url: ${E2E_BASE_URL:http://127.0.0.1:4200}
   backend:

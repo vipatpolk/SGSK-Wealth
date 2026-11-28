@@ -63,19 +63,27 @@ public class ServerManager {
         frontendBaseUrl = properties.frontend().baseUrl();
         String fallbackUrl = alternateLoopbackUrl(frontendBaseUrl);
 
-        if (isHttpEndpointAvailable(frontendBaseUrl)
-                || (!fallbackUrl.equals(frontendBaseUrl) && isHttpEndpointAvailable(fallbackUrl))) {
+        if (isHttpEndpointAvailable(frontendBaseUrl)) {
+            return frontendBaseUrl;
+        }
+        if (!fallbackUrl.equals(frontendBaseUrl) && isHttpEndpointAvailable(fallbackUrl)) {
+            frontendBaseUrl = fallbackUrl;
             return frontendBaseUrl;
         }
 
         File webDir = resolveWorkspaceDir("apps/web", "web", "frontend");
         if (webDir != null) {
-            frontendProcess = startAngularServer(
+            frontendProcess = startWebServer(
                     webDir,
                     resolvePort(frontendBaseUrl, String.valueOf(4200)),
                     frontendBaseUrl,
                     fallbackUrl
             );
+            if (!isHttpEndpointAvailable(frontendBaseUrl)
+                    && !fallbackUrl.equals(frontendBaseUrl)
+                    && isHttpEndpointAvailable(fallbackUrl)) {
+                frontendBaseUrl = fallbackUrl;
+            }
         }
         return frontendBaseUrl;
     }
@@ -84,44 +92,42 @@ public class ServerManager {
         mobileBaseUrl = properties.mobile().baseUrl();
         String fallbackUrl = alternateLoopbackUrl(mobileBaseUrl);
 
-        if (isHttpEndpointAvailable(mobileBaseUrl)
-                || (!fallbackUrl.equals(mobileBaseUrl) && isHttpEndpointAvailable(fallbackUrl))) {
+        if (isHttpEndpointAvailable(mobileBaseUrl)) {
+            return mobileBaseUrl;
+        }
+        if (!fallbackUrl.equals(mobileBaseUrl) && isHttpEndpointAvailable(fallbackUrl)) {
+            mobileBaseUrl = fallbackUrl;
             return mobileBaseUrl;
         }
 
-        File mobileDir = resolveWorkspaceDir("apps/mobile", "mobile");
-        if (mobileDir != null) {
-            mobileProcess = startAngularServer(
-                    mobileDir,
-                    resolvePort(mobileBaseUrl, String.valueOf(4201)),
-                    mobileBaseUrl,
-                    fallbackUrl
-            );
-        }
-        return mobileBaseUrl;
+        return ensureFrontendServer();
     }
 
     private File resolveWorkspaceDir(String... candidates) {
         for (String name : candidates) {
             File parentRelative = new File("../" + name);
-            if (parentRelative.exists() && new File(parentRelative, "angular.json").exists()) {
+            if (parentRelative.exists() && (new File(parentRelative, "nuxt.config.ts").exists()
+                    || new File(parentRelative, "package.json").exists()
+                    || new File(parentRelative, "angular.json").exists())) {
                 return parentRelative;
             }
             File direct = new File(name);
-            if (direct.exists() && new File(direct, "angular.json").exists()) {
+            if (direct.exists() && (new File(direct, "nuxt.config.ts").exists()
+                    || new File(direct, "package.json").exists()
+                    || new File(direct, "angular.json").exists())) {
                 return direct;
             }
         }
         return null;
     }
 
-    private Process startAngularServer(File dir, String port, String primaryUrl, String fallbackUrl) {
+    private Process startWebServer(File dir, String port, String primaryUrl, String fallbackUrl) {
         try {
             String host = resolveHost(primaryUrl, "127.0.0.1");
             boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
             ProcessBuilder pb = isWindows
-                    ? new ProcessBuilder("cmd.exe", "/c", "npx", "ng", "serve", "--host", host, "--port", port)
-                    : new ProcessBuilder("npx", "ng", "serve", "--host", host, "--port", port);
+                    ? new ProcessBuilder("cmd.exe", "/c", "npm", "run", "dev", "--", "--host", host, "--port", port)
+                    : new ProcessBuilder("npm", "run", "dev", "--", "--host", host, "--port", port);
             pb.directory(dir);
             pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
             pb.redirectError(ProcessBuilder.Redirect.DISCARD);

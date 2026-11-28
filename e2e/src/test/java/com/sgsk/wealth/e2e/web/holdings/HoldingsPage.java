@@ -29,11 +29,11 @@ public class HoldingsPage {
 
     public HoldingsPage(Page page) {
         this.page = page;
-        this.tabButtons = page.locator("app-tab-bar button.tab-button");
-        this.searchInput = page.locator("app-search-bar input");
+        this.tabButtons = page.locator("#tab-bar button.tab-button");
+        this.searchInput = page.locator("#holdings-search-input");
         this.symbolCards = page.locator(".symbol-card");
         this.summaryCards = page.locator("app-summary-card");
-        this.expandedDrawer = page.locator(".lots-container");
+        this.expandedDrawer = page.locator(".lots-section");
         this.loader = page.locator("#loading-state");
         this.errorState = page.locator("#error-state");
         this.retryBtn = page.locator("#retry-btn");
@@ -50,20 +50,23 @@ public class HoldingsPage {
         String classAttr = holdingsBtn.getAttribute("class");
         if (classAttr == null || !classAttr.contains("view-toggle-btn-active")) {
             holdingsBtn.click();
-            page.locator("app-tab-bar").waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE));
+            page.locator("#holdings-view").waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE));
         }
     }
 
     public void selectTab(String tabLabel) {
         navigateToHoldings();
-        var viewport = page.viewportSize();
-        boolean isDesktop = viewport == null || viewport.width >= 768;
-        if (isDesktop) {
-            tabButtons.filter(new Locator.FilterOptions().setHasText(tabLabel)).first().click();
-        } else {
-            Locator mobileDropdownBtn = page.locator("#tab-dropdown-btn");
+        if (page.locator("#pvd-holdings-screen").isVisible()
+                && !tabLabel.toLowerCase(java.util.Locale.ROOT).contains("provident")) {
+            page.locator("#holdings-subtab-market").click();
+            page.locator("#tab-bar").waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE));
+        }
+        Locator mobileDropdownBtn = page.locator("#tab-dropdown-btn");
+        if (mobileDropdownBtn.isVisible()) {
             mobileDropdownBtn.click();
             page.locator(".tab-dropdown-menu button").filter(new Locator.FilterOptions().setHasText(tabLabel)).first().click();
+        } else {
+            tabButtons.filter(new Locator.FilterOptions().setHasText(tabLabel)).first().click();
         }
     }
 
@@ -74,7 +77,7 @@ public class HoldingsPage {
 
     public void clickSymbolRow(String symbol) {
         navigateToHoldings();
-        page.locator("#toggle-" + symbol).click();
+        page.locator("[id=\"toggle-" + symbol + "\"] .symbol-badge").first().click();
     }
 
     public void selectSortOption(String sortMetric) {
@@ -83,7 +86,7 @@ public class HoldingsPage {
             case "Symbol" -> "symbol";
             case "Total Cost" -> "totalCost";
             case "Avg Cost" -> "avgCost";
-            case "Holding Value" -> "holdingValue";
+            case "Holding Value" -> "value";
             case "P/L %" -> "pl";
             default -> throw new IllegalArgumentException("Unsupported market sort metric: " + sortMetric);
         };
@@ -113,7 +116,7 @@ public class HoldingsPage {
     }
 
     public void openSearchAutocomplete(String query) {
-        Locator input = page.locator("app-search-bar input").first();
+        Locator input = page.locator("#holdings-search-input").first();
         input.click();
         input.fill(query);
         page.locator("#search-autocomplete-dropdown").waitFor();
@@ -143,7 +146,7 @@ public class HoldingsPage {
     }
 
     public Locator factsheetButton(String symbol) {
-        return page.locator("#btn-factsheet-" + symbol);
+        return page.locator("[id=\"btn-factsheet-" + symbol + "\"]");
     }
 
     public void openFactsheet(String symbol) {
@@ -153,6 +156,6 @@ public class HoldingsPage {
     }
 
     public Locator lotsDrawerForSymbol(String symbol) {
-        return page.locator("#lots-" + symbol);
+        return page.locator("[id=\"lots-" + symbol + "\"]");
     }
 }

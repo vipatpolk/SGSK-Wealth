@@ -26,6 +26,7 @@
         <allure-maven.version>3.1.0</allure-maven.version>
         <aspectj.version>1.9.27</aspectj.version>
         <jackson.version>2.23.0</jackson.version>
+        <test.target>api</test.target>
         <cucumber.filter.tags>not @mobile</cucumber.filter.tags>
     </properties>
 
@@ -198,6 +199,8 @@
                     </includes>
                     <systemPropertyVariables>
                         <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
+                        <test.target>${test.target}</test.target>
+                        <cucumber.filter.tags>${cucumber.filter.tags}</cucumber.filter.tags>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

@@ -8,10 +8,10 @@
   "services": {
     "web": {
       "root": "apps/web",
-      "framework": "angular",
+      "framework": "nuxtjs",
       "installCommand": "cd ../.. && npm ci",
-      "buildCommand": "npm run build",
-      "outputDirectory": "dist/sgsk-wealth",
+      "buildCommand": "npm run generate",
+      "outputDirectory": ".output/public",
       "rewrites": [
         {
           "source": "/(.*)",
@@ -30,7 +30,7 @@
       },
       "routes": [
         {
-          "src": "^/api/backend(?:/(.*))?$",
+          "src": "^/api/(?:v1|backend)(?:/(.*))?$",
           "transforms": [
             {
               "type": "request.headers",
@@ -48,12 +48,12 @@
           "handle": "filesystem"
         },
         {
-          "src": "^/api/backend/(.+)$",
+          "src": "^/api/(?:v1|backend)/(.+)$",
           "dest": "/$1",
           "check": true
         },
         {
-          "src": "^/api/backend/?$",
+          "src": "^/api/(?:v1|backend)/?$",
           "dest": "/",
           "check": true
         }
@@ -61,6 +61,12 @@
     }
   },
   "rewrites": [
+    {
+      "source": "/api/v1(/.*)?",
+      "destination": {
+        "service": "backend"
+      }
+    },
     {
       "source": "/api/backend(/.*)?",
       "destination": {

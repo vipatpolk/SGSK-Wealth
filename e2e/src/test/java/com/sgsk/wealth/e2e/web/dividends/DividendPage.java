@@ -63,7 +63,7 @@ public class DividendPage {
 
     public Locator symbolTableRowName(String symbol) {
         return com.sgsk.wealth.e2e.core.support.LocatorUtils
-                .filterBySymbolWord(page.locator("app-dividend .div-table tbody tr"), symbol)
+                .filterBySymbolWord(page.locator("#dividends-view .div-table tbody tr"), symbol)
                 .locator(".symbol-name-sub");
     }
 }

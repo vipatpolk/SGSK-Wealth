@@ -216,8 +216,9 @@ if (lintBackend) {
   const headerLine = `=== E2E Run Started (${new Date().toISOString()}): mvn ${mvnArgs.join(' ')} ===\n`;
   logStream.write(headerLine);
 
+  const winMvnArgs = mvnArgs.map((a) => (a.includes(' ') ? `"${a}"` : a));
   const mvnChild = isWindows
-    ? spawn('cmd.exe', ['/d', '/s', '/c', 'mvn', ...mvnArgs], { cwd: rootDir })
+    ? spawn('cmd.exe', ['/d', '/s', '/c', 'mvn', ...winMvnArgs], { cwd: rootDir })
     : spawn('mvn', mvnArgs, { cwd: rootDir });
 
   mvnChild.stdout.on('data', (chunk) => {

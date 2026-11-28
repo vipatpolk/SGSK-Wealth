@@ -1,0 +1,548 @@
+openapi: 3.1.0
+info:
+  title: SGSK-Wealth API
+  version: 1.0.0-draft
+  description: >
+    Versioned REST API contract for SGSK-Wealth (/api/v1/*).
+    During strangler migration, legacy routes remain dual-mounted at /api/backend/* and /.
+    Authoritative financial quantities and monetary amounts in /api/v1/* use decimal strings
+    serialized from rust_decimal.
+servers:
+  - url: /api/v1
+    description: Versioned v1 API boundary
+  - url: /api/backend
+    description: Legacy strangler compatibility prefix
+security:
+  - ApiKeyAuth: []
+paths:
+  /health:
+    get:
+      summary: Service health check (maps legacy GET /)
+      operationId: getHealth
+      responses:
+        '200':
+          description: Healthy service response
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+                    example: Welcome to SGSKBackend!
+  /auth/me:
+    get:
+      summary: Resolve current user identity and portfolio source
+      operationId: getAuthMe
+      security:
+        - ApiKeyAuth: []
+        - ApiKeyAuth: []
+          BearerAuth: []
+      responses:
+        '200':
+          description: Identity and portfolio authorization flags
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthMeResponse'
+  /share-lot/sheet/{tab_id}:
+    get:
+      summary: Fetch parsed share-lot transactions for a single Google Sheet tab
+      operationId: getShareLotSheet
+      security:
+        - ApiKeyAuth: []
+          BearerAuth: []
+      parameters:
+        - name: tab_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AssetTabId'
+      responses:
+        '200':
+          description: Parsed transactions and summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericJsonObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamError'
+  /share-lot/sheets:
+    get:
+      summary: Fetch parsed share-lot transactions across all configured asset tabs
+      operationId: getAllShareLotSheets
+      security:
+        - ApiKeyAuth: []
+          BearerAuth: []
+      responses:
+        '200':
+          description: Aggregated transactions across all tabs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericJsonObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamError'
+  /portfolio/holdings:
+    get:
+      summary: Get valued portfolio holdings and FIFO share lots
+      operationId: getPortfolioHoldings
+      security:
+        - ApiKeyAuth: []
+          BearerAuth: []
+      parameters:
+        - name: tab_id
+          in: query
+          schema:
+            type: string
+            default: all
+        - name: currency
+          in: query
+          schema:
+            $ref: '#/components/schemas/CurrencyCode'
+      responses:
+        '200':
+          description: Valued holdings and lots
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericJsonObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/UpstreamError'
+  /portfolio/performance:
+    get:
+      summary: Get multi-timeframe portfolio performance analytics
+      operationId: getPortfolioPerformance
+      security:
+        - ApiKeyAuth: []
+          BearerAuth: []
+      parameters:
+        - name: timeframe
+          in: query
+          schema:
+            type: string
+            default: ALL
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: currency
+          in: query
+          schema:
+            $ref: '#/components/schemas/CurrencyCode'
+      responses:
+        '200':
+          description: Performance time series and metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericJsonObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /portfolio/allocation:
+    post:
+      summary: Calculate asset allocation and rebalance variance
+      operationId: postPortfolioAllocation
+      security:
+        - ApiKeyAuth: []
+          BearerAuth: []
+      parameters:
+        - name: currency
+          in: query
+          schema:
+            $ref: '#/components/schemas/CurrencyCode'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TargetAllocationRequest'
+      responses:
+        '200':
+          description: Allocation breakdown
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericJsonObject'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /portfolio/dividend:
+    get:
+      summary: Get dividend income and yield-on-cost analytics
+      operationId: getPortfolioDividend
+      security:
+        - ApiKeyAuth: []
+          BearerAuth: []
+      parameters:
+        - name: currency
+          in: query
+          schema:
+            $ref: '#/components/schemas/CurrencyCode'
+        - name: tab_id
+          in: query
+          schema:
+            type: string
+            default: all
+      responses:
+        '200':
+          description: Dividend analytics payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericJsonObject'
+  /portfolio/tools/simulate:
+    post:
+      summary: Simulate buy/sell order impact on average cost and P&L
+      operationId: simulateOrders
+      security:
+        - ApiKeyAuth: []
+        - ApiKeyAuth: []
+          BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericJsonObject'
+      responses:
+        '200':
+          description: Order simulation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericJsonObject'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /portfolio/tools/solve-target:
+    post:
+      summary: Solve required shares or price to reach a target average cost
+      operationId: solveTargetCost
+      security:
+        - ApiKeyAuth: []
+        - ApiKeyAuth: []
+          BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericJsonObject'
+      responses:
+        '200':
+          description: Target cost solution
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericJsonObject'
+  /portfolio/tools/tvm:
+    post:
+      summary: Time Value of Money (TVM) solver
+      operationId: calculateTvm
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericJsonObject'
+      responses:
+        '200':
+          description: TVM calculation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericJsonObject'
+  /portfolio/tools/rebalance:
+    post:
+      summary: Portfolio rebalance calculator
+      operationId: calculateRebalance
+      security:
+        - ApiKeyAuth: []
+          BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericJsonObject'
+      responses:
+        '200':
+          description: Rebalance trades
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericJsonObject'
+  /price/fetch-prices:
+    post:
+      summary: Batch market quotes and USD/THB exchange rate (max 50 summaries)
+      operationId: fetchPricesAndRate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SummariesRequest'
+      responses:
+        '200':
+          description: Quote map and FX rate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericJsonObject'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /price/exchange-rate:
+    get:
+      summary: Spot FX exchange rate lookup
+      operationId: fetchExchangeRate
+      parameters:
+        - name: from_currency
+          in: query
+          schema:
+            type: string
+            default: USD
+        - name: to_currency
+          in: query
+          schema:
+            type: string
+            default: THB
+      responses:
+        '200':
+          description: Exchange rate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExchangeRateResponse'
+  /nav/fetch:
+    post:
+      summary: Batch Thai mutual fund NAV lookup (max 50 symbols)
+      operationId: fetchNavs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NavRequest'
+      responses:
+        '200':
+          description: Symbol-to-NAV price map
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericJsonObject'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /nav/factsheet:
+    get:
+      summary: SEC Mutual Fund or Provident Fund factsheet aggregation
+      operationId: getFundFactsheet
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: asset_type
+          in: query
+          schema:
+            type: string
+            default: mutual-fund
+        - name: fund_name
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Fund factsheet payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericJsonObject'
+  /icon/meta/{symbol}:
+    get:
+      summary: Resolve symbol/AMC logo metadata
+      operationId: getIconMetadata
+      security: []
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Logo metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericJsonObject'
+  /icon:
+    get:
+      summary: Fetch cached symbol icon image by query parameter
+      operationId: getIconByQuery
+      security: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Icon image bytes (Cache-Control public, max-age=86400)
+          content:
+            image/png: {}
+            image/svg+xml: {}
+  /icon/{symbol}:
+    get:
+      summary: Fetch cached symbol icon image by path parameter
+      operationId: getIconByPath
+      security: []
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Icon image bytes (Cache-Control public, max-age=86400)
+          content:
+            image/png: {}
+            image/svg+xml: {}
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    Unauthorized:
+      description: Missing or invalid authentication credentials
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Forbidden:
+      description: Authenticated user lacks cloud portfolio authorization
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    ValidationError:
+      description: Request payload or query validation failure
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    UpstreamError:
+      description: Upstream market data or Google Sheets failure
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+  schemas:
+    CurrencyCode:
+      type: string
+      enum: [THB, USD]
+      default: THB
+    AssetTabId:
+      type: string
+      enum: [all, us-stock, thai-stock, crypto, mutual-fund, bond, provident-fund, closed-position]
+    DecimalString:
+      type: string
+      pattern: '^-?\d+(\.\d+)?$'
+      description: Fixed-precision decimal serialized as string
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+    AuthMeResponse:
+      type: object
+      required: [authenticated, role, providers, canViewCloudPortfolio, portfolioSource]
+      properties:
+        authenticated:
+          type: boolean
+        userId:
+          type: [string, 'null']
+        email:
+          type: [string, 'null']
+        role:
+          type: string
+        providers:
+          type: array
+          items:
+            type: string
+        canViewCloudPortfolio:
+          type: boolean
+        portfolioSource:
+          type: string
+          enum: [google_sheets, local]
+    ExchangeRateResponse:
+      type: object
+      required: [rate]
+      properties:
+        rate:
+          oneOf:
+            - type: number
+            - $ref: '#/components/schemas/DecimalString'
+    SummariesRequest:
+      type: object
+      required: [summaries]
+      properties:
+        summaries:
+          type: array
+          maxItems: 50
+          items:
+            type: object
+            additionalProperties:
+              type: string
+    NavRequest:
+      type: object
+      required: [symbols]
+      properties:
+        symbols:
+          type: array
+          maxItems: 50
+          items:
+            type: string
+    TargetAllocationRequest:
+      type: object
+      properties:
+        targetAllocation:
+          type: object
+          additionalProperties:
+            type: number
+    GenericJsonObject:
+      type: object
+      additionalProperties: true

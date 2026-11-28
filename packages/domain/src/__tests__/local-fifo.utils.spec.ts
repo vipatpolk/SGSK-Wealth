@@ -144,4 +144,16 @@ describe('local-fifo.utils', () => {
     const usRec = alloc.recommendations.find((r) => r.assetType === 'us-stock');
     expect(usRec?.action).toBe('BALANCED');
   });
+
+  it('excludes provident-fund snapshots from transactionSummaries while preserving openSummaries', () => {
+    const txs: LocalTransaction[] = [
+      makeTx({ symbol: 'AAPL', date: '2025-01-10', quantity: 10, price: 100, currency: 'USD', assetType: 'us-stock', txType: 'BUY' }),
+      makeTx({ symbol: 'PVDSP500', date: '2025-01-10', quantity: 500, price: 12, currency: 'THB', assetType: 'provident-fund', txType: 'BUY' }),
+    ];
+
+    const { openSummaries, transactionSummaries } = processLocalTransactionsFifo(txs);
+    expect(openSummaries.some((s) => s.symbol === 'AAPL')).toBe(true);
+    expect(openSummaries.some((s) => s.symbol === 'PVDSP500')).toBe(true);
+    expect(transactionSummaries.map((s) => s.symbol)).toEqual(['AAPL']);
+  });
 });

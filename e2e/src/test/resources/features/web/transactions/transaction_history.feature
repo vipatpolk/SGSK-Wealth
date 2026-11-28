@@ -99,3 +99,14 @@ Feature: Transaction History Ledger & CSV Exporter
       | EN       | K-USA  | Kasikorn US Equity Fund      |
       | EN       | AAPL   | Apple Inc.                   |
       | EN       | BTC    | Bitcoin                      |
+
+  @TC-TXN-10
+  Scenario: TC-TXN-10: Transaction ledger pagination updates page size cleanly
+    When I change the transaction page size to "50"
+    Then the transaction page size should be "50"
+
+  @smoke @TC-TXN-11
+  Scenario: TC-TXN-11: Transaction ledger and asset filter bar exclude Provident Fund snapshots
+    Then the transaction asset filter bar should exclude "Provident Fund"
+    And the transaction ledger should exclude "PVDSP500"
+    And the transaction ledger should exclude "PVDMPINC"

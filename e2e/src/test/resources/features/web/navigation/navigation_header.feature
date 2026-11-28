@@ -69,3 +69,13 @@ Feature: Global Navigation & Header Controls
       | ViewName    |
       | Allocation  |
       | Performance |
+
+  @smoke @TC-I18N-01
+  Scenario Outline: TC-I18N-01: All workspace views render without raw dotted i18n keys in <Lang>
+    When I switch language to "<Lang>"
+    Then no untranslated i18n keys should appear across any workspace view
+
+    Examples:
+      | Lang |
+      | EN   |
+      | TH   |

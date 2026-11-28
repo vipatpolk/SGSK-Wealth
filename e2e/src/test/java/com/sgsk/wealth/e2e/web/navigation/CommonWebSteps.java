@@ -63,7 +63,7 @@ public class CommonWebSteps {
     @When("I navigate to the Dividends view")
     public void navigateToDividendsView() {
         headerPage.selectDividendsView();
-        assertThat(page().locator("app-dividend")).isVisible();
+        assertThat(page().locator("#dividends-view")).isVisible();
     }
 
     @When("I navigate to the {string} workspace view")
@@ -83,37 +83,37 @@ public class CommonWebSteps {
 
     @Then("the asset tab bar should be visible")
     public void verifyTabBarVisible() {
-        assertThat(page().locator("app-tab-bar")).isVisible();
+        assertThat(page().locator("#tab-bar")).isVisible();
     }
 
     @Then("the analytics container should be visible")
     public void verifyAnalyticsVisible() {
-        assertThat(page().locator("app-analytics")).isVisible();
+        assertThat(page().locator("#analytics-view")).isVisible();
     }
 
     @Then("the asset allocation container should be visible")
     public void verifyAssetAllocationVisible() {
-        assertThat(page().locator("app-asset-allocation")).isVisible();
+        assertThat(page().locator("#asset-allocation-pane")).isVisible();
     }
 
     @Then("the performance analytics container should be visible")
     public void verifyPerformanceVisible() {
-        assertThat(page().locator("app-performance")).isVisible();
+        assertThat(page().locator("#performance-pane")).isVisible();
     }
 
     @Then("the transaction history container should be visible")
     public void verifyTransactionHistoryVisible() {
-        assertThat(page().locator("app-transaction-history")).isVisible();
+        assertThat(page().locator("#tx-history-container")).isVisible();
     }
 
     @Then("the tools container should be visible")
     public void verifyToolsVisible() {
-        assertThat(page().locator("app-tools")).isVisible();
+        assertThat(page().locator("#tools-page")).isVisible();
     }
 
     @Then("the dividend container should be visible")
     public void verifyDividendVisible() {
-        assertThat(page().locator("app-dividend")).isVisible();
+        assertThat(page().locator("#dividends-view")).isVisible();
     }
 
     @Then("the {string} workspace view should be visible")
@@ -231,7 +231,7 @@ public class CommonWebSteps {
     public void ensureApplicationTheme(String targetTheme) {
         String current = page().locator("html").getAttribute("data-theme");
         if (!targetTheme.equalsIgnoreCase(current)) {
-            headerPage.toggleTheme();
+            headerPage.setTheme(targetTheme);
         }
         verifyTheme(targetTheme);
     }
@@ -265,5 +265,56 @@ public class CommonWebSteps {
     @Then("the document privacy attribute should be {string}")
     public void verifyPrivacyAttribute(String val) {
         assertThat(page().locator("html")).hasAttribute("data-privacy", val);
+    }
+
+    @Then("no untranslated i18n keys should appear across any workspace view")
+    public void verifyNoUntranslatedKeysAcrossWorkspaces() {
+        Pattern rawKeyPattern = Pattern.compile(
+                "\\b(app|auth|dash|nav|holdings|pvd|alloc|perf|div|tx|tools|settings|userMenu|loading|common|asset|factsheet|localPortfolio|sidebar|header|summary|ui)\\.[a-zA-Z0-9_.]+\\b");
+        Runnable assertClean = () -> {
+            String bodyText = page().locator("body").innerText();
+            var matcher = rawKeyPattern.matcher(bodyText);
+            if (matcher.find()) {
+                throw new AssertionError("Found untranslated i18n key in UI: " + matcher.group());
+            }
+        };
+
+        assertThat(page().locator("#dashboard-view")).isVisible();
+        assertClean.run();
+
+        headerPage.selectView("Holdings");
+        assertThat(page().locator("#tab-bar")).isVisible();
+        assertClean.run();
+        page().locator("#holdings-subtab-pvd").click();
+        assertThat(page().locator("#pvd-holdings-screen")).isVisible();
+        assertClean.run();
+
+        headerPage.selectView("Analytics");
+        assertThat(page().locator("#analytics-view")).isVisible();
+        assertClean.run();
+        page().locator("#analytics-tab-allocation").click();
+        assertThat(page().locator("#asset-allocation-pane")).isVisible();
+        assertClean.run();
+        page().locator("#analytics-tab-performance").click();
+        assertThat(page().locator("#performance-pane")).isVisible();
+        assertClean.run();
+
+        headerPage.selectView("Dividends");
+        assertThat(page().locator("#dividends-view")).isVisible();
+        assertClean.run();
+
+        headerPage.selectView("Transactions");
+        assertThat(page().locator("#tx-history-container")).isVisible();
+        assertClean.run();
+
+        headerPage.selectView("Tools");
+        assertThat(page().locator("#tools-page")).isVisible();
+        assertClean.run();
+        page().locator("#tool-tab-tvm-calculator").click();
+        assertThat(page().locator("#tvm-calculator")).isVisible();
+        assertClean.run();
+        page().locator("#tool-tab-rebalance-planner").click();
+        assertThat(page().locator("#rebalance-calculator")).isVisible();
+        assertClean.run();
     }
 }

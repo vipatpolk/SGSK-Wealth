@@ -325,4 +325,22 @@ public class ToolsSteps {
             assertThat(toolsPage.rebalanceRowAssetName(symbol)).containsText(expectedName);
         }
     }
+
+    @Then("the average cost comparison table and cost shift bar should be visible")
+    public void verifyAvgCostComparisonAndShiftBar() {
+        assertThat(page().locator("#avg-cost-shift-bar")).isVisible();
+        assertThat(page().locator("#avg-comparison-table")).isVisible();
+    }
+
+    @Then("the TVM capital composition bar and 6 KPI cards should be visible")
+    public void verifyTvmCompositionAndKpiGrid() {
+        assertThat(page().locator("#tvm-composition-bar")).isVisible();
+        assertThat(page().locator("#tvm-kpi-grid .kpi-card")).hasCount(6);
+    }
+
+    @Then("the rebalance execution plan checklist should be visible")
+    public void verifyRebalanceExecutionPlanChecklist() {
+        assertThat(page().locator("#rebalance-orders-checklist")).isVisible();
+        assertThat(page().locator("#btn-copy-trade-plan")).isVisible();
+    }
 }

@@ -8,25 +8,25 @@ SGSK-Wealth/
 │   ├── contracts/          # @sgsk-wealth/contracts: Framework-free DTOs, ApiResult<T>, AppLang, AppTheme
 │   ├── design-tokens/      # @sgsk-wealth/design-tokens: Layered CSS tokens (primitives, semantic, financial, assets, components)
 │   └── domain/             # @sgsk-wealth/domain: FIFO calculator, TVM, rebalance, CSV, filters & pure formatters (incl. getSecondaryCurrency / convertToSecondaryCurrency)
-├── shared/                 # @shared/*: Angular services, PortfolioDataProvider / PortfolioSourceCoordinator, KeyValueStorageAdapter, i18n, UI components (SymbolIcon, SecondaryCurrency, LoadingScreen, DateRangePicker) & pipes
 ├── apps/
-│   ├── web/                # @sgsk-wealth/web: Angular 22 Web SPA (Tailwind v4, desktop sidebar + mobile dock)
-│   └── mobile/             # @sgsk-wealth/mobile: Angular 22 + Ionic 9 + Capacitor 8 (iOS Xcode + Android Maven)
+│   ├── web/                # @sgsk-wealth/web: Nuxt 4 + Vue 3 SPA (Tailwind v4, desktop sidebar + mobile dock)
+│   └── mobile/             # @sgsk-wealth/mobile: Capacitor 8 native shells (iOS Xcode + Android Maven) hydrated from apps/web/.output/public
 ├── backend/                # sgsk-backend: Rust Axum 0.8 REST API, FIFO engine, market data & Supabase JWT/JWKS guard
+├── crates/                 # Modular Rust workspace crates (common, domain, financial-engine, application, database, integrations, api)
 ├── e2e/                    # sgsk-wealth-e2e: Spring Boot 4.1, Cucumber-JVM, Playwright, Appium, Rest Assured & Allure
 ├── fixtures/accounting/    # Language-neutral FIFO & CSV parity fixtures shared across Rust and TypeScript
 └── docs/                   # architecture/, decisions/, operations/
 ```
 
 Architectural boundaries are enforced automatically by `npm run lint:boundaries` ([scripts/check-boundaries.mjs](../../scripts/check-boundaries.mjs)):
-- `packages/contracts/src` and `packages/domain/src` cannot import Angular, Ionic, Capacitor, Supabase, RxJS, `shared/`, `apps/`, or `backend/`, nor reference DOM globals (`window.`, `document.`, `localStorage.`, `sessionStorage.`).
+- `packages/contracts/src` and `packages/domain/src` cannot import Nuxt/Vue, Capacitor, Supabase, `apps/`, or `backend/`, nor reference DOM globals (`window.`, `document.`, `localStorage.`, `sessionStorage.`).
 - `packages/contracts/src` cannot depend on `packages/domain`.
-- Neither `apps/`, `packages/`, nor `shared/` can import from `backend/`.
+- Neither `apps/` nor `packages/` can import from `backend/`.
 
 ### Shared Cross-Platform UI & Brand Assets
 
-- **Dual-Currency Display (`@sgsk-wealth/domain` + `@shared/*`)**: `getSecondaryCurrency` and `convertToSecondaryCurrency` in `packages/domain/src/format.utils.ts` compute converted `THB` ↔ `USD` equivalents without UI dependencies, while `SecondaryCurrencyComponent` (`<app-secondary-currency>`) renders consistent, `.privacy-mask`-aware secondary values across all Web and Mobile screens.
-- **Unified Brand Logo Favicons**: Both `apps/web/public/` and `apps/mobile/public/` ship matching `brand-logo.png`, `favicon.svg`, and multi-size `favicon.ico` (16×16, 32×32, 48×48) assets referenced by `index.html`.
+- **Dual-Currency Display (`@sgsk-wealth/domain` + `apps/web/`)**: `getSecondaryCurrency` and `convertToSecondaryCurrency` in `packages/domain/src/format.utils.ts` compute converted `THB` ↔ `USD` equivalents without UI dependencies, while `SecondaryCurrency.vue` (`<SecondaryCurrency>`) renders consistent, `.privacy-mask`-aware secondary values across all Web and Capacitor screens.
+- **Unified Brand Logo Favicons**: Both `apps/web/public/` and synced mobile web assets ship `brand-logo.png`, `favicon.svg`, and multi-size `favicon.ico` (16×16, 32×32, 48×48).
 
 ---
 
@@ -34,14 +34,14 @@ Architectural boundaries are enforced automatically by `npm run lint:boundaries`
 
 ```mermaid
 flowchart LR
-    WebApp["apps/web\n(Angular 22 SPA)"] -->|"/api/backend/* (X-API-Key unset on client)"| VercelEdge["Vercel Edge\n(Injects X-API-Key Header)"]
-    MobileApp["apps/mobile\n(Ionic + Capacitor)"] -->|"HTTPS + X-App-Source + Bearer JWT"| Backend
-    VercelEdge -->|"Forwarded Request"| Backend["Rust Axum Backend\n(backend/src/)"]
+    WebApp["apps/web\n(Nuxt 4 SPA)"] -->|"/api/backend/* (X-API-Key unset on client)"| VercelEdge["Vercel Edge\n(Injects X-API-Key Header)"]
+    MobileApp["apps/mobile\n(Capacitor 8 Shell)"] -->|"HTTPS + X-App-Source + Bearer JWT"| Backend
+    VercelEdge -->|"Forwarded Request"| Backend["Rust Axum Backend\n(backend/src/ + crates/*)"]
 
-    subgraph "Client Boundaries (@shared & @sgsk-wealth/domain)"
-        Coordinator["PortfolioSourceCoordinator"] --> CloudProv["CloudPortfolioProvider"]
-        Coordinator --> LocalProv["LocalPortfolioProvider + @sgsk-wealth/domain FIFO"]
-        LocalProv --> Storage["KeyValueStorageAdapter\n(Web localStorage / Capacitor Preferences)"]
+    subgraph "Client Boundaries (apps/web/app/composables & @sgsk-wealth/domain)"
+        Coordinator["usePortfolioData"] --> CloudProv["Cloud API (/portfolio/*)"]
+        Coordinator --> LocalProv["useLocalPortfolio + @sgsk-wealth/domain FIFO"]
+        LocalProv --> Storage["Browser localStorage / Capacitor Preferences"]
     end
 
     subgraph "Backend Ports & Adapters (AppState)"

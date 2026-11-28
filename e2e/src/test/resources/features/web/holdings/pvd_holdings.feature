@@ -91,3 +91,14 @@ Feature: Provident Fund (PVD) Holdings & SEC Metadata Analytics
     Given I have opened the fund fact sheet for PVD policy "PVDSP500"
     When I close the fund fact sheet modal
     Then the fund fact sheet modal should be hidden
+
+  @smoke @TC-PVD-10
+  Scenario: TC-PVD-10: Market Holdings PVD card renders split bar without a View Trades link
+    Given I am on the Market Holdings sub-view
+    Then the market PVD card "PVDSP500" should show the contribution split bar without a View Trades link
+
+  @smoke @TC-PVD-11
+  Scenario: TC-PVD-11: Expanding Market Holdings PVD card reveals Contribution Breakdown snapshot
+    Given I am on the Market Holdings sub-view
+    When I expand the market PVD card "PVDSP500"
+    Then the market PVD card "PVDSP500" should display the Contribution Breakdown snapshot

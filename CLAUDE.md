@@ -10,9 +10,9 @@
 Workspace skills are exposed in `.claude/skills/`, which is symlinked (or junction-linked on Windows) to `.agent/skills/` — the single source of truth for all coding agents.
 - **Never duplicate skill files inside `.claude/skills/`**; always author and edit skills under `.agent/skills/<skill-name>/`.
 - Invoke or load skills when working in their respective domains:
-  - `/dividend-payments`: U.S. (SEC T+1) and Thai (SET T+2) equity dividends, XD/ex-date calculations, withholding taxes, and `backend/services/dividend_service.py`.
+  - `/dividend-payments`: U.S. (SEC T+1) and Thai (SET T+2) equity dividends, XD/ex-date calculations, withholding taxes, and `backend/src/features/dividends/services/dividend_service.rs`.
   - `/cucumber-bdd-best-practices`: Authoring or refactoring `.feature` files, Cucumber-JVM step definitions, Playwright Page Objects, and REST Assured steps in `e2e/`.
-  - `/sec-open-apis`: Thailand SEC Open Data APIs (`/v2/fund/*` & `/v1/pvd/factsheet/*`), `Ocp-Apim-Subscription-Key` auth, cursor pagination, and `backend/services/nav_service.py`.
+  - `/sec-open-apis`: Thailand SEC Open Data APIs (`/v2/fund/*` & `/v1/pvd/factsheet/*`), `Ocp-Apim-Subscription-Key` auth, cursor pagination, and `backend/src/features/market_data/services/nav_service.rs`.
 - If `.claude/skills` is missing on a fresh clone, run `npm run setup:agents` (also triggered automatically by `npm install` via `"prepare"`).
 
 ### 2. Tool & Shell Execution
@@ -22,5 +22,5 @@ Workspace skills are exposed in `.claude/skills/`, which is symlinked (or juncti
 
 ### 3. Pre-Completion Verification Gate
 Before concluding any task that modifies code, tests, or Gherkin specifications:
-1. Run `npm run check` (`lint:boundaries`, `lint:gherkin`, `test:contracts`, `test:domain`, `lint:backend`, `test:backend`, `test:web`, `build:web`, `test:mobile`, `build:mobile`, and `check:secrets`).
-2. When modifying `e2e/`, additionally run `npm run test:e2e:smoke` (or `npm run test:e2e:api` / `npm run test:e2e:ui`) to confirm end-to-end execution.
+1. Run `npm run check` (`lint:boundaries`, `lint:gherkin`, `lint:openapi`, `test:contracts`, `test:domain`, `test:tokens`, `lint:backend`, `test:backend`, `lint:crates`, `test:crates`, `test:web`, `generate:web`, and `check:secrets`).
+2. When modifying `e2e/`, additionally run `npm run test:e2e:smoke` (or `npm run test:e2e:api` / `npm run test:e2e:web`) to confirm end-to-end execution.

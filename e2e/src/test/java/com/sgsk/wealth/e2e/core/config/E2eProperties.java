@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "e2e")
 public record E2eProperties(
+        String target,
         Frontend frontend,
         Backend backend,
         PlaywrightConfig playwright,
@@ -13,6 +14,7 @@ public record E2eProperties(
         MobileConfig mobile
 ) {
     public E2eProperties {
+        target = (target != null && !target.isBlank()) ? target : "api";
         frontend = frontend != null ? frontend : new Frontend("http://127.0.0.1:4200");
         backend = backend != null ? backend : new Backend("", "http://127.0.0.1:8000", 8000, "dev_secret_key_change_in_prod");
         playwright = playwright != null ? playwright : new PlaywrightConfig(true);

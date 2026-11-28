@@ -1,0 +1,16 @@
+[package]
+name = "sgsk-integrations"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+sgsk-common.workspace = true
+sgsk-domain.workspace = true
+sgsk-application.workspace = true
+reqwest.workspace = true
+rust_decimal.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+tokio.workspace = true
+wiremock.workspace = true

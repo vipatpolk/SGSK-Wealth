@@ -13,4 +13,4 @@ FIFO share lot accounting, multi-currency conversion, fee adjustments, and CSV r
 
 ## Consequences
 - Any accounting or CSV parser change must preserve cross-language fixture parity before merge.
-- Both `@sgsk-wealth/web` and `@sgsk-wealth/mobile` inherit identical pure calculation semantics without Angular or Capacitor runtime coupling.
+- Both Web (`apps/web/`) and Capacitor Mobile (`apps/mobile/`) inherit identical pure calculation semantics without Nuxt/Vue or Capacitor runtime coupling.

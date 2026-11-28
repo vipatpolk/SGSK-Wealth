@@ -1,0 +1,15 @@
+[package]
+name = "sgsk-financial-engine"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+sgsk-common.workspace = true
+sgsk-domain.workspace = true
+rust_decimal.workspace = true
+chrono.workspace = true
+csv.workspace = true
+
+[dev-dependencies]
+serde.workspace = true
+serde_json.workspace = true

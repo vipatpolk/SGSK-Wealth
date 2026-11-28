@@ -131,4 +131,27 @@ public class PvdHoldingsSteps {
         assertThat(pvdHoldingsPage.policyName(symbol)).not().containsText(unexpectedText);
         assertThat(pvdHoldingsPage.policyDonutLegendName(symbol)).not().containsText(unexpectedText);
     }
+
+    @Then("the market PVD card {string} should show the contribution split bar without a View Trades link")
+    public void verifyMarketPvdCardSplitWithoutTrades(String symbol) {
+        Locator card = pvdHoldingsPage.heroCard().page().locator("#card-" + symbol);
+        assertThat(card).isVisible();
+        assertThat(card.locator(".card-pvd-split")).isVisible();
+        assertThat(card.locator("[data-testid='holdings-view-trades']")).hasCount(0);
+    }
+
+    @When("I expand the market PVD card {string}")
+    public void expandMarketPvdCard(String symbol) {
+        pvdHoldingsPage.heroCard().page().locator("#toggle-" + symbol).click();
+    }
+
+    @Then("the market PVD card {string} should display the Contribution Breakdown snapshot")
+    public void verifyMarketPvdContributionBreakdown(String symbol) {
+        Locator drawer = pvdHoldingsPage.heroCard().page().locator("#lots-" + symbol);
+        assertThat(drawer).isVisible();
+        assertThat(drawer).containsText("Contribution Breakdown");
+        assertThat(drawer).containsText("Official Snapshot");
+        assertThat(drawer.locator(".pvd-card-employee")).isVisible();
+        assertThat(drawer.locator(".pvd-card-employer")).isVisible();
+    }
 }

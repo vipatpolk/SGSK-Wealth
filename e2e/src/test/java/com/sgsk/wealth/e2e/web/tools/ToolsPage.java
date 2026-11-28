@@ -75,9 +75,9 @@ public class ToolsPage {
 
     public ToolsPage(Page page) {
         this.page = page;
-        this.toolsContainer = page.locator("app-tools");
+        this.toolsContainer = page.locator("#tools-page");
         this.heroTitle = page.locator(".tools-hero-title");
-        this.avgCostCalculator = page.locator("app-avg-cost-calculator");
+        this.avgCostCalculator = page.locator("#avg-cost-calculator");
         this.modeForwardBtn = page.locator("#mode-forward-btn");
         this.modeReverseBtn = page.locator("#mode-reverse-btn");
         this.targetAvgCostInput = page.locator("#target-avg-cost");
@@ -98,7 +98,7 @@ public class ToolsPage {
         this.simAmountInput = page.locator("#input-amount");
 
         // TVM
-        this.tvmCalculator = page.locator("app-tvm-calculator");
+        this.tvmCalculator = page.locator("#tvm-calculator");
         this.tvmHeroDisplay = page.locator(".tvm-hero-display");
         this.tvmHeroTitle = page.locator(".tvm-results-card .card-title");
         this.heroMainValue = page.locator(".hero-main-value");
@@ -116,7 +116,7 @@ public class ToolsPage {
         this.chartAreaBtn = page.locator(".chart-mode-btn:has-text(\"Area\")");
 
         // Rebalance
-        this.rebalanceCalculator = page.locator("app-rebalance-calculator");
+        this.rebalanceCalculator = page.locator("#rebalance-calculator");
         this.rebalanceKpiGrid = page.locator(".rebalance-kpi-grid");
         this.modeStandardBtn = page.locator("#btn-mode-standard");
         this.modeNoSellBtn = page.locator("#btn-mode-nosell");
@@ -261,8 +261,8 @@ public class ToolsPage {
 
     public void closeAvgCostSymbolDropdown() {
         Locator backdrop = page.locator(".symbol-dropdown-backdrop");
-        if (backdrop.isVisible()) {
-            backdrop.dispatchEvent("click");
+        if (backdrop.count() > 0) {
+            backdrop.first().dispatchEvent("click");
         }
         symbolDropdownMenu.waitFor(
                 new Locator.WaitForOptions().setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN));

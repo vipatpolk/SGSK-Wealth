@@ -1,0 +1,11 @@
+[package]
+name = "sgsk-application"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+sgsk-common.workspace = true
+sgsk-domain.workspace = true
+sgsk-financial-engine.workspace = true
+serde.workspace = true
+rust_decimal.workspace = true

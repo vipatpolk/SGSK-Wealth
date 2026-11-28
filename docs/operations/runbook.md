@@ -50,7 +50,7 @@ All backend settings are loaded from process environment variables and optional 
 4. Verify Web (`https://sgsk-wealth.vercel.app`) and Mobile native traffic succeed cleanly without `401` spikes.
 5. Clear `BACKEND_API_KEY_PREVIOUS` and trigger a final redeploy.
 
-**Client Bundle Guard:** Never place `BACKEND_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, or `GOOGLE_SERVICE_ACCOUNT_JSON` in Angular `environment*.ts` or `apps/mobile` native assets. Verify every release build with `npm run check:secrets`.
+**Client Bundle Guard:** Never place `BACKEND_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, or `GOOGLE_SERVICE_ACCOUNT_JSON` in `apps/web` runtime config, client composables, or `apps/mobile` native assets. Verify every release build with `npm run check:secrets`.
 
 ---
 

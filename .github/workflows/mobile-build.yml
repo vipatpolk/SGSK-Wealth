@@ -62,10 +62,8 @@ jobs:
       - name: Install Workspace Dependencies
         run: npm ci
 
-      - name: Build Ionic Mobile Bundle & Sync Capacitor Android Assets
-        run: |
-          npm run build:mobile
-          cd apps/mobile && npx cap copy android
+      - name: Build Nuxt Bundle & Sync Capacitor Android Assets
+        run: npm run cap:sync
 
       - name: Package Android APK via Maven
         env:
@@ -100,9 +98,9 @@ jobs:
       - name: Install Workspace Dependencies
         run: npm ci
 
-      - name: Build Ionic Mobile Bundle & Sync Capacitor iOS
+      - name: Build Nuxt Bundle & Sync Capacitor iOS
         run: |
-          npm run build:mobile
+          npm run generate:web
           cd apps/mobile && npx cap sync ios
 
       - name: Archive & Package iOS IPA

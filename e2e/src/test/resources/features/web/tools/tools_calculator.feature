@@ -189,3 +189,18 @@ Feature: Tools Hub & Investor Simulators
       | TH       | BTC    | Bitcoin                      |
       | EN       | PTT.BK | PTT Public Company Limited   |
       | EN       | K-USA  | Kasikorn US Equity Fund      |
+
+  @TC-TOOLS-22
+  Scenario: TC-TOOLS-22: Average Cost Calculator renders comparison table and cost shift bar
+    When I select the custom simulation option from the symbol dropdown
+    Then the average cost comparison table and cost shift bar should be visible
+
+  @TC-TOOLS-23
+  Scenario: TC-TOOLS-23: TVM Calculator renders capital composition bar and 6 KPI cards
+    When I switch to the TVM Calculator tool
+    Then the TVM capital composition bar and 6 KPI cards should be visible
+
+  @TC-TOOLS-24
+  Scenario: TC-TOOLS-24: Rebalance Planner renders trade execution plan checklist
+    When I switch to the Rebalance Planner tool
+    Then the rebalance execution plan checklist should be visible

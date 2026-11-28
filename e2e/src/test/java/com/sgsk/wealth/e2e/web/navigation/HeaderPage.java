@@ -161,10 +161,20 @@ public class HeaderPage {
         langThBtn.click();
     }
 
+    public void setTheme(String targetTheme) {
+        openUserSettings();
+        if ("light".equalsIgnoreCase(targetTheme)) {
+            settingsThemeLightBtn.click();
+        } else {
+            settingsThemeDarkBtn.click();
+        }
+        closeUserSettings();
+    }
+
     public void toggleTheme() {
         String current = page.locator("html").getAttribute("data-theme");
         openUserSettings();
-        if ("dark".equalsIgnoreCase(current)) {
+        if (current == null || "dark".equalsIgnoreCase(current)) {
             settingsThemeLightBtn.click();
         } else {
             settingsThemeDarkBtn.click();

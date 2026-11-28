@@ -7,10 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 
-const BUNDLE_DIRS = [
-  path.join(rootDir, 'apps', 'web', 'dist'),
-  path.join(rootDir, 'apps', 'mobile', 'dist'),
-];
+const BUNDLE_DIRS = [path.join(rootDir, 'apps', 'web', '.output')];
 
 const FORBIDDEN_LITERALS = ['dev_secret_key_change_in_prod'];
 const envBackendKey = (process.env.BACKEND_API_KEY || '').trim();
@@ -55,7 +52,7 @@ for (const distDir of BUNDLE_DIRS) {
 }
 
 if (scannedFiles === 0) {
-  console.error('[check-bundle-secrets] ERROR: No production JS bundles found in apps/web/dist or apps/mobile/dist.');
+  console.error('[check-bundle-secrets] ERROR: No production JS bundles found in apps/web/.output.');
   process.exit(1);
 }
 

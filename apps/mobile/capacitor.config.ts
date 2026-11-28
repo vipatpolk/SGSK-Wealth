@@ -3,7 +3,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.sgsk.wealth.mobile',
   appName: 'SGSK Wealth',
-  webDir: 'dist/sgsk-wealth-mobile/browser',
+  webDir: '../web/.output/public',
   server: {
     androidScheme: 'http',
     iosScheme: 'capacitor',

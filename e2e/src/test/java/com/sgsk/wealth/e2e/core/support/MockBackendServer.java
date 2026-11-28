@@ -56,9 +56,12 @@ public class MockBackendServer {
             String query = exchange.getRequestURI().getQuery();
             String method = exchange.getRequestMethod();
 
-            // Strip optional /api/backend prefix
+            // Strip optional /api/backend or /api/v1 prefix
             if (path.startsWith("/api/backend")) {
                 path = path.substring("/api/backend".length());
+                if (path.isEmpty()) path = "/";
+            } else if (path.startsWith("/api/v1")) {
+                path = path.substring("/api/v1".length());
                 if (path.isEmpty()) path = "/";
             }
 
@@ -241,9 +244,7 @@ public class MockBackendServer {
                         && !enforceOwnerBearer(exchange, bearerToken)) {
                     return;
                 }
-                String currency = extractJsonString(body, "currency", "USD");
-                sendJsonResponse(exchange, 200,
-                        "{\"currency\":\"" + currency + "\",\"new_shares\":15.0,\"new_avg_cost\":160.0,\"totalCapitalOutlay\":2500.0,\"totalFees\":3.75,\"initial\":{\"totalShares\":10.0,\"averageCost\":150.0,\"totalCost\":1500.0,\"marketPrice\":200.0,\"holdingValue\":2000.0,\"unrealizedPL\":500.0,\"unrealizedPLPercent\":33.33,\"realizedPL\":0.0},\"simulated\":{\"totalShares\":15.0,\"averageCost\":160.0,\"totalCost\":2400.0,\"marketPrice\":200.0,\"holdingValue\":3000.0,\"unrealizedPL\":600.0,\"unrealizedPLPercent\":25.0,\"realizedPL\":0.0},\"delta\":{\"shares\":5.0,\"sharesPercent\":50.0,\"averageCost\":10.0,\"averageCostPercent\":6.67,\"totalCost\":900.0,\"totalCostPercent\":60.0,\"holdingValue\":1000.0,\"holdingValuePercent\":50.0,\"unrealizedPL\":100.0,\"unrealizedPLPercent\":-8.33,\"breakevenDistanceInitial\":-25.0,\"breakevenDistanceSimulated\":-20.0,\"realizedPL\":0.0},\"steps\":[]}");
+                sendJsonResponse(exchange, 200, buildSimulationResponse(body));
                 return;
             }
 
@@ -411,6 +412,106 @@ public class MockBackendServer {
             exchange.sendResponseHeaders(statusCode, bytes.length);
             try (OutputStream os = exchange.getResponseBody()) {
                 os.write(bytes);
+            }
+        }
+
+        private String buildSimulationResponse(String body) {
+            try {
+                double initShares = 10.0;
+                double initAvgCost = 150.0;
+                double initMktPrice = 200.0;
+                String currency = extractJsonString(body, "currency", "USD");
+
+                JsonNode root = (body != null && !body.isBlank()) ? JSON.readTree(body) : null;
+                if (root != null && root.has("initialPosition")) {
+                    JsonNode init = root.get("initialPosition");
+                    initShares = init.path("shares").asDouble(init.path("totalShares").asDouble(initShares));
+                    initAvgCost = init.path("avgCost").asDouble(init.path("averageCost").asDouble(initAvgCost));
+                    initMktPrice = init.path("marketPrice").asDouble(init.path("currentPrice").asDouble(initMktPrice));
+                    if (init.hasNonNull("currency")) {
+                        currency = init.get("currency").asText(currency);
+                    }
+                }
+
+                double simShares = initShares;
+                double simCost = initShares * initAvgCost;
+                double outlay = 0.0;
+                double totalFees = 0.0;
+
+                if (root != null && root.has("steps") && root.get("steps").isArray()) {
+                    for (JsonNode step : root.get("steps")) {
+                        String action = step.path("action").asText("BUY").toUpperCase();
+                        double shares = step.path("shares").asDouble(0.0);
+                        double price = step.path("price").asDouble(initMktPrice);
+                        double feePct = step.path("feePercent").asDouble(0.0);
+                        double gross = shares * price;
+                        double fee = gross * (feePct / 100.0);
+                        totalFees += fee;
+                        if ("SELL".equals(action)) {
+                            double avg = simShares > 0 ? simCost / simShares : 0.0;
+                            simShares = Math.max(0.0, simShares - shares);
+                            simCost = simShares * avg;
+                        } else {
+                            simShares += shares;
+                            simCost += gross + fee;
+                            outlay += gross + fee;
+                        }
+                    }
+                } else {
+                    double gross = 5.0 * 180.0;
+                    simShares += 5.0;
+                    simCost += gross;
+                    outlay += gross;
+                }
+
+                double simAvgCost = simShares > 0 ? simCost / simShares : 0.0;
+                double initCost = initShares * initAvgCost;
+                double initVal = initShares * initMktPrice;
+                double simVal = simShares * initMktPrice;
+
+                ObjectNode resp = JSON.createObjectNode();
+                resp.put("currency", currency);
+                resp.put("new_shares", simShares);
+                resp.put("new_avg_cost", simAvgCost);
+                resp.put("totalCapitalOutlay", outlay);
+                resp.put("totalFees", totalFees);
+
+                ObjectNode initial = resp.putObject("initial");
+                initial.put("totalShares", initShares);
+                initial.put("averageCost", initAvgCost);
+                initial.put("totalCost", initCost);
+                initial.put("marketPrice", initMktPrice);
+                initial.put("holdingValue", initVal);
+                initial.put("unrealizedPL", initVal - initCost);
+                initial.put("unrealizedPLPercent", initCost > 0 ? ((initVal - initCost) / initCost) * 100.0 : 0.0);
+                initial.put("realizedPL", 0.0);
+
+                ObjectNode simulated = resp.putObject("simulated");
+                simulated.put("totalShares", simShares);
+                simulated.put("averageCost", simAvgCost);
+                simulated.put("totalCost", simCost);
+                simulated.put("marketPrice", initMktPrice);
+                simulated.put("holdingValue", simVal);
+                simulated.put("unrealizedPL", simVal - simCost);
+                simulated.put("unrealizedPLPercent", simCost > 0 ? ((simVal - simCost) / simCost) * 100.0 : 0.0);
+                simulated.put("realizedPL", 0.0);
+
+                ObjectNode delta = resp.putObject("delta");
+                delta.put("shares", simShares - initShares);
+                delta.put("sharesPercent", initShares > 0 ? ((simShares - initShares) / initShares) * 100.0 : 0.0);
+                delta.put("averageCost", simAvgCost - initAvgCost);
+                delta.put("averageCostPercent", initAvgCost > 0 ? ((simAvgCost - initAvgCost) / initAvgCost) * 100.0 : 0.0);
+                delta.put("totalCost", simCost - initCost);
+                delta.put("totalCostPercent", initCost > 0 ? ((simCost - initCost) / initCost) * 100.0 : 0.0);
+                delta.put("holdingValue", simVal - initVal);
+                delta.put("holdingValuePercent", initVal > 0 ? ((simVal - initVal) / initVal) * 100.0 : 0.0);
+                delta.put("unrealizedPL", (simVal - simCost) - (initVal - initCost));
+                delta.put("unrealizedPLPercent", 0.0);
+                delta.put("realizedPL", 0.0);
+                resp.putArray("steps");
+                return JSON.writeValueAsString(resp);
+            } catch (Exception e) {
+                return "{\"currency\":\"USD\",\"initial\":{\"totalShares\":10.0,\"averageCost\":150.0},\"simulated\":{\"totalShares\":15.0,\"averageCost\":160.0}}";
             }
         }
 

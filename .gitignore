@@ -27,6 +27,9 @@ htmlcov/
 
 # Frontend & Angular Build Outputs
 dist/
+.nuxt/
+.output/
+.nitro/
 tmp/
 out-tsc/
 bazel-out/

@@ -46,8 +46,9 @@ public class PerformancePage {
     public void selectDatePreset(String preset) {
         if (!datePickerPopover.isVisible()) {
             datePickerTrigger.click();
+            datePickerPopover.waitFor();
         }
-        page.locator(".preset-item:has-text(\"" + preset + "\")").click();
+        datePickerPopover.locator(".preset-item", new Locator.LocatorOptions().setHasText(preset)).first().click();
     }
 
     public Locator symbolTableRowName(String symbol) {

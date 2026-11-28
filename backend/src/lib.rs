@@ -27,6 +27,7 @@ pub fn create_app(state: Arc<AppState>) -> Router {
 
     let api_routes = Router::new()
         .route("/", get(read_root))
+        .route("/health", get(read_root))
         .merge(features::identity::api::auth::router())
         .merge(features::portfolio::api::share_lot::router())
         .merge(features::market_data::api::price::router())
@@ -37,6 +38,8 @@ pub fn create_app(state: Arc<AppState>) -> Router {
 
     Router::new()
         .merge(api_routes.clone())
+        .route("/api/v1/", get(read_root))
+        .nest("/api/v1", api_routes.clone())
         .route("/api/backend/", get(read_root))
         .nest("/api/backend", api_routes)
         .with_state(state.clone())

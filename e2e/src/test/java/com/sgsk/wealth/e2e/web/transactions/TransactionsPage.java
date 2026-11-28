@@ -30,8 +30,8 @@ public class TransactionsPage {
 
     public TransactionsPage(Page page) {
         this.page = page;
-        this.container = page.locator("app-transaction-history");
-        this.transactionRows = page.locator("app-transaction-history tbody tr, app-transaction-history .tx-row");
+        this.container = page.locator("#tx-history-container");
+        this.transactionRows = page.locator("#tx-history-container tbody tr, #tx-history-container .tx-row");
         this.exportCsvTriggerBtn = page.locator("#btn-export-csv-trigger");
         this.exportAllBtn = page.locator("#btn-export-all");
         this.exportOpenBtn = page.locator("#btn-export-scope-open");
@@ -63,11 +63,9 @@ public class TransactionsPage {
     }
 
     public void closeSymbolDropdown() {
-        for (Locator backdrop : page.locator(".desktop-symbol-backdrop, .symbol-dropdown-backdrop").all()) {
-            if (backdrop.isVisible()) {
-                backdrop.dispatchEvent("click");
-                break;
-            }
+        Locator backdrops = page.locator(".desktop-symbol-backdrop, .symbol-dropdown-backdrop");
+        if (backdrops.count() > 0) {
+            backdrops.first().dispatchEvent("click");
         }
         symbolDropdownMenu.waitFor(
                 new Locator.WaitForOptions().setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN));

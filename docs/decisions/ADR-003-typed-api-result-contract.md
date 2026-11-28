@@ -1,7 +1,7 @@
 # ADR-003: Typed `ApiResult<T>` & Explicit Upstream HTTP Status Semantics
 
 - **Status:** Accepted (Implemented in M1 & M4)
-- **Scope:** `packages/contracts/src/api-result.model.ts`, `shared/src/services/`, `backend/src/error.rs`, `backend/src/features/portfolio/api/`
+- **Scope:** `packages/contracts/src/api-result.model.ts`, `apps/web/app/composables/`, `backend/src/error.rs`, `backend/src/features/portfolio/api/`
 
 ## Context
 Previously, HTTP failures (authentication errors, `403` denials, or upstream Google Sheets / market API outages) could be mapped to empty `SheetResult` or zeroed `PortfolioHoldingsResponse` payloads over HTTP `200`, making transient outages indistinguishable from an empty portfolio and risking accidental overwrites of cached UI state.

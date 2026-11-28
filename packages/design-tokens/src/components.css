@@ -61,4 +61,25 @@
   --sgsk-accent: var(--color-accent);
   --sgsk-positive: var(--color-pl-positive);
   --sgsk-negative: var(--color-pl-negative);
+
+  /* Elevation Scale */
+  --z-sticky: 100;
+  --z-sidebar: 200;
+  --z-topbar: 300;
+  --z-backdrop: 400;
+  --z-popover: 450;
+  --z-modal: 500;
+  --z-toast: 600;
+
+  /* Border Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+
+  /* Layout Dimensions */
+  --sidebar-width: 256px;
+  --sidebar-collapsed-width: 72px;
+  --topbar-height: 60px;
+  --mobile-nav-height: 64px;
 }

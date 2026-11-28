@@ -1,7 +1,7 @@
 # ADR-001: Local & Cloud Portfolio Isolation
 
 - **Status:** Accepted (Implemented across M1–M4)
-- **Scope:** `backend/src/utils/supabase_auth.rs`, `shared/src/providers/`, `apps/web/`, `apps/mobile/`
+- **Scope:** `backend/src/utils/supabase_auth.rs`, `apps/web/app/composables/`, `apps/mobile/`
 
 ## Context
 SGSK-Wealth serves two distinct runtime data modes within the same application shell:

@@ -102,4 +102,33 @@ public class PerformanceSteps {
     public void closePerformanceAutocomplete() {
         performancePage.closeSearchAutocomplete();
     }
+
+    @When("I sort the performance table by {string}")
+    public void sortPerformanceTableBy(String column) {
+        context.getPage().locator("#performance-pane thead th").filter(
+                new com.microsoft.playwright.Locator.FilterOptions().setHasText(column)).first().click();
+    }
+
+    @Then("the performance table should display at least {int} symbol row")
+    public void verifyPerformanceTableRowCount(int minRows) {
+        org.junit.jupiter.api.Assertions.assertTrue(
+                context.getPage().locator("#performance-pane .perf-table-row").count() >= minRows,
+                "Expected at least " + minRows + " performance table row");
+    }
+
+    @When("I select performance sort field {string}")
+    public void selectPerformanceSortField(String field) {
+        context.getPage().locator("#perf-sort-select").selectOption(field);
+    }
+
+    @When("I toggle performance sort direction")
+    public void togglePerformanceSortDirection() {
+        context.getPage().locator("#perf-sort-dir-btn").click();
+    }
+
+    @Then("the performance table should display status pills and realized PL values")
+    public void verifyPerformanceStatusPillsAndRealizedPl() {
+        assertThat(context.getPage().locator("#performance-pane .perf-status-pill").first()).isVisible();
+        assertThat(context.getPage().locator("#performance-pane thead")).containsText("Realized P/L");
+    }
 }
